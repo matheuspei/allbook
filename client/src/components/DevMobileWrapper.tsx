@@ -7,27 +7,18 @@ interface DeviceSpec {
   brand: "apple" | "samsung" | "google" | "oneplus" | "xiaomi";
   width: number;
   height: number;
-  borderRadius: number;
-  hasIsland: boolean;
-  hasPunchHole: boolean;
 }
 
 const DEVICES: DeviceSpec[] = [
-  { name: "iPhone 16 Pro Max", brand: "apple", width: 430, height: 932, borderRadius: 54, hasIsland: true, hasPunchHole: false },
-  { name: "iPhone 16", brand: "apple", width: 390, height: 844, borderRadius: 50, hasIsland: true, hasPunchHole: false },
-  { name: "Samsung Galaxy S25 Ultra", brand: "samsung", width: 412, height: 892, borderRadius: 38, hasIsland: false, hasPunchHole: true },
-  { name: "Samsung Galaxy S25", brand: "samsung", width: 360, height: 780, borderRadius: 36, hasIsland: false, hasPunchHole: true },
-  { name: "Google Pixel 9 Pro", brand: "google", width: 412, height: 892, borderRadius: 44, hasIsland: false, hasPunchHole: true },
-  { name: "Google Pixel 9", brand: "google", width: 393, height: 852, borderRadius: 42, hasIsland: false, hasPunchHole: true },
-  { name: "OnePlus 13", brand: "oneplus", width: 412, height: 917, borderRadius: 42, hasIsland: false, hasPunchHole: true },
-  { name: "Xiaomi 15 Pro", brand: "xiaomi", width: 440, height: 978, borderRadius: 46, hasIsland: false, hasPunchHole: true },
+  { name: "iPhone 16 Pro Max", brand: "apple", width: 430, height: 932 },
+  { name: "iPhone 16", brand: "apple", width: 390, height: 844 },
+  { name: "Samsung Galaxy S25 Ultra", brand: "samsung", width: 412, height: 892 },
+  { name: "Samsung Galaxy S25", brand: "samsung", width: 360, height: 780 },
+  { name: "Google Pixel 9 Pro", brand: "google", width: 412, height: 892 },
+  { name: "Google Pixel 9", brand: "google", width: 393, height: 852 },
+  { name: "OnePlus 13", brand: "oneplus", width: 412, height: 917 },
+  { name: "Xiaomi 15 Pro", brand: "xiaomi", width: 440, height: 978 },
 ];
-
-const BEZEL_X = 14;
-const BEZEL_TOP = 14;
-const BEZEL_BOTTOM = 24;
-const TOOLBAR_HEIGHT = 60;
-const PAGE_PADDING = 28;
 
 const BRAND_LABEL: Record<DeviceSpec["brand"], string> = {
   apple: "Apple",
@@ -37,164 +28,8 @@ const BRAND_LABEL: Record<DeviceSpec["brand"], string> = {
   xiaomi: "Xiaomi",
 };
 
-function SideButton({ style }: { style: React.CSSProperties }) {
-  return <div style={style} />;
-}
-
-function PhoneFrame({ device, children }: { device: DeviceSpec; children: ReactNode }) {
-  const isApple = device.brand === "apple";
-  const chassisW = device.width + BEZEL_X * 2;
-  const chassisH = device.height + BEZEL_TOP + BEZEL_BOTTOM;
-  const screenRadius = device.borderRadius - BEZEL_X;
-
-  const buttonBase: React.CSSProperties = {
-    position: "absolute",
-    borderRadius: 2,
-  };
-
-  const leftBtn: React.CSSProperties = {
-    ...buttonBase,
-    left: -4,
-    width: 4,
-    background: "linear-gradient(to right, #161616, #2a2a2a)",
-    boxShadow: "-1px 0 4px rgba(0,0,0,0.7)",
-    borderRadius: "2px 0 0 2px",
-  };
-
-  const rightBtn: React.CSSProperties = {
-    ...buttonBase,
-    right: -4,
-    width: 4,
-    background: "linear-gradient(to left, #161616, #2a2a2a)",
-    boxShadow: "1px 0 4px rgba(0,0,0,0.7)",
-    borderRadius: "0 2px 2px 0",
-  };
-
-  return (
-    <div
-      style={{
-        position: "relative",
-        width: chassisW,
-        height: chassisH,
-        background: isApple
-          ? "linear-gradient(160deg, #303030 0%, #1a1a1a 45%, #2b2b2b 100%)"
-          : "linear-gradient(160deg, #222222 0%, #111111 50%, #1e1e1e 100%)",
-        borderRadius: device.borderRadius,
-        boxShadow: [
-          "0 0 0 1px rgba(255,255,255,0.07)",
-          "0 0 0 2.5px rgba(0,0,0,0.7)",
-          "inset 4px 0 10px -4px rgba(255,255,255,0.05)",
-          "inset -4px 0 10px -4px rgba(0,0,0,0.5)",
-          "inset 0 4px 10px -4px rgba(255,255,255,0.04)",
-          "inset 0 -4px 10px -4px rgba(0,0,0,0.4)",
-          "0 40px 100px rgba(0,0,0,0.85)",
-          "0 20px 50px rgba(0,0,0,0.6)",
-        ].join(", "),
-        flexShrink: 0,
-      }}
-    >
-      {/* Left side buttons */}
-      {isApple ? (
-        <>
-          <SideButton style={{ ...leftBtn, top: 96, height: 30 }} />
-          <SideButton style={{ ...leftBtn, top: 148, height: 62 }} />
-          <SideButton style={{ ...leftBtn, top: 224, height: 62 }} />
-        </>
-      ) : (
-        <>
-          <SideButton style={{ ...leftBtn, top: 118, height: 54 }} />
-          <SideButton style={{ ...leftBtn, top: 188, height: 54 }} />
-        </>
-      )}
-
-      {/* Right side power button */}
-      <SideButton style={{ ...rightBtn, top: isApple ? 158 : 148, height: isApple ? 88 : 70 }} />
-
-      {/* Screen container */}
-      <div
-        style={{
-          position: "absolute",
-          top: BEZEL_TOP,
-          left: BEZEL_X,
-          width: device.width,
-          height: device.height,
-          background: "#000",
-          borderRadius: screenRadius,
-          overflow: "hidden",
-          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.04)",
-        }}
-      >
-        {/* Scrollable app content */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            overflowY: "auto",
-            overflowX: "hidden",
-            WebkitOverflowScrolling: "touch",
-          }}
-        >
-          {children}
-        </div>
-
-        {/* Cutout overlay — non-interactive, sits above content */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            pointerEvents: "none",
-            zIndex: 50,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "flex-start",
-            paddingTop: device.hasIsland ? 14 : 10,
-          }}
-        >
-          {device.hasIsland && (
-            <div
-              style={{
-                width: 126,
-                height: 37,
-                background: "#000",
-                borderRadius: 20,
-              }}
-            />
-          )}
-          {device.hasPunchHole && (
-            <div
-              style={{
-                width: 12,
-                height: 12,
-                background: "#000",
-                borderRadius: "50%",
-                marginTop: 4,
-                boxShadow: "0 0 0 1.5px rgba(255,255,255,0.06)",
-              }}
-            />
-          )}
-        </div>
-
-        {/* Home indicator */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 8,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 134,
-            height: 5,
-            background: "rgba(255,255,255,0.28)",
-            borderRadius: 3,
-            pointerEvents: "none",
-            zIndex: 50,
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+const TOOLBAR_HEIGHT = 60;
+const PAGE_PADDING = 28;
 
 interface Props {
   children: ReactNode;
@@ -207,15 +42,12 @@ export default function DevMobileWrapper({ children }: Props) {
   const [scale, setScale] = useState(1);
   const device = DEVICES[deviceIndex];
 
-  const chassisW = device.width + BEZEL_X * 2;
-  const chassisH = device.height + BEZEL_TOP + BEZEL_BOTTOM;
-
   const computeScale = useCallback(() => {
     const availW = window.innerWidth - PAGE_PADDING * 2;
     const availH = window.innerHeight - TOOLBAR_HEIGHT - PAGE_PADDING * 2;
-    const s = Math.min(availW / chassisW, availH / chassisH, 1);
+    const s = Math.min(availW / device.width, availH / device.height, 1);
     setScale(Math.max(s, 0.3));
-  }, [chassisW, chassisH]);
+  }, [device.width, device.height]);
 
   useEffect(() => {
     computeScale();
@@ -309,7 +141,7 @@ export default function DevMobileWrapper({ children }: Props) {
                     outline: "none",
                   }}
                 >
-                  {d.name.replace(brand + " ", "").replace("iPhone ", "iPhone ").replace("Google ", "").replace("Xiaomi ", "")}
+                  {d.name.replace(brand + " ", "").replace("Google ", "").replace("Xiaomi ", "")}
                 </button>
               );
             })}
@@ -331,7 +163,7 @@ export default function DevMobileWrapper({ children }: Props) {
         </span>
       </div>
 
-      {/* Phone display area */}
+      {/* Device viewport area */}
       <div
         style={{
           flex: 1,
@@ -346,9 +178,22 @@ export default function DevMobileWrapper({ children }: Props) {
           style={{
             transform: `scale(${scale})`,
             transformOrigin: "center center",
+            width: device.width,
+            height: device.height,
+            overflow: "hidden",
+            flexShrink: 0,
           }}
         >
-          <PhoneFrame device={device}>{children}</PhoneFrame>
+          <div
+            style={{
+              width: device.width,
+              height: device.height,
+              overflowY: "auto",
+              overflowX: "hidden",
+            }}
+          >
+            {children}
+          </div>
         </div>
       </div>
     </div>
