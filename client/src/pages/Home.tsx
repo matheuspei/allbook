@@ -1,0 +1,560 @@
+import { Search, Play, Star, ChevronRight, X, Info, MoreVertical, ChevronLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useLocation } from "wouter";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import Fuse from "fuse.js";
+
+import coverScifi from "@/assets/images/cover-scifi.png";
+import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
+import coverRomance from "@/assets/images/cover-romance.png";
+import coverMystery from "@/assets/images/cover-mystery.png";
+import coverBusiness from "@/assets/images/cover-business.png";
+import coverBiography from "@/assets/images/cover-biography.png";
+import coverHorror from "@/assets/images/cover-horror.png";
+import coverProductivity from "@/assets/images/cover-productivity.png";
+
+const heroBooks = [
+  {
+    id: 101,
+    title: "A Psicologia Financeira",
+    author: "Morgan Housel",
+    narrator: "Lidiane Maravilha",
+    cover: coverBusiness,
+    duration: "8h 32min",
+    badge: "AllBook Original",
+    description: "Histórias sobre como lidamos com o dinheiro. O sucesso financeiro não depende de inteligência — depende de comportamento.",
+    rating: 4.8,
+  },
+  {
+    id: 102,
+    title: "Hábitos Atômicos",
+    author: "James Clear",
+    narrator: "Ricardo Marques",
+    cover: coverProductivity,
+    duration: "10h 15min",
+    badge: "Mais Ouvido",
+    description: "Um método fácil e comprovado de criar bons hábitos e eliminar os maus. Pequenas mudanças, resultados notáveis.",
+    rating: 4.9,
+  },
+  {
+    id: 7,
+    title: "Duna",
+    author: "Frank Herbert",
+    narrator: "Bruno Rocha",
+    cover: coverScifi,
+    duration: "21h 48min",
+    badge: "Exclusivo AllBook",
+    description: "Uma saga épica de aventura, política e ecologia em um planeta desértico. O clássico da ficção científica que influenciou gerações.",
+    rating: 4.9,
+  },
+  {
+    id: 111,
+    title: "Minha História",
+    author: "Michelle Obama",
+    narrator: "Ana Paula Silva",
+    cover: coverBiography,
+    duration: "19h 20min",
+    badge: "Best-Seller",
+    description: "A história íntima e inspiradora da ex-primeira-dama dos Estados Unidos. Uma jornada de superação e determinação.",
+    rating: 4.8,
+  },
+];
+
+const continueListening = [
+  {
+    id: 201,
+    title: "A Sutil Arte de Ligar o F*da-se",
+    author: "Mark Manson",
+    cover: coverSelfhelp,
+    progress: 45,
+  },
+  {
+    id: 202,
+    title: "It: A Coisa",
+    author: "Stephen King",
+    cover: coverHorror,
+    progress: 23,
+  },
+  {
+    id: 203,
+    title: "O Alquimista",
+    author: "Paulo Coelho",
+    cover: coverSelfhelp,
+    progress: 78,
+  },
+];
+
+const categoryCards = [
+  { label: "Só na AllBook", gradient: "from-orange-600 to-red-700" },
+  { label: "Best-sellers Internacionais", gradient: "from-blue-600 to-teal-500" },
+  { label: "Mais Ouvidos", gradient: "from-pink-600 to-rose-500" },
+  { label: "Favoritos", gradient: "from-teal-500 to-cyan-400" },
+  { label: "O Brasil Curtiu", gradient: "from-red-700 to-rose-600" },
+  { label: "Lançamentos", gradient: "from-purple-700 to-violet-500" },
+  { label: "Para Maratonar", gradient: "from-teal-600 to-emerald-500" },
+  { label: "Autoajuda & Negócios", gradient: "from-amber-600 to-orange-500" },
+];
+
+const categories = [
+  {
+    title: "Minha lista",
+    books: [
+      { id: 101, title: "A Psicologia Financeira", author: "Morgan Housel", cover: coverBusiness, rating: 4.8 },
+      { id: 102, title: "Hábitos Atômicos", author: "James Clear", cover: coverProductivity, rating: 4.9 },
+      { id: 1, title: "O massacre da família Hope", author: "Riley Sager", cover: coverMystery, rating: 4.5 },
+      { id: 103, title: "A Terra Prometida", author: "Barack Obama", cover: coverBiography, rating: 4.7 },
+      { id: 8, title: "Fundação", author: "Isaac Asimov", cover: coverScifi, rating: 4.8 },
+    ]
+  },
+  {
+    title: "Descubra suas próximas histórias",
+    books: [
+      { id: 2, title: "A empregada", author: "Freida McFadden", cover: coverMystery, rating: 4.8 },
+      { id: 3, title: "Garota Exemplar", author: "Gillian Flynn", cover: coverMystery, rating: 4.6 },
+      { id: 104, title: "It: A Coisa", author: "Stephen King", cover: coverHorror, rating: 4.8 },
+      { id: 105, title: "O Iluminado", author: "Stephen King", cover: coverHorror, rating: 4.9 },
+      { id: 106, title: "A Paciente Silenciosa", author: "Alex Michaelides", cover: coverMystery, rating: 4.5 },
+      { id: 119, title: "O Código Da Vinci", author: "Dan Brown", cover: coverMystery, rating: 4.4 },
+      { id: 120, title: "A Garota no Trem", author: "Paula Hawkins", cover: coverMystery, rating: 4.6 },
+    ]
+  },
+  {
+    title: "🔥 Sugestões que você vai adorar",
+    books: [
+      { id: 7, title: "Duna", author: "Frank Herbert", cover: coverScifi, rating: 4.9 },
+      { id: 109, title: "O Problema dos 3 Corpos", author: "Cixin Liu", cover: coverScifi, rating: 4.6 },
+      { id: 129, title: "O Senhor dos Anéis", author: "J.R.R. Tolkien", cover: coverScifi, rating: 4.9 },
+      { id: 130, title: "1984", author: "George Orwell", cover: coverScifi, rating: 4.8 },
+      { id: 131, title: "Admirável Mundo Novo", author: "Aldous Huxley", cover: coverScifi, rating: 4.7 },
+      { id: 132, title: "A Guerra dos Tronos", author: "George R. R. Martin", cover: coverScifi, rating: 4.9 },
+    ]
+  },
+  {
+    title: "Desenvolvimento e Negócios",
+    books: [
+      { id: 4, title: "O clube das 5 da manhã", author: "Robin Sharma", cover: coverSelfhelp, rating: 4.7 },
+      { id: 107, title: "Essencialismo", author: "Greg McKeown", cover: coverProductivity, rating: 4.6 },
+      { id: 5, title: "Organize-se", author: "Ciara Conlon", cover: coverSelfhelp, rating: 4.3 },
+      { id: 108, title: "Pense de Novo", author: "Adam Grant", cover: coverBusiness, rating: 4.7 },
+      { id: 124, title: "Os 7 Hábitos", author: "Stephen R. Covey", cover: coverProductivity, rating: 4.8 },
+      { id: 125, title: "Pai Rico, Pai Pobre", author: "Robert T. Kiyosaki", cover: coverBusiness, rating: 4.6 },
+    ]
+  },
+  {
+    title: "Biografias e Histórias Reais",
+    books: [
+      { id: 111, title: "Minha História", author: "Michelle Obama", cover: coverBiography, rating: 4.8 },
+      { id: 112, title: "Steve Jobs", author: "Walter Isaacson", cover: coverBiography, rating: 4.7 },
+      { id: 113, title: "A Marca da Vitória", author: "Phil Knight", cover: coverBiography, rating: 4.8 },
+      { id: 135, title: "Eu Sou Malala", author: "Malala Yousafzai", cover: coverBiography, rating: 4.8 },
+      { id: 136, title: "O Diário de Anne Frank", author: "Anne Frank", cover: coverBiography, rating: 4.9 },
+      { id: 137, title: "Em Busca de Sentido", author: "Viktor E. Frankl", cover: coverBiography, rating: 4.8 },
+    ]
+  }
+];
+
+function HeroBillboard() {
+  const [, setLocation] = useLocation();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const dragStartX = useRef<number | null>(null);
+  const dragStartY = useRef<number | null>(null);
+  const isDragging = useRef(false);
+
+  const nextSlide = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % heroBooks.length);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(nextSlide, 6000);
+    return () => clearInterval(interval);
+  }, [nextSlide]);
+
+  const handleSwipe = useCallback((deltaX: number) => {
+    if (Math.abs(deltaX) < 50) return;
+    if (deltaX < 0) {
+      setCurrentIndex((prev) => (prev + 1) % heroBooks.length);
+    } else {
+      setCurrentIndex((prev) => (prev - 1 + heroBooks.length) % heroBooks.length);
+    }
+  }, []);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    dragStartX.current = e.touches[0].clientX;
+    dragStartY.current = e.touches[0].clientY;
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (dragStartX.current === null || dragStartY.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - dragStartX.current;
+    const deltaY = e.changedTouches[0].clientY - dragStartY.current;
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      handleSwipe(deltaX);
+    }
+    dragStartX.current = null;
+    dragStartY.current = null;
+  };
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    dragStartX.current = e.clientX;
+    isDragging.current = true;
+  };
+
+  const onMouseUp = (e: React.MouseEvent) => {
+    if (!isDragging.current || dragStartX.current === null) return;
+    handleSwipe(e.clientX - dragStartX.current);
+    dragStartX.current = null;
+    isDragging.current = false;
+  };
+
+  const hero = heroBooks[currentIndex];
+
+  return (
+    <section
+      data-testid="hero-billboard"
+      className="relative w-full select-none"
+      style={{ height: "75vh", minHeight: "480px" }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      onMouseLeave={() => { isDragging.current = false; dragStartX.current = null; }}
+    >
+      {heroBooks.map((book, idx) => (
+        <div
+          key={book.id}
+          className="absolute inset-0 transition-opacity duration-700"
+          style={{ opacity: idx === currentIndex ? 1 : 0 }}
+        >
+          <img
+            src={book.cover}
+            alt={book.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      ))}
+
+      <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#141414]/70 to-transparent" />
+
+      <div className="absolute bottom-0 left-0 right-0 p-5 pb-8 space-y-3">
+        <div className="inline-flex items-center gap-2">
+          <span className="text-xs font-bold text-primary uppercase tracking-widest" data-testid="text-hero-badge">
+            {hero.badge}
+          </span>
+        </div>
+
+        <h1
+          data-testid="text-hero-title"
+          className="font-display text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight max-w-sm"
+        >
+          {hero.title}
+        </h1>
+
+        <p className="text-sm text-white/70 max-w-sm leading-relaxed line-clamp-3" data-testid="text-hero-description">
+          {hero.description}
+        </p>
+
+        <div className="flex items-center gap-3 text-xs text-white/50">
+          <span>{hero.author}</span>
+          <span>•</span>
+          <span>{hero.duration}</span>
+          <span>•</span>
+          <div className="flex items-center gap-1">
+            <Star className="w-3 h-3 fill-primary text-primary" />
+            <span>{hero.rating}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 pt-2">
+          <button
+            data-testid="button-hero-play"
+            onClick={() => setLocation(`/player/${hero.id}`)}
+            className="flex items-center gap-2 bg-white text-black font-bold px-6 py-2.5 rounded-md text-sm hover:bg-white/90 transition-colors"
+          >
+            <Play className="w-4 h-4 fill-black" />
+            Ouvir
+          </button>
+          <button
+            data-testid="button-hero-info"
+            onClick={() => setLocation(`/book/${hero.id}`)}
+            className="flex items-center gap-2 bg-white/20 text-white font-semibold px-6 py-2.5 rounded-md text-sm hover:bg-white/30 transition-colors backdrop-blur-sm"
+          >
+            <Info className="w-4 h-4" />
+            Mais Informações
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center gap-2 pt-4" data-testid="hero-pagination">
+          {heroBooks.map((_, idx) => (
+            <button
+              key={idx}
+              data-testid={`button-hero-dot-${idx}`}
+              onClick={() => setCurrentIndex(idx)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                idx === currentIndex
+                  ? "bg-white w-6"
+                  : "bg-white/40 hover:bg-white/60"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CategoryGrid() {
+  return (
+    <section className="px-4 py-6 space-y-4" data-testid="category-grid">
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
+        <button data-testid="filter-audiobooks" className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors">
+          Audiobooks
+        </button>
+        <button data-testid="filter-podcasts" className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors">
+          Podcasts
+        </button>
+        <button data-testid="filter-categories" className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors flex items-center gap-1">
+          Categorias
+          <ChevronRight className="w-3 h-3 rotate-90" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3" data-testid="category-cards">
+        {categoryCards.map((cat, idx) => (
+          <button
+            key={idx}
+            data-testid={`card-category-${idx}`}
+            className={`bg-gradient-to-br ${cat.gradient} rounded-lg p-4 text-left font-semibold text-sm text-white h-20 flex items-end hover:opacity-90 transition-opacity active:scale-[0.98]`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ContinueListeningSection() {
+  const [, setLocation] = useLocation();
+
+  return (
+    <section className="px-4 py-2 space-y-4" data-testid="continue-listening">
+      <h2 className="font-display font-bold text-lg text-white">
+        Continuar ouvindo como <span className="text-white/70">matheus</span>
+      </h2>
+      <div className="flex overflow-x-auto scrollbar-hide gap-3 -mx-4 px-4 pb-2">
+        {continueListening.map((book) => (
+          <div
+            key={book.id}
+            className="min-w-[150px] max-w-[150px] group cursor-pointer"
+            onClick={() => setLocation(`/player/${book.id}`)}
+            data-testid={`card-continue-${book.id}`}
+          >
+            <div className="relative rounded-lg overflow-hidden aspect-[3/4] mb-1">
+              <img
+                src={book.cover}
+                alt={book.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center">
+                  <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                <div
+                  className="h-full bg-primary"
+                  style={{ width: `${book.progress}%` }}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between mt-1.5 px-0.5">
+              <button className="text-white/60 hover:text-white transition-colors" data-testid={`button-info-${book.id}`}>
+                <Info className="w-4 h-4" />
+              </button>
+              <button className="text-white/60 hover:text-white transition-colors" data-testid={`button-more-${book.id}`}>
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function BookCarousel({ title, books }: { title: string; books: typeof categories[0]["books"] }) {
+  const [, setLocation] = useLocation();
+
+  return (
+    <section className="py-2 space-y-3" data-testid={`carousel-${title.replace(/\s/g, '-').toLowerCase()}`}>
+      <div className="flex items-center justify-between px-4">
+        <h2 className="font-display font-bold text-lg text-white">{title}</h2>
+        <button className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors" data-testid={`button-see-all-${title.replace(/\s/g, '-').toLowerCase()}`}>
+          Ver tudo
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <div className="flex overflow-x-auto scrollbar-hide gap-3 -mx-0 px-4 pb-2 snap-x snap-mandatory">
+        {books.map((book) => (
+          <div
+            key={book.id}
+            className="min-w-[130px] max-w-[130px] snap-start group cursor-pointer"
+            onClick={() => setLocation(`/book/${book.id}`)}
+            data-testid={`card-book-${book.id}`}
+          >
+            <div className="relative rounded-lg overflow-hidden aspect-[3/4] mb-2 transition-transform duration-200 group-hover:scale-105">
+              <img
+                src={book.cover}
+                alt={book.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-1.5 right-1.5">
+                <button
+                  className="p-1 rounded-full bg-black/50 text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => { e.stopPropagation(); }}
+                  data-testid={`button-options-${book.id}`}
+                >
+                  <MoreVertical className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+            <h3 className="text-sm font-medium text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+              {book.title}
+            </h3>
+            <p className="text-xs text-white/50 mt-0.5 line-clamp-1">{book.author}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SearchResults({ query, onClear }: { query: string; onClear: () => void }) {
+  const [, setLocation] = useLocation();
+
+  const allBooks = useMemo(() => {
+    return categories.flatMap(cat => cat.books);
+  }, []);
+
+  const filteredBooks = useMemo(() => {
+    if (!query.trim()) return [];
+
+    const normalize = (str: string) =>
+      str.normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+    const q = normalize(query);
+
+    const directResults = allBooks.filter(book =>
+      normalize(book.title).includes(q) ||
+      normalize(book.author).includes(q)
+    );
+
+    if (directResults.length > 0) return directResults;
+
+    const fuse = new Fuse(allBooks, {
+      keys: ['title', 'author'],
+      threshold: 0.4,
+      distance: 100,
+      minMatchCharLength: 2,
+      includeScore: true
+    });
+
+    return fuse.search(query).map(result => result.item);
+  }, [query, allBooks]);
+
+  return (
+    <section className="px-4 py-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display font-bold text-xl text-white">Resultados</h2>
+        <span className="text-xs text-white/50">{filteredBooks.length} encontrados</span>
+      </div>
+
+      {filteredBooks.length > 0 ? (
+        <div className="grid grid-cols-3 gap-3">
+          {filteredBooks.map((book) => (
+            <div key={book.id} className="group cursor-pointer" onClick={() => setLocation(`/book/${book.id}`)} data-testid={`card-search-${book.id}`}>
+              <div className="relative rounded-lg overflow-hidden aspect-[3/4] mb-2 transition-transform duration-200 group-hover:scale-105">
+                <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
+              </div>
+              <h3 className="text-xs font-medium text-white leading-tight line-clamp-2">{book.title}</h3>
+              <p className="text-[10px] text-white/50 mt-0.5">{book.author}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 space-y-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white/5 mb-2">
+            <Search className="w-6 h-6 text-white/30" />
+          </div>
+          <p className="text-white/50">Nenhum resultado para "{query}"</p>
+          <button onClick={onClear} className="text-primary text-sm font-bold" data-testid="button-clear-search">
+            Limpar busca
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+export default function Home() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+
+  return (
+    <div className="min-h-screen pb-24 bg-[#141414]" data-testid="page-home">
+      {showSearch && (
+        <div className="fixed inset-0 z-40 bg-[#141414]">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
+            <button onClick={() => { setShowSearch(false); setSearchQuery(""); }} className="text-white/70" data-testid="button-close-search">
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Input
+                type="text"
+                placeholder="Pesquisar títulos ou autores"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+                className="w-full bg-white/10 border-none pl-9 pr-9 h-10 rounded-lg text-white placeholder:text-white/40 focus-visible:ring-1 focus-visible:ring-primary/50"
+                data-testid="input-search"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                  data-testid="button-clear-input"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="overflow-y-auto" style={{ height: "calc(100vh - 56px)" }}>
+            {searchQuery.trim() ? (
+              <SearchResults query={searchQuery} onClear={() => setSearchQuery("")} />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-white/30 text-sm">Digite para pesquisar</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <HeroBillboard />
+
+      <div className="relative z-10 -mt-4">
+        <CategoryGrid />
+        <ContinueListeningSection />
+        {categories.map((category, idx) => (
+          <BookCarousel key={idx} title={category.title} books={category.books} />
+        ))}
+      </div>
+    </div>
+  );
+}
