@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import {
-  Bell,
   BarChart3,
+  Bell,
+  BookOpen,
   Bookmark,
   ChevronRight,
   CreditCard,
   Download,
+  Flame,
+  Headphones,
   HelpCircle,
   Settings,
+  Share2,
+  Trophy,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -18,8 +23,8 @@ import { useToast } from "@/hooks/use-toast";
  * Perfil ("Minha AllBook") — a tela do 4º item do menu inferior.
  *
  * Propositalmente sóbria, no espírito do Audible/Storytel: lista corrida em vez
- * de cartões soltos, ícone de uma cor só em vez de gradiente por item, e a cor
- * de destaque guardada para o que realmente importa. Nada de gamificação.
+ * de cartões soltos e ícone de uma cor só em vez de um gradiente por item. As
+ * conquistas existem, mas discretas — uma fileira, sem medalha colorida.
  *
  * Os números de audição são os mesmos de `Statistics.tsx` — ainda fixos no
  * código, porque não existe backend. Quando a API existir, os dois lugares
@@ -33,17 +38,31 @@ const user = {
   plan: "Premium",
 };
 
+const summary = [
+  { value: "47h", label: "ouvidas" },
+  { value: "5", label: "títulos" },
+  { value: "3 sem.", label: "sequência" },
+  { value: "2", label: "concluídos" },
+];
+
+const achievements = [
+  { icon: Flame, label: "Constante", unlocked: true },
+  { icon: BookOpen, label: "Maratonista", unlocked: true },
+  { icon: Headphones, label: "Meia-noite", unlocked: true },
+  { icon: Trophy, label: "Centenário", unlocked: false },
+];
+
 export default function Profile() {
   const { toast } = useToast();
   const [libraryCount, setLibraryCount] = useState(0);
   const [downloadCount, setDownloadCount] = useState(0);
 
   useEffect(() => {
-    // Mesmas chaves usadas pela tela Biblioteca.
+    // Mesmas chaves usadas pelas telas Biblioteca e Downloads.
     const savedLibrary = JSON.parse(localStorage.getItem("allbook_library") || "[]");
     const savedDownloads = JSON.parse(localStorage.getItem("allbook_downloads") || "[]");
-    setLibraryCount(savedLibrary.length);
-    setDownloadCount(savedDownloads.length);
+    setLibraryCount(Array.isArray(savedLibrary) ? savedLibrary.length : 0);
+    setDownloadCount(Array.isArray(savedDownloads) ? savedDownloads.length : 0);
   }, []);
 
   /** Aviso para as opções cujas telas ainda não foram construídas. */
@@ -54,36 +73,27 @@ export default function Profile() {
     });
   }
 
-  const summary = [
-    { value: "47h", label: "ouvidas" },
-    { value: "5", label: "títulos" },
-    { value: "2", label: "concluídos" },
-  ];
+  const unlockedCount = achievements.filter((item) => item.unlocked).length;
 
   // Uma lista só, em duas partes: o que é conteúdo e o que é conta.
   const sections: {
-    items: {
-      icon: typeof Bell;
-      label: string;
-      hint?: string;
-      href?: string;
-    }[];
-  }[] = [
-    {
-      items: [
-        { icon: Bookmark, label: "Minha lista", hint: libraryCount > 0 ? String(libraryCount) : undefined, href: "/library" },
-        { icon: BarChart3, label: "Estatísticas", href: "/statistics" },
-        { icon: Download, label: "Downloads", hint: downloadCount > 0 ? String(downloadCount) : undefined },
-      ],
-    },
-    {
-      items: [
-        { icon: CreditCard, label: "Plano e assinatura", hint: user.plan },
-        { icon: Bell, label: "Notificações" },
-        { icon: Settings, label: "Configurações" },
-        { icon: HelpCircle, label: "Ajuda e suporte" },
-      ],
-    },
+    icon: typeof Bell;
+    label: string;
+    hint?: string;
+    href?: string;
+  }[][] = [
+    [
+      { icon: Bookmark, label: "Minha lista", hint: libraryCount > 0 ? String(libraryCount) : undefined, href: "/library" },
+      { icon: BarChart3, label: "Estatísticas", href: "/statistics" },
+      { icon: Download, label: "Downloads", hint: downloadCount > 0 ? String(downloadCount) : undefined, href: "/downloads" },
+    ],
+    [
+      { icon: CreditCard, label: "Plano e assinatura", hint: user.plan },
+      { icon: Bell, label: "Notificações", href: "/notifications" },
+      { icon: Settings, label: "Configurações" },
+      { icon: Share2, label: "Convidar amigos" },
+      { icon: HelpCircle, label: "Ajuda e suporte" },
+    ],
   ];
 
   return (
@@ -114,28 +124,70 @@ export default function Profile() {
       </header>
 
       <section className="px-5" data-testid="section-profile-summary">
-        <div className="flex items-center border-y border-white/10 py-5">
+        <Link href="/statistics" className="flex items-center border-y border-white/10 py-5">
           {summary.map((item, idx) => (
             <div
               key={item.label}
               className={`flex-1 text-center ${idx > 0 ? "border-l border-white/10" : ""}`}
               data-testid={`profile-summary-${item.label}`}
             >
-              <p className="text-lg font-bold font-display leading-none">{item.value}</p>
+              <p className="text-base font-bold font-display leading-none">{item.value}</p>
               <p className="text-[11px] text-white/40 mt-1.5">{item.label}</p>
             </div>
           ))}
+        </Link>
+      </section>
+
+      <section className="px-5 py-5 border-b border-white/10" data-testid="section-profile-achievements">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+            Conquistas
+          </h2>
+          <span className="text-[11px] text-white/30">
+            {unlockedCount} de {achievements.length}
+          </span>
+        </div>
+
+        <div className="flex items-start justify-between gap-2">
+          {achievements.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.label}
+                className="flex-1 flex flex-col items-center gap-2"
+                data-testid={`achievement-${item.label.toLowerCase()}`}
+              >
+                <div
+                  className={`w-11 h-11 rounded-full flex items-center justify-center border ${
+                    item.unlocked ? "border-white/15 bg-white/5" : "border-white/5 border-dashed"
+                  }`}
+                >
+                  <Icon
+                    className={`w-[18px] h-[18px] ${item.unlocked ? "text-white/70" : "text-white/15"}`}
+                    strokeWidth={1.75}
+                  />
+                </div>
+                <span
+                  className={`text-[10px] text-center leading-tight ${
+                    item.unlocked ? "text-white/50" : "text-white/20"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </section>
 
       <main className="px-5">
-        {sections.map((section, sectionIdx) => (
+        {sections.map((items, sectionIdx) => (
           <div
             key={sectionIdx}
             className="py-2 border-b border-white/10"
             data-testid={`profile-section-${sectionIdx}`}
           >
-            {section.items.map((item) => {
+            {items.map((item) => {
               const Icon = item.icon;
 
               const content = (

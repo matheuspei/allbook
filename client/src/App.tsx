@@ -9,6 +9,8 @@ import Discover from "@/pages/Discover";
 import Library from "@/pages/Library";
 import Statistics from "@/pages/Statistics";
 import Profile from "@/pages/Profile";
+import Downloads from "@/pages/Downloads";
+import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
 import AudioPlayer from "@/pages/AudioPlayer";
 import BottomNav from "@/components/layout/BottomNav";
@@ -68,6 +70,8 @@ function Router() {
           <Route path="/library" component={Library} />
           <Route path="/statistics" component={Statistics} />
           <Route path="/profile" component={Profile} />
+          <Route path="/downloads" component={Downloads} />
+          <Route path="/notifications" component={Notifications} />
           <Route path="/book/:id" component={BookDetails} />
           <Route path="/player/:id" component={AudioPlayer} />
           <Route component={NotFound} />

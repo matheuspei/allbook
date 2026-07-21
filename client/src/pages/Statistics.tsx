@@ -1,5 +1,6 @@
-import { ArrowLeft, ChevronRight, Share2, Trophy, TrendingUp, Headphones, BookOpen, Target, Flame } from "lucide-react";
+import { ChevronRight, Share2, Trophy, TrendingUp, Headphones, BookOpen, Target, Flame } from "lucide-react";
 import { Link } from "wouter";
+import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
 import { useState } from "react";
@@ -56,16 +57,7 @@ export default function Statistics() {
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="statistics-page">
-      <header className="sticky top-0 z-40 bg-[#141414]/95 backdrop-blur-md border-b border-white/5">
-        <div className="flex items-center gap-4 px-5 py-4">
-          <Link href="/library">
-            <button className="p-2 hover:bg-white/10 rounded-full transition-colors" data-testid="button-back">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-          </Link>
-          <h1 className="text-lg font-bold font-display" data-testid="text-stats-title">Estatísticas</h1>
-        </div>
-      </header>
+      <PageHeader title="Estatísticas" fallback="/profile" />
 
       <main className="px-5 py-6 space-y-8">
         <div className="grid grid-cols-2 gap-3">

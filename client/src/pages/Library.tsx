@@ -1,5 +1,5 @@
-import { Search, ChevronRight, Play, MoreVertical, Download, Users, FolderRoot, LayoutGrid, Trophy, Grid3X3, BookOpen, Plus } from "lucide-react";
-import { Link } from "wouter";
+import { Search, ChevronRight, Play, MoreVertical, Download, Users, FolderRoot, LayoutGrid, Trophy, Grid3X3, BookOpen, Plus, ArrowLeft } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
@@ -8,7 +8,18 @@ import coverScifi from "@/assets/images/cover-scifi.png";
 import { useEffect, useState } from "react";
 
 export default function Library() {
+  const [, setLocation] = useLocation();
   const [libraryBooks, setLibraryBooks] = useState<any[]>([]);
+
+  // Volta para onde a pessoa estava (Perfil, Início...), e não para um destino
+  // fixo. Se ela abriu a URL direto, cai na Início.
+  function goBack() {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      setLocation("/");
+    }
+  }
   const [downloadCount, setDownloadCount] = useState(0);
   const [activeTab, setActiveTab] = useState("todos");
 
@@ -53,10 +64,20 @@ export default function Library() {
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="library-page">
-      <header className="sticky top-0 z-40 bg-[#141414]/95 backdrop-blur-md border-b border-white/5">
+      <header className="sticky top-14 z-30 bg-[#141414]/95 backdrop-blur-md border-b border-white/5">
         <div className="px-5 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold font-display" data-testid="text-library-title">Minha Lista</h1>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={goBack}
+                className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Voltar"
+                data-testid="button-library-back"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-2xl font-bold font-display" data-testid="text-library-title">Minha Lista</h1>
+            </div>
             <div className="flex items-center gap-3">
               <button className="p-2 hover:bg-white/10 rounded-full transition-colors" data-testid="button-search">
                 <Search className="w-5 h-5 text-white/70" />
