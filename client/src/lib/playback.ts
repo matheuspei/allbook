@@ -50,6 +50,11 @@ function notify() {
  * perdia até o nome do que estava ouvindo. É uma lista justamente por isso, no
  * modelo do "Continuar assistindo" da Netflix. Vinte é folgado para uso real e
  * ainda pequeno o bastante para não pesar no `localStorage`.
+ *
+ * **Cheia, quem sai é o mais antigo.** A lista vive ordenada do mais recente
+ * para o mais antigo, então cortar no vigésimo (`slice`) descarta exatamente o
+ * livro tocado há mais tempo — nunca o que a pessoa acabou de ouvir. Reabrir um
+ * livro que já está na lista o traz de volta ao topo em vez de duplicar.
  */
 const MAX_ENTRIES = 20;
 

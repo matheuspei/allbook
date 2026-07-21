@@ -189,6 +189,12 @@ Começar um segundo fazia o primeiro sumir sem deixar rastro.
 - `allbook_playback` virou uma **lista** de até 20 livros começados, ordenada do
   mais recente ao mais antigo. Lê também o formato antigo (objeto só), para não
   apagar o progresso de quem já usava.
+- **Cheia, sai o mais antigo** (perguntado pelo Matheus em 21/07). Como a lista
+  vive ordenada do mais recente ao mais antigo, cortar no vigésimo descarta o
+  livro tocado há mais tempo — nunca o recém-ouvido. Reabrir um livro que já
+  está lá o traz ao topo em vez de duplicar. **Verificado no navegador:** com 20
+  guardados, abrir o 21º manteve 20, pôs o novo no topo, descartou só o mais
+  antigo e deixou os outros 19 intactos.
 - **Três caminhos de volta**, de propósito redundantes: a barrinha (na visita),
   "Continuar ouvindo" na **Início** e "Continuar ouvindo" na **Biblioteca**.
   A da Biblioteca era inventada — dois títulos escritos na mão, um deles o
