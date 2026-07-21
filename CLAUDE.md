@@ -33,6 +33,23 @@ programação** — leve isso em conta em tudo.
 - `npm start` — roda a versão de produção já construída.
 - `npm run db:push` — (uso futuro) cria/atualiza as tabelas no banco de dados.
 
+### A moldura de celular da prévia NÃO simula um celular
+
+Em desenvolvimento o app aparece dentro de uma moldura de telefone
+(`DevMobileWrapper`). Ela é só uma caixa com largura fixa — **as regras
+responsivas do Tailwind (`sm:`, `md:`…) continuam olhando a largura da janela do
+navegador**, não a da moldura. Numa janela larga, a prévia mostra o layout de
+**desktop** espremido num retângulo com cara de celular.
+
+Consequências práticas ao revisar:
+- Classes como `sm:hidden` não se comportam como no celular real. Para ver o
+  layout de celular de verdade, estreite a **janela** do navegador para menos de
+  640px, ou use o modo dispositivo do DevTools.
+- A moldura tem o próprio `overflow`, então **quem rola é ela, não a janela**.
+  Código que lê `window.scrollY` ou chama `window.scrollTo` não funciona na
+  prévia (funciona no app real). Ainda há `window.scrollTo` em `Discover.tsx` e
+  `BookDetails.tsx` — inofensivo, mas não faz nada na prévia.
+
 ## Tecnologias (stack)
 **Frontend:** React 19, Vite, TypeScript (strict), Tailwind CSS v4 (plugin
 `@tailwindcss/vite`), shadcn/ui (base Radix UI), Framer Motion (animações),

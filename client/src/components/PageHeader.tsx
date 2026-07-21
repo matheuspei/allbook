@@ -32,7 +32,14 @@ export default function PageHeader({
 
   return (
     <header
-      className="sticky top-14 z-30 bg-[#141414]/95 backdrop-blur-md border-b border-white/5"
+      /**
+       * O deslocamento tem de bater com a altura do `TopNav`, que muda de
+       * tamanho: em telas estreitas ele ganha uma segunda fileira com os links
+       * (56px da fileira principal + 32px dos links = 88px); de `sm` para cima
+       * os links cabem na primeira fileira e ele fica com 56px. Fixar em 56px
+       * fazia este cabeçalho subir por cima do menu em qualquer celular.
+       */
+      className="sticky top-[88px] sm:top-14 z-30 bg-[#141414]/95 backdrop-blur-md border-b border-white/5"
       data-testid="page-header"
     >
       <div className="flex items-center gap-3 px-4 h-14">

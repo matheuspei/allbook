@@ -8,11 +8,24 @@ export default function TopNav() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+    /**
+     * O ouvinte fica no `document` em fase de captura porque o evento `scroll`
+     * não borbulha. Assim vale tanto quando quem rola é a janela (o app de
+     * verdade) quanto quando é um contêiner interno — o caso do
+     * `DevMobileWrapper`, cuja moldura de celular tem o próprio `overflow`.
+     * Escutando só a janela, na prévia o menu nunca ficava opaco.
+     */
+    const handleScroll = (event: Event) => {
+      const target = event.target;
+      const top =
+        target instanceof HTMLElement && target !== document.documentElement
+          ? target.scrollTop
+          : window.scrollY;
+      setScrolled(top > 20);
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    document.addEventListener("scroll", handleScroll, { passive: true, capture: true });
+    return () => document.removeEventListener("scroll", handleScroll, { capture: true });
   }, []);
 
   const navLinks = [
@@ -22,12 +35,21 @@ export default function TopNav() {
     { name: "Estatísticas", path: "/statistics" },
   ];
 
+  /**
+   * O fundo transparente existe para o menu flutuar sobre a imagem grande da
+   * Início. Nas outras telas não há imagem embaixo — ali ele só deixava o
+   * conteúdo aparecer atravessando o menu ao rolar. Por isso: opaco sempre,
+   * menos no topo da Início.
+   */
+  const isHome = location === "/";
+  const opaque = scrolled || !isHome;
+
   return (
     <header
       data-testid="top-nav"
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled
+        opaque
           ? "bg-background/95 backdrop-blur-md shadow-lg"
           : "bg-gradient-to-b from-black/80 to-transparent"
       )}
