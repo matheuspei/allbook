@@ -11,7 +11,6 @@ import {
   Flame,
   Headphones,
   HelpCircle,
-  Instagram,
   Settings,
   Share2,
   Trophy,
@@ -125,19 +124,6 @@ export default function Profile() {
           <p className="text-sm text-white/60 leading-relaxed mt-4" data-testid="text-profile-bio">
             {profile.bio}
           </p>
-        )}
-
-        {profile.instagram && (
-          <a
-            href={`https://instagram.com/${profile.instagram}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors mt-3"
-            data-testid="link-profile-instagram"
-          >
-            <Instagram className="w-4 h-4" />
-            @{profile.instagram}
-          </a>
         )}
 
         <Link

@@ -14,9 +14,13 @@ export interface Profile {
   email: string;
   /** Foto em data URL (o arquivo é reduzido antes de salvar). Vazio = usa a inicial. */
   photo: string;
+  /**
+   * Texto livre. Se a pessoa quiser divulgar uma rede social, escreve o @ aqui
+   * por conta própria — o app não tem campo de link nem transforma isso em
+   * link clicável, de propósito: não cabe à plataforma empurrar quem está aqui
+   * para fora, nem abrir uma porta fácil para autopromoção.
+   */
   bio: string;
-  /** Sem o "@" — a interface acrescenta na hora de mostrar. */
-  instagram: string;
 }
 
 export const MAX_BIO = 160;
@@ -26,15 +30,20 @@ export const defaultProfile: Profile = {
   email: "matheus@allbook.com.br",
   photo: "",
   bio: "",
-  instagram: "",
 };
 
 export function readProfile(): Profile {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
     if (!stored || typeof stored !== "object") return defaultProfile;
-    // Mistura com o padrão para não quebrar se um campo novo for adicionado depois.
-    return { ...defaultProfile, ...stored };
+    // Só os campos conhecidos: descarta o que sobrou de versões anteriores
+    // (havia um campo de Instagram, retirado de propósito).
+    return {
+      name: typeof stored.name === "string" ? stored.name : defaultProfile.name,
+      email: typeof stored.email === "string" ? stored.email : defaultProfile.email,
+      photo: typeof stored.photo === "string" ? stored.photo : defaultProfile.photo,
+      bio: typeof stored.bio === "string" ? stored.bio : defaultProfile.bio,
+    };
   } catch {
     return defaultProfile;
   }
@@ -47,16 +56,6 @@ export function saveProfile(profile: Profile): void {
 /** A inicial mostrada quando não há foto. */
 export function initialOf(name: string): string {
   return name.trim().charAt(0).toUpperCase() || "?";
-}
-
-/** Tira "@", espaços e uma URL colada inteira, deixando só o nome de usuário. */
-export function cleanHandle(value: string): string {
-  return value
-    .trim()
-    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
-    .replace(/\/+$/, "")
-    .replace(/^@/, "")
-    .replace(/\s+/g, "");
 }
 
 /**

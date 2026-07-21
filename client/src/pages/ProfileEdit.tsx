@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { Camera, Instagram, Trash2 } from "lucide-react";
+import { Camera, Trash2 } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import {
   MAX_BIO,
-  cleanHandle,
   fileToSquareDataUrl,
   initialOf,
   readProfile,
@@ -69,7 +68,6 @@ export default function ProfileEdit() {
       ...form,
       name: form.name.trim(),
       bio: form.bio.trim(),
-      instagram: cleanHandle(form.instagram),
     };
 
     try {
@@ -187,28 +185,9 @@ export default function ProfileEdit() {
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary/50 transition-colors resize-none placeholder:text-white/25"
               data-testid="input-bio"
             />
+            <p className="text-[11px] text-white/30">Texto livre — o que você escrever aqui é por sua conta.</p>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="instagram" className="block text-xs font-semibold text-white/40 uppercase tracking-wider">
-              Instagram
-            </label>
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus-within:border-primary/50 transition-colors">
-              <Instagram className="w-4 h-4 text-white/30 shrink-0" />
-              <span className="text-sm text-white/30">@</span>
-              <input
-                id="instagram"
-                type="text"
-                value={form.instagram}
-                onChange={(e) => update("instagram", e.target.value)}
-                maxLength={30}
-                placeholder="seu.usuario"
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-white/25"
-                data-testid="input-instagram"
-              />
-            </div>
-            <p className="text-[11px] text-white/30">Opcional. Aparece no seu perfil para outras pessoas.</p>
-          </div>
         </section>
 
         <p className="text-[11px] text-white/25 leading-relaxed">
