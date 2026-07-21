@@ -1,6 +1,7 @@
 import { ChevronRight, Share2, Trophy, TrendingUp, Headphones, BookOpen, Target, Flame } from "lucide-react";
 import { Link } from "wouter";
 import PageHeader from "@/components/PageHeader";
+import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
 import { useState } from "react";
@@ -9,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function Statistics() {
   const { toast } = useToast();
   const [activeFilter, setActiveFilter] = useState("Mensalmente");
+  const [openStat, setOpenStat] = useState<StatKey | null>(null);
 
   const chartData: Record<string, any[]> = {
     "Hoje": [
@@ -41,11 +43,12 @@ export default function Statistics() {
     ]
   };
 
-  const quickStats = [
-    { icon: Headphones, label: "Horas ouvidas", value: "47h", color: "from-blue-500 to-cyan-500" },
-    { icon: BookOpen, label: "Títulos", value: "5", color: "from-purple-500 to-pink-500" },
-    { icon: Flame, label: "Sequência", value: "3 sem.", color: "from-amber-500 to-orange-500" },
-    { icon: Target, label: "Completos", value: "2", color: "from-emerald-500 to-teal-500" },
+  // Mesma chave usada no Perfil: os dois lugares abrem o mesmo painel.
+  const quickStats: { icon: typeof Headphones; label: string; value: string; color: string; key: StatKey }[] = [
+    { icon: Headphones, label: "Horas ouvidas", value: "47h", color: "from-blue-500 to-cyan-500", key: "horas" },
+    { icon: BookOpen, label: "Títulos", value: "5", color: "from-purple-500 to-pink-500", key: "titulos" },
+    { icon: Flame, label: "Sequência", value: "3 sem.", color: "from-amber-500 to-orange-500", key: "sequencia" },
+    { icon: Target, label: "Concluídos", value: "2", color: "from-emerald-500 to-teal-500", key: "concluidos" },
   ];
 
   const handleShare = () => {
@@ -59,12 +62,19 @@ export default function Statistics() {
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="statistics-page">
       <PageHeader title="Estatísticas" fallback="/profile" />
 
+      <StatSpotlight stat={openStat} onClose={() => setOpenStat(null)} />
+
       <main className="px-5 py-6 space-y-8">
         <div className="grid grid-cols-2 gap-3">
           {quickStats.map((stat, idx) => {
             const Icon = stat.icon;
             return (
-              <div key={idx} className="bg-white/5 rounded-xl border border-white/5 p-4 space-y-3" data-testid={`stat-card-${stat.label.toLowerCase().replace(/ /g, '-')}`}>
+              <button
+                key={idx}
+                onClick={() => setOpenStat(stat.key)}
+                className="bg-white/5 rounded-xl border border-white/5 p-4 space-y-3 text-left hover:bg-white/10 active:scale-95 transition-all duration-150"
+                data-testid={`stat-card-${stat.label.toLowerCase().replace(/ /g, '-')}`}
+              >
                 <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
                   <Icon className="w-5 h-5 text-white" />
                 </div>
@@ -72,7 +82,7 @@ export default function Statistics() {
                   <span className="text-2xl font-bold">{stat.value}</span>
                   <p className="text-[11px] text-white/40 mt-0.5">{stat.label}</p>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
