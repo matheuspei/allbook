@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# Backup automatico: assim que um commit e feito, envia para o GitHub.
+#
+# Ativado com:  git config core.hooksPath .githooks
+# Para desligar: git config --unset core.hooksPath
+#
+# Se nao houver internet, o commit continua salvo aqui no computador —
+# so o envio falha, e o aviso abaixo lembra de rodar 'git push' depois.
+
+branch=$(git rev-parse --abbrev-ref HEAD)
+
+if git push origin "$branch" >/dev/null 2>&1; then
+  echo "[backup] commit enviado para o GitHub ($branch)"
+else
+  echo "[backup] AVISO: nao consegui enviar para o GitHub."
+  echo "[backup] O commit esta salvo no computador. Rode 'git push' quando puder."
+fi

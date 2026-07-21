@@ -133,6 +133,14 @@ Detalhes e checklist completo em `docs/ROTEIRO.md`.
 - Nunca deixar o trabalho semanas sem backup no GitHub.
 - Repositório: `github.com/matheuspei/allbook` · branch principal: `main`.
 
+**Backup automático (ativo):** o hook `.githooks/post-commit` faz o push sozinho a
+cada commit. Consequência importante: **todo commit vai direto para o GitHub** — não
+existe mais um estado "commitado mas não publicado" para revisar antes. Se o push
+falhar (sem internet), o hook avisa no terminal e o commit fica salvo só localmente.
+
+Numa cópia nova do repositório, o hook precisa ser ligado uma vez com
+`git config core.hooksPath .githooks`.
+
 ## O que NÃO fazer
 - Não expor segredos/chaves no código — usar variáveis de ambiente (`.env`, já ignorado no git).
 - Não instalar bibliotecas grandes sem necessidade.

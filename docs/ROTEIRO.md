@@ -66,7 +66,8 @@ Dados: usar os fixos existentes + capas de gênero. Sem backend. Coleções por 
 ## 5. Backlog de faxina técnica (não urgente)
 - **`@assets` aponta para pasta inexistente** (`attached_assets/` em `vite.config.ts`). Criar a pasta vazia ou remover o atalho, antes que algum import futuro quebre.
 - **Metatags do Replit no `client/index.html`** (`og:image`/`twitter:image` apontam pro Replit). Trocar por uma imagem do AllBook antes de divulgar links.
-- **Backup automático não existe** — disciplina é commit + push manual a cada etapa (o Claude Code faz).
+- ~~Backup automático não existe~~ — resolvido em 21/07: o hook `.githooks/post-commit`
+  envia todo commit para o GitHub sozinho. Antes disso, todo push era manual.
 - ~~`npm run build` quebrado~~ — resolvido em 21/07: faltava o `script/build.ts` que o `package.json` chamava. Agora gera `dist/public` (frontend) e `dist/index.cjs` (servidor), e o `npm start` sobe.
 
 ---
