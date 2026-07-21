@@ -44,11 +44,10 @@ Checklist das telas que faltam:
   que o botão "Baixar" do `BookDetails` já gravava sem ninguém ler.
 - [x] **Notificações** — PRONTA (21/07). Rota `/notifications`, avisos de exemplo
   apontando para livros do catálogo, com lidas e não lidas.
-- [x] **Comunidade** — PRONTA (21/07). Rotas `/community` e `/user/:slug`, mais
-  `/profile/recommendations` para montar a própria lista pública. Os leitores são
-  fictícios (`client/src/lib/community.ts`) e o nome nos comentários de cada livro
-  leva ao perfil de quem escreveu. Ver a memória "AllBook: comunidade" para as
-  decisões de produto por trás disso.
+- [x] **Comunidade** — REFEITA em 21/07 (noite). Deixou de ser um diretório de
+  nomes e passou a ser "o que andou acontecendo entre quem você segue". Rotas
+  `/community` e `/user/:slug`, mais `/profile/recommendations`. Ver "Decisões da
+  Comunidade" abaixo — a primeira versão foi rejeitada pelo Matheus.
 - [x] **Login / Cadastro** — PRONTA (21/07). Rota `/login`, tela cheia (sem menus,
   como o player). Uma tela só, alternando entre "Entrar" e "Criar conta".
   Sessão em `client/src/lib/auth.ts`. Ver as decisões abaixo.
@@ -110,6 +109,46 @@ Dados: usar os fixos existentes + capas de gênero. Sem backend. Coleções por 
 - ~~Pendente: ligar o "Sair da conta" do `Profile.tsx` ao `signOut()`~~ — feito
   em 21/07, na sessão do perfil. Sai com confirmação, e quem não tem sessão vê
   "Entrar ou criar conta" no lugar do "Sair".
+
+### Decisões da Comunidade (21/07, noite) — a primeira versão foi rejeitada
+
+**O que foi rejeitado e por quê.** A Comunidade era uma **lista de nomes**: você
+tinha de escolher uma pessoa *antes* de ter qualquer motivo para se importar com
+ela. Diretório de estranhos não funciona; o defeito era a ordem das coisas, não a
+falta de recursos.
+
+**Premissas que o Claude errou nessa conversa, para ninguém repetir:**
+- Os leitores fictícios de `community.ts` **são esqueleto de propósito** — vão
+  virar gente de verdade quando houver backend. Argumentar "partida a frio" ou
+  "conteúdo falso" contra eles não vale: eles existem justamente para dar o que
+  ver enquanto se constrói.
+- **Nada de comunidade no Início.** O foco do app é sempre o audiolivro; o social
+  é secundário e fica escondido, alcançado pelo Perfil. **Rejeitada** a proposta
+  de uma faixa "recomendado por quem você segue" na tela inicial.
+- **Não é um feed tipo Instagram/Facebook.** É uma tela de atividade contida, com
+  dois tipos de acontecimento e nada de rolagem infinita.
+
+**O desenho aceito:**
+- **Seguir** nasce de um encontro, não de um índice: você lê um comentário na
+  tela do livro → clica no nome → vê o perfil → segue. O caminho já existia; o
+  botão é o que faltava.
+- `/community` mostra **quem você segue** e o que essas pessoas andaram fazendo:
+  *recomendou um livro* e *comentou num livro*. Só esses dois.
+- **Sem seguir ninguém**, a tela mostra **sugestões com motivo** ("recomenda 3
+  livros que estão na sua lista") em vez do diretório alfabético.
+- **Fundação obrigatória:** o comentário deixou de morar dentro do
+  `BookDetails.tsx` (era `{ user: "Beto", text }`, sem dono nem data) e virou
+  lista própria em `client/src/lib/comments.ts`, com autor, livro, nota e data.
+  Sem isso não existe "o que fulano comentou". É também o formato que o backend
+  vai pedir.
+- **Adiado de propósito: responder a comentário (debate).** Responder pertence à
+  página do livro, embaixo do comentário — não à tela de comunidade. Fica barato
+  de fazer depois que os comentários viraram lista própria. Primeiro ver se
+  seguir + atividade se sustentam no uso.
+
+**Na fila (pedido do Matheus, 21/07):** curtir e descurtir o comentário de
+alguém. Ponto a decidir na hora de fazer: se o descurtir é **visível** para
+todos (vira placar e pune quem escreveu) ou se só afeta o que **você** vê.
 
 ### Decisões da tela de Configurações (21/07)
 

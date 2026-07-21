@@ -1,4 +1,5 @@
-import { ArrowLeft, Share2, Play, Star, ChevronRight, Download, MoreVertical, Megaphone, Mic, BookOpen, Quote, User, Check, Library as LibraryIcon, Plus, Clock, Headphones } from "lucide-react";
+import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, Quote, User, Check, Plus, Clock, Headphones } from "lucide-react";
+import BookActionsMenu from "@/components/BookActionsMenu";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,21 +9,9 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { catalog, findGenreBySlug, slugify, duracaoEstimada } from "@/lib/books";
 import { findPerson } from "@/lib/people";
-import {
-  isRecommended as estaRecomendado,
-  toggleRecommendation as alternarRecomendacao,
-} from "@/lib/recommendations";
-import { findMemberByName } from "@/lib/community";
+import { findMember } from "@/lib/community";
+import { commentsForBook } from "@/lib/comments";
 import PersonAvatar from "@/components/PersonAvatar";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
@@ -44,11 +33,7 @@ const bookData: Record<string, any> = {
     summary: "Setenta anos atrás, a mansão Hope foi palco de um crime brutal que chocou a pacata cidade litorânea. Agora, Kit McDeere é contratada como cuidadora de Lenora Hope, a única sobrevivente do massacre, que nunca falou sobre aquela noite. Em uma casa caindo aos pedaços, Kit descobre que os segredos da família Hope são muito mais profundos e perigosos do que qualquer um poderia imaginar.",
     cover: coverMystery,
     performance: 4.8,
-    story: 4.3,
-    comments: [
-      { user: "Ana Paula", rating: 5, text: "Suspense do início ao fim! A narração traz um peso incrível para a história." },
-      { user: "Marcos V.", rating: 4, text: "Reviravoltas inesperadas. Um dos melhores que ouvi este ano." }
-    ]
+    story: 4.3
   },
   "5": {
     title: "Organize-se",
@@ -60,11 +45,7 @@ const bookData: Record<string, any> = {
     summary: "Neste guia prático, Ciara Conlon apresenta técnicas essenciais para retomar o controle de sua vida e carreira. Aprenda a eliminar distrações, priorizar o que realmente importa e criar sistemas de organização que funcionam no longo prazo. Um audiolivro indispensável para quem busca fazer mais em menos tempo sem sacrificar o bem-estar mental.",
     cover: coverSelfhelp,
     performance: 4.5,
-    story: 4.1,
-    comments: [
-      { user: "Ricardo", rating: 5, text: "Dicas muito práticas que comecei a aplicar no mesmo dia. Recomendo!" },
-      { user: "Juliana S.", rating: 4, text: "A voz da narradora é muito calmante e o conteúdo é bem estruturado." }
-    ]
+    story: 4.1
   },
   "101": {
     title: "A Psicologia Financeira",
@@ -76,11 +57,7 @@ const bookData: Record<string, any> = {
     summary: "O sucesso financeiro tem menos a ver com a sua inteligência e muito mais com o seu comportamento. Morgan Housel compartilha 19 histórias curtas que exploram as formas estranhas como as pessoas pensam sobre o dinheiro e ensina como ter uma relação melhor com suas finanças, focando na liberdade e na paz de espírito em vez de apenas números.",
     cover: coverBusiness,
     performance: 4.9,
-    story: 4.7,
-    comments: [
-      { user: "Felipe G.", rating: 5, text: "Mudou completamente minha visão sobre investimentos. Essencial." },
-      { user: "Carla Lima", rating: 5, text: "Texto leve e profundo ao mesmo tempo. Excelente narração." }
-    ]
+    story: 4.7
   },
   "102": {
     title: "Hábitos Atômicos",
@@ -92,11 +69,7 @@ const bookData: Record<string, any> = {
     summary: "Pequenas mudanças, resultados impressionantes. James Clear revela como transformações minúsculas no seu dia a dia podem levar a resultados gigantescos. Baseado em ciência biológica e psicológica, este audiolivro oferece um método comprovado para quebrar maus hábitos e construir rotinas positivas de forma automática.",
     cover: coverProductivity,
     performance: 4.9,
-    story: 4.9,
-    comments: [
-      { user: "Beto", rating: 5, text: "O melhor livro sobre hábitos já escrito. Ponto final." },
-      { user: "Luciana", rating: 5, text: "Prático, direto e transformador. Ouço repetidamente para fixar." }
-    ]
+    story: 4.9
   }
 };
 
@@ -112,9 +85,6 @@ const defaultBook = {
   cover: coverScifi,
   performance: 4.5,
   story: 4.5,
-  comments: [
-    { user: "Usuário AllBook", rating: 5, text: "Excelente experiência auditiva!" }
-  ]
 };
 
 /**
@@ -179,14 +149,14 @@ function PessoaDoLivro({
 /**
  * Quem escreveu o comentário.
  *
- * Se a pessoa existe na comunidade, o nome leva ao perfil dela — é o caminho
- * natural: você lê a opinião de alguém e quer saber o que mais ele indica.
- * Quem não tem perfil (o "Usuário AllBook" genérico) aparece igual, mas sem
- * link, em vez de oferecer um clique que levaria a lugar nenhum.
+ * O nome leva ao perfil da pessoa — é o caminho natural: você lê a opinião de
+ * alguém, quer saber o que mais ela indica, e é dali que sai o "seguir". Se o
+ * slug não existir mais na comunidade, mostra um autor genérico sem link, em
+ * vez de oferecer um clique que levaria a lugar nenhum.
  */
-function AutorDoComentario({ nome }: { nome: string }) {
+function AutorDoComentario({ slug }: { slug: string }) {
   const [, navegar] = useLocation();
-  const membro = findMemberByName(nome);
+  const membro = findMember(slug);
 
   const avatar = (
     <span
@@ -204,7 +174,7 @@ function AutorDoComentario({ nome }: { nome: string }) {
     return (
       <div className="flex items-center gap-2">
         {avatar}
-        <span className="text-sm font-bold">{nome}</span>
+        <span className="text-sm font-bold">Leitor AllBook</span>
       </div>
     );
   }
@@ -225,36 +195,6 @@ function AutorDoComentario({ nome }: { nome: string }) {
   );
 }
 
-/**
- * Uma linha do menu "Mais". Fecha a folha ao ser tocada — menos quando está
- * desabilitada, porque aí nada aconteceu e fechar confundiria.
- */
-function AcaoDoMenu({
-  icone: Icone,
-  rotulo,
-  aoClicar,
-  desabilitado = false,
-}: {
-  icone: React.ComponentType<{ className?: string }>;
-  rotulo: string;
-  aoClicar: () => void;
-  desabilitado?: boolean;
-}) {
-  const botao = (
-    <button
-      type="button"
-      onClick={aoClicar}
-      disabled={desabilitado}
-      className="flex w-full items-center gap-4 rounded-xl px-3 py-3.5 text-left text-[15px] text-white transition-colors hover:bg-white/5 active:bg-white/10 disabled:opacity-40"
-      data-testid={`menu-action-${rotulo}`}
-    >
-      <Icone className="h-5 w-5 shrink-0 text-white/60" />
-      {rotulo}
-    </button>
-  );
-
-  return desabilitado ? botao : <DrawerClose asChild>{botao}</DrawerClose>;
-}
 
 /**
  * O gênero do livro levando à tela da categoria.
@@ -325,11 +265,9 @@ export default function BookDetails({ params }: { params: { id: string } }) {
    */
   const book = { ...buildFromCatalog(params.id), ...(bookData[params.id] ?? {}) };
 
-  // Só entram no menu os atalhos que levam a algum lugar de verdade: um livro
-  // fora do catálogo não tem autor, narrador nem categoria para onde ir.
-  const autorDoLivro = findPerson(slugify(book.author));
-  const narradorDoLivro = findPerson(slugify(book.narrator));
-  const generoDoLivro = findGenreBySlug(slugify(book.genre));
+  // Os comentários não moram mais dentro do livro: vêm da lista própria, que é
+  // a mesma fonte que o perfil de cada leitor consulta.
+  const comentarios = commentsForBook(Number(params.id));
 
   const [chapters] = useState(() => {
     const count = 8 + Math.floor(Math.random() * 7);
@@ -340,90 +278,6 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     }));
   });
 
-  // "Recomendar" é diferente de "Minha Lista": a lista é intenção privada, a
-  // recomendação aparece no perfil, com o nome da pessoa junto.
-  const [isRecommended, setIsRecommended] = useState(() => estaRecomendado(Number(params.id)));
-
-  const toggleRecomendar = () => {
-    const proximos = alternarRecomendacao(Number(params.id));
-    const agoraRecomendado = proximos.includes(Number(params.id));
-    setIsRecommended(agoraRecomendado);
-
-    toast({
-      title: agoraRecomendado ? "Recomendado!" : "Removido das recomendações",
-      description: agoraRecomendado
-        ? `${book.title} agora aparece no seu perfil.`
-        : `${book.title} saiu do seu perfil.`,
-    });
-  };
-
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  const [isDownloaded, setIsDownloaded] = useState(() => {
-    const downloads = JSON.parse(localStorage.getItem("allbook_downloads") || "[]");
-    return downloads.includes(params.id);
-  });
-
-  /**
-   * `navigator.share` abre a folha de compartilhamento nativa, mas só existe em
-   * celular e em contexto seguro. No navegador do computador caímos para copiar
-   * o link, que é o que dá para oferecer sem inventar uma tela de partilha.
-   */
-  const compartilhar = async () => {
-    const url = `${window.location.origin}/book/${book.id}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: book.title,
-          text: `${book.title}, de ${book.author}, no AllBook.`,
-          url,
-        });
-      } catch {
-        // A pessoa fechou a folha nativa. Não é erro, não avisa nada.
-      }
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(url);
-      toast({ title: "Link copiado", description: "Agora é só colar onde quiser." });
-    } catch {
-      toast({ title: "Não consegui copiar o link", description: url });
-    }
-  };
-
-  const handleDownload = () => {
-    if (isDownloaded || isDownloading) return;
-    
-    setIsDownloading(true);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 15;
-      if (progress >= 100) {
-        progress = 100;
-        setDownloadProgress(100);
-        clearInterval(interval);
-        
-        const downloads = JSON.parse(localStorage.getItem("allbook_downloads") || "[]");
-        if (!downloads.includes(params.id)) {
-          downloads.push(params.id);
-          localStorage.setItem("allbook_downloads", JSON.stringify(downloads));
-        }
-        
-        setTimeout(() => {
-          setIsDownloading(false);
-          setIsDownloaded(true);
-          toast({
-            title: "Download Concluído",
-            description: "Conteúdo criptografado e salvo no armazenamento seguro do app.",
-          });
-        }, 500);
-      } else {
-        setDownloadProgress(Math.floor(progress));
-      }
-    }, 400);
-  };
 
   const addToLibrary = () => {
     const library = JSON.parse(localStorage.getItem("allbook_library") || "[]");
@@ -475,9 +329,22 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               <ArrowLeft className="w-5 h-5" />
             </button>
           </Link>
-          <button onClick={compartilhar} className="p-2.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-colors" data-testid="button-share">
-            <Share2 className="w-5 h-5" />
-          </button>
+          {/*
+            Os três pontinhos ficam aqui em cima, onde Netflix e Spotify os
+            põem. Antes o "Mais" dividia uma fileira no meio da tela com um
+            botão "Baixar" solto — e baixar já era uma das opções de dentro do
+            menu, então a fileira repetia o que o menu oferecia. Compartilhar,
+            que ocupava este canto, também está lá dentro.
+          */}
+          <BookActionsMenu bookId={book.id} legenda={`${book.author} • ${book.duration}`}>
+            <button
+              className="p-2.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-colors"
+              aria-label="Mais opções"
+              data-testid="button-more-options"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+          </BookActionsMenu>
         </header>
 
         <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
@@ -530,108 +397,6 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             {isAdded ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
             {isAdded ? "Na Lista" : "Minha Lista"}
           </Button>
-        </div>
-
-        <div className="flex gap-6 justify-center py-2">
-          <button
-            onClick={handleDownload}
-            className="flex flex-col items-center gap-1.5 text-white/60 hover:text-white transition-colors"
-            data-testid="button-download"
-          >
-            {isDownloading ? (
-              <div className="w-6 h-6 relative">
-                <svg className="w-6 h-6 -rotate-90" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.2" />
-                  <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2"
-                    strokeDasharray={`${downloadProgress * 0.628} 62.8`} />
-                </svg>
-              </div>
-            ) : (
-              <Download className={`w-6 h-6 ${isDownloaded ? 'text-amber-500' : ''}`} />
-            )}
-            <span className="text-[10px] uppercase tracking-wider font-medium">
-              {isDownloaded ? "Baixado" : isDownloading ? `${downloadProgress}%` : "Baixar"}
-            </span>
-          </button>
-          <Drawer>
-            <DrawerTrigger asChild>
-              <button className="flex flex-col items-center gap-1.5 text-white/60 hover:text-white transition-colors" data-testid="button-more-options">
-                <MoreVertical className="w-6 h-6" />
-                <span className="text-[10px] uppercase tracking-wider font-medium">Mais</span>
-              </button>
-            </DrawerTrigger>
-
-            {/*
-              A folha é desenhada num portal, fora da moldura de celular da
-              prévia, então sem limite ela ocuparia a largura toda da janela. O
-              teto de 480px não afeta celular nenhum (o mais largo tem 440px) e
-              deixa a folha centrada em telas grandes.
-            */}
-            <DrawerContent className="mx-auto max-w-[480px] border-white/10 bg-[#1a1a1a]">
-              <DrawerHeader className="text-left">
-                <DrawerTitle className="font-display tracking-tight text-white">
-                  {book.title}
-                </DrawerTitle>
-                <DrawerDescription className="text-white/50">
-                  {book.author} • {book.duration}
-                </DrawerDescription>
-              </DrawerHeader>
-
-              <div className="space-y-0.5 px-4 pb-8">
-                <AcaoDoMenu
-                  icone={Play}
-                  rotulo="Ouvir agora"
-                  aoClicar={() => setLocation(`/player/${book.id}`)}
-                />
-                <AcaoDoMenu
-                  icone={isAdded ? Check : Plus}
-                  rotulo={isAdded ? "Já está na Minha Lista" : "Adicionar à Minha Lista"}
-                  aoClicar={addToLibrary}
-                  desabilitado={isAdded}
-                />
-                <AcaoDoMenu
-                  icone={Download}
-                  rotulo={isDownloaded ? "Já baixado" : "Baixar para ouvir offline"}
-                  aoClicar={handleDownload}
-                  desabilitado={isDownloaded || isDownloading}
-                />
-                <AcaoDoMenu
-                  icone={isRecommended ? Check : Megaphone}
-                  rotulo={
-                    isRecommended
-                      ? "Deixar de recomendar"
-                      : "Recomendar para a comunidade"
-                  }
-                  aoClicar={toggleRecomendar}
-                />
-                <AcaoDoMenu icone={Share2} rotulo="Compartilhar" aoClicar={compartilhar} />
-
-                <div className="my-2 h-px bg-white/10" />
-
-                {autorDoLivro && (
-                  <AcaoDoMenu
-                    icone={User}
-                    rotulo={`Ver perfil de ${book.author}`}
-                    aoClicar={() => setLocation(`/person/${autorDoLivro.slug}`)}
-                  />
-                )}
-                {narradorDoLivro && (
-                  <AcaoDoMenu
-                    icone={Mic}
-                    rotulo={`Ver perfil de ${book.narrator}`}
-                    aoClicar={() => setLocation(`/person/${narradorDoLivro.slug}`)}
-                  />
-                )}
-                {generoDoLivro && (
-                  <AcaoDoMenu
-                    icone={LibraryIcon}
-                    rotulo={`Ver mais de ${generoDoLivro}`}
-                    aoClicar={() => setLocation(`/category/${slugify(generoDoLivro)}`)}
-                  />
-                )}
-              </div>
-            </DrawerContent>
-          </Drawer>
         </div>
 
         <div className="space-y-3">
@@ -687,19 +452,25 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           </div>
 
           <div className="space-y-3">
-            {book.comments.map((comment: any, idx: number) => (
-              <div key={idx} className="bg-white/5 p-4 rounded-xl space-y-3 border border-white/5" data-testid={`card-review-${idx}`}>
-                <div className="flex justify-between items-center">
-                  <AutorDoComentario nome={comment.user} />
-                  <div className="flex gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`w-2.5 h-2.5 ${i < comment.rating ? 'fill-amber-500 text-amber-500' : 'text-white/20'}`} />
-                    ))}
+            {comentarios.length === 0 ? (
+              <p className="text-sm text-white/40 py-2" data-testid="text-no-reviews">
+                Ninguém comentou este ainda.
+              </p>
+            ) : (
+              comentarios.map((comment) => (
+                <div key={comment.id} className="bg-white/5 p-4 rounded-xl space-y-3 border border-white/5" data-testid={`card-review-${comment.id}`}>
+                  <div className="flex justify-between items-center">
+                    <AutorDoComentario slug={comment.authorSlug} />
+                    <div className="flex gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`w-2.5 h-2.5 ${i < comment.rating ? 'fill-amber-500 text-amber-500' : 'text-white/20'}`} />
+                      ))}
+                    </div>
                   </div>
+                  <p className="text-sm text-white/70 leading-relaxed italic">"{comment.text}"</p>
                 </div>
-                <p className="text-sm text-white/70 leading-relaxed italic">"{comment.text}"</p>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </section>
 

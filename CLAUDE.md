@@ -101,6 +101,13 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
   - `src/lib/` — `books.ts` (catálogo), `people.ts` (autores e narradores),
     `catalog-enriched.ts` (**gerado**, ver abaixo), `queryClient.ts` (cliente
     TanStack Query + helper `apiRequest`), `utils.ts`
+    - Comunidade: `community.ts` (os leitores, fictícios de propósito),
+      `comments.ts` (**os comentários, com dono, livro e data — não ficam mais
+      dentro do `BookDetails`**), `following.ts` (quem você segue),
+      `activity.ts` (junta recomendação + comentário no que a tela Comunidade
+      mostra, e monta as sugestões "com motivo")
+    - Preferências e sessão: `settings.ts`, `auth.ts`, `profile.ts`,
+      `recommendations.ts`
   - `src/assets/images/` — 8 capas genéricas por gênero (PNG), usadas como reserva
     - `covers/` — a capa real de cada livro, `<id do livro>.jpg`, baixada pelo script
     - `people/` — foto de autor/narrador, `<slug>.jpg`. Basta soltar o arquivo:
