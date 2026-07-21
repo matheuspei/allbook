@@ -79,7 +79,42 @@ export const community: CommunityMember[] = [
     hoursListened: 74,
     recommendationIds: [104, 105, 144, 145],
   },
+  {
+    slug: "felipe-g",
+    name: "Felipe G.",
+    bio: "Comecei pelo dinheiro e fiquei pelas histórias. Investimento e psicologia.",
+    color: "from-cyan-500 to-blue-600",
+    memberSince: "abril de 2025",
+    hoursListened: 131,
+    recommendationIds: [101, 125, 108],
+  },
+  {
+    slug: "luciana",
+    name: "Luciana",
+    bio: "Reouço o que gostei. Livro bom aguenta a segunda vez.",
+    color: "from-fuchsia-500 to-purple-600",
+    memberSince: "dezembro de 2024",
+    hoursListened: 305,
+    recommendationIds: [102, 4, 203, 201],
+  },
 ];
+
+/**
+ * Acha o leitor pelo nome como ele aparece escrito, por exemplo num comentário
+ * de livro ("Marcos V."). É por aqui que os comentários viram links de perfil.
+ */
+export function findMemberByName(name: string): CommunityMember | undefined {
+  const wanted = normalizeName(name);
+  return community.find((member) => normalizeName(member.name) === wanted);
+}
+
+function normalizeName(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
 
 export function findMember(slug: string): CommunityMember | undefined {
   return community.find((member) => member.slug === slug);

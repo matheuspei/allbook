@@ -12,6 +12,7 @@ import {
   isRecommended as estaRecomendado,
   toggleRecommendation as alternarRecomendacao,
 } from "@/lib/recommendations";
+import { findMemberByName } from "@/lib/community";
 import PersonAvatar from "@/components/PersonAvatar";
 import {
   Drawer,
@@ -171,6 +172,55 @@ function PessoaDoLivro({
     >
       {conteudo}
       <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
+    </button>
+  );
+}
+
+/**
+ * Quem escreveu o comentário.
+ *
+ * Se a pessoa existe na comunidade, o nome leva ao perfil dela — é o caminho
+ * natural: você lê a opinião de alguém e quer saber o que mais ele indica.
+ * Quem não tem perfil (o "Usuário AllBook" genérico) aparece igual, mas sem
+ * link, em vez de oferecer um clique que levaria a lugar nenhum.
+ */
+function AutorDoComentario({ nome }: { nome: string }) {
+  const [, navegar] = useLocation();
+  const membro = findMemberByName(nome);
+
+  const avatar = (
+    <span
+      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold ${
+        membro
+          ? `bg-gradient-to-br ${membro.color} text-white`
+          : "bg-gradient-to-br from-amber-500/30 to-orange-600/30 text-amber-500"
+      }`}
+    >
+      {membro ? membro.name.charAt(0) : <User className="w-3.5 h-3.5" />}
+    </span>
+  );
+
+  if (!membro) {
+    return (
+      <div className="flex items-center gap-2">
+        {avatar}
+        <span className="text-sm font-bold">{nome}</span>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => navegar(`/user/${membro.slug}`)}
+      className="flex items-center gap-2 group"
+      aria-label={`Ver o perfil de ${membro.name}`}
+      data-testid={`link-reviewer-${membro.slug}`}
+    >
+      {avatar}
+      <span className="text-sm font-bold group-hover:text-primary transition-colors">
+        {membro.name}
+      </span>
     </button>
   );
 }
@@ -640,12 +690,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             {book.comments.map((comment: any, idx: number) => (
               <div key={idx} className="bg-white/5 p-4 rounded-xl space-y-3 border border-white/5" data-testid={`card-review-${idx}`}>
                 <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-500/30 to-orange-600/30 flex items-center justify-center">
-                      <User className="w-3.5 h-3.5 text-amber-500" />
-                    </div>
-                    <span className="text-sm font-bold">{comment.user}</span>
-                  </div>
+                  <AutorDoComentario nome={comment.user} />
                   <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className={`w-2.5 h-2.5 ${i < comment.rating ? 'fill-amber-500 text-amber-500' : 'text-white/20'}`} />
