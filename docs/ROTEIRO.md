@@ -202,6 +202,44 @@ Comunidade. Decisões tomadas ao construir:
   `client/src/components/CommentThread.tsx` — aquela tela já passava de 600
   linhas.
 
+### Comentar o autor e o narrador (21/07, noite) — FEITO
+
+Pedido do Matheus: comentar não só o livro, mas a pessoa. Está em
+`/person/:slug`, na seção "O que dizem", com os mesmos curtir/descurtir dos
+comentários de livro (reaproveita `reactions.ts`, não duplica).
+
+- **Não há estrela no comentário de pessoa**, e isso é decisão, não esquecimento.
+  Duas razões: **(1)** nota de livro é opinião sobre uma obra, mas nota de
+  *pessoa* é placar público sobre um profissional, que ele carrega para sempre
+  e não pode responder — e um app de audiolivro vive de narrador querer narrar
+  nele; **(2)** a nota que de fato ajuda a escolher é a **da narração daquele
+  livro**, não a do narrador em geral: o mesmo narrador pode ser perfeito num
+  romance e errado num técnico. Essa nota pertence ao par livro+narrador, e é a
+  "decisão em aberto da estrelinha" mais acima.
+- **O comentário diz sobre qual chapéu está falando** (`about: author |
+  narrator`), e a etiqueta "sobre a obra"/"sobre a narração" só aparece em quem
+  faz os dois. "Escreve bem" não é elogio à narração.
+- **PENDENTE — unificar com `comments.ts`:** os comentários de pessoa nasceram
+  em `lib/person-comments.ts`, arquivo separado, porque `comments.ts` estava
+  sendo editado noutra janela na mesma hora. O certo é uma lista só com um campo
+  de alvo (livro ou pessoa). A lógica de curtida já é compartilhada; falta juntar
+  as listas e as funções de filtro.
+
+### Trabalhar com duas janelas do Claude Code ao mesmo tempo (21/07)
+
+Aconteceu de verdade e custou tempo — vale a regra:
+
+- **Duas janelas no mesmo arquivo é a fonte do problema.** Numa sessão, uma
+  janela apagou faixas de linha com `sed` num arquivo que a outra estava
+  reescrevendo; o trabalho sobreviveu por sorte, não por método.
+- **Regra adotada:** editar com ferramenta de edição pontual (casando o texto
+  exato), **nunca** `sed` por número de linha em arquivo compartilhado — o
+  número de linha envelhece no segundo em que a outra janela salva.
+- **Antes de commitar, conferir `git status`** e commitar só os próprios
+  arquivos. Ainda assim, quem commitar por último leva o trabalho do outro
+  junto — foi o que houve aqui, sem prejuízo, mas o histórico fica com autoria
+  trocada.
+
 ### Decisões da tela de Configurações (21/07)
 
 - **Regra da tela: só entra o que o app obedece.** Chave que liga e desliga sem
