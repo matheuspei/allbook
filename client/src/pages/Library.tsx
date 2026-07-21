@@ -64,7 +64,10 @@ export default function Library() {
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="library-page">
-      <header className="sticky top-14 z-30 bg-[#141414]/95 backdrop-blur-md border-b border-white/5">
+      {/* O deslocamento acompanha a altura do TopNav, que ganha uma segunda
+          fileira de links em telas estreitas (88px) e encolhe para 56px de
+          `sm` para cima — mesmo ajuste feito no PageHeader. */}
+      <header className="sticky top-[88px] sm:top-14 z-30 bg-[#141414]/95 backdrop-blur-md border-b border-white/5">
         <div className="px-5 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

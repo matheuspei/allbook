@@ -9,7 +9,7 @@ export default function BottomNav() {
     { name: "Início", path: "/", icon: Home },
     { name: "Biblioteca", path: "/library", icon: Bookmark },
     { name: "Descobrir", path: "/discover", icon: Sparkles },
-    { name: "Minha AllBook", path: "/profile", icon: User },
+    { name: "Perfil", path: "/profile", icon: User },
   ];
 
   return (

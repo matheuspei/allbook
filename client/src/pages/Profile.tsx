@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { useToast } from "@/hooks/use-toast";
 
 /**
@@ -38,17 +39,17 @@ const user = {
   plan: "Premium",
 };
 
-const summary = [
-  { value: "47h", label: "ouvidas" },
-  { value: "5", label: "títulos" },
-  { value: "3 sem.", label: "sequência" },
-  { value: "2", label: "concluídos" },
+const summary: { value: string; label: string; key: StatKey }[] = [
+  { value: "47h", label: "ouvidas", key: "horas" },
+  { value: "5", label: "títulos", key: "titulos" },
+  { value: "3 sem.", label: "sequência", key: "sequencia" },
+  { value: "2", label: "concluídos", key: "concluidos" },
 ];
 
 const achievements = [
   { icon: Flame, label: "Constante", unlocked: true },
   { icon: BookOpen, label: "Maratonista", unlocked: true },
-  { icon: Headphones, label: "Meia-noite", unlocked: true },
+  { icon: Headphones, label: "Coruja", unlocked: true },
   { icon: Trophy, label: "Centenário", unlocked: false },
 ];
 
@@ -56,6 +57,7 @@ export default function Profile() {
   const { toast } = useToast();
   const [libraryCount, setLibraryCount] = useState(0);
   const [downloadCount, setDownloadCount] = useState(0);
+  const [openStat, setOpenStat] = useState<StatKey | null>(null);
 
   useEffect(() => {
     // Mesmas chaves usadas pelas telas Biblioteca e Downloads.
@@ -124,19 +126,24 @@ export default function Profile() {
       </header>
 
       <section className="px-5" data-testid="section-profile-summary">
-        <Link href="/statistics" className="flex items-center border-y border-white/10 py-5">
+        <div className="flex items-center border-y border-white/10 py-5">
           {summary.map((item, idx) => (
-            <div
+            <button
               key={item.label}
-              className={`flex-1 text-center ${idx > 0 ? "border-l border-white/10" : ""}`}
+              onClick={() => setOpenStat(item.key)}
+              className={`flex-1 text-center transition-opacity hover:opacity-60 active:scale-95 duration-150 ${
+                idx > 0 ? "border-l border-white/10" : ""
+              }`}
               data-testid={`profile-summary-${item.label}`}
             >
               <p className="text-base font-bold font-display leading-none">{item.value}</p>
               <p className="text-[11px] text-white/40 mt-1.5">{item.label}</p>
-            </div>
+            </button>
           ))}
-        </Link>
+        </div>
       </section>
+
+      <StatSpotlight stat={openStat} onClose={() => setOpenStat(null)} />
 
       <section className="px-5 py-5 border-b border-white/10" data-testid="section-profile-achievements">
         <div className="flex items-center justify-between mb-4">
