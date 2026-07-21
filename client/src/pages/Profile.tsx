@@ -15,6 +15,7 @@ import {
   Settings,
   Share2,
   Trophy,
+  Users,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -94,6 +95,7 @@ export default function Profile() {
       { icon: Bookmark, label: "Minha lista", hint: libraryCount > 0 ? String(libraryCount) : undefined, href: "/library" },
       { icon: BarChart3, label: "Estatísticas", href: "/statistics" },
       { icon: Download, label: "Downloads", hint: downloadCount > 0 ? String(downloadCount) : undefined, href: "/downloads" },
+      { icon: Users, label: "Comunidade", href: "/community" },
     ],
     [
       { icon: CreditCard, label: "Plano e assinatura", hint: PLAN },

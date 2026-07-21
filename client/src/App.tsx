@@ -11,6 +11,8 @@ import Statistics from "@/pages/Statistics";
 import Profile from "@/pages/Profile";
 import ProfileEdit from "@/pages/ProfileEdit";
 import RecommendationsEdit from "@/pages/RecommendationsEdit";
+import Community from "@/pages/Community";
+import UserProfile from "@/pages/UserProfile";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
@@ -76,6 +78,8 @@ function Router() {
           <Route path="/profile/edit" component={ProfileEdit} />
           <Route path="/profile/recommendations" component={RecommendationsEdit} />
           <Route path="/profile" component={Profile} />
+          <Route path="/community" component={Community} />
+          <Route path="/user/:slug" component={UserProfile} />
           <Route path="/downloads" component={Downloads} />
           <Route path="/notifications" component={Notifications} />
           <Route path="/book/:id" component={BookDetails} />

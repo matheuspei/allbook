@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, Play, Star, ChevronRight, Download, MoreVertical, Mic, BookOpen, Quote, User, Check, Library as LibraryIcon, Plus, Clock, Headphones } from "lucide-react";
+import { ArrowLeft, Share2, Play, Star, ChevronRight, Download, MoreVertical, Megaphone, Mic, BookOpen, Quote, User, Check, Library as LibraryIcon, Plus, Clock, Headphones } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,10 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { catalog, findGenreBySlug, slugify, duracaoEstimada } from "@/lib/books";
 import { findPerson } from "@/lib/people";
+import {
+  isRecommended as estaRecomendado,
+  toggleRecommendation as alternarRecomendacao,
+} from "@/lib/recommendations";
 import PersonAvatar from "@/components/PersonAvatar";
 import {
   Drawer,
@@ -286,6 +290,23 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     }));
   });
 
+  // "Recomendar" é diferente de "Minha Lista": a lista é intenção privada, a
+  // recomendação aparece no perfil, com o nome da pessoa junto.
+  const [isRecommended, setIsRecommended] = useState(() => estaRecomendado(Number(params.id)));
+
+  const toggleRecomendar = () => {
+    const proximos = alternarRecomendacao(Number(params.id));
+    const agoraRecomendado = proximos.includes(Number(params.id));
+    setIsRecommended(agoraRecomendado);
+
+    toast({
+      title: agoraRecomendado ? "Recomendado!" : "Removido das recomendações",
+      description: agoraRecomendado
+        ? `${book.title} agora aparece no seu perfil.`
+        : `${book.title} saiu do seu perfil.`,
+    });
+  };
+
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloaded, setIsDownloaded] = useState(() => {
@@ -523,6 +544,15 @@ export default function BookDetails({ params }: { params: { id: string } }) {
                   rotulo={isDownloaded ? "Já baixado" : "Baixar para ouvir offline"}
                   aoClicar={handleDownload}
                   desabilitado={isDownloaded || isDownloading}
+                />
+                <AcaoDoMenu
+                  icone={isRecommended ? Check : Megaphone}
+                  rotulo={
+                    isRecommended
+                      ? "Deixar de recomendar"
+                      : "Recomendar para a comunidade"
+                  }
+                  aoClicar={toggleRecomendar}
                 />
                 <AcaoDoMenu icone={Share2} rotulo="Compartilhar" aoClicar={compartilhar} />
 
