@@ -8,7 +8,7 @@ export default function BottomNav() {
   const navItems = [
     { name: "Início", path: "/", icon: Home },
     { name: "Biblioteca", path: "/library", icon: Bookmark },
-    { name: "Novidades", path: "/discover", icon: Sparkles },
+    { name: "Descobrir", path: "/discover", icon: Sparkles },
     { name: "Minha AllBook", path: "/profile", icon: User },
   ];
 

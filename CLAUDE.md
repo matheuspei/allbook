@@ -48,7 +48,8 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
   - `src/components/layout/` — TopNav, BottomNav, MiniPlayer
   - `src/components/ui/` — componentes shadcn/ui (reutilizar, não reinventar)
   - `src/hooks/` — use-toast, use-mobile
-  - `src/lib/` — `queryClient.ts` (cliente TanStack Query + helper `apiRequest`), `utils.ts`
+  - `src/lib/` — `books.ts` (catálogo fixo dos livros), `queryClient.ts` (cliente
+    TanStack Query + helper `apiRequest`), `utils.ts`
   - `src/assets/images/` — capas dos livros (PNG)
   - `src/App.tsx` — onde ficam as **rotas**
 - `server/`
@@ -66,15 +67,16 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
 
 ## Rotas atuais (wouter, em `App.tsx`)
 - `/` → Home
+- `/discover` → Discover
 - `/library` → Library
 - `/statistics` → Statistics
 - `/book/:id` → BookDetails
 - `/player/:id` → AudioPlayer
 
 O menu inferior (`BottomNav`) aponta para: Início (`/`), Biblioteca (`/library`),
-**Descobrir (`/discover`)** e **Perfil (`/profile`)** — mas **`/discover` e `/profile`
-ainda NÃO existem** (são as próximas telas a construir). A tela de Estatísticas existe
-mas não está ligada no menu.
+Descobrir (`/discover`) e **Perfil (`/profile`)** — mas **`/profile` ainda NÃO existe**
+(é a próxima tela a construir). A tela de Estatísticas existe mas não está ligada
+no menu.
 
 **Comportamento de navegação:** a tela `AudioPlayer` (`/player/:id`) é **tela cheia** —
 ela esconde o TopNav e o BottomNav. Em todas as outras rotas, o `MiniPlayer` flutua
@@ -99,10 +101,12 @@ logo acima do BottomNav.
 - **Textos da interface em português (PT-BR).**
 - Para criar uma tela nova: (1) criar o arquivo em `client/src/pages/`, (2) registrar
   a rota em `App.tsx`, (3) se for item de menu, ligar no `BottomNav`.
-- **Dados dos livros hoje são fixos ("mock")** — arrays escritos à mão dentro de
-  `Home.tsx` e `BookDetails.tsx`. Enquanto o backend não existir, telas novas podem
-  reutilizar esses dados de exemplo. (No futuro, trocar por chamadas à API usando
-  TanStack Query.)
+- **Dados dos livros hoje são fixos ("mock")** e ficam em **`client/src/lib/books.ts`**,
+  que é a fonte única: `catalog` (todos os livros, cada um com `genre`), `genres`,
+  e os ajudantes `getBooksByIds` e `getBooksByGenre`. Home e Descobrir leem daí —
+  **telas novas devem fazer o mesmo, e não recriar listas de livros**. O
+  `BookDetails.tsx` ainda tem dados próprios, herdados de antes. (No futuro, trocar
+  tudo por chamadas à API usando TanStack Query.)
 - **Biblioteca do usuário** é guardada no `localStorage` do navegador.
 - **Busca** é feita só no navegador, com Fuse.js, em cima do catálogo fixo.
 

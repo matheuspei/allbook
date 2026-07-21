@@ -35,7 +35,7 @@ App que armazena muitos audiolivros, inspirado em Audible/Storytel + Netflix/HBO
 ## 3. FOCO ATUAL — Terminar o frontend
 
 Checklist das telas que faltam:
-- [~] **Descobrir / Explorar** — EM CONSTRUÇÃO (conteúdo definido em 21/07, ver abaixo)
+- [x] **Descobrir / Explorar** — PRONTA (21/07). Rota `/discover`, com busca, grade de 8 gêneros, Top 10 e Lançamentos.
 - [ ] **Perfil** — prometida pelo menu inferior, não existe (próxima)
 - [ ] Login / Cadastro
 - [ ] Configurações
@@ -58,12 +58,8 @@ Dados: usar os fixos existentes + capas de gênero. Sem backend. Coleções por 
 
 ---
 
-## 4. DEPOIS do frontend — construir o motor
-1. Modelo de dados real (`shared/schema.ts`): livros, autores, narradores, categorias, capítulos, progresso, biblioteca.
-2. Backend/API (`server/routes.ts` + Drizzle + PostgreSQL; banco grátis: Neon/Supabase).
-3. Áudio real em object storage (Cloudflare R2 / Supabase Storage / S3) + streaming, com o banco guardando só a URL.
-4. Ligar telas à API (trocar dados fixos por chamadas reais) + login (Passport).
-5. Virar app: PWA → Capacitor.
+## 4. DEPOIS do frontend — o motor (resumo)
+1. Modelo de dados real (shared/schema.ts). 2. Backend/API (Drizzle + PostgreSQL; banco grátis: Neon/Supabase). 3. Áudio real em object storage (Cloudflare R2 / Supabase Storage / S3) + streaming. 4. Ligar telas à API + login (Passport). 5. Virar app: PWA → Capacitor.
 
 ---
 
@@ -71,6 +67,7 @@ Dados: usar os fixos existentes + capas de gênero. Sem backend. Coleções por 
 - **`@assets` aponta para pasta inexistente** (`attached_assets/` em `vite.config.ts`). Criar a pasta vazia ou remover o atalho, antes que algum import futuro quebre.
 - **Metatags do Replit no `client/index.html`** (`og:image`/`twitter:image` apontam pro Replit). Trocar por uma imagem do AllBook antes de divulgar links.
 - **Backup automático não existe** — disciplina é commit + push manual a cada etapa (o Claude Code faz).
+- ~~`npm run build` quebrado~~ — resolvido em 21/07: faltava o `script/build.ts` que o `package.json` chamava. Agora gera `dist/public` (frontend) e `dist/index.cjs` (servidor), e o `npm start` sobe.
 
 ---
 
