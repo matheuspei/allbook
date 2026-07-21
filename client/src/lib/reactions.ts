@@ -8,15 +8,17 @@
  *   comentário que dividiu trinta pessoas moveu mais gente do que o que agradou
  *   a cinco, e quem chega depois quer ler os dois lados. A ordenação está em
  *   `engagementOf`, em `comments.ts`.
- * - **Só a curtida vira número na tela.** O contador de descurtidas não é
- *   mostrado: placar negativo público vira punição a quem escreveu, e num app
- *   com pouca gente duas descurtidas já parecem um veredito — o resultado é
- *   gente deixando de comentar. Ele pesa na ordem sem virar troféu às avessas.
+ * - **Os dois mostram número.** Decisão do Matheus: a discordância visível é
+ *   parte do que faz alguém parar e ler. Esconder o contador negativo esconde
+ *   metade da conversa.
  *
- * **Risco conhecido desta escolha:** ordenar por engajamento total premia o
- * comentário polêmico, que é o motor conhecido de seção de comentários tóxica.
- * Num app de audiolivro o risco é pequeno, mas se um dia o topo virar briga, o
- * lugar de mexer é `engagementOf`.
+ * **Risco conhecido e aceito:** engajamento total na ordem + contador negativo
+ * visível é a receita conhecida de seção de comentários que azeda — o topo
+ * tende a ser ocupado por briga, e quem escreve aprende a evitar opinião que
+ * divide. Aqui quem leva a descurtida é um leitor comum, não uma empresa. Se
+ * um dia houver gente de verdade e o topo virar discussão em vez de resenha,
+ * os dois lugares de mexer são `engagementOf` (a ordem) e o botão de descurtir
+ * em `BookDetails` (o número).
  *
  * Guardado no `localStorage`, como o resto do protótipo.
  */
@@ -66,4 +68,9 @@ export function toggleReaction(commentId: string, reaction: Reaction): Reactions
 /** O número que aparece na tela: a base do comentário mais a sua curtida. */
 export function likeCount(baseLikes: number, reaction: Reaction | undefined): number {
   return baseLikes + (reaction === "like" ? 1 : 0);
+}
+
+/** O mesmo do outro lado. */
+export function dislikeCount(baseDislikes: number, reaction: Reaction | undefined): number {
+  return baseDislikes + (reaction === "dislike" ? 1 : 0);
 }

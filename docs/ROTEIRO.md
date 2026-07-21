@@ -155,17 +155,22 @@ Pedido do Matheus, feito em seguida. Como funciona e por quê:
   comentário com mais engajamento vem primeiro"*. Está em `engagementOf`, em
   `comments.ts`. **Rejeitada** a ideia anterior de empurrar o que você
   descurtiu para o fim da *sua* lista.
-- **Só a curtida vira número visível.** A descurtida pesa na ordem mas não
-  aparece como contador: placar negativo público vira punição a quem escreveu,
-  e com pouca gente duas descurtidas já parecem veredito. O resultado seria
-  gente deixando de comentar.
+- **Os dois mostram número.** Decisão do Matheus, também contra a proposta do
+  Claude de esconder o contador negativo: *"polêmica engaja — gerar sentimento,
+  bom ou ruim, é o que faz a pessoa se interessar"*. Esconder a discordância
+  esconde metade da conversa. **Rejeitado:** contador de descurtida invisível,
+  pesando só na ordem.
 - **Tocar de novo desfaz**; curtir e descurtir são exclusivos entre si.
 - **A ordem não é recalculada enquanto você reage** — ver o comentário pular de
   lugar debaixo do dedo desorienta. A ordem nova vale na próxima visita.
-- **Risco conhecido e aceito:** ordenar por engajamento total premia o
-  comentário polêmico, que é o motor conhecido de seção de comentários tóxica.
-  Num app de audiolivro o risco é pequeno; se um dia o topo virar briga, o
-  lugar de mexer é `engagementOf`.
+- **Risco conhecido e aceito** (o Claude discordou duas vezes, o Matheus
+  decidiu, e está decidido): engajamento total na ordem **mais** contador
+  negativo visível é a receita conhecida de seção de comentários que azeda — o
+  topo tende a ser ocupado por briga, e quem escreve aprende a evitar opinião
+  que divide. Aqui quem leva a descurtida é um leitor comum, não uma empresa.
+  Se um dia houver gente de verdade e o topo virar discussão em vez de resenha,
+  os dois lugares de mexer são `engagementOf` (a ordem) e o botão de descurtir
+  em `BookDetails` (o número). **Não reabrir sem fato novo.**
 - Reações ficam em `client/src/lib/reactions.ts` (`allbook_reactions`), e só
   aparecem na tela do livro — na Comunidade o comentário é um trecho, e o
   clique leva ao livro.

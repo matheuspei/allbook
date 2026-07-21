@@ -12,6 +12,7 @@ import { findPerson } from "@/lib/people";
 import { findMember } from "@/lib/community";
 import { commentsForBook, type Comment } from "@/lib/comments";
 import {
+  dislikeCount,
   likeCount,
   readReactions,
   toggleReaction,
@@ -206,9 +207,9 @@ function AutorDoComentario({ slug }: { slug: string }) {
 /**
  * Curtir e descurtir.
  *
- * A curtida mostra número; a descurtida não — a razão está em `reactions.ts`.
- * As duas pesam igual na ordem em que os comentários aparecem, porque discordar
- * também é engajar.
+ * As duas mostram número e as duas pesam igual na ordem dos comentários:
+ * discordar também é engajar, e a discordância visível é parte do que faz
+ * alguém parar para ler. O porquê e o risco disso estão em `reactions.ts`.
  */
 function ReacoesDoComentario({
   comment,
@@ -242,7 +243,7 @@ function ReacoesDoComentario({
       <button
         type="button"
         onClick={() => onReact(comment.id, "dislike")}
-        className={`flex items-center px-2 py-1 rounded-md text-xs transition-colors ${
+        className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
           reaction === "dislike" ? "text-white/80" : "text-white/40 hover:text-white/70"
         }`}
         aria-pressed={reaction === "dislike"}
@@ -254,6 +255,7 @@ function ReacoesDoComentario({
           strokeWidth={1.75}
           fill={reaction === "dislike" ? "currentColor" : "none"}
         />
+        {dislikeCount(comment.dislikes, reaction)}
       </button>
     </div>
   );
