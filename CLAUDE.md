@@ -106,7 +106,9 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
       dentro do `BookDetails`**), `following.ts` (quem você segue),
       `activity.ts` (junta recomendação + comentário no que a tela Comunidade
       mostra, e monta as sugestões "com motivo"), `reactions.ts` (curtir e
-      descurtir; os dois pesam na ordem, só a curtida mostra número)
+      descurtir; os dois mostram número e pesam igual na ordem),
+      `replies.ts` (**as suas** respostas, que ficam no localStorage e não em
+      `comments.ts`)
     - Preferências e sessão: `settings.ts`, `auth.ts`, `profile.ts`,
       `recommendations.ts`
   - `src/assets/images/` — 8 capas genéricas por gênero (PNG), usadas como reserva

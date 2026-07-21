@@ -141,10 +141,8 @@ falta de recursos.
   lista própria em `client/src/lib/comments.ts`, com autor, livro, nota e data.
   Sem isso não existe "o que fulano comentou". É também o formato que o backend
   vai pedir.
-- **Adiado de propósito: responder a comentário (debate).** Responder pertence à
-  página do livro, embaixo do comentário — não à tela de comunidade. Fica barato
-  de fazer depois que os comentários viraram lista própria. Primeiro ver se
-  seguir + atividade se sustentam no uso.
+- ~~Adiado: responder a comentário (debate)~~ — **feito em 21/07**, logo em
+  seguida, a pedido do Matheus. Ver "Respostas" abaixo.
 
 ### Curtir e descurtir comentário (21/07, noite) — FEITO
 
@@ -174,6 +172,35 @@ Pedido do Matheus, feito em seguida. Como funciona e por quê:
 - Reações ficam em `client/src/lib/reactions.ts` (`allbook_reactions`), e só
   aparecem na tela do livro — na Comunidade o comentário é um trecho, e o
   clique leva ao livro.
+
+### Respostas a comentário (21/07, noite) — FEITO
+
+Pedido do Matheus. Fica na tela do livro, embaixo do comentário — não na
+Comunidade. Decisões tomadas ao construir:
+
+- **Um nível só de resposta.** Responder a uma resposta continua na mesma
+  conversa, em vez de abrir mais uma casinha para dentro. Num celular o
+  terceiro nível já não cabe na tela. **Rejeitado:** aninhamento livre
+  (estilo Reddit).
+- **Resposta não tem nota de estrelas** — por isso `rating` virou opcional em
+  `Comment`. Quem responde está falando com uma pessoa, não avaliando o livro;
+  estrela ali sujaria a média do título.
+- **Respostas em ordem cronológica**, ao contrário do primeiro nível, que é
+  ordenado por engajamento. Numa conversa, quem responde fala com o que veio
+  antes — ordenar réplica por curtida faria a resposta aparecer antes da
+  pergunta que ela responde.
+- **Você responde de verdade**, com o nome do seu perfil, e pode apagar o que
+  escreveu. Suas respostas ficam em `client/src/lib/replies.ts`
+  (`allbook_replies`), **separadas** de `comments.ts`: lá é esqueleto fictício,
+  que é código; aqui é o que você escreveu, que é dado. Juntas, sua resposta
+  sumiria na próxima vez que alguém editasse a lista fixa.
+- **Só dá para apagar a própria resposta.** Não existe apagar o comentário dos
+  outros, e não deve existir.
+- **O perfil do leitor não mostra as respostas dele**, só os comentários de
+  primeiro nível: resposta fora da conversa em que nasceu não se entende.
+- O comentário e sua conversa saíram do `BookDetails` para
+  `client/src/components/CommentThread.tsx` — aquela tela já passava de 600
+  linhas.
 
 ### Decisões da tela de Configurações (21/07)
 

@@ -1,10 +1,20 @@
-import { useEffect } from "react";
-import { PenLine, Mic, Compass } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "wouter";
+import { PenLine, Mic, Compass, MessageSquare, ThumbsUp, ThumbsDown } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import PersonAvatar, { hueDoNome } from "@/components/PersonAvatar";
 import BookGrid from "@/components/BookGrid";
-import { findPerson, roleLabels } from "@/lib/people";
+import { findPerson, roleLabels, type Person } from "@/lib/people";
 import { getBooksByGenre } from "@/lib/books";
+import { commentAuthorOf, commentsForPerson } from "@/lib/person-comments";
+import {
+  dislikeCount,
+  likeCount,
+  readReactions,
+  toggleReaction,
+  type Reaction,
+  type Reactions,
+} from "@/lib/reactions";
 
 /**
  * Perfil de uma pessoa do catálogo — autor, narrador, ou os dois.
@@ -133,6 +143,8 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
         </Secao>
       )}
 
+      <ComentariosDaPessoa person={person} />
+
       {relacionados.length > 0 && (
         <Secao
           icone={<Compass className="h-4 w-4 text-primary" />}
@@ -144,6 +156,138 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
         </Secao>
       )}
     </div>
+  );
+}
+
+/**
+ * O que os leitores dizem sobre esta pessoa.
+ *
+ * Sem estrelas, de propósito — o motivo está em `lib/person-comments.ts`. Em
+ * resumo: nota de pessoa é placar público sobre um profissional, e a nota que
+ * de fato ajuda a escolher (a da narração) pertence ao par livro+narrador, não
+ * à pessoa em geral.
+ */
+function ComentariosDaPessoa({ person }: { person: Person }) {
+  const comentarios = commentsForPerson(person.slug);
+  const [reactions, setReactions] = useState<Reactions>({});
+
+  // Só no navegador, depois de montar: `localStorage` não existe no servidor.
+  useEffect(() => {
+    setReactions(readReactions());
+  }, []);
+
+  function reagir(id: string, reaction: Reaction) {
+    setReactions({ ...toggleReaction(id, reaction) });
+  }
+
+  return (
+    <section className="space-y-3 px-4 pt-7" data-testid="section-person-comments">
+      <h2 className="flex items-center gap-2 font-display text-lg font-bold tracking-tight text-white">
+        <MessageSquare className="h-4 w-4 text-primary" />
+        O que dizem
+        {comentarios.length > 0 && (
+          <span className="ml-auto text-xs font-normal text-white/40">
+            {comentarios.length} {comentarios.length === 1 ? "comentário" : "comentários"}
+          </span>
+        )}
+      </h2>
+
+      {comentarios.length === 0 ? (
+        <p className="py-2 text-sm text-white/40" data-testid="text-no-person-comments">
+          Ninguém comentou sobre {person.name.split(" ")[0]} ainda.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {comentarios.map((comentario) => {
+            const autor = commentAuthorOf(comentario);
+            const minha = reactions[comentario.id];
+
+            return (
+              <article
+                key={comentario.id}
+                className="space-y-3 rounded-xl border border-white/5 bg-white/5 p-4"
+                data-testid={`card-person-comment-${comentario.id}`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  {autor ? (
+                    <Link
+                      href={`/user/${autor.slug}`}
+                      className="flex items-center gap-2 text-sm font-bold text-white hover:text-primary"
+                      data-testid={`link-comment-author-${comentario.id}`}
+                    >
+                      <PersonAvatar name={autor.name} size="sm" />
+                      {autor.name}
+                    </Link>
+                  ) : (
+                    <span className="text-sm font-bold text-white/60">Leitor do AllBook</span>
+                  )}
+
+                  {/* Qual chapéu está sendo comentado — só aparece em quem tem os dois. */}
+                  {person.wrote.length > 0 && person.narrated.length > 0 && (
+                    <span className="shrink-0 rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-white/50 ring-1 ring-white/10">
+                      {comentario.about === "author" ? "sobre a obra" : "sobre a narração"}
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-sm leading-relaxed text-white/70 italic">"{comentario.text}"</p>
+
+                <div className="flex items-center gap-1">
+                  <BotaoDeReacao
+                    icone={ThumbsUp}
+                    ativo={minha === "like"}
+                    numero={likeCount(comentario.likes, minha)}
+                    aoClicar={() => reagir(comentario.id, "like")}
+                    rotulo="Curtir"
+                    testid={`button-like-${comentario.id}`}
+                  />
+                  <BotaoDeReacao
+                    icone={ThumbsDown}
+                    ativo={minha === "dislike"}
+                    numero={dislikeCount(comentario.dislikes, minha)}
+                    aoClicar={() => reagir(comentario.id, "dislike")}
+                    rotulo="Descurtir"
+                    testid={`button-dislike-${comentario.id}`}
+                  />
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function BotaoDeReacao({
+  icone: Icone,
+  ativo,
+  numero,
+  aoClicar,
+  rotulo,
+  testid,
+}: {
+  icone: React.ComponentType<{ className?: string }>;
+  ativo: boolean;
+  numero: number;
+  aoClicar: () => void;
+  rotulo: string;
+  testid: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={aoClicar}
+      aria-label={rotulo}
+      aria-pressed={ativo}
+      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs transition-colors ${
+        ativo ? "bg-primary/15 text-primary" : "text-white/40 hover:bg-white/5 hover:text-white/70"
+      }`}
+      data-testid={testid}
+    >
+      <Icone className="h-3.5 w-3.5" />
+      {numero}
+    </button>
   );
 }
 

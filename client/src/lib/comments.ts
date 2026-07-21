@@ -23,8 +23,22 @@ export interface Comment {
   /** `slug` de quem escreveu, em `community.ts`. */
   authorSlug: string;
   bookId: number;
-  /** De 1 a 5, como as estrelas mostradas na tela do livro. */
-  rating: number;
+  /**
+   * O comentário ao qual este responde. Vazio = comentário de primeiro nível.
+   *
+   * **Só existe um nível de resposta**: responder a uma resposta continua na
+   * mesma conversa, em vez de abrir mais uma casinha para dentro. Sem isso a
+   * conversa vira escada e some da tela do celular no terceiro nível.
+   */
+  parentId?: string;
+  /**
+   * De 1 a 5, como as estrelas mostradas na tela do livro.
+   *
+   * **Resposta não tem nota**, e por isso o campo é opcional: quem responde
+   * está falando com uma pessoa, não avaliando o livro. Estrela na resposta
+   * misturaria as duas coisas e sujaria a média.
+   */
+  rating?: number;
   text: string;
   /** ISO. Serve para ordenar a atividade de quem você segue. */
   date: string;
@@ -97,6 +111,16 @@ export const comments: Comment[] = [
   { id: "c28", authorSlug: "luciana", bookId: 203, rating: 4, likes: 7, dislikes: 0, date: "2026-07-10", text: "Terceira vez. Continua funcionando, ainda que eu já saiba cada frase." },
   { id: "c29", authorSlug: "luciana", bookId: 4, rating: 4, likes: 29, dislikes: 3, date: "2026-06-23", text: "A ideia principal cabe em vinte minutos, mas a companhia da narração compensa." },
   { id: "c30", authorSlug: "luciana", bookId: 201, rating: 4, likes: 7, dislikes: 0, date: "2026-06-08", text: "Menos agressivo do que o título promete. O narrador acerta a ironia." },
+
+  // — respostas (têm `parentId` e não têm nota) —
+  { id: "r1", parentId: "c7", authorSlug: "ricardo", bookId: 102, likes: 19, dislikes: 2, date: "2026-07-17", text: "\"Ponto final\" é forte. E o do Duhigg, que veio antes e explica a mesma coisa?" },
+  { id: "r2", parentId: "c7", authorSlug: "beto", bookId: 102, likes: 24, dislikes: 6, date: "2026-07-18", text: "Li os dois. O do Duhigg explica melhor por que o hábito funciona; este aqui explica melhor como montar um. Serve para coisas diferentes." },
+  { id: "r3", parentId: "c7", authorSlug: "luciana", bookId: 102, likes: 8, dislikes: 1, date: "2026-07-19", text: "Concordo com o Beto. Ouvi na ordem inversa e me atrapalhei." },
+  { id: "r4", parentId: "c1", authorSlug: "marcos-v", bookId: 1, likes: 11, dislikes: 4, date: "2026-07-15", text: "Peso da narração eu concordo, mas o final me pareceu apressado. Alguém mais achou?" },
+  { id: "r5", parentId: "c1", authorSlug: "ana-paula", bookId: 1, likes: 16, dislikes: 2, date: "2026-07-16", text: "Apressado não — enxuto. O livro passa o tempo todo dizendo que ninguém ia acreditar nela, e o final faz exatamente isso com o leitor." },
+  { id: "r6", parentId: "c20", authorSlug: "juliana-s", bookId: 7, likes: 9, dislikes: 0, date: "2026-07-14", text: "Comecei ontem por causa deste comentário. Já entendi o que você quis dizer sobre as vozes." },
+  { id: "r7", parentId: "c26", authorSlug: "marcos-v", bookId: 125, likes: 14, dislikes: 9, date: "2026-07-09", text: "\"Leve com desconfiança\" é o melhor conselho que já li sobre esse livro." },
+  { id: "r8", parentId: "c17", authorSlug: "carla-lima", bookId: 130, likes: 21, dislikes: 12, date: "2026-06-19", text: "Discordo. Ele não ficou parecido com o noticiário — a gente é que passou a ler o noticiário procurando o livro." },
 ];
 
 /** Do mais novo para o mais velho — a ordem em que se lê comentário. */
@@ -117,18 +141,41 @@ export function engagementOf(comment: Comment): number {
 }
 
 /**
- * Os comentários de um livro, **do mais engajado para o menos**. Empate desfaz
- * pela data, para o mais recente aparecer antes.
+ * Os comentários de primeiro nível de um livro, **do mais engajado para o
+ * menos**. Empate desfaz pela data, para o mais recente aparecer antes. As
+ * respostas não entram aqui: elas vêm por `repliesTo`, dentro de cada conversa.
  */
 export function commentsForBook(bookId: number): Comment[] {
   return comments
-    .filter((item) => item.bookId === bookId)
+    .filter((item) => item.bookId === bookId && !item.parentId)
     .sort((a, b) => engagementOf(b) - engagementOf(a) || byNewest(a, b));
 }
 
-/** O que uma pessoa andou comentando. É o que o perfil dela mostra. */
+/**
+ * As respostas a um comentário, **da mais antiga para a mais nova**.
+ *
+ * Aqui a ordem é cronológica de propósito, ao contrário do primeiro nível: numa
+ * conversa, quem responde está falando com o que veio antes. Ordenar réplica
+ * por engajamento embaralharia o diálogo — a resposta apareceria antes da
+ * pergunta que ela responde.
+ */
+export function repliesTo(commentId: string): Comment[] {
+  return comments
+    .filter((item) => item.parentId === commentId)
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/**
+ * O que uma pessoa andou comentando. É o que o perfil dela mostra.
+ *
+ * Só o primeiro nível: resposta solta, fora da conversa em que nasceu, não se
+ * entende — "Discordo, ele não ficou parecido com o noticiário" sem a pergunta
+ * acima é ruído.
+ */
 export function commentsByAuthor(authorSlug: string): Comment[] {
-  return comments.filter((item) => item.authorSlug === authorSlug).sort(byNewest);
+  return comments
+    .filter((item) => item.authorSlug === authorSlug && !item.parentId)
+    .sort(byNewest);
 }
 
 /** Quem escreveu, já resolvido. `undefined` se o slug não existir mais. */

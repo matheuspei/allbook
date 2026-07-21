@@ -1,4 +1,4 @@
-import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, Quote, User, Check, Plus, Clock, Headphones, ThumbsUp, ThumbsDown } from "lucide-react";
+import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, Quote, User, Check, Plus, Clock, Headphones } from "lucide-react";
 import BookActionsMenu from "@/components/BookActionsMenu";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,9 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { catalog, findGenreBySlug, slugify, duracaoEstimada } from "@/lib/books";
 import { findPerson } from "@/lib/people";
-import { findMember } from "@/lib/community";
-import { commentsForBook, type Comment } from "@/lib/comments";
-import {
-  dislikeCount,
-  likeCount,
-  readReactions,
-  toggleReaction,
-  type Reaction,
-  type Reactions,
-} from "@/lib/reactions";
+import { commentsForBook } from "@/lib/comments";
+import CommentThread from "@/components/CommentThread";
+import { readReactions, type Reactions } from "@/lib/reactions";
 import PersonAvatar from "@/components/PersonAvatar";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
@@ -155,113 +148,6 @@ function PessoaDoLivro({
 }
 
 /**
- * Quem escreveu o comentário.
- *
- * O nome leva ao perfil da pessoa — é o caminho natural: você lê a opinião de
- * alguém, quer saber o que mais ela indica, e é dali que sai o "seguir". Se o
- * slug não existir mais na comunidade, mostra um autor genérico sem link, em
- * vez de oferecer um clique que levaria a lugar nenhum.
- */
-function AutorDoComentario({ slug }: { slug: string }) {
-  const [, navegar] = useLocation();
-  const membro = findMember(slug);
-
-  const avatar = (
-    <span
-      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold ${
-        membro
-          ? `bg-gradient-to-br ${membro.color} text-white`
-          : "bg-gradient-to-br from-amber-500/30 to-orange-600/30 text-amber-500"
-      }`}
-    >
-      {membro ? membro.name.charAt(0) : <User className="w-3.5 h-3.5" />}
-    </span>
-  );
-
-  if (!membro) {
-    return (
-      <div className="flex items-center gap-2">
-        {avatar}
-        <span className="text-sm font-bold">Leitor AllBook</span>
-      </div>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => navegar(`/user/${membro.slug}`)}
-      className="flex items-center gap-2 group"
-      aria-label={`Ver o perfil de ${membro.name}`}
-      data-testid={`link-reviewer-${membro.slug}`}
-    >
-      {avatar}
-      <span className="text-sm font-bold group-hover:text-primary transition-colors">
-        {membro.name}
-      </span>
-    </button>
-  );
-}
-
-
-/**
- * Curtir e descurtir.
- *
- * As duas mostram número e as duas pesam igual na ordem dos comentários:
- * discordar também é engajar, e a discordância visível é parte do que faz
- * alguém parar para ler. O porquê e o risco disso estão em `reactions.ts`.
- */
-function ReacoesDoComentario({
-  comment,
-  reaction,
-  onReact,
-}: {
-  comment: Comment;
-  reaction: Reaction | undefined;
-  onReact: (id: string, reaction: Reaction) => void;
-}) {
-  return (
-    <div className="flex items-center gap-1 pt-1">
-      <button
-        type="button"
-        onClick={() => onReact(comment.id, "like")}
-        className={`flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-md text-xs transition-colors ${
-          reaction === "like" ? "text-amber-500" : "text-white/40 hover:text-white/70"
-        }`}
-        aria-pressed={reaction === "like"}
-        aria-label="Curtir este comentário"
-        data-testid={`button-like-${comment.id}`}
-      >
-        <ThumbsUp
-          className="w-3.5 h-3.5"
-          strokeWidth={1.75}
-          fill={reaction === "like" ? "currentColor" : "none"}
-        />
-        {likeCount(comment.likes, reaction)}
-      </button>
-
-      <button
-        type="button"
-        onClick={() => onReact(comment.id, "dislike")}
-        className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
-          reaction === "dislike" ? "text-white/80" : "text-white/40 hover:text-white/70"
-        }`}
-        aria-pressed={reaction === "dislike"}
-        aria-label="Descurtir este comentário"
-        data-testid={`button-dislike-${comment.id}`}
-      >
-        <ThumbsDown
-          className="w-3.5 h-3.5"
-          strokeWidth={1.75}
-          fill={reaction === "dislike" ? "currentColor" : "none"}
-        />
-        {dislikeCount(comment.dislikes, reaction)}
-      </button>
-    </div>
-  );
-}
-
-/**
  * O gênero do livro levando à tela da categoria.
  *
  * Um id fora do catálogo cai no gênero "Geral", que não é uma categoria de
@@ -347,9 +233,6 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     setReactions(readReactions());
   }, []);
 
-  function reagir(commentId: string, reaction: Reaction) {
-    setReactions(toggleReaction(commentId, reaction));
-  }
 
   const [chapters] = useState(() => {
     const count = 8 + Math.floor(Math.random() * 7);
@@ -540,22 +423,12 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               </p>
             ) : (
               comentarios.map((comment) => (
-                <div key={comment.id} className="bg-white/5 p-4 rounded-xl space-y-3 border border-white/5" data-testid={`card-review-${comment.id}`}>
-                  <div className="flex justify-between items-center">
-                    <AutorDoComentario slug={comment.authorSlug} />
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`w-2.5 h-2.5 ${i < comment.rating ? 'fill-amber-500 text-amber-500' : 'text-white/20'}`} />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-sm text-white/70 leading-relaxed italic">"{comment.text}"</p>
-                  <ReacoesDoComentario
-                    comment={comment}
-                    reaction={reactions[comment.id]}
-                    onReact={reagir}
-                  />
-                </div>
+                <CommentThread
+                  key={comment.id}
+                  comment={comment}
+                  reactions={reactions}
+                  onReactionsChange={setReactions}
+                />
               ))
             )}
           </div>
