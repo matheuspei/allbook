@@ -11,6 +11,7 @@ import {
   Flame,
   Headphones,
   HelpCircle,
+  Pencil,
   Settings,
   Share2,
   Trophy,
@@ -102,11 +103,24 @@ export default function Profile() {
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="profile-page">
       <header className="px-5 pt-8 pb-7">
         <div className="flex items-center gap-4">
-          <Avatar className="w-16 h-16">
-            <AvatarFallback className="bg-white/10 text-white font-display font-semibold text-xl">
-              {user.initial}
-            </AvatarFallback>
-          </Avatar>
+          {/* O lápis fica sobre o avatar, como na maioria dos apps. O botão
+              tem 28px, mas a área de toque vai além dele, para o dedo acertar. */}
+          <button
+            onClick={() => comingSoon("Editar perfil")}
+            className="relative shrink-0 group"
+            aria-label="Editar perfil"
+            data-testid="button-edit-profile"
+          >
+            <Avatar className="w-16 h-16">
+              <AvatarFallback className="bg-white/10 text-white font-display font-semibold text-xl">
+                {user.initial}
+              </AvatarFallback>
+            </Avatar>
+
+            <span className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-[#2a2a2a] border-2 border-[#141414] flex items-center justify-center group-hover:bg-[#383838] transition-colors">
+              <Pencil className="w-3.5 h-3.5 text-white/70" strokeWidth={2} />
+            </span>
+          </button>
 
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold font-display tracking-tight" data-testid="text-profile-name">
@@ -114,14 +128,6 @@ export default function Profile() {
             </h1>
             <p className="text-sm text-white/40 truncate mt-0.5">{user.email}</p>
           </div>
-
-          <button
-            onClick={() => comingSoon("Editar perfil")}
-            className="text-xs font-medium text-white/50 hover:text-white transition-colors shrink-0"
-            data-testid="button-edit-profile"
-          >
-            Editar
-          </button>
         </div>
       </header>
 
