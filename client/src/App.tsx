@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+import Discover from "@/pages/Discover";
 import Library from "@/pages/Library";
 import Statistics from "@/pages/Statistics";
 import BookDetails from "@/pages/BookDetails";
@@ -62,6 +63,7 @@ function Router() {
       <div className={!isPlayerPage && !isHomePage ? "pt-14" : ""}>
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/discover" component={Discover} />
           <Route path="/library" component={Library} />
           <Route path="/statistics" component={Statistics} />
           <Route path="/book/:id" component={BookDetails} />

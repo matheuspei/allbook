@@ -4,10 +4,10 @@ import { useLocation } from "wouter";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Fuse from "fuse.js";
 
+import { catalog, getBooksByIds, type Book } from "@/lib/books";
+
 import coverScifi from "@/assets/images/cover-scifi.png";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
-import coverRomance from "@/assets/images/cover-romance.png";
-import coverMystery from "@/assets/images/cover-mystery.png";
 import coverBusiness from "@/assets/images/cover-business.png";
 import coverBiography from "@/assets/images/cover-biography.png";
 import coverHorror from "@/assets/images/cover-horror.png";
@@ -95,62 +95,29 @@ const categoryCards = [
   { label: "Autoajuda & Negócios", gradient: "from-amber-600 to-orange-500" },
 ];
 
-const categories = [
+// As fileiras da Home são montadas a partir do catálogo em lib/books.ts,
+// para não duplicar os dados fixos entre Home e Descobrir.
+const categories: { title: string; books: Book[] }[] = [
   {
     title: "Minha lista",
-    books: [
-      { id: 101, title: "A Psicologia Financeira", author: "Morgan Housel", cover: coverBusiness, rating: 4.8 },
-      { id: 102, title: "Hábitos Atômicos", author: "James Clear", cover: coverProductivity, rating: 4.9 },
-      { id: 1, title: "O massacre da família Hope", author: "Riley Sager", cover: coverMystery, rating: 4.5 },
-      { id: 103, title: "A Terra Prometida", author: "Barack Obama", cover: coverBiography, rating: 4.7 },
-      { id: 8, title: "Fundação", author: "Isaac Asimov", cover: coverScifi, rating: 4.8 },
-    ]
+    books: getBooksByIds([101, 102, 1, 103, 8]),
   },
   {
     title: "Descubra suas próximas histórias",
-    books: [
-      { id: 2, title: "A empregada", author: "Freida McFadden", cover: coverMystery, rating: 4.8 },
-      { id: 3, title: "Garota Exemplar", author: "Gillian Flynn", cover: coverMystery, rating: 4.6 },
-      { id: 104, title: "It: A Coisa", author: "Stephen King", cover: coverHorror, rating: 4.8 },
-      { id: 105, title: "O Iluminado", author: "Stephen King", cover: coverHorror, rating: 4.9 },
-      { id: 106, title: "A Paciente Silenciosa", author: "Alex Michaelides", cover: coverMystery, rating: 4.5 },
-      { id: 119, title: "O Código Da Vinci", author: "Dan Brown", cover: coverMystery, rating: 4.4 },
-      { id: 120, title: "A Garota no Trem", author: "Paula Hawkins", cover: coverMystery, rating: 4.6 },
-    ]
+    books: getBooksByIds([2, 3, 104, 105, 106, 119, 120]),
   },
   {
     title: "🔥 Sugestões que você vai adorar",
-    books: [
-      { id: 7, title: "Duna", author: "Frank Herbert", cover: coverScifi, rating: 4.9 },
-      { id: 109, title: "O Problema dos 3 Corpos", author: "Cixin Liu", cover: coverScifi, rating: 4.6 },
-      { id: 129, title: "O Senhor dos Anéis", author: "J.R.R. Tolkien", cover: coverScifi, rating: 4.9 },
-      { id: 130, title: "1984", author: "George Orwell", cover: coverScifi, rating: 4.8 },
-      { id: 131, title: "Admirável Mundo Novo", author: "Aldous Huxley", cover: coverScifi, rating: 4.7 },
-      { id: 132, title: "A Guerra dos Tronos", author: "George R. R. Martin", cover: coverScifi, rating: 4.9 },
-    ]
+    books: getBooksByIds([7, 109, 129, 130, 131, 132]),
   },
   {
     title: "Desenvolvimento e Negócios",
-    books: [
-      { id: 4, title: "O clube das 5 da manhã", author: "Robin Sharma", cover: coverSelfhelp, rating: 4.7 },
-      { id: 107, title: "Essencialismo", author: "Greg McKeown", cover: coverProductivity, rating: 4.6 },
-      { id: 5, title: "Organize-se", author: "Ciara Conlon", cover: coverSelfhelp, rating: 4.3 },
-      { id: 108, title: "Pense de Novo", author: "Adam Grant", cover: coverBusiness, rating: 4.7 },
-      { id: 124, title: "Os 7 Hábitos", author: "Stephen R. Covey", cover: coverProductivity, rating: 4.8 },
-      { id: 125, title: "Pai Rico, Pai Pobre", author: "Robert T. Kiyosaki", cover: coverBusiness, rating: 4.6 },
-    ]
+    books: getBooksByIds([4, 107, 5, 108, 124, 125]),
   },
   {
     title: "Biografias e Histórias Reais",
-    books: [
-      { id: 111, title: "Minha História", author: "Michelle Obama", cover: coverBiography, rating: 4.8 },
-      { id: 112, title: "Steve Jobs", author: "Walter Isaacson", cover: coverBiography, rating: 4.7 },
-      { id: 113, title: "A Marca da Vitória", author: "Phil Knight", cover: coverBiography, rating: 4.8 },
-      { id: 135, title: "Eu Sou Malala", author: "Malala Yousafzai", cover: coverBiography, rating: 4.8 },
-      { id: 136, title: "O Diário de Anne Frank", author: "Anne Frank", cover: coverBiography, rating: 4.9 },
-      { id: 137, title: "Em Busca de Sentido", author: "Viktor E. Frankl", cover: coverBiography, rating: 4.8 },
-    ]
-  }
+    books: getBooksByIds([111, 112, 113, 135, 136, 137]),
+  },
 ];
 
 function HeroBillboard() {
@@ -434,9 +401,7 @@ function BookCarousel({ title, books }: { title: string; books: typeof categorie
 function SearchResults({ query, onClear }: { query: string; onClear: () => void }) {
   const [, setLocation] = useLocation();
 
-  const allBooks = useMemo(() => {
-    return categories.flatMap(cat => cat.books);
-  }, []);
+  const allBooks = catalog;
 
   const filteredBooks = useMemo(() => {
     if (!query.trim()) return [];
