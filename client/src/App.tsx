@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import Discover from "@/pages/Discover";
 import Library from "@/pages/Library";
 import Statistics from "@/pages/Statistics";
+import Profile from "@/pages/Profile";
 import BookDetails from "@/pages/BookDetails";
 import AudioPlayer from "@/pages/AudioPlayer";
 import BottomNav from "@/components/layout/BottomNav";
@@ -66,6 +67,7 @@ function Router() {
           <Route path="/discover" component={Discover} />
           <Route path="/library" component={Library} />
           <Route path="/statistics" component={Statistics} />
+          <Route path="/profile" component={Profile} />
           <Route path="/book/:id" component={BookDetails} />
           <Route path="/player/:id" component={AudioPlayer} />
           <Route component={NotFound} />
