@@ -49,7 +49,9 @@ Checklist das telas que faltam:
   fictícios (`client/src/lib/community.ts`) e o nome nos comentários de cada livro
   leva ao perfil de quem escreveu. Ver a memória "AllBook: comunidade" para as
   decisões de produto por trás disso.
-- [ ] Login / Cadastro
+- [x] **Login / Cadastro** — PRONTA (21/07). Rota `/login`, tela cheia (sem menus,
+  como o player). Uma tela só, alternando entre "Entrar" e "Criar conta".
+  Sessão em `client/src/lib/auth.ts`. Ver as decisões abaixo.
 - [ ] Configurações
 - [ ] Busca (tela própria)
 - [x] **Categoria / Gênero** — PRONTA (21/07). Rota `/category/:slug`. É o destino do
@@ -82,6 +84,30 @@ Tela de EXPLORAR o catálogo (diferente da Início). De cima pra baixo:
 3. "Top 10 da semana" — fileira horizontal numerada (estilo Netflix).
 4. "Lançamentos" — fileira horizontal de capas.
 Dados: usar os fixos existentes + capas de gênero. Sem backend. Coleções por tema/humor ficaram de fora por ora.
+
+### Decisões da tela de Login (21/07)
+
+- **O app NÃO é trancado atrás do login.** Dá para explorar tudo sem conta, e a
+  tela tem um botão "Explorar sem conta". Um muro na porta de entrada é o que
+  mais afasta gente num app de catálogo, e hoje não há nada de verdade para
+  proteger (sem servidor, sem áudio, sem cobrança). **Rejeitado por ora:**
+  redirecionar quem não tem sessão para `/login`. Quando houver assinatura, o
+  muro deve ficar no **player**, não na entrada.
+- **A senha nunca é guardada** — nem no `localStorage`. Não há o que conferir,
+  então ela não serviria para nada, e senha em texto puro no navegador é o tipo
+  de atalho que ninguém lembra de desfazer depois. Só nome, e-mail e data entram
+  em `allbook_auth`.
+- **Sair não apaga biblioteca, downloads nem recomendações.** Neste protótipo
+  essas listas são *do navegador*, não *da conta*; apagá-las faria a pessoa
+  perder o que montou por ter clicado em "Sair". Só o perfil volta ao padrão.
+- **Uma tela só para entrar e cadastrar**, alternando por um link, em vez de duas
+  rotas. São os mesmos dois campos; separar dobraria o código sem ganho.
+- **Login social (Google/Apple) ficou de fora**, e não é só falta de backend:
+  botão de rede social que não faz nada é justamente o enfeite que dá a "cara de
+  IA" que já foi rejeitada no Perfil.
+- **Pendente:** o botão "Sair da conta" do `Profile.tsx` ainda é o aviso antigo
+  de "em breve" — falta ligá-lo ao `signOut()`. Não foi feito aqui para não
+  colidir com o trabalho em paralelo nas telas de perfil.
 
 ---
 

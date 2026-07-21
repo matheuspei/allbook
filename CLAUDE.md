@@ -125,6 +125,7 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
 | Rota | Tela |
 | --- | --- |
 | `/` | Home |
+| `/login` | Login (entrar e criar conta na mesma tela) |
 | `/discover` | Discover |
 | `/library` | Library |
 | `/statistics` | Statistics |
@@ -146,8 +147,8 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
 O menu inferior (`BottomNav`) aponta para Início, Biblioteca, Descobrir e Perfil.
 Estatísticas fica no TopNav e também dentro do Perfil.
 
-**Comportamento de navegação:** a tela `AudioPlayer` (`/player/:id`) é **tela cheia** —
-ela esconde o TopNav e o BottomNav. Em todas as outras rotas, o `MiniPlayer` flutua
+**Comportamento de navegação:** `AudioPlayer` (`/player/:id`) e `Login` (`/login`) são
+**tela cheia** — escondem o TopNav e o BottomNav (o Login esconde também o MiniPlayer). Em todas as outras rotas, o `MiniPlayer` flutua
 logo acima do BottomNav.
 
 ## Identidade visual (seguir à risca)

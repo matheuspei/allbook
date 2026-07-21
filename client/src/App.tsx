@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+import Login from "@/pages/Login";
 import Discover from "@/pages/Discover";
 import Library from "@/pages/Library";
 import Statistics from "@/pages/Statistics";
@@ -63,15 +64,19 @@ class ErrorBoundary extends React.Component<
 function Router() {
   const [location] = useLocation();
   const isPlayerPage = location.startsWith('/player');
+  /** Login é tela cheia como o player: sem menus, sem MiniPlayer. */
+  const isLoginPage = location === '/login';
+  const isBare = isPlayerPage || isLoginPage;
 
   const isHomePage = location === '/';
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-20">
-      {!isPlayerPage && <TopNav />}
-      <div className={!isPlayerPage && !isHomePage ? "pt-14" : ""}>
+    <div className={`min-h-screen bg-[#141414] ${isBare ? "" : "pb-20"}`}>
+      {!isBare && <TopNav />}
+      <div className={!isBare && !isHomePage ? "pt-14" : ""}>
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/login" component={Login} />
           <Route path="/discover" component={Discover} />
           <Route path="/library" component={Library} />
           <Route path="/statistics" component={Statistics} />
@@ -89,8 +94,8 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </div>
-      <MiniPlayer />
-      {!isPlayerPage && <BottomNav />}
+      {!isLoginPage && <MiniPlayer />}
+      {!isBare && <BottomNav />}
     </div>
   );
 }
