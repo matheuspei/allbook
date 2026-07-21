@@ -32,6 +32,39 @@ programação** — leve isso em conta em tudo.
 - `npm run build` — gera a versão de produção.
 - `npm start` — roda a versão de produção já construída.
 - `npm run db:push` — (uso futuro) cria/atualiza as tabelas no banco de dados.
+- `npm run catalogo` — busca capas e fichas reais dos livros (ver abaixo).
+
+### `npm run catalogo` — de onde vêm as capas e as fichas
+
+O catálogo tem duas metades. **A curada à mão** fica em `books.ts`: id, título em
+português, autor, narrador, nota e gênero. **A importada** vem da
+[Open Library](https://openlibrary.org) por `npm run catalogo`, que grava:
+
+- `client/src/assets/images/covers/<id>.jpg` — a capa real de cada livro
+- `client/src/lib/catalog-enriched.ts` — ano, páginas, ISBN, sinopse e título
+  original. **Arquivo gerado: não edite à mão.**
+
+O `books.ts` junta as duas na hora de montar o `catalog`. Livro sem capa baixada
+cai na imagem genérica do gênero.
+
+O script **roda uma vez na sua máquina**, não durante o uso do app — por isso o
+AllBook nunca depende de internet nem da API para funcionar. Ao acrescentar um
+livro em `books.ts`, acrescente-o também na lista `ALVOS` do script e rode de novo.
+
+**Três coisas que só apareceram testando, e que estão no script por isso:**
+- A busca usa o **título original**, não o português (medido: 2 capas de 6 em
+  português, 6 de 6 pelo original).
+- Pede 5 resultados e prefere o primeiro **com capa** — a edição do topo às vezes
+  não tem imagem.
+- Tenta de novo antes de desistir: falhas de rede passageiras derrubavam livros
+  que passavam na segunda tentativa.
+
+**Limite conhecido:** comparar títulos **não** detecta capa errada. A Open Library
+agrupa as edições de uma série, então "O Problema dos 3 Corpos" veio com a arte de
+"The Dark Forest" enquanto o título devolvido estava certo. Para esses casos use o
+campo `isbnDaCapa` no `ALVOS`, que fixa a capa por uma edição específica.
+**Conferir capa exige olho humano** — vale passar pelas telas de categoria de vez
+em quando.
 
 ### A moldura de celular da prévia NÃO simula um celular
 
@@ -65,9 +98,14 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
   - `src/components/layout/` — TopNav, BottomNav, MiniPlayer
   - `src/components/ui/` — componentes shadcn/ui (reutilizar, não reinventar)
   - `src/hooks/` — use-toast, use-mobile
-  - `src/lib/` — `books.ts` (catálogo fixo dos livros), `queryClient.ts` (cliente
+  - `src/lib/` — `books.ts` (catálogo), `people.ts` (autores e narradores),
+    `catalog-enriched.ts` (**gerado**, ver abaixo), `queryClient.ts` (cliente
     TanStack Query + helper `apiRequest`), `utils.ts`
-  - `src/assets/images/` — capas dos livros (PNG)
+  - `src/assets/images/` — 8 capas genéricas por gênero (PNG), usadas como reserva
+    - `covers/` — a capa real de cada livro, `<id do livro>.jpg`, baixada pelo script
+    - `people/` — foto de autor/narrador, `<slug>.jpg`. Basta soltar o arquivo:
+      o Vite acha sozinho. Sem foto, o avatar é gerado do nome. Ver o `LEIA-ME.md`
+      da pasta.
   - `src/App.tsx` — onde ficam as **rotas**
 - `server/`
   - `index.ts` — entrada do Express, porta 3000
@@ -173,3 +211,28 @@ as regras técnicas do dia a dia.
 O Cowork é onde o Matheus pensa e escreve; o que vale para o código é sempre o
 arquivo que está **dentro** do projeto. Quando vier uma versão nova do Cowork,
 fundir aqui e avisar o que mudou.
+
+### Registrar decisão é obrigação, não favor (regra importante)
+
+**Ao tomar uma decisão de rumo — ou ao descartar uma ideia — escrever em
+`docs/ROTEIRO.md` na hora, junto com o motivo.** Não esperar o fim da sessão e
+não esperar o Matheus pedir: ele pode fechar a janela antes, o contexto pode
+estourar antes, e aí o porquê se perde.
+
+**O filtro é: registrar decisão, não trabalho feito.** O que foi construído já
+está no código e no histórico do git, e repetir isso no roteiro só cria
+documento que envelhece mal. O que nenhum código conta é:
+
+- **por que** se escolheu um caminho;
+- **o que foi rejeitado** e a razão (o mais valioso, e o que mais se perde —
+  quem chegar depois vê só a ausência e propõe de novo a mesma coisa);
+- o que foi **apurado sem gerar decisão**, para ninguém refazer a pesquisa.
+
+Dois exemplos do próprio roteiro, no formato certo: a seção "Estilo: evitar a
+cara de IA" (uma abordagem rejeitada, com os motivos) e a seção "Decisão em
+aberto: de onde vem a estrelinha" (pesquisa registrada, decisão explicitamente
+não tomada).
+
+Preferências sobre **como trabalhar com o Matheus** — e não sobre o AllBook —
+vão para a memória do Claude Code, não para cá: elas o acompanham em qualquer
+projeto.
