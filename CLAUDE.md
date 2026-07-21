@@ -138,3 +138,13 @@ Detalhes e checklist completo em `docs/ROTEIRO.md`.
 - Não instalar bibliotecas grandes sem necessidade.
 - Não reescrever telas que já funcionam sem pedido — preservar o que está bom.
 - Não reorganizar a estrutura de pastas — ela já está boa.
+
+## Onde ficam as decisões
+O roteiro, o checklist de telas e as decisões de rumo ficam em **`docs/ROTEIRO.md`**,
+dentro do repositório — é lá que se olha para saber o que vem a seguir. O documento
+"AllBook — Fluxo de Trabalho" continua no Projeto do Cowork. Este `CLAUDE.md` guarda
+as regras técnicas do dia a dia.
+
+O Cowork é onde o Matheus pensa e escreve; o que vale para o código é sempre o
+arquivo que está **dentro** do projeto. Quando vier uma versão nova do Cowork,
+fundir aqui e avisar o que mudou.

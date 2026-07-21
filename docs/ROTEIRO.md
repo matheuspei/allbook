@@ -71,5 +71,21 @@ Dados: usar os fixos existentes + capas de gênero. Sem backend. Coleções por 
 
 ---
 
-## Glossário rápido
-Frontend = telas (salão). Backend = servidor (cozinha). API = janelinha de pedidos. Banco = onde ficam os dados. Object storage = depósito de arquivos grandes (áudios). Streaming = mandar o áudio em pedaços. Commit/push = foto do projeto enviada pro GitHub (backup + máquina do tempo).
+## 6. Ferramentas
+Usar **um editor só** (Cursor serve bem, é baseado no VS Code). Claude Code no terminal
+para tarefas maiores. Enviar pro GitHub com frequência (backup + histórico).
+
+O fluxo de como o trabalho pensado na nuvem chega ao computador está definido:
+construção via Claude Code, no Cursor. Detalhes no documento "AllBook — Fluxo de
+Trabalho", no Cowork.
+
+---
+
+## Glossário rápido (linguagem simples)
+- **Frontend:** as telas que o usuário vê (o "salão do restaurante").
+- **Backend / Servidor:** o programa por trás que guarda e processa os dados (a "cozinha").
+- **API:** a "janelinha de pedidos" entre as telas e o servidor.
+- **Banco de dados:** onde ficam guardadas as informações organizadas (livros, usuários, progresso).
+- **Object storage / "depósito":** armazém na internet para arquivos grandes (os áudios).
+- **Streaming:** enviar o áudio em pedacinhos conforme se ouve, sem baixar tudo antes.
+- **Commit / push:** tirar uma "foto" do projeto e enviá-la pro GitHub (backup + máquina do tempo).
