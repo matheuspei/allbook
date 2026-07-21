@@ -208,7 +208,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             />
             <div className="absolute top-0 right-0 overflow-hidden w-20 h-20">
               <div className="absolute transform rotate-45 bg-[#f59e0b] text-black text-[9px] font-bold py-1 right-[-25px] top-[15px] w-32 text-center uppercase tracking-wider shadow-sm">
-                Exclusivo<br/>Audible
+                AllBook<br/>Original
               </div>
             </div>
           </div>

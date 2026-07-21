@@ -53,17 +53,44 @@ já existe em `client/src/lib/books.ts`, e têm pouca decisão de conteúdo:
 Para essas, o caminho que funcionou foi: o Cowork escreve a receita (ver
 `docs/receitas/descobrir.md` como modelo), e ela é executada aqui.
 
-## Achado técnico a verificar no levantamento
+## Resultado do levantamento (feito em 21/07/2026)
 
-O `MiniPlayer` navega para **`/player/current`**. Essa rota casa com
-`/player/:id` tendo `id = "current"`, que **não é um id de livro real**. Vale
-conferir no navegador o que acontece ao clicar no mini-player — pode estar
-abrindo o player sem livro nenhum.
+O Passo 1 foi executado: o app foi aberto no navegador e todas as rotas foram
+percorridas. O que se achou, em ordem de gravidade:
 
-## Estado em 21/07/2026
+### Corrigido nesta sessão
 
-- Telas prontas: Início, Descobrir, Biblioteca, Estatísticas, Detalhes, Player.
-- Falta: Perfil, Login/Cadastro, Configurações, Busca, Categoria, Autor,
-  Planos, Onboarding.
-- `BookDetails.tsx` ainda tem dados de livros próprios, fora do catálogo
-  central — vale unificar quando mexer nele.
+1. **`BookDetails` ignorava o catálogo** — o pior defeito. A tela tinha uma
+   lista própria com apenas **4 livros** (ids 1, 5, 101, 102), enquanto o
+   catálogo tem **38**. Os outros **34 livros (89%)** abriam uma página com
+   "Título do Livro / Autor Desconhecido / Narrador Padrão". Como Início,
+   Descobrir e Biblioteca todas linkam `/book/${id}` com ids do catálogo, quase
+   todo clique num livro caía nessa página vazia.
+   *Correção:* a função `buildFromCatalog` puxa título, autor, capa, nota e
+   gênero do catálogo central; só os campos que o catálogo não tem (narrador,
+   duração, resumo) seguem com valor padrão.
+
+2. **Selo "Exclusivo Audible"** estava fixo no código do player
+   (`AudioPlayer.tsx`) — marca de concorrente dentro do app. Virou
+   "AllBook Original".
+
+3. **Página de erro 404** era o padrão do template: em inglês, tema claro,
+   texto quase preto sobre fundo escuro (ilegível). Reescrita em português, no
+   tema do app, com botão de voltar.
+
+### Ainda em aberto
+
+4. **`/profile` não existe** — o 4º item do menu inferior ("Minha AllBook")
+   leva à página de erro. É a próxima tela da fila e precisa de receita.
+
+5. **`MiniPlayer` navega para `/player/current`** — confirmado: não dá erro,
+   mas abre o player com os dados de "Organize-se" fixos no próprio
+   `AudioPlayer.tsx`, sem título nem autor na tela. Ignora o que estiver
+   tocando. Precisa de um estado real de "livro atual" para resolver direito.
+
+6. **Cabeçalho da Estatísticas colide com o TopNav ao rolar** — o título
+   "Estatísticas" sobrepõe o menu do topo. Problema de camada/sticky.
+
+7. **`BookDetails` ainda tem dados próprios** para os 4 livros que conhece
+   (com resumo, narrador e comentários que o catálogo não tem). Unificar de vez
+   exige decidir se esses campos entram no catálogo.

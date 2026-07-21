@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { catalog } from "@/lib/books";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
@@ -104,6 +105,28 @@ const defaultBook = {
   ]
 };
 
+/**
+ * Livros sem ficha detalhada em `bookData` caem aqui. Em vez de mostrar
+ * "Título do Livro", puxamos do catálogo central o que ele sabe (título, autor,
+ * capa, nota, gênero) e completamos o resto com o padrão. Só um id que não
+ * existe em lugar nenhum cai no `defaultBook` puro.
+ */
+function buildFromCatalog(id: string) {
+  const entry = catalog.find((b) => String(b.id) === id);
+  if (!entry) return { ...defaultBook, id };
+
+  return {
+    ...defaultBook,
+    id,
+    title: entry.title,
+    author: entry.author,
+    cover: entry.cover,
+    rating: entry.rating,
+    genre: entry.genre,
+    summary: `"${entry.title}", de ${entry.author}. A ficha completa deste título ainda está sendo preparada — em breve com resumo, narração e avaliações.`,
+  };
+}
+
 export default function BookDetails({ params }: { params: { id: string } }) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
@@ -115,7 +138,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     setIsAdded(library.some((b: any) => b.id === params.id));
   }, [params.id]);
 
-  const book = bookData[params.id] || { ...defaultBook, id: params.id };
+  const book = bookData[params.id] || buildFromCatalog(params.id);
 
   const [chapters] = useState(() => {
     const count = 8 + Math.floor(Math.random() * 7);
