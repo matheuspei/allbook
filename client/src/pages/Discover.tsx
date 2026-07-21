@@ -141,27 +141,42 @@ function TopTenRow() {
     <section className="py-3 space-y-3" data-testid="discover-top-ten">
       <h2 className="font-display font-bold text-lg text-white tracking-tight px-4">Top 10 da semana</h2>
 
-      <div className="flex overflow-x-auto scrollbar-hide gap-4 px-4 pb-2 snap-x snap-mandatory">
-        {books.map((book, idx) => (
-          <div
-            key={book.id}
-            className="flex items-end shrink-0 snap-start group cursor-pointer"
-            onClick={() => setLocation(`/book/${book.id}`)}
-            data-testid={`card-top-${book.id}`}
-          >
-            <span className="flex items-end h-[147px] -mr-2 pl-1 select-none">
+      <div className="flex overflow-x-auto scrollbar-hide gap-3 px-4 pb-2 snap-x snap-mandatory">
+        {books.map((book, idx) => {
+          const position = idx + 1;
+
+          return (
+            <div
+              key={book.id}
+              className="flex items-end shrink-0 snap-start group cursor-pointer"
+              onClick={() => setLocation(`/book/${book.id}`)}
+              data-testid={`card-top-${book.id}`}
+            >
+              {/*
+                O número precisa de uma coluna com largura própria. Sem ela o "1"
+                encostava na borda da tela e ficava cortado, e o "10", que tem dois
+                dígitos, espremia a fileira. `aria-hidden` porque a posição já é
+                visual — quem usa leitor de tela ouve o título do livro.
+              */}
               <span
-                className="font-display font-extrabold text-[4.5rem] leading-[0.82] text-transparent"
-                style={{ WebkitTextStroke: "2px rgba(255,255,255,0.35)" }}
+                aria-hidden="true"
+                className={`flex items-end justify-center h-[147px] select-none ${
+                  position > 9 ? "w-[80px]" : "w-[44px]"
+                }`}
               >
-                {idx + 1}
+                <span
+                  className="font-display font-extrabold text-[4.5rem] leading-[0.82] text-transparent tabular-nums"
+                  style={{ WebkitTextStroke: "2px rgba(255,255,255,0.45)" }}
+                >
+                  {position}
+                </span>
               </span>
-            </span>
-            <div className="relative rounded-lg overflow-hidden w-[110px] aspect-[3/4] transition-transform duration-200 group-hover:scale-105">
-              <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
+              <div className="relative rounded-lg overflow-hidden w-[110px] aspect-[3/4] transition-transform duration-200 group-hover:scale-105">
+                <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
