@@ -11,6 +11,7 @@ import {
   Flame,
   Headphones,
   HelpCircle,
+  Plus,
   Settings,
   Share2,
   Trophy,
@@ -20,6 +21,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { useToast } from "@/hooks/use-toast";
 import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
+import { readRecommendations } from "@/lib/recommendations";
+import type { Book } from "@/lib/books";
 
 /**
  * Perfil ("Minha AllBook") — a tela do 4º item do menu inferior.
@@ -56,10 +59,12 @@ export default function Profile() {
   const [downloadCount, setDownloadCount] = useState(0);
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
   const [profile, setProfile] = useState<UserProfile>(readProfile);
+  const [recommendations, setRecommendations] = useState<Book[]>(readRecommendations);
 
   useEffect(() => {
-    // Relê ao voltar da tela de edição.
+    // Relê ao voltar das telas de edição.
     setProfile(readProfile());
+    setRecommendations(readRecommendations());
 
     // Mesmas chaves usadas pelas telas Biblioteca e Downloads.
     const savedLibrary = JSON.parse(localStorage.getItem("allbook_library") || "[]");
@@ -154,6 +159,61 @@ export default function Profile() {
       </section>
 
       <StatSpotlight stat={openStat} onClose={() => setOpenStat(null)} />
+
+      <section className="px-5 py-5 border-b border-white/10" data-testid="section-profile-recommendations">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+              Recomendo
+            </h2>
+            <p className="text-[11px] text-white/25 mt-0.5">Visível para a comunidade</p>
+          </div>
+          <Link
+            href="/profile/recommendations"
+            className="text-xs font-medium text-primary shrink-0"
+            data-testid="link-edit-recommendations"
+          >
+            {recommendations.length > 0 ? "Editar" : "Montar lista"}
+          </Link>
+        </div>
+
+        {recommendations.length === 0 ? (
+          <Link
+            href="/profile/recommendations"
+            className="flex items-center gap-3 py-3 text-left"
+            data-testid="empty-recommendations"
+          >
+            <div className="w-11 h-[59px] rounded border border-dashed border-white/15 flex items-center justify-center shrink-0">
+              <Plus className="w-4 h-4 text-white/25" />
+            </div>
+            <p className="text-xs text-white/40 leading-relaxed">
+              Escolha os livros que você indicaria para alguém.
+              <br />
+              Eles aparecem no seu perfil, junto do seu nome.
+            </p>
+          </Link>
+        ) : (
+          <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-1" data-testid="recommendations-row">
+            {recommendations.map((book) => (
+              <Link
+                key={book.id}
+                href={`/book/${book.id}`}
+                className="w-[68px] shrink-0"
+                data-testid={`recommendation-${book.id}`}
+              >
+                <img
+                  src={book.cover}
+                  alt={book.title}
+                  className="w-full aspect-[3/4] rounded object-cover"
+                />
+                <p className="text-[10px] text-white/50 leading-tight line-clamp-2 mt-1.5">
+                  {book.title}
+                </p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="px-5 py-5 border-b border-white/10" data-testid="section-profile-achievements">
         <div className="flex items-center justify-between mb-4">
