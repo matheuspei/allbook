@@ -36,7 +36,19 @@ App que armazena muitos audiolivros, inspirado em Audible/Storytel + Netflix/HBO
 
 Checklist das telas que faltam:
 - [x] **Descobrir / Explorar** — PRONTA (21/07). Rota `/discover`, com busca, grade de 8 gêneros, Top 10 e Lançamentos.
-- [ ] **Perfil** — prometida pelo menu inferior, não existe (próxima)
+- [x] **Perfil** — PRONTA (21/07). Rota `/profile`. Cabeçalho com foto/nome/bio,
+  faixa de 4 números que abrem painel animado, conquistas discretas, fileira de
+  recomendações e lista de conta. Edição em `/profile/edit` (foto redimensionada
+  para 256px antes de ir ao localStorage, nome, bio de 160 caracteres).
+- [x] **Downloads** — PRONTA (21/07). Rota `/downloads`. Lê `allbook_downloads`,
+  que o botão "Baixar" do `BookDetails` já gravava sem ninguém ler.
+- [x] **Notificações** — PRONTA (21/07). Rota `/notifications`, avisos de exemplo
+  apontando para livros do catálogo, com lidas e não lidas.
+- [x] **Comunidade** — PRONTA (21/07). Rotas `/community` e `/user/:slug`, mais
+  `/profile/recommendations` para montar a própria lista pública. Os leitores são
+  fictícios (`client/src/lib/community.ts`) e o nome nos comentários de cada livro
+  leva ao perfil de quem escreveu. Ver a memória "AllBook: comunidade" para as
+  decisões de produto por trás disso.
 - [ ] Login / Cadastro
 - [ ] Configurações
 - [ ] Busca (tela própria)
@@ -50,7 +62,16 @@ Checklist das telas que faltam:
   perfil de autor com um livro só não mostrava nada.
 - [ ] Planos / Assinatura
 - [ ] Boas-vindas (onboarding)
-- [ ] Ligar Estatísticas ao menu
+- [x] **Ligar Estatísticas ao menu** — feito: já estava no TopNav e agora também no
+  Perfil. O cabeçalho que colidia com o TopNav ao rolar foi corrigido.
+
+### Estilo: evitar a "cara de IA"
+A primeira versão do Perfil foi rejeitada por parecer gerada automaticamente. Os
+três culpados: **ícone com gradiente colorido diferente por linha**, **cada opção
+dentro do próprio cartão**, e **gamificação em destaque**. O que funciona:
+lista corrida com divisórias finas, ícone monocromático, cor da marca reservada.
+Começar sóbrio ao criar tela nova. (A tela de Estatísticas ainda tem os cartões
+coloridos antigos — candidata ao mesmo tratamento.)
 
 Ordem: **Descobrir → Perfil → Login/Cadastro → Configurações → Busca → Categoria → Autor → Planos → Onboarding.**
 
