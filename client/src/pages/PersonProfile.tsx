@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import { useLocation } from "wouter";
-import { Star, PenLine, Mic, Compass } from "lucide-react";
+import { PenLine, Mic, Compass } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import PersonAvatar, { hueDoNome } from "@/components/PersonAvatar";
+import BookGrid from "@/components/BookGrid";
 import { findPerson, roleLabels } from "@/lib/people";
-import { getBooksByGenre, type Book } from "@/lib/books";
+import { getBooksByGenre } from "@/lib/books";
 
 /**
  * Perfil de uma pessoa do catálogo — autor, narrador, ou os dois.
@@ -14,7 +14,6 @@ import { getBooksByGenre, type Book } from "@/lib/books";
  * vez de a pessoa ter dois perfis desconexos.
  */
 export default function PersonProfile({ params }: { params: { slug: string } }) {
-  const [, setLocation] = useLocation();
   const person = findPerson(params.slug);
 
   useEffect(() => {
@@ -48,10 +47,6 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
         .sort((a, b) => b.rating - a.rating)
         .slice(0, 6)
     : [];
-
-  function abrirLivro(id: number) {
-    setLocation(`/book/${id}`);
-  }
 
   return (
     <div className="pb-10" data-testid="person-profile">
@@ -123,7 +118,7 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
           quantidade={person.wrote.length}
           testid="section-wrote"
         >
-          <GradeDeLivros livros={person.wrote} aoAbrir={abrirLivro} />
+          <BookGrid books={person.wrote} />
         </Secao>
       )}
 
@@ -134,7 +129,7 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
           quantidade={person.narrated.length}
           testid="section-narrated"
         >
-          <GradeDeLivros livros={person.narrated} aoAbrir={abrirLivro} />
+          <BookGrid books={person.narrated} showAuthor />
         </Secao>
       )}
 
@@ -145,7 +140,7 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
           quantidade={relacionados.length}
           testid="section-related"
         >
-          <GradeDeLivros livros={relacionados} aoAbrir={abrirLivro} />
+          <BookGrid books={relacionados} showAuthor />
         </Secao>
       )}
     </div>
@@ -186,39 +181,5 @@ function Secao({
       </h2>
       {children}
     </section>
-  );
-}
-
-function GradeDeLivros({
-  livros,
-  aoAbrir,
-}: {
-  livros: Book[];
-  aoAbrir: (id: number) => void;
-}) {
-  return (
-    <div className="grid grid-cols-3 gap-3">
-      {livros.map((livro) => (
-        <button
-          key={livro.id}
-          type="button"
-          onClick={() => aoAbrir(livro.id)}
-          aria-label={`${livro.title}, de ${livro.author}`}
-          className="group text-left"
-          data-testid={`card-person-book-${livro.id}`}
-        >
-          <div className="relative aspect-[3/4] overflow-hidden rounded-xl shadow-lg shadow-black/40 ring-1 ring-white/10 transition-transform duration-200 group-hover:scale-[1.04] group-active:scale-[0.98]">
-            <img src={livro.cover} alt="" className="h-full w-full object-cover" />
-          </div>
-          <span className="mt-2 block min-h-[32px] text-[12px] font-medium leading-snug text-white line-clamp-2">
-            {livro.title}
-          </span>
-          <span className="mt-0.5 flex items-center gap-1 text-[11px] text-white/60">
-            <Star className="h-3 w-3 shrink-0 fill-[#f59e0b] text-[#f59e0b]" />
-            {livro.rating.toFixed(1)}
-          </span>
-        </button>
-      ))}
-    </div>
   );
 }

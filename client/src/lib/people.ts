@@ -1,4 +1,8 @@
-import { catalog, type Book, type Genre } from "./books";
+import { catalog, slugify, type Book, type Genre } from "./books";
+
+// Reexportado por conveniência: quem lida com pessoas costuma precisar do slug,
+// mas a função em si mora em `books.ts` para não criar ciclo entre os módulos.
+export { slugify };
 
 /**
  * Pessoas do catálogo — autores e narradores.
@@ -46,16 +50,6 @@ export interface Person {
   titles: number;
   /** Média das notas desses títulos. */
   rating: number;
-}
-
-/** "J.R.R. Tolkien" → "j-r-r-tolkien". Sem acentos, para caber numa URL. */
-export function slugify(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 function ordenarPorNota(livros: Book[]): Book[] {

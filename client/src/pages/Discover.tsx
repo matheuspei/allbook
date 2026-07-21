@@ -1,13 +1,11 @@
-import { Search, X, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { Search, X, ChevronRight, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
 import Fuse from "fuse.js";
 
-import { catalog, genres, getBooksByIds, getBooksByGenre, type Book, type Genre } from "@/lib/books";
+import { catalog, genres, getBooksByIds, genreSlug, type Book, type Genre } from "@/lib/books";
 
-// TODO: quando existir a rota /category/:genero, trocar o filtro local
-// por navegacao para a tela de categoria.
 
 const topWeekIds = [7, 102, 101, 104, 2, 130, 111, 129, 106, 4];
 const newReleasesIds = [140, 144, 109, 108, 142, 137, 132, 107];
@@ -105,28 +103,6 @@ function GenreGrid({ onSelect }: { onSelect: (genre: Genre) => void }) {
           >
             {genre.label}
           </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function GenreResults({ genre, onBack }: { genre: Genre; onBack: () => void }) {
-  const books = useMemo(() => getBooksByGenre(genre), [genre]);
-
-  return (
-    <section className="px-4 py-4 space-y-4" data-testid="discover-genre-results">
-      <div className="flex items-center gap-2">
-        <button onClick={onBack} className="text-white/70 hover:text-white transition-colors" data-testid="button-genre-back">
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <h2 className="font-display font-bold text-xl text-white tracking-tight">{genre}</h2>
-        <span className="text-xs text-white/50 ml-auto">{books.length} títulos</span>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        {books.map((book) => (
-          <BookCard key={book.id} book={book} />
         ))}
       </div>
     </section>
@@ -240,17 +216,10 @@ function ReleasesRow() {
 }
 
 export default function Discover() {
+  const [, navegar] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
 
   const isSearching = searchQuery.trim().length > 0;
-
-  // Ao entrar ou sair de um gênero, volta ao topo — senão o título e o botão
-  // de voltar ficam fora da tela, escondidos atrás do TopNav.
-  function selectGenre(genre: Genre | null) {
-    setSelectedGenre(genre);
-    window.scrollTo({ top: 0 });
-  }
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414]" data-testid="page-discover">
@@ -279,11 +248,9 @@ export default function Discover() {
 
       {isSearching ? (
         <SearchResults query={searchQuery} onClear={() => setSearchQuery("")} />
-      ) : selectedGenre ? (
-        <GenreResults genre={selectedGenre} onBack={() => selectGenre(null)} />
       ) : (
         <>
-          <GenreGrid onSelect={selectGenre} />
+          <GenreGrid onSelect={(genero) => navegar(`/category/${genreSlug(genero)}`)} />
           <TopTenRow />
           <ReleasesRow />
         </>

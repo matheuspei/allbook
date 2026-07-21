@@ -6,9 +6,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { catalog } from "@/lib/books";
-import { findPerson, slugify } from "@/lib/people";
+import { catalog, findGenreBySlug, slugify } from "@/lib/books";
+import { findPerson } from "@/lib/people";
 import PersonAvatar from "@/components/PersonAvatar";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
@@ -162,6 +171,65 @@ function PessoaDoLivro({
   );
 }
 
+/**
+ * Uma linha do menu "Mais". Fecha a folha ao ser tocada — menos quando está
+ * desabilitada, porque aí nada aconteceu e fechar confundiria.
+ */
+function AcaoDoMenu({
+  icone: Icone,
+  rotulo,
+  aoClicar,
+  desabilitado = false,
+}: {
+  icone: React.ComponentType<{ className?: string }>;
+  rotulo: string;
+  aoClicar: () => void;
+  desabilitado?: boolean;
+}) {
+  const botao = (
+    <button
+      type="button"
+      onClick={aoClicar}
+      disabled={desabilitado}
+      className="flex w-full items-center gap-4 rounded-xl px-3 py-3.5 text-left text-[15px] text-white transition-colors hover:bg-white/5 active:bg-white/10 disabled:opacity-40"
+      data-testid={`menu-action-${rotulo}`}
+    >
+      <Icone className="h-5 w-5 shrink-0 text-white/60" />
+      {rotulo}
+    </button>
+  );
+
+  return desabilitado ? botao : <DrawerClose asChild>{botao}</DrawerClose>;
+}
+
+/**
+ * O gênero do livro levando à tela da categoria.
+ *
+ * Um id fora do catálogo cai no gênero "Geral", que não é uma categoria de
+ * verdade — nesse caso o texto aparece sem virar link, para não prometer uma
+ * tela que não existe.
+ */
+function LinkDoGenero({ genero }: { genero: string }) {
+  const [, navegar] = useLocation();
+  const slug = slugify(genero);
+
+  if (!findGenreBySlug(slug)) {
+    return <span>{genero}</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => navegar(`/category/${slug}`)}
+      className="flex items-center gap-0.5 font-medium text-primary transition-colors hover:text-primary/80"
+      data-testid="link-genre"
+    >
+      {genero}
+      <ChevronRight className="h-3 w-3" />
+    </button>
+  );
+}
+
 function buildFromCatalog(id: string) {
   const entry = catalog.find((b) => String(b.id) === id);
   if (!entry) return { ...defaultBook, id };
@@ -198,6 +266,12 @@ export default function BookDetails({ params }: { params: { id: string } }) {
    */
   const book = { ...buildFromCatalog(params.id), ...(bookData[params.id] ?? {}) };
 
+  // Só entram no menu os atalhos que levam a algum lugar de verdade: um livro
+  // fora do catálogo não tem autor, narrador nem categoria para onde ir.
+  const autorDoLivro = findPerson(slugify(book.author));
+  const narradorDoLivro = findPerson(slugify(book.narrator));
+  const generoDoLivro = findGenreBySlug(slugify(book.genre));
+
   const [chapters] = useState(() => {
     const count = 8 + Math.floor(Math.random() * 7);
     return Array.from({ length: count }, (_, i) => ({
@@ -213,6 +287,35 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     const downloads = JSON.parse(localStorage.getItem("allbook_downloads") || "[]");
     return downloads.includes(params.id);
   });
+
+  /**
+   * `navigator.share` abre a folha de compartilhamento nativa, mas só existe em
+   * celular e em contexto seguro. No navegador do computador caímos para copiar
+   * o link, que é o que dá para oferecer sem inventar uma tela de partilha.
+   */
+  const compartilhar = async () => {
+    const url = `${window.location.origin}/book/${book.id}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: book.title,
+          text: `${book.title}, de ${book.author}, no AllBook.`,
+          url,
+        });
+      } catch {
+        // A pessoa fechou a folha nativa. Não é erro, não avisa nada.
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link copiado", description: "Agora é só colar onde quiser." });
+    } catch {
+      toast({ title: "Não consegui copiar o link", description: url });
+    }
+  };
 
   const handleDownload = () => {
     if (isDownloaded || isDownloading) return;
@@ -296,7 +399,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               <ArrowLeft className="w-5 h-5" />
             </button>
           </Link>
-          <button className="p-2.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-colors" data-testid="button-share">
+          <button onClick={compartilhar} className="p-2.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-colors" data-testid="button-share">
             <Share2 className="w-5 h-5" />
           </button>
         </header>
@@ -318,7 +421,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               <span>{book.duration}</span>
             </div>
             <span>•</span>
-            <span>{book.genre}</span>
+            <LinkDoGenero genero={book.genre} />
           </div>
         </div>
       </div>
@@ -374,10 +477,76 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               {isDownloaded ? "Baixado" : isDownloading ? `${downloadProgress}%` : "Baixar"}
             </span>
           </button>
-          <button className="flex flex-col items-center gap-1.5 text-white/60 hover:text-white transition-colors" data-testid="button-more-options">
-            <MoreVertical className="w-6 h-6" />
-            <span className="text-[10px] uppercase tracking-wider font-medium">Mais</span>
-          </button>
+          <Drawer>
+            <DrawerTrigger asChild>
+              <button className="flex flex-col items-center gap-1.5 text-white/60 hover:text-white transition-colors" data-testid="button-more-options">
+                <MoreVertical className="w-6 h-6" />
+                <span className="text-[10px] uppercase tracking-wider font-medium">Mais</span>
+              </button>
+            </DrawerTrigger>
+
+            {/*
+              A folha é desenhada num portal, fora da moldura de celular da
+              prévia, então sem limite ela ocuparia a largura toda da janela. O
+              teto de 480px não afeta celular nenhum (o mais largo tem 440px) e
+              deixa a folha centrada em telas grandes.
+            */}
+            <DrawerContent className="mx-auto max-w-[480px] border-white/10 bg-[#1a1a1a]">
+              <DrawerHeader className="text-left">
+                <DrawerTitle className="font-display tracking-tight text-white">
+                  {book.title}
+                </DrawerTitle>
+                <DrawerDescription className="text-white/50">
+                  {book.author} • {book.duration}
+                </DrawerDescription>
+              </DrawerHeader>
+
+              <div className="space-y-0.5 px-4 pb-8">
+                <AcaoDoMenu
+                  icone={Play}
+                  rotulo="Ouvir agora"
+                  aoClicar={() => setLocation(`/player/${book.id}`)}
+                />
+                <AcaoDoMenu
+                  icone={isAdded ? Check : Plus}
+                  rotulo={isAdded ? "Já está na Minha Lista" : "Adicionar à Minha Lista"}
+                  aoClicar={addToLibrary}
+                  desabilitado={isAdded}
+                />
+                <AcaoDoMenu
+                  icone={Download}
+                  rotulo={isDownloaded ? "Já baixado" : "Baixar para ouvir offline"}
+                  aoClicar={handleDownload}
+                  desabilitado={isDownloaded || isDownloading}
+                />
+                <AcaoDoMenu icone={Share2} rotulo="Compartilhar" aoClicar={compartilhar} />
+
+                <div className="my-2 h-px bg-white/10" />
+
+                {autorDoLivro && (
+                  <AcaoDoMenu
+                    icone={User}
+                    rotulo={`Ver perfil de ${book.author}`}
+                    aoClicar={() => setLocation(`/person/${autorDoLivro.slug}`)}
+                  />
+                )}
+                {narradorDoLivro && (
+                  <AcaoDoMenu
+                    icone={Mic}
+                    rotulo={`Ver perfil de ${book.narrator}`}
+                    aoClicar={() => setLocation(`/person/${narradorDoLivro.slug}`)}
+                  />
+                )}
+                {generoDoLivro && (
+                  <AcaoDoMenu
+                    icone={LibraryIcon}
+                    rotulo={`Ver mais de ${generoDoLivro}`}
+                    aoClicar={() => setLocation(`/category/${slugify(generoDoLivro)}`)}
+                  />
+                )}
+              </div>
+            </DrawerContent>
+          </Drawer>
         </div>
 
         <div className="space-y-3">

@@ -40,7 +40,9 @@ Checklist das telas que faltam:
 - [ ] Login / Cadastro
 - [ ] Configurações
 - [ ] Busca (tela própria)
-- [ ] Categoria / Gênero (rota futura `/category/:genero`)
+- [x] **Categoria / Gênero** — PRONTA (21/07). Rota `/category/:slug`. É o destino do
+  link de gênero na tela do livro e dos cartões coloridos da Descobrir, que antes
+  filtravam na própria tela (o `TODO` do `Discover.tsx` saiu com isso).
 - [x] **Autor / Narrador** — PRONTA (21/07). Rota `/person/:slug`, uma tela só para os
   dois papéis (quem escreve pode narrar). Avatar gerado a partir do nome, com foto real
   entrando sozinha se o arquivo for posto em `client/src/assets/images/people/`.
