@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { catalog, findGenreBySlug, slugify } from "@/lib/books";
+import { catalog, findGenreBySlug, slugify, duracaoEstimada } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import PersonAvatar from "@/components/PersonAvatar";
 import {
@@ -243,7 +243,12 @@ function buildFromCatalog(id: string) {
     cover: entry.cover,
     rating: entry.rating,
     genre: entry.genre,
-    summary: `"${entry.title}", de ${entry.author}. A ficha completa deste título ainda está sendo preparada — em breve com resumo, narração e avaliações.`,
+    // A sinopse real vem do `npm run catalogo`. Sem ela, um texto que assume a
+    // falta em vez de fingir um resumo.
+    summary:
+      entry.synopsis ??
+      `"${entry.title}", de ${entry.author}. A sinopse deste título ainda não foi importada.`,
+    duration: duracaoEstimada(entry.pages) ?? defaultBook.duration,
   };
 }
 

@@ -7,6 +7,8 @@ import coverBiography from "@/assets/images/cover-biography.png";
 import coverHorror from "@/assets/images/cover-horror.png";
 import coverProductivity from "@/assets/images/cover-productivity.png";
 
+import { fichasImportadas } from "./catalog-enriched";
+
 export type Genre =
   | "Ficção Científica"
   | "Romance"
@@ -29,7 +31,36 @@ export interface Book {
   cover: string;
   rating: number;
   genre: Genre;
+
+  // Daqui para baixo vem tudo do `npm run catalogo`, que busca na Open Library.
+  // É opcional porque um livro recém-acrescentado só ganha esses campos depois
+  // que o script rodar de novo.
+  /** Título no idioma original — é por ele que o script busca. */
+  originalTitle?: string;
+  year?: number;
+  pages?: number;
+  isbn?: string;
+  synopsis?: string;
 }
+
+/** O que é digitado à mão. O resto da ficha o script preenche. */
+type BookCurado = Omit<Book, "originalTitle" | "year" | "pages" | "isbn" | "synopsis">;
+
+/**
+ * Capas reais baixadas pelo script, uma por id (`covers/7.jpg`). Quem ainda não
+ * tem arquivo continua com a imagem genérica do gênero, definida logo abaixo.
+ */
+const arquivosDeCapa = import.meta.glob("../assets/images/covers/*.{jpg,jpeg,png,webp}", {
+  eager: true,
+  import: "default",
+}) as Record<string, string>;
+
+const capasPorId: Record<string, string> = Object.fromEntries(
+  Object.entries(arquivosDeCapa).map(([caminho, url]) => [
+    caminho.split("/").pop()!.replace(/\.\w+$/, ""),
+    url,
+  ])
+);
 
 /**
  * Catálogo fixo do app. Enquanto não existe backend, esta é a fonte única
@@ -37,7 +68,7 @@ export interface Book {
  * daqui, para não duplicar dados.
  * Quando a API existir, trocar por chamadas com TanStack Query.
  */
-export const catalog: Book[] = [
+const catalogoCurado: BookCurado[] = [
   // Ficção Científica
   { id: 7, title: "Duna", author: "Frank Herbert", narrator: "Rafael Nogueira", cover: coverScifi, rating: 4.9, genre: "Ficção Científica" },
   { id: 8, title: "Fundação", author: "Isaac Asimov", narrator: "Diogo Serrano", cover: coverScifi, rating: 4.8, genre: "Ficção Científica" },
@@ -114,6 +145,16 @@ export const catalog: Book[] = [
   { id: 321, title: "Sem Esforço", author: "Greg McKeown", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.5, genre: "Produtividade" },
 ];
 
+/**
+ * O catálogo que o app usa: o que foi curado à mão, com a capa real e a ficha
+ * da Open Library por cima quando existirem.
+ */
+export const catalog: Book[] = catalogoCurado.map((livro) => ({
+  ...livro,
+  cover: capasPorId[livro.id] ?? livro.cover,
+  ...(fichasImportadas[livro.id] ?? {}),
+}));
+
 /** Gêneros na ordem em que aparecem na grade da tela Descobrir. */
 export const genres: { label: Genre; gradient: string }[] = [
   { label: "Ficção Científica", gradient: "from-indigo-600 to-blue-500" },
@@ -152,6 +193,23 @@ export function findGenreBySlug(slug: string): Genre | undefined {
 /** O gradiente do gênero, usado na grade da Descobrir e no topo da Categoria. */
 export function genreGradient(genre: Genre): string {
   return genres.find((genero) => genero.label === genre)?.gradient ?? "from-slate-700 to-slate-500";
+}
+
+/**
+ * Duração estimada do audiolivro a partir do número de páginas.
+ *
+ * Um audiolivro roda perto de 9.000 palavras por hora e uma página tem umas 275
+ * palavras — dá mais ou menos uma hora a cada 33 páginas. É **estimativa**, não
+ * medição: quando houver arquivo de áudio de verdade, trocar pelo tempo real.
+ * Ainda assim é melhor que os "5h 00m" fixos que todo livro mostrava antes.
+ */
+export function duracaoEstimada(pages?: number): string | undefined {
+  if (!pages) return undefined;
+
+  const totalDeMinutos = Math.round((pages / 33) * 60);
+  const horas = Math.floor(totalDeMinutos / 60);
+  const minutos = totalDeMinutos % 60;
+  return `${horas}h ${String(minutos).padStart(2, "0")}min`;
 }
 
 /** Busca livros por id, mantendo a ordem pedida e ignorando ids inexistentes. */
