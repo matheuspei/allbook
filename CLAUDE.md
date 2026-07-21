@@ -132,6 +132,7 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
 | `/profile` | Profile |
 | `/profile/edit` | ProfileEdit |
 | `/profile/recommendations` | RecommendationsEdit |
+| `/settings` | Settings (configurações; importada como `SettingsPage`) |
 | `/community` | Community |
 | `/user/:slug` | UserProfile (outro leitor) |
 | `/downloads` | Downloads |

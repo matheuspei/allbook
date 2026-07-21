@@ -52,7 +52,9 @@ Checklist das telas que faltam:
 - [x] **Login / Cadastro** — PRONTA (21/07). Rota `/login`, tela cheia (sem menus,
   como o player). Uma tela só, alternando entre "Entrar" e "Criar conta".
   Sessão em `client/src/lib/auth.ts`. Ver as decisões abaixo.
-- [ ] Configurações
+- [x] **Configurações** — PRONTA (21/07). Rota `/settings`, chegando pelo Perfil.
+  Só o que o app obedece de verdade: velocidade inicial do player, o que está
+  guardado neste navegador (com faxina) e a conta. Ver as decisões abaixo.
 - [ ] Busca (tela própria)
 - [x] **Categoria / Gênero** — PRONTA (21/07). Rota `/category/:slug`. É o destino do
   link de gênero na tela do livro e dos cartões coloridos da Descobrir, que antes
@@ -105,9 +107,29 @@ Dados: usar os fixos existentes + capas de gênero. Sem backend. Coleções por 
 - **Login social (Google/Apple) ficou de fora**, e não é só falta de backend:
   botão de rede social que não faz nada é justamente o enfeite que dá a "cara de
   IA" que já foi rejeitada no Perfil.
-- **Pendente:** o botão "Sair da conta" do `Profile.tsx` ainda é o aviso antigo
-  de "em breve" — falta ligá-lo ao `signOut()`. Não foi feito aqui para não
-  colidir com o trabalho em paralelo nas telas de perfil.
+- ~~Pendente: ligar o "Sair da conta" do `Profile.tsx` ao `signOut()`~~ — feito
+  em 21/07, na sessão do perfil. Sai com confirmação, e quem não tem sessão vê
+  "Entrar ou criar conta" no lugar do "Sair".
+
+### Decisões da tela de Configurações (21/07)
+
+- **Regra da tela: só entra o que o app obedece.** Chave que liga e desliga sem
+  mudar nada é o mesmo defeito que fez a primeira versão do Perfil ser
+  rejeitada — e ainda ensina a pessoa a desconfiar dos botões. **Ficaram de
+  fora, com motivo:** chave de notificações (não chega aviso de fora, a tela
+  `/notifications` é lista fixa), "baixar só no Wi-Fi" (não há download real),
+  tema claro (o app é escuro por decisão de identidade) e idioma (só existe
+  português). Quando houver áudio e servidor, a lista cresce junto.
+- **O que sobrou é real:** a velocidade inicial do player (salva em
+  `client/src/lib/settings.ts`, lida pelo `AudioPlayer` ao abrir), a contagem do
+  que está guardado neste navegador com o botão de apagar, e a conta.
+- **Mudar a velocidade dentro do player não altera a preferência** — vale só
+  para aquela audição. A configuração é o ponto de partida, não um espelho do
+  player; senão um ajuste momentâneo para pegar um trecho difícil viraria a
+  regra de todos os livros seguintes.
+- **Sem sessão, a tela não mostra e-mail nenhum.** O e-mail do perfil é só um
+  valor padrão, e exibi-lo ao lado de "explorando sem conta" fazia a tela se
+  contradizer.
 
 ---
 

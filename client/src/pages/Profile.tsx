@@ -11,6 +11,7 @@ import {
   Flame,
   Headphones,
   HelpCircle,
+  LogIn,
   Plus,
   Settings,
   Share2,
@@ -19,8 +20,19 @@ import {
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { useToast } from "@/hooks/use-toast";
+import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
 import { readRecommendations } from "@/lib/recommendations";
 import type { Book } from "@/lib/books";
@@ -61,11 +73,14 @@ export default function Profile() {
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
   const [profile, setProfile] = useState<UserProfile>(readProfile);
   const [recommendations, setRecommendations] = useState<Book[]>(readRecommendations);
+  const [session, setSession] = useState<Session | null>(readSession);
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
 
   useEffect(() => {
     // Relê ao voltar das telas de edição.
     setProfile(readProfile());
     setRecommendations(readRecommendations());
+    setSession(readSession());
 
     // Mesmas chaves usadas pelas telas Biblioteca e Downloads.
     const savedLibrary = JSON.parse(localStorage.getItem("allbook_library") || "[]");
@@ -79,6 +94,22 @@ export default function Profile() {
     toast({
       title: `${label} em breve`,
       description: "Essa parte do AllBook ainda está sendo construída.",
+    });
+  }
+
+  /**
+   * Sair de verdade. Só a sessão cai: biblioteca, downloads e recomendações
+   * ficam onde estão (ver o comentário de `signOut`). O perfil volta ao padrão,
+   * por isso relemos os dois logo em seguida.
+   */
+  function handleSignOut() {
+    signOut();
+    setSession(null);
+    setProfile(readProfile());
+    setConfirmSignOut(false);
+    toast({
+      title: "Você saiu da conta",
+      description: "Sua lista e seus downloads continuam neste aparelho.",
     });
   }
 
@@ -100,7 +131,7 @@ export default function Profile() {
     [
       { icon: CreditCard, label: "Plano e assinatura", hint: PLAN },
       { icon: Bell, label: "Notificações", href: "/notifications" },
-      { icon: Settings, label: "Configurações" },
+      { icon: Settings, label: "Configurações", href: "/settings" },
       { icon: Share2, label: "Convidar amigos" },
       { icon: HelpCircle, label: "Ajuda e suporte" },
     ],
@@ -300,14 +331,57 @@ export default function Profile() {
           </div>
         ))}
 
-        <button
-          onClick={() => comingSoon("Sair da conta")}
-          className="w-full text-left py-5 text-sm text-white/40 hover:text-white/70 transition-colors"
-          data-testid="button-profile-logout"
-        >
-          Sair da conta
-        </button>
+        {/*
+          Quem não tem sessão não vê "Sair" — vê o convite para entrar. O app
+          continua aberto sem conta de propósito (decisão registrada no roteiro);
+          este é só o caminho para quem quiser entrar.
+        */}
+        {session ? (
+          <button
+            onClick={() => setConfirmSignOut(true)}
+            className="w-full text-left py-5 text-sm text-white/40 hover:text-white/70 transition-colors"
+            data-testid="button-profile-logout"
+          >
+            Sair da conta
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="w-full flex items-center gap-4 py-5 text-sm text-white/40 hover:text-white/70 transition-colors"
+            data-testid="button-profile-login"
+          >
+            <LogIn className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
+            <span className="flex-1">Entrar ou criar conta</span>
+            <ChevronRight className="w-4 h-4 text-white/20 shrink-0" />
+          </Link>
+        )}
       </main>
+
+      <AlertDialog open={confirmSignOut} onOpenChange={setConfirmSignOut}>
+        <AlertDialogContent className="bg-[#1c1c1c] border-white/10 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display tracking-tight">
+              Sair da conta?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/50">
+              Sua lista, seus downloads e suas recomendações continuam salvos neste aparelho.
+              Só o perfil volta ao padrão.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-white/15 text-white/80 hover:bg-white/5 hover:text-white">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSignOut}
+              className="bg-primary text-black hover:bg-primary/90"
+              data-testid="button-confirm-logout"
+            >
+              Sair
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

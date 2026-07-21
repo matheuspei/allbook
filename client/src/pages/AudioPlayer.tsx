@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useState, useEffect } from "react";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
+import { readSettings } from "@/lib/settings";
 
 export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [, setLocation] = useLocation();
@@ -55,7 +56,9 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     }
     return `${m}m ${s}s restantes`;
   };
-  const [speed, setSpeed] = useState(1.00);
+  // Começa na velocidade escolhida em Configurações; mudar aqui vale só para
+  // esta sessão de audição, sem alterar a preferência.
+  const [speed, setSpeed] = useState(() => readSettings().speed);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showTimerMenu, setShowTimerMenu] = useState(false);
   const [selectedTimer, setSelectedTimer] = useState("Desligado");

@@ -12,6 +12,9 @@ import Statistics from "@/pages/Statistics";
 import Profile from "@/pages/Profile";
 import ProfileEdit from "@/pages/ProfileEdit";
 import RecommendationsEdit from "@/pages/RecommendationsEdit";
+// Renomeado no import: `Switch` do wouter já ocupa o espaço dos nomes genéricos,
+// e `Settings` seria confundido com o ícone de mesmo nome do lucide.
+import SettingsPage from "@/pages/Settings";
 import Community from "@/pages/Community";
 import UserProfile from "@/pages/UserProfile";
 import Downloads from "@/pages/Downloads";
@@ -83,6 +86,7 @@ function Router() {
           <Route path="/profile/edit" component={ProfileEdit} />
           <Route path="/profile/recommendations" component={RecommendationsEdit} />
           <Route path="/profile" component={Profile} />
+          <Route path="/settings" component={SettingsPage} />
           <Route path="/community" component={Community} />
           <Route path="/user/:slug" component={UserProfile} />
           <Route path="/downloads" component={Downloads} />
