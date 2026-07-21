@@ -131,6 +131,38 @@ Dados: usar os fixos existentes + capas de gênero. Sem backend. Coleções por 
   valor padrão, e exibi-lo ao lado de "explorando sem conta" fazia a tela se
   contradizer.
 
+### Decisões da barrinha do player e do "onde parei" (21/07)
+
+O incômodo do Matheus: o app **sempre abria com "Organize-se" tocando**, numa
+barra que não dava para fechar e atrapalhava a navegação. Investigando, o
+problema era maior: a barra era decoração com o título escrito na mão, e o
+`AudioPlayer` **ignorava o id da rota** — clicar em qualquer livro abria sempre
+o mesmo. A fileira "Continuar ouvindo" da Início também usava ids inventados
+(201, 202, 203) que não existem no catálogo.
+
+- **Separar "o progresso" de "a barra aparecer" é a decisão central.** O
+  progresso (`allbook_playback`) fica no `localStorage` e é **permanente** — é a
+  memória de onde parou. A barra aparecer (`allbook_miniplayer`) fica no
+  `sessionStorage` e vale **só para a visita**: o navegador limpa sozinho quando
+  a aba fecha. Resultado: abrir o app começa sempre com a tela limpa, e o "onde
+  parei" reaparece em "Continuar ouvindo", na Início. **Rejeitado:** guardar as
+  duas coisas juntas — era o que fazia a barra ressuscitar a cada abertura.
+- **Fechar tem X e arrastar, não um ou outro.** Arrastar era a sugestão do
+  Matheus e é o gesto natural no celular, mas **gesto não se vê**: quem não
+  souber que existe continua preso com a barra. O X é o que ensina que ela pode
+  sair. Fechar **nunca apaga o progresso** — só tira da frente.
+- **Salvar pela distância, não por múltiplo de 5.** A primeira versão salvava
+  quando o segundo era múltiplo de 5. Testando, apareceu o buraco: quem adianta
+  30 segundos e pausa cai num número que nunca mais bate na conta, e a posição
+  não era gravada nunca. Agora a régua é a distância desde o último salvamento,
+  mais um salvamento ao sair do player.
+- **Id inexistente na URL cai no último livro ouvido** em vez de dar erro. É
+  caso de URL digitada à mão; uma tela de "não encontrado" no player seria mais
+  código do que o problema merece hoje.
+- **Aprendido testando, para não refazer:** aba em segundo plano **congela o
+  `setInterval`** do Chrome — o cronômetro do player para. Não é bug do app, mas
+  atrapalha qualquer teste automatizado do progresso.
+
 ---
 
 ## 4. DEPOIS do frontend — o motor (resumo)

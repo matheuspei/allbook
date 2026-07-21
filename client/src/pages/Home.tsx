@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Fuse from "fuse.js";
 
 import { catalog, getBooksByIds, type Book } from "@/lib/books";
+import { playbackBook, playbackPercent, readPlayback } from "@/lib/playback";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
@@ -60,29 +61,18 @@ const heroBooks = [
   },
 ];
 
-const continueListening = [
-  {
-    id: 201,
-    title: "A Sutil Arte de Ligar o F*da-se",
-    author: "Mark Manson",
-    cover: coverSelfhelp,
-    progress: 45,
-  },
-  {
-    id: 202,
-    title: "It: A Coisa",
-    author: "Stephen King",
-    cover: coverHorror,
-    progress: 23,
-  },
-  {
-    id: 203,
-    title: "O Alquimista",
-    author: "Paulo Coelho",
-    cover: coverSelfhelp,
-    progress: 78,
-  },
-];
+/**
+ * "Continuar ouvindo" — os livros já começados.
+ *
+ * A lista era inventada, com ids (201, 202, 203) que não existem no catálogo:
+ * clicar num deles abria o player de outro livro. Agora são livros de verdade;
+ * as porcentagens seguem fixas, porque só existe progresso real do último livro
+ * ouvido — esse entra na frente, em `ContinueListeningSection`.
+ */
+const continueListening = getBooksByIds([1, 7, 4]).map((book, index) => ({
+  ...book,
+  progress: [45, 23, 78][index] ?? 30,
+}));
 
 const categoryCards = [
   { label: "Só na AllBook", gradient: "from-orange-600 to-red-700" },
@@ -304,13 +294,29 @@ function CategoryGrid() {
 function ContinueListeningSection() {
   const [, setLocation] = useLocation();
 
+  /**
+   * O livro que a pessoa estava ouvindo de verdade entra na frente da fileira.
+   *
+   * É aqui que "onde parei" reaparece depois que a barrinha do player some.
+   * A barra é da visita atual; esta fileira é a memória que sobrevive a fechar
+   * o app — por isso ela pode desaparecer da tela sem que nada se perca.
+   */
+  const saved = readPlayback();
+  const savedBook = playbackBook();
+
+  const items = (() => {
+    if (!saved || !savedBook) return continueListening;
+    const rest = continueListening.filter((book) => book.id !== savedBook.id);
+    return [{ ...savedBook, progress: playbackPercent(saved) }, ...rest];
+  })();
+
   return (
     <section className="px-4 py-2 space-y-4" data-testid="continue-listening">
       <h2 className="font-display font-bold text-lg text-white">
         Continuar ouvindo como <span className="text-white/70">matheus</span>
       </h2>
       <div className="flex overflow-x-auto scrollbar-hide gap-3 -mx-4 px-4 pb-2">
-        {continueListening.map((book) => (
+        {items.map((book) => (
           <div
             key={book.id}
             className="min-w-[150px] max-w-[150px] group cursor-pointer"

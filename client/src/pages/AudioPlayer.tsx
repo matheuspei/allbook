@@ -2,22 +2,45 @@ import { ChevronDown, Share2, Bluetooth, MoreVertical, ListMusic, RotateCcw, Rot
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { useState, useEffect } from "react";
-import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
+import { useState, useEffect, useRef } from "react";
+import { catalog } from "@/lib/books";
 import { readSettings } from "@/lib/settings";
+import { readPlayback, savePlayback, showMiniPlayer } from "@/lib/playback";
+
+const DURATION_SECONDS = 4 * 3600 + 42 * 60; // 4h42m — ainda igual para todos: não há áudio real.
 
 export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [, setLocation] = useLocation();
   const [isPlaying, setIsPlaying] = useState(true);
-  const [currentTime, setCurrentTime] = useState(8);
-  const [progress, setProgress] = useState([8]);
-  const book = {
-    title: "Organize-se",
-    author: "Ciara Conlon",
-    cover: coverSelfhelp
-  };
 
-  const durationSeconds = 4 * 3600 + 42 * 60; // 4h 42m in seconds
+  /**
+   * Qual livro tocar.
+   *
+   * Antes isto era um objeto fixo com "Organize-se": abrir qualquer livro no
+   * player mostrava sempre o mesmo título. Agora vem do catálogo pelo id da
+   * rota. `/player/current` é o atalho antigo que a barrinha usava — continua
+   * valendo e cai no último livro ouvido.
+   */
+  const book = (() => {
+    const fromRoute = catalog.find((item) => item.id === Number(params.id));
+    if (fromRoute) return fromRoute;
+    const saved = readPlayback();
+    const fromSaved = saved && catalog.find((item) => item.id === saved.bookId);
+    return fromSaved || catalog[0];
+  })();
+
+  // Retoma de onde parou, mas só se for o mesmo livro.
+  const savedForThisBook = (() => {
+    const saved = readPlayback();
+    return saved && saved.bookId === book.id ? saved : null;
+  })();
+
+  const [currentTime, setCurrentTime] = useState(savedForThisBook?.positionSec ?? 0);
+  const [progress, setProgress] = useState([
+    ((savedForThisBook?.positionSec ?? 0) / DURATION_SECONDS) * 100,
+  ]);
+
+  const durationSeconds = DURATION_SECONDS;
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -80,7 +103,40 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     }));
   });
 
-  const [currentChapter, setCurrentChapter] = useState(1);
+  const [currentChapter, setCurrentChapter] = useState(savedForThisBook?.chapter ?? 1);
+
+  useEffect(() => {
+    showMiniPlayer();
+  }, [book.id]);
+
+  /**
+   * Guarda onde a pessoa está.
+   *
+   * Escrever a cada segundo é desperdício — `localStorage` é síncrono e trava a
+   * tela por um instante. Mas a primeira versão disto salvava só quando o
+   * segundo era múltiplo de 5, e isso tinha um buraco: quem adianta 30 segundos
+   * e pausa cai num número que nunca mais bate na conta, e a posição não era
+   * gravada nunca. Agora a régua é a *distância* desde o último salvamento, que
+   * funciona igual depois de pular, arrastar ou trocar de capítulo.
+   *
+   * O `return` do efeito salva ao sair do player — assim fechar a tela guarda a
+   * posição exata, não a de até 5 segundos atrás.
+   */
+  const lastSavedRef = useRef(-Infinity);
+  const stateRef = useRef({ bookId: book.id, chapter: currentChapter, positionSec: currentTime });
+  stateRef.current = { bookId: book.id, chapter: currentChapter, positionSec: currentTime };
+
+  useEffect(() => {
+    if (Math.abs(currentTime - lastSavedRef.current) < 5) return;
+    lastSavedRef.current = currentTime;
+    savePlayback({ ...stateRef.current, durationSec: durationSeconds });
+  }, [currentTime, durationSeconds]);
+
+  useEffect(() => {
+    return () => {
+      savePlayback({ ...stateRef.current, durationSec: DURATION_SECONDS });
+    };
+  }, []);
 
   const nextChapter = () => {
     setCurrentChapter(prev => Math.min(prev + 1, chapters.length));
@@ -136,10 +192,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
         <main className="flex-1 flex flex-col items-center justify-between py-10">
           <div className="text-center space-y-4">
             <div className="w-48 h-48 mx-auto rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-              <img src={coverSelfhelp} alt="Cover" className="w-full h-full object-cover" />
+              <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
             </div>
-            <h1 className="text-2xl font-bold line-clamp-1">Organize-se</h1>
-            <p className="text-primary font-medium">Ciara Conlon</p>
+            <h1 className="text-2xl font-bold line-clamp-1">{book.title}</h1>
+            <p className="text-primary font-medium">{book.author}</p>
           </div>
 
           <div className="w-full flex flex-col items-center gap-12">
@@ -205,8 +261,8 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           {/* Album Art */}
           <div className="relative w-full max-w-[240px] aspect-square rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/5 shrink-0 transition-transform duration-500 hover:scale-[1.02]">
             <img 
-              src={coverSelfhelp} 
-              alt="Organize-se" 
+              src={book.cover} 
+              alt={book.title} 
               className="w-full h-full object-cover"
             />
             <div className="absolute top-0 right-0 overflow-hidden w-20 h-20">
