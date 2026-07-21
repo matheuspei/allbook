@@ -144,37 +144,55 @@ function TopTenRow() {
       <div className="flex overflow-x-auto scrollbar-hide gap-3 px-4 pb-2 snap-x snap-mandatory">
         {books.map((book, idx) => {
           const position = idx + 1;
+          const isLeader = position === 1;
 
           return (
-            <div
+            <button
               key={book.id}
-              className="flex items-end shrink-0 snap-start group cursor-pointer"
+              type="button"
               onClick={() => setLocation(`/book/${book.id}`)}
+              aria-label={`${position}º lugar: ${book.title}, de ${book.author}`}
+              className="group shrink-0 snap-start w-[118px] text-left"
               data-testid={`card-top-${book.id}`}
             >
-              {/*
-                O número precisa de uma coluna com largura própria. Sem ela o "1"
-                encostava na borda da tela e ficava cortado, e o "10", que tem dois
-                dígitos, espremia a fileira. `aria-hidden` porque a posição já é
-                visual — quem usa leitor de tela ouve o título do livro.
-              */}
-              <span
-                aria-hidden="true"
-                className={`flex items-end justify-center h-[147px] select-none ${
-                  position > 9 ? "w-[80px]" : "w-[44px]"
+              <div
+                className={`relative rounded-xl overflow-hidden aspect-[3/4] shadow-lg shadow-black/40 ring-1 transition-transform duration-200 group-hover:scale-[1.04] group-active:scale-[0.98] ${
+                  isLeader ? "ring-primary/40" : "ring-white/10"
                 }`}
               >
+                <img src={book.cover} alt="" className="w-full h-full object-cover" />
+
+                {/* Escurece o topo: sem isto o selo some em capas claras. */}
+                <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/70 to-transparent" />
+
+                {/*
+                  A posição vira selo em vez de número gigante ao lado da capa.
+                  `min-w` + `px` deixam o "10" caber sem espremer nada, e o texto
+                  escuro sobre o laranja lê muito melhor que branco sobre laranja.
+                  `aria-hidden` porque o botão já anuncia a posição por extenso.
+                */}
                 <span
-                  className="font-display font-extrabold text-[4.5rem] leading-[0.82] text-transparent tabular-nums"
-                  style={{ WebkitTextStroke: "2px rgba(255,255,255,0.45)" }}
+                  aria-hidden="true"
+                  className="absolute top-1.5 left-1.5 grid place-items-center h-7 min-w-7 px-1.5 rounded-lg bg-gradient-to-br from-primary to-[#f59e0b] text-[#141414] font-display font-extrabold text-sm leading-none tabular-nums shadow-md shadow-black/50"
                 >
                   {position}
                 </span>
-              </span>
-              <div className="relative rounded-lg overflow-hidden w-[110px] aspect-[3/4] transition-transform duration-200 group-hover:scale-105">
-                <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
               </div>
-            </div>
+
+              {/*
+                `span` e não `p`: o conteúdo de um `button` só aceita conteúdo de
+                frase, e parágrafo não é. `min-h` reserva as duas linhas do título
+                para as notas alinharem entre cartões.
+              */}
+              <span className="mt-2 block min-h-[35px] text-[13px] font-medium leading-snug text-white line-clamp-2">
+                {book.title}
+              </span>
+              <span className="mt-0.5 block truncate text-[11px] text-white/50">{book.author}</span>
+              <span className="mt-1 flex items-center gap-1 text-[11px] text-white/70">
+                <Star className="h-3 w-3 shrink-0 fill-[#f59e0b] text-[#f59e0b]" />
+                {book.rating.toFixed(1)}
+              </span>
+            </button>
           );
         })}
       </div>
