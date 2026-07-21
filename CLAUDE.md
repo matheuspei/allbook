@@ -121,17 +121,30 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
 `@assets` → `attached_assets` (essa pasta ainda não existe; criar se for usar).
 
 ## Rotas atuais (wouter, em `App.tsx`)
-- `/` → Home
-- `/discover` → Discover
-- `/library` → Library
-- `/statistics` → Statistics
-- `/book/:id` → BookDetails
-- `/player/:id` → AudioPlayer
 
-O menu inferior (`BottomNav`) aponta para: Início (`/`), Biblioteca (`/library`),
-Descobrir (`/discover`) e **Perfil (`/profile`)** — mas **`/profile` ainda NÃO existe**
-(é a próxima tela a construir). A tela de Estatísticas existe mas não está ligada
-no menu.
+| Rota | Tela |
+| --- | --- |
+| `/` | Home |
+| `/discover` | Discover |
+| `/library` | Library |
+| `/statistics` | Statistics |
+| `/profile` | Profile |
+| `/profile/edit` | ProfileEdit |
+| `/profile/recommendations` | RecommendationsEdit |
+| `/community` | Community |
+| `/user/:slug` | UserProfile (outro leitor) |
+| `/downloads` | Downloads |
+| `/notifications` | Notifications |
+| `/book/:id` | BookDetails |
+| `/person/:slug` | PersonProfile (autor **e** narrador na mesma tela) |
+| `/category/:slug` | CategoryBooks (todos os livros de um gênero) |
+| `/player/:id` | AudioPlayer |
+
+**Ordem importa:** `/profile/edit` e `/profile/recommendations` vêm **antes** de
+`/profile` no `Switch`, senão a rota mais curta captura as outras duas.
+
+O menu inferior (`BottomNav`) aponta para Início, Biblioteca, Descobrir e Perfil.
+Estatísticas fica no TopNav e também dentro do Perfil.
 
 **Comportamento de navegação:** a tela `AudioPlayer` (`/player/:id`) é **tela cheia** —
 ela esconde o TopNav e o BottomNav. Em todas as outras rotas, o `MiniPlayer` flutua
