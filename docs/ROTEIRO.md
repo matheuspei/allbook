@@ -146,9 +146,29 @@ falta de recursos.
   de fazer depois que os comentários viraram lista própria. Primeiro ver se
   seguir + atividade se sustentam no uso.
 
-**Na fila (pedido do Matheus, 21/07):** curtir e descurtir o comentário de
-alguém. Ponto a decidir na hora de fazer: se o descurtir é **visível** para
-todos (vira placar e pune quem escreveu) ou se só afeta o que **você** vê.
+### Curtir e descurtir comentário (21/07, noite) — FEITO
+
+Pedido do Matheus, feito em seguida. Como funciona e por quê:
+
+- **Os dois contam para a ordem, somados.** Decisão do Matheus, corrigindo a
+  primeira proposta do Claude: *"curtir e descurtir são tudo engajamento — o
+  comentário com mais engajamento vem primeiro"*. Está em `engagementOf`, em
+  `comments.ts`. **Rejeitada** a ideia anterior de empurrar o que você
+  descurtiu para o fim da *sua* lista.
+- **Só a curtida vira número visível.** A descurtida pesa na ordem mas não
+  aparece como contador: placar negativo público vira punição a quem escreveu,
+  e com pouca gente duas descurtidas já parecem veredito. O resultado seria
+  gente deixando de comentar.
+- **Tocar de novo desfaz**; curtir e descurtir são exclusivos entre si.
+- **A ordem não é recalculada enquanto você reage** — ver o comentário pular de
+  lugar debaixo do dedo desorienta. A ordem nova vale na próxima visita.
+- **Risco conhecido e aceito:** ordenar por engajamento total premia o
+  comentário polêmico, que é o motor conhecido de seção de comentários tóxica.
+  Num app de audiolivro o risco é pequeno; se um dia o topo virar briga, o
+  lugar de mexer é `engagementOf`.
+- Reações ficam em `client/src/lib/reactions.ts` (`allbook_reactions`), e só
+  aparecem na tela do livro — na Comunidade o comentário é um trecho, e o
+  clique leva ao livro.
 
 ### Decisões da tela de Configurações (21/07)
 

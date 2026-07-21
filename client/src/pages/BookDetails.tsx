@@ -1,4 +1,4 @@
-import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, Quote, User, Check, Plus, Clock, Headphones } from "lucide-react";
+import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, Quote, User, Check, Plus, Clock, Headphones, ThumbsUp, ThumbsDown } from "lucide-react";
 import BookActionsMenu from "@/components/BookActionsMenu";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 import { catalog, findGenreBySlug, slugify, duracaoEstimada } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { findMember } from "@/lib/community";
-import { commentsForBook } from "@/lib/comments";
+import { commentsForBook, type Comment } from "@/lib/comments";
+import {
+  likeCount,
+  readReactions,
+  toggleReaction,
+  type Reaction,
+  type Reactions,
+} from "@/lib/reactions";
 import PersonAvatar from "@/components/PersonAvatar";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
@@ -197,6 +204,62 @@ function AutorDoComentario({ slug }: { slug: string }) {
 
 
 /**
+ * Curtir e descurtir.
+ *
+ * A curtida mostra número; a descurtida não — a razão está em `reactions.ts`.
+ * As duas pesam igual na ordem em que os comentários aparecem, porque discordar
+ * também é engajar.
+ */
+function ReacoesDoComentario({
+  comment,
+  reaction,
+  onReact,
+}: {
+  comment: Comment;
+  reaction: Reaction | undefined;
+  onReact: (id: string, reaction: Reaction) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 pt-1">
+      <button
+        type="button"
+        onClick={() => onReact(comment.id, "like")}
+        className={`flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-md text-xs transition-colors ${
+          reaction === "like" ? "text-amber-500" : "text-white/40 hover:text-white/70"
+        }`}
+        aria-pressed={reaction === "like"}
+        aria-label="Curtir este comentário"
+        data-testid={`button-like-${comment.id}`}
+      >
+        <ThumbsUp
+          className="w-3.5 h-3.5"
+          strokeWidth={1.75}
+          fill={reaction === "like" ? "currentColor" : "none"}
+        />
+        {likeCount(comment.likes, reaction)}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onReact(comment.id, "dislike")}
+        className={`flex items-center px-2 py-1 rounded-md text-xs transition-colors ${
+          reaction === "dislike" ? "text-white/80" : "text-white/40 hover:text-white/70"
+        }`}
+        aria-pressed={reaction === "dislike"}
+        aria-label="Descurtir este comentário"
+        data-testid={`button-dislike-${comment.id}`}
+      >
+        <ThumbsDown
+          className="w-3.5 h-3.5"
+          strokeWidth={1.75}
+          fill={reaction === "dislike" ? "currentColor" : "none"}
+        />
+      </button>
+    </div>
+  );
+}
+
+/**
  * O gênero do livro levando à tela da categoria.
  *
  * Um id fora do catálogo cai no gênero "Geral", que não é uma categoria de
@@ -268,6 +331,23 @@ export default function BookDetails({ params }: { params: { id: string } }) {
   // Os comentários não moram mais dentro do livro: vêm da lista própria, que é
   // a mesma fonte que o perfil de cada leitor consulta.
   const comentarios = commentsForBook(Number(params.id));
+
+  /**
+   * As suas curtidas e descurtidas.
+   *
+   * A ordem dos comentários **não é recalculada** ao reagir, de propósito: ver
+   * o comentário pular de lugar debaixo do próprio dedo é desorientador. A
+   * ordem nova vale na próxima visita.
+   */
+  const [reactions, setReactions] = useState<Reactions>({});
+
+  useEffect(() => {
+    setReactions(readReactions());
+  }, []);
+
+  function reagir(commentId: string, reaction: Reaction) {
+    setReactions(toggleReaction(commentId, reaction));
+  }
 
   const [chapters] = useState(() => {
     const count = 8 + Math.floor(Math.random() * 7);
@@ -468,6 +548,11 @@ export default function BookDetails({ params }: { params: { id: string } }) {
                     </div>
                   </div>
                   <p className="text-sm text-white/70 leading-relaxed italic">"{comment.text}"</p>
+                  <ReacoesDoComentario
+                    comment={comment}
+                    reaction={reactions[comment.id]}
+                    onReact={reagir}
+                  />
                 </div>
               ))
             )}
