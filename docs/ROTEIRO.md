@@ -90,9 +90,39 @@ Dados: usar os fixos existentes + capas de gênero. Sem backend. Coleções por 
 
 ---
 
+## 4.5 Decisão em aberto: de onde vem a estrelinha
+
+Discutido em 21/07, **sem decisão tomada**. O que já foi apurado, para não
+refazer a análise:
+
+- São **duas notas, não uma**. A da **obra** (a história) e a da **narração**
+  (a performance desta edição). O `bookData` do `BookDetails` já tem os campos
+  `performance` e `story` — a estrutura existe, só não subiu para o catálogo.
+- A nota da obra faz sentido vir **importada**: "Duna" é 4.9 há 60 anos e os
+  usuários do AllBook não precisam descobrir isso.
+- A nota da narração é a que **só o AllBook pode ter**: nenhuma base externa
+  sabe se o narrador foi bem. É o diferencial de um app de audiolivro.
+- **Partida a frio decide o curto prazo:** nota de usuário só significa algo com
+  volume. Começar 100% com avaliação de ouvinte deixaria o app sem estrela por
+  meses. Por isso as notas seguem curadas à mão por enquanto.
+- **Quem pode avaliar:** só quem ouviu de verdade (ex.: passou de 20% do livro).
+  Um tocador de áudio consegue medir isso; uma livraria não. É a melhor defesa
+  contra nota falsa.
+- **Importar nota não é opção hoje:** o Goodreads encerrou a API pública em 2020
+  e raspar o site fere os termos de uso. Open Library e Google Books servem para
+  capa e ficha, **não** para nota — a cobertura de avaliação das duas é fraca.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - **`@assets` aponta para pasta inexistente** (`attached_assets/` em `vite.config.ts`). Criar a pasta vazia ou remover o atalho, antes que algum import futuro quebre.
 - **Metatags do Replit no `client/index.html`** (`og:image`/`twitter:image` apontam pro Replit). Trocar por uma imagem do AllBook antes de divulgar links.
+- **Conferir as capas com o olho** (21/07): 57 dos 59 livros ganharam capa real da
+  Open Library, mas a busca é por aproximação e pode trazer a arte de outro volume
+  da mesma série — aconteceu com "O Problema dos 3 Corpos", já corrigido. Passar
+  pelas 8 telas de categoria e, achando alguma trocada, fixar pelo `isbnDaCapa`.
+- **`Statistics.tsx` ainda usa os cartões coloridos antigos** — mesmo tratamento
+  sóbrio que o Perfil recebeu.
 - ~~Backup automático não existe~~ — resolvido em 21/07: o hook `.githooks/post-commit`
   envia todo commit para o GitHub sozinho. Antes disso, todo push era manual.
 - ~~`npm run build` quebrado~~ — resolvido em 21/07: faltava o `script/build.ts` que o `package.json` chamava. Agora gera `dist/public` (frontend) e `dist/index.cjs` (servidor), e o `npm start` sobe.
