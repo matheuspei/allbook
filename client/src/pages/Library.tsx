@@ -1,9 +1,8 @@
-import { Search, ChevronRight, Play, MoreVertical, Download, Users, FolderRoot, LayoutGrid, Trophy, Grid3X3, BookOpen, Plus, ArrowLeft } from "lucide-react";
+import { Search, ChevronRight, Play, Download, Users, FolderRoot, LayoutGrid, Trophy, Grid3X3, BookOpen, Plus, ArrowLeft, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
-import coverScifi from "@/assets/images/cover-scifi.png";
+import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback, remainingLabel } from "@/lib/playback";
 
 import { useEffect, useState } from "react";
 
@@ -23,22 +22,22 @@ export default function Library() {
   const [downloadCount, setDownloadCount] = useState(0);
   const [activeTab, setActiveTab] = useState("todos");
 
-  const listeningHistory = [
-    {
-      id: 1,
-      title: "A Bíblia Narrada por Cid Moreira: APOCALIPSE",
-      subtitle: "2h 24m • 9 de nov. de 2021",
-      cover: coverScifi,
-      progress: 65,
-    },
-    {
-      id: 2,
-      title: "Great Courses: Organize-se",
-      subtitle: "Por Ciara Conlon • 4h 42m",
-      cover: coverSelfhelp,
-      progress: 30,
-    }
-  ];
+  /**
+   * "Continuar ouvindo" — os livros realmente começados, do mais recente ao
+   * mais antigo.
+   *
+   * Isto era uma lista inventada, com dois títulos escritos na mão que não
+   * existem no catálogo. Quem ouvia um livro de verdade não o via aqui; quem
+   * nunca tinha ouvido nada via dois que nunca abriu. Agora vem de
+   * `lib/playback.ts`, a mesma fonte da Início e da barrinha do player.
+   */
+  const [listeningHistory, setListeningHistory] = useState(playbackEntries);
+
+  useEffect(() => {
+    const sync = () => setListeningHistory(playbackEntries());
+    window.addEventListener(PLAYBACK_EVENT, sync);
+    return () => window.removeEventListener(PLAYBACK_EVENT, sync);
+  }, []);
 
   useEffect(() => {
     const savedLibrary = JSON.parse(localStorage.getItem("allbook_library") || "[]");
@@ -168,35 +167,53 @@ export default function Library() {
           </section>
         )}
 
-        <section className="space-y-4" data-testid="section-continue-listening">
-          <h2 className="text-lg font-bold font-display">Continuar ouvindo</h2>
-          <div className="space-y-3">
-            {listeningHistory.map((item) => (
-              <div key={item.id} className="flex gap-3 items-center group cursor-pointer bg-white/5 rounded-xl p-3 hover:bg-white/8 transition-colors border border-white/5" data-testid={`card-continue-${item.id}`}>
-                <div className="relative w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-white/10">
-                  <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                    <div className="h-full bg-red-600 rounded-full" style={{ width: `${item.progress}%` }} />
+        {listeningHistory.length > 0 && (
+          <section className="space-y-4" data-testid="section-continue-listening">
+            <h2 className="text-lg font-bold font-display">Continuar ouvindo</h2>
+            <div className="space-y-3">
+              {listeningHistory.map(({ book, playback, percent }) => (
+                <div
+                  key={book.id}
+                  className="flex gap-3 items-center group cursor-pointer bg-white/5 rounded-xl p-3 hover:bg-white/8 transition-colors border border-white/5"
+                  onClick={() => setLocation(`/player/${book.id}`)}
+                  data-testid={`card-continue-${book.id}`}
+                >
+                  <div className="relative w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-white/10">
+                    <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                      <div className="h-full bg-primary rounded-full" style={{ width: `${percent}%` }} />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+                      {book.title}
+                    </h3>
+                    <p className="text-xs text-white/40 mt-0.5">
+                      Capítulo {playback.chapter} • {remainingLabel(playback)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                      aria-label={`Retomar ${book.title}`}
+                      data-testid={`button-play-${book.id}`}
+                    >
+                      <Play className="w-5 h-5 text-white fill-white" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeFromPlayback(book.id); }}
+                      className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                      aria-label={`Tirar ${book.title} de Continuar ouvindo`}
+                      data-testid={`button-remove-continue-${book.id}`}
+                    >
+                      <X className="w-4 h-4 text-white/40" />
+                    </button>
                   </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm leading-snug line-clamp-1 group-hover:text-amber-500 transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-white/40 mt-0.5">{item.subtitle}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button className="p-2 hover:bg-white/10 rounded-full transition-colors" data-testid={`button-play-${item.id}`}>
-                    <Play className="w-5 h-5 text-white fill-white" />
-                  </button>
-                  <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                    <MoreVertical className="w-4 h-4 text-white/40" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="space-y-4" data-testid="section-stats-link">
           <Link href="/statistics">

@@ -4,9 +4,10 @@
  * São **duas coisas separadas de propósito**, e essa é a decisão central deste
  * arquivo:
  *
- * 1. **O progresso** (`allbook_playback`, no `localStorage`) é permanente. É a
- *    memória de onde você parou; sobrevive a fechar o app e volta em
- *    "Continuar ouvindo", na Início.
+ * 1. **O progresso** (`allbook_playback`, no `localStorage`) é permanente e é
+ *    uma **lista** de todos os livros começados, do mais recente ao mais antigo.
+ *    É a memória de onde você parou; sobrevive a fechar o app e reaparece em
+ *    "Continuar ouvindo", na Início e na Biblioteca.
  * 2. **A barrinha aparecer** (`allbook_miniplayer`, no `sessionStorage`) vale só
  *    para esta visita. Abrir o app começa com a tela limpa: a barra só nasce
  *    quando você toca em play em alguma coisa, e some quando você fecha.
@@ -41,34 +42,67 @@ function notify() {
   window.dispatchEvent(new Event(PLAYBACK_EVENT));
 }
 
-export function readPlayback(): Playback | null {
+/**
+ * Quantos livros começados a lista guarda.
+ *
+ * A primeira versão guardava **um só**, o último, e isso tinha um defeito sério:
+ * começar um segundo livro fazia o primeiro sumir sem deixar rastro — a pessoa
+ * perdia até o nome do que estava ouvindo. É uma lista justamente por isso, no
+ * modelo do "Continuar assistindo" da Netflix. Vinte é folgado para uso real e
+ * ainda pequeno o bastante para não pesar no `localStorage`.
+ */
+const MAX_ENTRIES = 20;
+
+function isValid(entry: unknown): entry is Playback {
+  if (!entry || typeof entry !== "object") return false;
+  const item = entry as Record<string, unknown>;
+  if (typeof item.bookId !== "number") return false;
+  // Progresso de um livro que saiu do catálogo não serve para nada.
+  return catalog.some((book) => book.id === item.bookId);
+}
+
+function normalize(entry: Playback): Playback {
+  return {
+    bookId: entry.bookId,
+    chapter: typeof entry.chapter === "number" ? entry.chapter : 1,
+    positionSec: typeof entry.positionSec === "number" ? entry.positionSec : 0,
+    durationSec:
+      typeof entry.durationSec === "number" && entry.durationSec > 0 ? entry.durationSec : 1,
+    updatedAt: typeof entry.updatedAt === "string" ? entry.updatedAt : new Date().toISOString(),
+  };
+}
+
+/**
+ * Todos os livros começados, do mais recente para o mais antigo.
+ *
+ * Aceita também o formato antigo (um objeto só) para não apagar o progresso de
+ * quem já usava o app antes desta mudança.
+ */
+export function readPlaybackList(): Playback[] {
   try {
     const stored = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "null");
-    if (!stored || typeof stored !== "object") return null;
-    if (typeof stored.bookId !== "number") return null;
-    // Progresso de um livro que saiu do catálogo não serve para nada.
-    if (!catalog.some((book) => book.id === stored.bookId)) return null;
+    if (!stored) return [];
 
-    return {
-      bookId: stored.bookId,
-      chapter: typeof stored.chapter === "number" ? stored.chapter : 1,
-      positionSec: typeof stored.positionSec === "number" ? stored.positionSec : 0,
-      durationSec: typeof stored.durationSec === "number" && stored.durationSec > 0
-        ? stored.durationSec
-        : 1,
-      updatedAt: typeof stored.updatedAt === "string" ? stored.updatedAt : new Date().toISOString(),
-    };
+    const list = Array.isArray(stored) ? stored : [stored];
+    return list
+      .filter(isValid)
+      .map(normalize)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   } catch {
-    return null;
+    return [];
   }
+}
+
+/** O último livro ouvido — é ele que a barrinha mostra. */
+export function readPlayback(): Playback | null {
+  return readPlaybackList()[0] ?? null;
 }
 
 export function savePlayback(playback: Omit<Playback, "updatedAt">): void {
   try {
-    localStorage.setItem(
-      PROGRESS_KEY,
-      JSON.stringify({ ...playback, updatedAt: new Date().toISOString() }),
-    );
+    const entry: Playback = { ...playback, updatedAt: new Date().toISOString() };
+    const rest = readPlaybackList().filter((item) => item.bookId !== entry.bookId);
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify([entry, ...rest].slice(0, MAX_ENTRIES)));
     notify();
   } catch {
     // localStorage cheio: perder o progresso é chato, mas não é motivo para
@@ -76,7 +110,23 @@ export function savePlayback(playback: Omit<Playback, "updatedAt">): void {
   }
 }
 
-/** Esquecer de vez onde parou (usado pela faxina em Configurações). */
+/**
+ * Tirar um livro do "Continuar ouvindo" — o mesmo gesto do X que a Netflix
+ * oferece nos cartões. Diferente de fechar a barra: aqui a pessoa está dizendo
+ * "não quero mais ver isto", e o progresso desse livro some de verdade.
+ */
+export function removeFromPlayback(bookId: number): void {
+  try {
+    const rest = readPlaybackList().filter((item) => item.bookId !== bookId);
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(rest));
+    if (rest.length === 0) hideMiniPlayer();
+    notify();
+  } catch {
+    /* nada a fazer */
+  }
+}
+
+/** Esquecer tudo (usado pela faxina em Configurações). */
 export function clearPlayback(): void {
   localStorage.removeItem(PROGRESS_KEY);
   hideMiniPlayer();
@@ -120,6 +170,17 @@ export function playbackBook(): Book | null {
   const playback = readPlayback();
   if (!playback) return null;
   return catalog.find((book) => book.id === playback.bookId) ?? null;
+}
+
+/**
+ * A lista pronta para desenhar: livro + progresso, do mais recente ao mais
+ * antigo. É o que a Início e a Biblioteca mostram em "Continuar ouvindo".
+ */
+export function playbackEntries(): { book: Book; playback: Playback; percent: number }[] {
+  return readPlaybackList().flatMap((playback) => {
+    const book = catalog.find((item) => item.id === playback.bookId);
+    return book ? [{ book, playback, percent: playbackPercent(playback) }] : [];
+  });
 }
 
 /** Quanto do livro já foi ouvido, de 0 a 100. */

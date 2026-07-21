@@ -5,13 +5,12 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Fuse from "fuse.js";
 
 import { catalog, getBooksByIds, type Book } from "@/lib/books";
-import { playbackBook, playbackPercent, readPlayback } from "@/lib/playback";
+import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
 import coverBusiness from "@/assets/images/cover-business.png";
 import coverBiography from "@/assets/images/cover-biography.png";
-import coverHorror from "@/assets/images/cover-horror.png";
 import coverProductivity from "@/assets/images/cover-productivity.png";
 
 const heroBooks = [
@@ -295,20 +294,34 @@ function ContinueListeningSection() {
   const [, setLocation] = useLocation();
 
   /**
-   * O livro que a pessoa estava ouvindo de verdade entra na frente da fileira.
+   * Os livros que a pessoa começou de verdade vêm na frente da fileira.
    *
    * É aqui que "onde parei" reaparece depois que a barrinha do player some.
    * A barra é da visita atual; esta fileira é a memória que sobrevive a fechar
-   * o app — por isso ela pode desaparecer da tela sem que nada se perca.
+   * o app — por isso a barra pode desaparecer sem que nada se perca.
+   *
+   * Os livros fixos continuam atrás só para a fileira não ficar vazia em quem
+   * nunca ouviu nada. Assim que houver histórico real, ele empurra os fixos.
    */
-  const saved = readPlayback();
-  const savedBook = playbackBook();
+  const [entries, setEntries] = useState(playbackEntries);
 
-  const items = (() => {
-    if (!saved || !savedBook) return continueListening;
-    const rest = continueListening.filter((book) => book.id !== savedBook.id);
-    return [{ ...savedBook, progress: playbackPercent(saved) }, ...rest];
-  })();
+  useEffect(() => {
+    const sync = () => setEntries(playbackEntries());
+    window.addEventListener(PLAYBACK_EVENT, sync);
+    return () => window.removeEventListener(PLAYBACK_EVENT, sync);
+  }, []);
+
+  /**
+   * Ou tudo real, ou tudo exemplo — nunca misturado.
+   *
+   * Misturar dava uma cena confusa: tirar um livro do "Continuar ouvindo" com o
+   * X o fazia **reaparecer** logo ali, agora como exemplo fixo, porque ele
+   * também estava na lista de enfeite. Assim que existe histórico de verdade,
+   * os exemplos saem de cena.
+   */
+  const items = entries.length
+    ? entries.map(({ book, percent }) => ({ ...book, progress: percent, real: true }))
+    : continueListening;
 
   return (
     <section className="px-4 py-2 space-y-4" data-testid="continue-listening">
@@ -342,12 +355,29 @@ function ContinueListeningSection() {
               </div>
             </div>
             <div className="flex items-center justify-between mt-1.5 px-0.5">
-              <button className="text-white/60 hover:text-white transition-colors" data-testid={`button-info-${book.id}`}>
+              <button
+                onClick={(e) => { e.stopPropagation(); setLocation(`/book/${book.id}`); }}
+                className="text-white/60 hover:text-white transition-colors"
+                aria-label={`Sobre ${book.title}`}
+                data-testid={`button-info-${book.id}`}
+              >
                 <Info className="w-4 h-4" />
               </button>
-              <button className="text-white/60 hover:text-white transition-colors" data-testid={`button-more-${book.id}`}>
-                <MoreVertical className="w-4 h-4" />
-              </button>
+              {/**
+               * O X que tira o livro daqui — o mesmo gesto do "Continuar
+               * assistindo" da Netflix. Só aparece em livro realmente começado:
+               * nos de exemplo não haveria o que remover.
+               */}
+              {"real" in book && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); removeFromPlayback(book.id); }}
+                  className="text-white/60 hover:text-white transition-colors"
+                  aria-label={`Tirar ${book.title} de Continuar ouvindo`}
+                  data-testid={`button-remove-continue-${book.id}`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         ))}

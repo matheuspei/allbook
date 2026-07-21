@@ -163,6 +163,42 @@ o mesmo. A fileira "Continuar ouvindo" da Início também usava ids inventados
   `setInterval`** do Chrome — o cronômetro do player para. Não é bug do app, mas
   atrapalha qualquer teste automatizado do progresso.
 
+### "Onde parei" é uma lista, não um livro só (21/07)
+
+Pergunta do Matheus: *se eu fechar o app no meio de um livro, como eu acho ele
+de novo? Meu medo é o usuário nem lembrar o nome do que estava ouvindo.* O medo
+tinha fundamento — a primeira versão guardava **um livro só**, o último.
+Começar um segundo fazia o primeiro sumir sem deixar rastro.
+
+**Como as plataformas grandes resolvem, apurado para não refazer a pesquisa:**
+
+- **Netflix, HBO Max, Paramount+** põem uma fileira "Continuar assistindo" bem
+  no alto da tela inicial, cada cartão com barrinha de progresso e um **X para
+  tirar dali**. Não existe barra de player fixa; a fileira é o único caminho de
+  volta, e basta.
+- **Audible e Spotify fazem o contrário:** a barrinha do player **volta ao
+  abrir o app**. É o padrão de áudio, porque quem ouve costuma retomar o mesmo
+  título por dias.
+- **Escolhemos o modelo da Netflix**, mesmo o AllBook sendo de áudio: foi
+  justamente a barra ressuscitando sozinha que incomodou. A barra é da visita;
+  a fileira é a memória. Se um dia isso parecer pouco, o meio-termo conhecido é
+  a barra voltar só se o livro foi ouvido nas últimas horas.
+
+**O que ficou:**
+
+- `allbook_playback` virou uma **lista** de até 20 livros começados, ordenada do
+  mais recente ao mais antigo. Lê também o formato antigo (objeto só), para não
+  apagar o progresso de quem já usava.
+- **Três caminhos de volta**, de propósito redundantes: a barrinha (na visita),
+  "Continuar ouvindo" na **Início** e "Continuar ouvindo" na **Biblioteca**.
+  A da Biblioteca era inventada — dois títulos escritos na mão, um deles o
+  eterno "Organize-se" — e agora lê a mesma fonte.
+- **X para remover**, como na Netflix. Diferente de fechar a barra: o X diz
+  "não quero mais ver isto" e apaga o progresso daquele livro.
+- **Ou tudo real, ou tudo exemplo.** Os livros de enfeite da Início só aparecem
+  para quem nunca ouviu nada. Misturar produzia uma cena confusa, achada
+  testando: remover um livro com o X o fazia reaparecer ali mesmo, como exemplo.
+
 ---
 
 ## 4. DEPOIS do frontend — o motor (resumo)
