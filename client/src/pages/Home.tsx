@@ -6,6 +6,7 @@ import Fuse from "fuse.js";
 
 import { catalog, getBooksByIds, type Book } from "@/lib/books";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
+import BookActionsMenu from "@/components/BookActionsMenu";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
@@ -364,20 +365,35 @@ function ContinueListeningSection() {
                 <Info className="w-4 h-4" />
               </button>
               {/**
-               * O X que tira o livro daqui — o mesmo gesto do "Continuar
-               * assistindo" da Netflix. Só aparece em livro realmente começado:
-               * nos de exemplo não haveria o que remover.
+               * Os três pontinhos abrem o mesmo menu da tela do livro. Antes
+               * eles estavam aqui sem fazer nada.
+               *
+               * "Tirar de Continuar ouvindo" entra como ação extra — é o gesto
+               * do X da Netflix, só que dentro do menu em vez de solto: um
+               * botão a menos no cartão, e a ação fica nomeada por extenso, o
+               * que evita confundi-la com "sair do livro".
                */}
-              {"real" in book && (
+              <BookActionsMenu
+                bookId={book.id}
+                acoesExtras={
+                  "real" in book
+                    ? [{
+                        icone: X,
+                        rotulo: "Tirar de Continuar ouvindo",
+                        aoClicar: () => removeFromPlayback(book.id),
+                      }]
+                    : []
+                }
+              >
                 <button
-                  onClick={(e) => { e.stopPropagation(); removeFromPlayback(book.id); }}
+                  onClick={(e) => e.stopPropagation()}
                   className="text-white/60 hover:text-white transition-colors"
-                  aria-label={`Tirar ${book.title} de Continuar ouvindo`}
-                  data-testid={`button-remove-continue-${book.id}`}
+                  aria-label={`Mais opções de ${book.title}`}
+                  data-testid={`button-more-${book.id}`}
                 >
-                  <X className="w-4 h-4" />
+                  <MoreVertical className="w-4 h-4" />
                 </button>
-              )}
+              </BookActionsMenu>
             </div>
           </div>
         ))}
