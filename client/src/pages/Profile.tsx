@@ -11,15 +11,16 @@ import {
   Flame,
   Headphones,
   HelpCircle,
-  Pencil,
+  Instagram,
   Settings,
   Share2,
   Trophy,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { useToast } from "@/hooks/use-toast";
+import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
 
 /**
  * Perfil ("Minha AllBook") — a tela do 4º item do menu inferior.
@@ -33,12 +34,8 @@ import { useToast } from "@/hooks/use-toast";
  * passam a ler da mesma fonte.
  */
 
-const user = {
-  name: "Matheus",
-  email: "matheus@allbook.com.br",
-  initial: "M",
-  plan: "Premium",
-};
+/** O plano ainda é fixo: não existe assinatura de verdade. */
+const PLAN = "Premium";
 
 const summary: { value: string; label: string; key: StatKey }[] = [
   { value: "47h", label: "ouvidas", key: "horas" },
@@ -59,8 +56,12 @@ export default function Profile() {
   const [libraryCount, setLibraryCount] = useState(0);
   const [downloadCount, setDownloadCount] = useState(0);
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
+  const [profile, setProfile] = useState<UserProfile>(readProfile);
 
   useEffect(() => {
+    // Relê ao voltar da tela de edição.
+    setProfile(readProfile());
+
     // Mesmas chaves usadas pelas telas Biblioteca e Downloads.
     const savedLibrary = JSON.parse(localStorage.getItem("allbook_library") || "[]");
     const savedDownloads = JSON.parse(localStorage.getItem("allbook_downloads") || "[]");
@@ -91,7 +92,7 @@ export default function Profile() {
       { icon: Download, label: "Downloads", hint: downloadCount > 0 ? String(downloadCount) : undefined, href: "/downloads" },
     ],
     [
-      { icon: CreditCard, label: "Plano e assinatura", hint: user.plan },
+      { icon: CreditCard, label: "Plano e assinatura", hint: PLAN },
       { icon: Bell, label: "Notificações", href: "/notifications" },
       { icon: Settings, label: "Configurações" },
       { icon: Share2, label: "Convidar amigos" },
@@ -103,32 +104,49 @@ export default function Profile() {
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="profile-page">
       <header className="px-5 pt-8 pb-7">
         <div className="flex items-center gap-4">
-          {/* O lápis fica sobre o avatar, como na maioria dos apps. O botão
-              tem 28px, mas a área de toque vai além dele, para o dedo acertar. */}
-          <button
-            onClick={() => comingSoon("Editar perfil")}
-            className="relative shrink-0 group"
-            aria-label="Editar perfil"
-            data-testid="button-edit-profile"
-          >
-            <Avatar className="w-16 h-16">
-              <AvatarFallback className="bg-white/10 text-white font-display font-semibold text-xl">
-                {user.initial}
-              </AvatarFallback>
-            </Avatar>
-
-            <span className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-[#2a2a2a] border-2 border-[#141414] flex items-center justify-center group-hover:bg-[#383838] transition-colors">
-              <Pencil className="w-3.5 h-3.5 text-white/70" strokeWidth={2} />
-            </span>
-          </button>
+          <Avatar className="w-16 h-16 shrink-0">
+            {profile.photo && (
+              <AvatarImage src={profile.photo} alt={profile.name} className="object-cover" />
+            )}
+            <AvatarFallback className="bg-white/10 text-white font-display font-semibold text-xl">
+              {initialOf(profile.name)}
+            </AvatarFallback>
+          </Avatar>
 
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold font-display tracking-tight" data-testid="text-profile-name">
-              {user.name}
+              {profile.name}
             </h1>
-            <p className="text-sm text-white/40 truncate mt-0.5">{user.email}</p>
+            <p className="text-sm text-white/40 truncate mt-0.5">{profile.email}</p>
           </div>
         </div>
+
+        {profile.bio && (
+          <p className="text-sm text-white/60 leading-relaxed mt-4" data-testid="text-profile-bio">
+            {profile.bio}
+          </p>
+        )}
+
+        {profile.instagram && (
+          <a
+            href={`https://instagram.com/${profile.instagram}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors mt-3"
+            data-testid="link-profile-instagram"
+          >
+            <Instagram className="w-4 h-4" />
+            @{profile.instagram}
+          </a>
+        )}
+
+        <Link
+          href="/profile/edit"
+          className="mt-5 w-full flex items-center justify-center py-2.5 rounded-lg border border-white/15 text-sm font-semibold text-white/80 hover:bg-white/5 hover:text-white transition-colors"
+          data-testid="button-edit-profile"
+        >
+          Editar perfil
+        </Link>
       </header>
 
       <section className="px-5" data-testid="section-profile-summary">

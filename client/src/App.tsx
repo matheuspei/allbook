@@ -9,6 +9,7 @@ import Discover from "@/pages/Discover";
 import Library from "@/pages/Library";
 import Statistics from "@/pages/Statistics";
 import Profile from "@/pages/Profile";
+import ProfileEdit from "@/pages/ProfileEdit";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
@@ -71,6 +72,7 @@ function Router() {
           <Route path="/discover" component={Discover} />
           <Route path="/library" component={Library} />
           <Route path="/statistics" component={Statistics} />
+          <Route path="/profile/edit" component={ProfileEdit} />
           <Route path="/profile" component={Profile} />
           <Route path="/downloads" component={Downloads} />
           <Route path="/notifications" component={Notifications} />
