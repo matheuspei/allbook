@@ -12,6 +12,7 @@ import Profile from "@/pages/Profile";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
+import PersonProfile from "@/pages/PersonProfile";
 import AudioPlayer from "@/pages/AudioPlayer";
 import BottomNav from "@/components/layout/BottomNav";
 import TopNav from "@/components/layout/TopNav";
@@ -73,6 +74,7 @@ function Router() {
           <Route path="/downloads" component={Downloads} />
           <Route path="/notifications" component={Notifications} />
           <Route path="/book/:id" component={BookDetails} />
+          <Route path="/person/:slug" component={PersonProfile} />
           <Route path="/player/:id" component={AudioPlayer} />
           <Route component={NotFound} />
         </Switch>

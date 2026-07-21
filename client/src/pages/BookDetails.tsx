@@ -7,6 +7,8 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
+import { findPerson, slugify } from "@/lib/people";
+import PersonAvatar from "@/components/PersonAvatar";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
@@ -21,7 +23,6 @@ const bookData: Record<string, any> = {
   "1": {
     title: "O massacre da família Hope",
     author: "Riley Sager",
-    narrator: "Cid Moreira",
     duration: "12h 45min",
     rating: 4.5,
     reviewsCount: 128,
@@ -31,14 +32,13 @@ const bookData: Record<string, any> = {
     performance: 4.8,
     story: 4.3,
     comments: [
-      { user: "Ana Paula", rating: 5, text: "Suspense do início ao fim! A narração do Cid Moreira traz um peso incrível para a história." },
+      { user: "Ana Paula", rating: 5, text: "Suspense do início ao fim! A narração traz um peso incrível para a história." },
       { user: "Marcos V.", rating: 4, text: "Reviravoltas inesperadas. Um dos melhores que ouvi este ano." }
     ]
   },
   "5": {
     title: "Organize-se",
     author: "Ciara Conlon",
-    narrator: "Maitê Cunha",
     duration: "4h 42min",
     rating: 4.3,
     reviewsCount: 116,
@@ -55,7 +55,6 @@ const bookData: Record<string, any> = {
   "101": {
     title: "A Psicologia Financeira",
     author: "Morgan Housel",
-    narrator: "Roberto Rocha",
     duration: "8h 12min",
     rating: 4.8,
     reviewsCount: 342,
@@ -72,7 +71,6 @@ const bookData: Record<string, any> = {
   "102": {
     title: "Hábitos Atômicos",
     author: "James Clear",
-    narrator: "Tiago Abravanel",
     duration: "9h 30min",
     rating: 4.9,
     reviewsCount: 856,
@@ -111,6 +109,59 @@ const defaultBook = {
  * capa, nota, gênero) e completamos o resto com o padrão. Só um id que não
  * existe em lugar nenhum cai no `defaultBook` puro.
  */
+/**
+ * Autor ou narrador do livro, levando ao perfil da pessoa.
+ *
+ * Quem não está no catálogo — o "Autor Desconhecido" de um id inexistente, por
+ * exemplo — não tem perfil, e aí o bloco aparece sem ser clicável em vez de
+ * oferecer um link que levaria a lugar nenhum.
+ */
+function PessoaDoLivro({
+  papel,
+  nome,
+  testid,
+}: {
+  papel: string;
+  nome: string;
+  testid: string;
+}) {
+  const [, navegar] = useLocation();
+  const pessoa = findPerson(slugify(nome));
+
+  const conteudo = (
+    <>
+      <PersonAvatar name={nome} photo={pessoa?.photo} size="sm" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-[10px] uppercase tracking-widest text-white/40">{papel}</span>
+        <span className="block truncate text-sm font-semibold text-white" data-testid={testid}>
+          {nome}
+        </span>
+      </span>
+    </>
+  );
+
+  if (!pessoa) {
+    return (
+      <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3 ring-1 ring-white/5">
+        {conteudo}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => navegar(`/person/${pessoa.slug}`)}
+      aria-label={`Ver o perfil de ${nome}`}
+      className="flex items-center gap-3 rounded-xl bg-white/5 p-3 text-left ring-1 ring-white/5 transition-colors hover:bg-white/10 active:bg-white/15"
+      data-testid={`link-person-${pessoa.slug}`}
+    >
+      {conteudo}
+      <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
+    </button>
+  );
+}
+
 function buildFromCatalog(id: string) {
   const entry = catalog.find((b) => String(b.id) === id);
   if (!entry) return { ...defaultBook, id };
@@ -120,6 +171,7 @@ function buildFromCatalog(id: string) {
     id,
     title: entry.title,
     author: entry.author,
+    narrator: entry.narrator,
     cover: entry.cover,
     rating: entry.rating,
     genre: entry.genre,
@@ -138,7 +190,13 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     setIsAdded(library.some((b: any) => b.id === params.id));
   }, [params.id]);
 
-  const book = bookData[params.id] || buildFromCatalog(params.id);
+  /**
+   * A base vem sempre do catálogo, e a ficha detalhada entra por cima só com o
+   * que ela acrescenta (resumo, duração, comentários). Antes a ficha substituía
+   * tudo, e por isso o narrador dela podia discordar do catálogo — o que
+   * quebraria o link para o perfil do narrador.
+   */
+  const book = { ...buildFromCatalog(params.id), ...(bookData[params.id] ?? {}) };
 
   const [chapters] = useState(() => {
     const count = 8 + Math.floor(Math.random() * 7);
@@ -266,15 +324,9 @@ export default function BookDetails({ params }: { params: { id: string } }) {
       </div>
 
       <main className="px-5 -mt-2 relative z-10 space-y-8">
-        <div className="flex items-center gap-4 py-2">
-          <div className="flex-1 text-center border-r border-white/10">
-            <span className="block text-[10px] text-white/40 uppercase tracking-widest mb-1">Escrito por</span>
-            <span className="text-sm font-semibold" data-testid="text-author">{book.author}</span>
-          </div>
-          <div className="flex-1 text-center">
-            <span className="block text-[10px] text-white/40 uppercase tracking-widest mb-1">Narrado por</span>
-            <span className="text-sm font-semibold" data-testid="text-narrator">{book.narrator}</span>
-          </div>
+        <div className="grid gap-2 py-2">
+          <PessoaDoLivro papel="Escrito por" nome={book.author} testid="text-author" />
+          <PessoaDoLivro papel="Narrado por" nome={book.narrator} testid="text-narrator" />
         </div>
 
         <div className="flex gap-3">

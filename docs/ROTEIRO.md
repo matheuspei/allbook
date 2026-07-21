@@ -41,7 +41,11 @@ Checklist das telas que faltam:
 - [ ] Configurações
 - [ ] Busca (tela própria)
 - [ ] Categoria / Gênero (rota futura `/category/:genero`)
-- [ ] Autor / Narrador
+- [x] **Autor / Narrador** — PRONTA (21/07). Rota `/person/:slug`, uma tela só para os
+  dois papéis (quem escreve pode narrar). Avatar gerado a partir do nome, com foto real
+  entrando sozinha se o arquivo for posto em `client/src/assets/images/people/`.
+  Para isso o catálogo ganhou o campo `narrator` e cresceu de 38 para 59 títulos —
+  perfil de autor com um livro só não mostrava nada.
 - [ ] Planos / Assinatura
 - [ ] Boas-vindas (onboarding)
 - [ ] Ligar Estatísticas ao menu
