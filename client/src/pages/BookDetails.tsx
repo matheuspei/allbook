@@ -14,7 +14,7 @@ import CommentThread from "@/components/CommentThread";
 import { readReactions, type Reactions } from "@/lib/reactions";
 import PersonAvatar from "@/components/PersonAvatar";
 import { motion } from "framer-motion";
-import { getChapters, chapterStartSec, formatChapterDuration } from "@/lib/chapters";
+import { getChapters, chaptersTotalSec, chapterStartSec, formatChapterDuration, formatBookDuration } from "@/lib/chapters";
 import { readPlaybackList, playbackPercent, remainingLabel, type Playback } from "@/lib/playback";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
@@ -241,6 +241,11 @@ export default function BookDetails({ params }: { params: { id: string } }) {
   // que o player usa — assim "começar no capítulo X" leva ao capítulo certo.
   const chapters = getChapters(Number(params.id));
 
+  // A duração mostrada vem da soma dos capítulos, para bater exatamente com a
+  // barra de progresso (a % é medida contra ela). Antes o cabeçalho usava um
+  // valor à mão que não conversava com os capítulos.
+  const duracaoLivro = formatBookDuration(chaptersTotalSec(Number(params.id)));
+
   // Onde a pessoa parou neste livro (se já começou). Alimenta o cartão de
   // progresso no topo e o destaque do capítulo atual na lista.
   const [progresso, setProgresso] = useState<Playback | null>(null);
@@ -309,7 +314,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             menu, então a fileira repetia o que o menu oferecia. Compartilhar,
             que ocupava este canto, também está lá dentro.
           */}
-          <BookActionsMenu bookId={book.id} legenda={`${book.author} • ${book.duration}`}>
+          <BookActionsMenu bookId={book.id} legenda={`${book.author} • ${duracaoLivro}`}>
             <button
               className="p-2.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-colors"
               aria-label="Mais opções"
@@ -334,7 +339,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             <span>•</span>
             <div className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
-              <span>{book.duration}</span>
+              <span>{duracaoLivro}</span>
             </div>
             <span>•</span>
             <LinkDoGenero genero={book.genre} />

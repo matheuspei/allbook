@@ -12,12 +12,30 @@
  * (título e duração de cada faixa); o resto do app continua igual.
  */
 
+import { catalog } from "./books";
+
 export interface Chapter {
   /** Número do capítulo, começando em 1. */
   id: number;
   title: string;
   /** Duração do capítulo em segundos. */
   durationSec: number;
+}
+
+/** 5h — a mesma reserva que a ficha usa quando o livro não tem páginas. */
+const FALLBACK_MIN = 300;
+
+/**
+ * Duração total do livro em segundos, na **mesma conta** de `duracaoEstimada`
+ * em `books.ts` (perto de 1 hora a cada 33 páginas). É replicada aqui de
+ * propósito: os capítulos precisam somar exatamente a duração que a ficha
+ * mostra, senão a porcentagem de progresso não bate com o tamanho do livro.
+ * Se a fórmula mudar lá, mude aqui também.
+ */
+function totalDurationSec(bookId: number): number {
+  const book = catalog.find((item) => item.id === bookId);
+  const minutes = book?.pages ? Math.round((book.pages / 33) * 60) : FALLBACK_MIN;
+  return minutes * 60;
 }
 
 /**
@@ -44,11 +62,23 @@ export function getChapters(bookId: number): Chapter[] {
 
   const rand = seeded(bookId * 2654435761);
   const count = 8 + Math.floor(rand() * 7); // 8 a 14 capítulos
-  const chapters: Chapter[] = Array.from({ length: count }, (_, i) => ({
-    id: i + 1,
-    title: `Capítulo ${i + 1}`,
-    durationSec: (12 + Math.floor(rand() * 19)) * 60, // 12 a 30 minutos
-  }));
+  const total = totalDurationSec(bookId);
+
+  // Pesos estáveis para os capítulos não ficarem todos do mesmo tamanho.
+  const pesos = Array.from({ length: count }, () => 0.7 + rand() * 0.6);
+  const somaPesos = pesos.reduce((soma, p) => soma + p, 0);
+
+  // Divide a duração total entre os capítulos. Todos menos o último ficam
+  // proporcionais aos pesos; o último absorve a sobra, para a soma bater
+  // EXATAMENTE com a duração do livro (a lista arredonda só na exibição).
+  const chapters: Chapter[] = [];
+  let acumulado = 0;
+  for (let i = 0; i < count; i++) {
+    const durationSec =
+      i < count - 1 ? Math.floor((total * pesos[i]) / somaPesos) : total - acumulado;
+    acumulado += durationSec;
+    chapters.push({ id: i + 1, title: `Capítulo ${i + 1}`, durationSec });
+  }
 
   cache.set(bookId, chapters);
   return chapters;
@@ -80,4 +110,12 @@ export function chapterAtSec(bookId: number, positionSec: number): number {
 /** "18min" — a duração de um capítulo para mostrar na lista. */
 export function formatChapterDuration(durationSec: number): string {
   return `${Math.round(durationSec / 60)}min`;
+}
+
+/** "9h 45min" — a duração total do livro (soma dos capítulos) para o cabeçalho. */
+export function formatBookDuration(totalSec: number): string {
+  const minutos = Math.round(totalSec / 60);
+  const horas = Math.floor(minutos / 60);
+  const resto = minutos % 60;
+  return horas > 0 ? `${horas}h ${String(resto).padStart(2, "0")}min` : `${resto}min`;
 }
