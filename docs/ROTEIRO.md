@@ -362,6 +362,22 @@ Começar um segundo fazia o primeiro sumir sem deixar rastro.
   para quem nunca ouviu nada. Misturar produzia uma cena confusa, achada
   testando: remover um livro com o X o fazia reaparecer ali mesmo, como exemplo.
 
+### Menu inferior e a Busca (22/07) — decidido NÃO mexer por ora
+
+Ao revisar o `BottomNav` (Início · Biblioteca · Descobrir · Perfil), levantei dois
+pontos e o Matheus decidiu **manter tudo como está**. Fica registrado para não se
+propor a mesma coisa de novo sem saber que já foi conversado:
+
+- **A Busca não tem aba própria.** Ela vive *dentro* da tela Descobrir (o campo
+  "Buscar títulos, autores..." em `Discover.tsx`). Em Audible/Storytel/Spotify a
+  lupa costuma ser aba fixa no menu de baixo. **Rejeitado por ora:** criar uma aba
+  "Buscar" com lupa (viraria 5 abas) e a alternativa de trocar "Descobrir" por
+  "Buscar". Pode ser retomado no futuro.
+- **Nome divergente para a mesma tela `/discover`:** "Categorias" no TopNav e
+  "Descobrir" no BottomNav. **Decisão:** deixar como está — não incomodou o Matheus.
+- **"Descobrir" é necessário?** Sim; é a vitrine de exploração, padrão de mercado.
+  Nunca esteve em questão tirá-la.
+
 ---
 
 ## 4. DEPOIS do frontend — o motor (resumo)
