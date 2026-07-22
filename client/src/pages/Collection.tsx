@@ -4,7 +4,7 @@ import { Star, Library } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import BookGrid from "@/components/BookGrid";
 import { Button } from "@/components/ui/button";
-import { findCollectionBySlug, getBooksForCollection } from "@/lib/collections";
+import { findListBySlug, getBooksForCollection } from "@/lib/collections";
 
 /**
  * Uma coleção da tela Início ("Só na AllBook", "Favoritos"…). Espelha a tela de
@@ -12,7 +12,7 @@ import { findCollectionBySlug, getBooksForCollection } from "@/lib/collections";
  * faixa colorida no topo, contagem e nota média, e a grade de capas embaixo.
  */
 export default function Collection({ params }: { params: { slug: string } }) {
-  const colecao = findCollectionBySlug(params.slug);
+  const colecao = findListBySlug(params.slug);
 
   useEffect(() => {
     window.scrollTo(0, 0);

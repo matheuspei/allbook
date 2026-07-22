@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Fuse from "fuse.js";
 
 import { catalog, getBooksByIds, type Book } from "@/lib/books";
-import { collections } from "@/lib/collections";
+import { collections, homeRows, getBooksForCollection } from "@/lib/collections";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
 import BookActionsMenu from "@/components/BookActionsMenu";
 
@@ -80,28 +80,8 @@ const continueListening = getBooksByIds([1, 7, 4]).map((book, index) => ({
 
 // As fileiras da Home são montadas a partir do catálogo em lib/books.ts,
 // para não duplicar os dados fixos entre Home e Descobrir.
-const categories: { title: string; books: Book[] }[] = [
-  {
-    title: "Minha lista",
-    books: getBooksByIds([101, 102, 1, 103, 8]),
-  },
-  {
-    title: "Descubra suas próximas histórias",
-    books: getBooksByIds([2, 3, 104, 105, 106, 119, 120]),
-  },
-  {
-    title: "🔥 Sugestões que você vai adorar",
-    books: getBooksByIds([7, 109, 129, 130, 131, 132]),
-  },
-  {
-    title: "Desenvolvimento e Negócios",
-    books: getBooksByIds([4, 107, 5, 108, 124, 125]),
-  },
-  {
-    title: "Biografias e Histórias Reais",
-    books: getBooksByIds([111, 112, 113, 135, 136, 137]),
-  },
-];
+// As fileiras horizontais da Home vêm de `homeRows` em lib/collections.ts, a
+// mesma fonte que a tela `/collection/:slug` usa quando a pessoa toca "Ver tudo".
 
 function HeroBillboard() {
   const [, setLocation] = useLocation();
@@ -398,14 +378,18 @@ function ContinueListeningSection() {
   );
 }
 
-function BookCarousel({ title, books }: { title: string; books: typeof categories[0]["books"] }) {
+function BookCarousel({ slug, title, books }: { slug: string; title: string; books: Book[] }) {
   const [, setLocation] = useLocation();
 
   return (
-    <section className="py-2 space-y-3" data-testid={`carousel-${title.replace(/\s/g, '-').toLowerCase()}`}>
+    <section className="py-2 space-y-3" data-testid={`carousel-${slug}`}>
       <div className="flex items-center justify-between px-4">
         <h2 className="font-display font-bold text-lg text-white">{title}</h2>
-        <button className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors" data-testid={`button-see-all-${title.replace(/\s/g, '-').toLowerCase()}`}>
+        <button
+          onClick={() => setLocation(`/collection/${slug}`)}
+          className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors"
+          data-testid={`button-see-all-${slug}`}
+        >
           Ver tudo
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
@@ -573,8 +557,13 @@ export default function Home() {
       <div className="relative z-10 -mt-4">
         <CategoryGrid />
         <ContinueListeningSection />
-        {categories.map((category, idx) => (
-          <BookCarousel key={idx} title={category.title} books={category.books} />
+        {homeRows.map((row) => (
+          <BookCarousel
+            key={row.slug}
+            slug={row.slug}
+            title={row.label}
+            books={getBooksForCollection(row)}
+          />
         ))}
       </div>
     </div>
