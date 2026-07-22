@@ -1,13 +1,12 @@
 import { ChevronDown, Share2, Bluetooth, MoreVertical, ListMusic, RotateCcw, RotateCw, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Library } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useState, useEffect, useRef } from "react";
 import { catalog } from "@/lib/books";
 import { readSettings } from "@/lib/settings";
 import { readPlayback, savePlayback, showMiniPlayer } from "@/lib/playback";
-
-const DURATION_SECONDS = 4 * 3600 + 42 * 60; // 4h42m — ainda igual para todos: não há áudio real.
+import { getChapters, chaptersTotalSec, chapterStartSec } from "@/lib/chapters";
 
 export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [, setLocation] = useLocation();
@@ -35,12 +34,25 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     return saved && saved.bookId === book.id ? saved : null;
   })();
 
-  const [currentTime, setCurrentTime] = useState(savedForThisBook?.positionSec ?? 0);
-  const [progress, setProgress] = useState([
-    ((savedForThisBook?.positionSec ?? 0) / DURATION_SECONDS) * 100,
-  ]);
+  // Capítulos estáveis do livro e duração total (soma dos capítulos) — a mesma
+  // fonte que a tela do livro usa, para os dois concordarem.
+  const chapters = getChapters(book.id);
+  const durationSeconds = chaptersTotalSec(book.id);
 
-  const durationSeconds = DURATION_SECONDS;
+  // Abrir "/player/:id?chapter=N" começa naquele capítulo. Sem o parâmetro,
+  // retoma de onde a pessoa parou (ou do começo).
+  const search = useSearch();
+  const chapterParam = (() => {
+    const n = Number(new URLSearchParams(search).get("chapter"));
+    return Number.isInteger(n) && n >= 1 && n <= chapters.length ? n : null;
+  })();
+
+  const initialPosition = chapterParam
+    ? chapterStartSec(book.id, chapterParam)
+    : savedForThisBook?.positionSec ?? 0;
+
+  const [currentTime, setCurrentTime] = useState(initialPosition);
+  const [progress, setProgress] = useState([(initialPosition / durationSeconds) * 100]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -94,16 +106,9 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [showSystemPermission, setShowSystemPermission] = useState(false);
   const [isCarModeActive, setIsCarModeActive] = useState(false);
 
-  const [chapters] = useState(() => {
-    const count = 8 + Math.floor(Math.random() * 7); // 8-14 chapters
-    return Array.from({ length: count }, (_, i) => ({
-      id: i + 1,
-      title: `Capítulo ${i + 1}`,
-      duration: Math.floor(Math.random() * 1200) + 600 // 10-30 mins
-    }));
-  });
-
-  const [currentChapter, setCurrentChapter] = useState(savedForThisBook?.chapter ?? 1);
+  const [currentChapter, setCurrentChapter] = useState(
+    chapterParam ?? savedForThisBook?.chapter ?? 1,
+  );
 
   useEffect(() => {
     showMiniPlayer();
@@ -134,19 +139,20 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     return () => {
-      savePlayback({ ...stateRef.current, durationSec: DURATION_SECONDS });
+      savePlayback({ ...stateRef.current, durationSec: durationSeconds });
     };
   }, []);
 
-  const nextChapter = () => {
-    setCurrentChapter(prev => Math.min(prev + 1, chapters.length));
-    setCurrentTime(0);
+  const goToChapter = (target: number) => {
+    const clamped = Math.min(Math.max(target, 1), chapters.length);
+    const start = chapterStartSec(book.id, clamped);
+    setCurrentChapter(clamped);
+    setCurrentTime(start);
+    setProgress([(start / durationSeconds) * 100]);
   };
 
-  const prevChapter = () => {
-    setCurrentChapter(prev => Math.max(prev - 1, 1));
-    setCurrentTime(0);
-  };
+  const nextChapter = () => goToChapter(currentChapter + 1);
+  const prevChapter = () => goToChapter(currentChapter - 1);
 
   const adjustSpeed = (delta: number) => {
     setSpeed(prev => Math.max(0.5, Math.min(3.0, parseFloat((prev + delta).toFixed(2)))));

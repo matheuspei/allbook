@@ -13,6 +13,9 @@ import { commentsForBook } from "@/lib/comments";
 import CommentThread from "@/components/CommentThread";
 import { readReactions, type Reactions } from "@/lib/reactions";
 import PersonAvatar from "@/components/PersonAvatar";
+import { motion } from "framer-motion";
+import { getChapters, chapterStartSec, formatChapterDuration } from "@/lib/chapters";
+import { readPlaybackList, playbackPercent, remainingLabel, type Playback } from "@/lib/playback";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
 import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
@@ -234,14 +237,19 @@ export default function BookDetails({ params }: { params: { id: string } }) {
   }, []);
 
 
-  const [chapters] = useState(() => {
-    const count = 8 + Math.floor(Math.random() * 7);
-    return Array.from({ length: count }, (_, i) => ({
-      id: i + 1,
-      title: `Capítulo ${i + 1}`,
-      duration: `${Math.floor(Math.random() * 20) + 10}min`
-    }));
-  });
+  // A lista de capítulos agora é estável por livro (lib/chapters.ts), a mesma
+  // que o player usa — assim "começar no capítulo X" leva ao capítulo certo.
+  const chapters = getChapters(Number(params.id));
+
+  // Onde a pessoa parou neste livro (se já começou). Alimenta o cartão de
+  // progresso no topo e o destaque do capítulo atual na lista.
+  const [progresso, setProgresso] = useState<Playback | null>(null);
+  const [showAllChapters, setShowAllChapters] = useState(false);
+
+  useEffect(() => {
+    const encontrado = readPlaybackList().find((p) => p.bookId === Number(params.id));
+    setProgresso(encontrado ?? null);
+  }, [params.id]);
 
 
   const addToLibrary = () => {
@@ -347,7 +355,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             data-testid="button-play"
           >
             <Play className="w-5 h-5 fill-current" />
-            Reproduzir
+            {progresso ? "Continuar" : "Reproduzir"}
           </Button>
 
           <Button
@@ -364,6 +372,44 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           </Button>
         </div>
 
+        {/*
+          Cartão de progresso: só aparece quando o livro já foi começado. A
+          barra usa a cor da marca e cresce até a porcentagem ao abrir a tela,
+          com um brilho suave passando por cima — animação contida, no padrão.
+        */}
+        {progresso && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="space-y-2.5 rounded-xl border border-white/10 bg-white/5 p-4"
+            data-testid="progress-card"
+          >
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2 font-semibold text-white">
+                <Headphones className="h-4 w-4 text-primary" />
+                Capítulo {progresso.chapter} • {Math.round(playbackPercent(progresso))}% ouvido
+              </span>
+              <span className="text-xs text-white/50">{remainingLabel(progresso)}</span>
+            </div>
+            <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/10">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${playbackPercent(progresso)}%` }}
+                transition={{ duration: 0.9, ease: "easeOut" }}
+                className="relative h-full overflow-hidden rounded-full bg-gradient-to-r from-primary to-[#f59e0b]"
+              >
+                <motion.span
+                  aria-hidden="true"
+                  className="absolute inset-y-0 w-16 -skew-x-12 bg-white/30 blur-md"
+                  animate={{ x: ["-40%", "300%"] }}
+                  transition={{ duration: 2.4, ease: "easeInOut", repeat: Infinity, repeatDelay: 1.2 }}
+                />
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+
         <div className="space-y-3">
           <h2 className="text-lg font-bold font-display" data-testid="heading-summary">Resumo</h2>
           <p className="text-white/70 leading-relaxed text-sm" data-testid="text-summary">
@@ -377,20 +423,73 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             <span className="text-sm text-white/40">{chapters.length} capítulos</span>
           </div>
           <div className="rounded-xl overflow-hidden bg-white/5 border border-white/5">
-            {chapters.slice(0, 5).map((ch) => (
-              <div key={ch.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-b border-white/5 last:border-none" data-testid={`row-chapter-${ch.id}`}>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                    <span className="text-white/40 font-mono text-xs">{ch.id.toString().padStart(2, '0')}</span>
+            {(showAllChapters ? chapters : chapters.slice(0, 5)).map((ch) => {
+              const isCurrent = progresso?.chapter === ch.id;
+              const posNoCap =
+                isCurrent && progresso
+                  ? Math.max(0, progresso.positionSec - chapterStartSec(Number(params.id), ch.id))
+                  : 0;
+              const pctNoCap = isCurrent ? Math.min(100, (posNoCap / ch.durationSec) * 100) : 0;
+              return (
+                <button
+                  key={ch.id}
+                  type="button"
+                  onClick={() => setLocation(`/player/${book.id}?chapter=${ch.id}`)}
+                  className={`group flex w-full items-center justify-between gap-3 border-b border-white/5 p-4 text-left transition-colors last:border-none ${
+                    isCurrent ? "bg-primary/10" : "hover:bg-white/5"
+                  }`}
+                  data-testid={`row-chapter-${ch.id}`}
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
+                        isCurrent ? "bg-primary text-black" : "bg-white/5 text-white/40 group-hover:bg-white/10"
+                      }`}
+                    >
+                      {isCurrent ? (
+                        <Headphones className="h-4 w-4" />
+                      ) : (
+                        <>
+                          <span className="font-mono text-xs group-hover:hidden">
+                            {ch.id.toString().padStart(2, "0")}
+                          </span>
+                          <Play className="hidden h-3.5 w-3.5 fill-current group-hover:block" />
+                        </>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span
+                        className={`block truncate text-sm font-medium ${
+                          isCurrent ? "text-primary" : "text-white"
+                        }`}
+                      >
+                        {ch.title}
+                      </span>
+                      {isCurrent && (
+                        <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pctNoCap}%` }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                            className="h-full rounded-full bg-gradient-to-r from-primary to-[#f59e0b]"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-sm font-medium">{ch.title}</span>
-                </div>
-                <span className="text-xs text-white/40">{ch.duration}</span>
-              </div>
-            ))}
+                  <span className="shrink-0 text-xs text-white/40">
+                    {isCurrent ? "Tocando" : formatChapterDuration(ch.durationSec)}
+                  </span>
+                </button>
+              );
+            })}
             {chapters.length > 5 && (
-              <button className="w-full p-3 text-center text-xs font-bold text-amber-500 hover:bg-white/5 transition-colors" data-testid="button-show-all-chapters">
-                Ver todos os {chapters.length} capítulos
+              <button
+                onClick={() => setShowAllChapters((v) => !v)}
+                className="w-full p-3 text-center text-xs font-bold text-amber-500 hover:bg-white/5 transition-colors"
+                data-testid="button-show-all-chapters"
+              >
+                {showAllChapters ? "Ver menos" : `Ver todos os ${chapters.length} capítulos`}
               </button>
             )}
           </div>
