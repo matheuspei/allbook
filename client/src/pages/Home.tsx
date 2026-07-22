@@ -430,13 +430,22 @@ function BookCarousel({ title, books }: { title: string; books: typeof categorie
                 className="w-full h-full object-cover"
               />
               <div className="absolute top-1.5 right-1.5">
-                <button
-                  className="p-1 rounded-full bg-black/50 text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => { e.stopPropagation(); }}
-                  data-testid={`button-options-${book.id}`}
-                >
-                  <MoreVertical className="w-3.5 h-3.5" />
-                </button>
+                {/*
+                  Os três pontinhos sobre a capa abriam nada. Agora usam o mesmo
+                  BookActionsMenu da tela do livro e do carrossel "Continuar
+                  ouvindo". O stopPropagation impede que o toque também navegue
+                  para a página do livro (o cartão inteiro é clicável).
+                */}
+                <BookActionsMenu bookId={book.id}>
+                  <button
+                    className="p-1 rounded-full bg-black/50 text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={`Mais opções de ${book.title}`}
+                    data-testid={`button-options-${book.id}`}
+                  >
+                    <MoreVertical className="w-3.5 h-3.5" />
+                  </button>
+                </BookActionsMenu>
               </div>
             </div>
             <h3 className="text-sm font-medium text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
