@@ -90,19 +90,23 @@ export default function TopNav() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <button
+          <Link
+            href="/notifications"
             data-testid="button-notifications"
+            aria-label="Notificações"
             className="relative p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
           >
             <Bell className="w-5 h-5" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
-          </button>
-          <button
+          </Link>
+          <Link
+            href="/profile"
             data-testid="button-profile"
+            aria-label="Perfil"
             className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary/30 transition-colors"
           >
             <User className="w-4 h-4" />
-          </button>
+          </Link>
         </div>
       </div>
 
