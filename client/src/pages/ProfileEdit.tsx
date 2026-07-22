@@ -181,11 +181,11 @@ export default function ProfileEdit() {
               value={form.bio}
               onChange={(e) => update("bio", e.target.value.slice(0, MAX_BIO))}
               rows={6}
-              placeholder="Conte o que você gosta de ouvir. Isso aparece junto dos seus comentários nos livros."
+              placeholder="Conte o que você gosta de ouvir — gêneros, autores favoritos, o que está na fila."
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary/50 transition-colors resize-none placeholder:text-white/25"
               data-testid="input-bio"
             />
-            <p className="text-[11px] text-white/30">Texto livre — o que você escrever aqui é por sua conta.</p>
+            <p className="text-[11px] text-white/30">Aparece no seu perfil, visível para outros leitores.</p>
           </div>
 
         </section>
