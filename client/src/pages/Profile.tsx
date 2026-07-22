@@ -3,19 +3,15 @@ import { Link } from "wouter";
 import {
   BarChart3,
   Bell,
-  BookOpen,
   Bookmark,
   ChevronRight,
   CreditCard,
   Download,
-  Flame,
-  Headphones,
   HelpCircle,
   LogIn,
   Plus,
   Settings,
   Share2,
-  Trophy,
   Users,
 } from "lucide-react";
 
@@ -35,14 +31,19 @@ import { useToast } from "@/hooks/use-toast";
 import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
 import { readRecommendations } from "@/lib/recommendations";
+import { achievements, unlockedCount, type Achievement } from "@/lib/achievements";
 import type { Book } from "@/lib/books";
 
 /**
  * Perfil ("Minha AllBook") — a tela do 4º item do menu inferior.
  *
  * Propositalmente sóbria, no espírito do Audible/Storytel: lista corrida em vez
- * de cartões soltos e ícone de uma cor só em vez de um gradiente por item. As
- * conquistas existem, mas discretas — uma fileira, sem medalha colorida.
+ * de cartões soltos e ícone de uma cor só em vez de um gradiente por item.
+ *
+ * As conquistas fogem dessa sobriedade de propósito: eram quatro e discretas,
+ * viraram uma grade de medalhas (fonte em `lib/achievements.ts`), com as
+ * desbloqueadas na cor da marca — o Matheus quis troféus de verdade, para
+ * engajar (ver ROTEIRO). Tocar numa medalha mostra a dica da meta.
  *
  * Os números de audição são os mesmos de `Statistics.tsx` — ainda fixos no
  * código, porque não existe backend. Quando a API existir, os dois lugares
@@ -57,13 +58,6 @@ const summary: { value: string; label: string; key: StatKey }[] = [
   { value: "5", label: "títulos", key: "titulos" },
   { value: "3 sem.", label: "sequência", key: "sequencia" },
   { value: "2", label: "concluídos", key: "concluidos" },
-];
-
-const achievements = [
-  { icon: Flame, label: "Constante", unlocked: true },
-  { icon: BookOpen, label: "Maratonista", unlocked: true },
-  { icon: Headphones, label: "Coruja", unlocked: true },
-  { icon: Trophy, label: "Centenário", unlocked: false },
 ];
 
 export default function Profile() {
@@ -113,7 +107,18 @@ export default function Profile() {
     });
   }
 
-  const unlockedCount = achievements.filter((item) => item.unlocked).length;
+  /**
+   * Tocar numa medalha mostra o que ela significa. Para as ainda bloqueadas,
+   * vira a dica da meta que falta — é o que puxa a pessoa a voltar e engajar.
+   */
+  function showAchievement(item: Achievement) {
+    toast({
+      title: item.unlocked ? `🏆 ${item.label}` : `🔒 ${item.label}`,
+      description: item.unlocked
+        ? item.description
+        : `Ainda não conquistada — ${item.description}`,
+    });
+  }
 
   // Uma lista só, em duas partes: o que é conteúdo e o que é conta.
   const sections: {
@@ -258,33 +263,37 @@ export default function Profile() {
           </span>
         </div>
 
-        <div className="flex items-start justify-between gap-2">
+        <div className="grid grid-cols-4 gap-x-2 gap-y-4">
           {achievements.map((item) => {
             const Icon = item.icon;
             return (
-              <div
-                key={item.label}
-                className="flex-1 flex flex-col items-center gap-2"
-                data-testid={`achievement-${item.label.toLowerCase()}`}
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => showAchievement(item)}
+                className="flex flex-col items-center gap-2 group"
+                data-testid={`achievement-${item.id}`}
               >
                 <div
-                  className={`w-11 h-11 rounded-full flex items-center justify-center border ${
-                    item.unlocked ? "border-white/15 bg-white/5" : "border-white/5 border-dashed"
+                  className={`w-11 h-11 rounded-full flex items-center justify-center border transition-colors ${
+                    item.unlocked
+                      ? "border-primary/40 bg-primary/10 group-hover:bg-primary/20"
+                      : "border-white/10 border-dashed group-hover:border-white/20"
                   }`}
                 >
                   <Icon
-                    className={`w-[18px] h-[18px] ${item.unlocked ? "text-white/70" : "text-white/15"}`}
+                    className={`w-[18px] h-[18px] ${item.unlocked ? "text-primary" : "text-white/20"}`}
                     strokeWidth={1.75}
                   />
                 </div>
                 <span
                   className={`text-[10px] text-center leading-tight ${
-                    item.unlocked ? "text-white/50" : "text-white/20"
+                    item.unlocked ? "text-white/60" : "text-white/25"
                   }`}
                 >
                   {item.label}
                 </span>
-              </div>
+              </button>
             );
           })}
         </div>

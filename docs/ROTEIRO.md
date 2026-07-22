@@ -381,6 +381,28 @@ Revisão da navegação com o Matheus. O que ficou:
   a navegação só no BottomNav, que é o padrão mobile. Estatísticas continua acessível
   pelo Perfil, então não se perde.
 
+### Conquistas viram muitas medalhas, coloridas (22/07)
+
+Eram 4 conquistas discretas, embutidas em `Profile.tsx`, de propósito sóbrias
+("sem medalha colorida", dizia o comentário). O Matheus pediu o oposto: **muitos
+troféus, como medalhas de verdade, para engajar** — inclusive puxando para a
+comunidade.
+
+- **O que mudou:** fonte única em `client/src/lib/achievements.ts` com 16
+  conquistas em 4 grupos (audição, constância, exploração, comunidade). Na tela,
+  viraram uma grade; as desbloqueadas usam a cor da marca (laranja), as demais
+  ficam tracejadas como metas. Tocar numa medalha mostra a descrição/meta (o
+  gancho de engajamento).
+- **Decisão de rumo:** abandonamos a sobriedade "sem medalha colorida" das
+  conquistas de propósito — só nelas; o resto do perfil segue sóbrio.
+- **`unlocked` é mock.** Sem backend, o que está conquistado é fixo (um conjunto
+  plausível para o perfil de exemplo). Quando a API existir, cada `unlocked`
+  passa a ser calculado de verdade — as de comunidade dependem de comentários,
+  curtidas, seguir e recomendar já existirem no servidor.
+- **Rejeitado por ora:** agrupar visualmente por categoria com subtítulos (mais
+  bonito, mas mexe mais no layout) e uma tela dedicada de conquistas. Ficou a
+  grade única com o toque mostrando a dica.
+
 ---
 
 ## 4. DEPOIS do frontend — o motor (resumo)
