@@ -202,6 +202,27 @@ Comunidade. Decisões tomadas ao construir:
   `client/src/components/CommentThread.tsx` — aquela tela já passava de 600
   linhas.
 
+**Correções e acréscimos (22/07), a partir do uso do Matheus:**
+
+- **Bug: não dava para responder um comentário que já tinha respostas.** O
+  "Responder" tinha sido fundido com o contador de respostas — no comentário
+  com conversa, o rótulo virava "3 respostas" e o botão de responder sumia. Os
+  dois viraram coisas separadas: o contador só informa, o "Responder" é sempre
+  um botão à parte, e existe em cada resposta também.
+- **Responder a uma resposta** (pedido: "responder o comentário do Ricardo").
+  Continua um nível só — o `parentId` é sempre o comentário de cima —, mas a
+  resposta guarda `replyToName` e mostra "@Fulano". Abrir o "Responder" de uma
+  resposta traz a marca "Respondendo a Fulano", que dá para cancelar.
+- **Notificação de resposta (simulada, de propósito).** Pedido: "seria
+  interessante que ele fosse notificado". No app real, quem é avisado é a
+  *outra* pessoa; aqui não há a outra pessoa, há o esqueleto. Então mostramos o
+  outro lado do mesmo ciclo: quando você responde alguém, esse leitor responde
+  de volta ali na conversa (uma de seis falas fixas em `replies.ts`, não IA em
+  tempo real) e isso vira um aviso "Fulano respondeu você" em `/notifications`.
+  **Quando houver servidor, some a simulação e entra a notificação real.**
+  Store nova: `client/src/lib/notifications.ts` (`allbook_notifications`); as
+  respostas recebidas ficam junto das suas em `replies.ts` (campo `fromSlug`).
+
 ### Comentar o autor e o narrador (21/07, noite) — FEITO
 
 Pedido do Matheus: comentar não só o livro, mas a pessoa. Está em

@@ -107,8 +107,10 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
       `activity.ts` (junta recomendação + comentário no que a tela Comunidade
       mostra, e monta as sugestões "com motivo"), `reactions.ts` (curtir e
       descurtir; os dois mostram número e pesam igual na ordem),
-      `replies.ts` (**as suas** respostas, que ficam no localStorage e não em
-      `comments.ts`)
+      `replies.ts` (respostas que ficam no localStorage — as suas e as
+      recebidas; **um nível só**, com "@Fulano"), `notifications.ts`
+      (aviso "responderam você"; a resposta de volta é simulada pelo esqueleto
+      até haver servidor)
     - Preferências e sessão: `settings.ts`, `auth.ts`, `profile.ts`,
       `recommendations.ts`
   - `src/assets/images/` — 8 capas genéricas por gênero (PNG), usadas como reserva

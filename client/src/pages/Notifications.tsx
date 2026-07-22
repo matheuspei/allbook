@@ -1,9 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Bell, Flame, Gift, Mic, Sparkles, Tag } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { getBooksByIds } from "@/lib/books";
+import { relativeDate } from "@/lib/activity";
+import { findMember } from "@/lib/community";
+import {
+  markAllNotificationsRead,
+  markNotificationRead,
+  readNotifications,
+  type ReplyNotification,
+} from "@/lib/notifications";
 
 /**
  * Notificações (`/notifications`).
@@ -84,8 +92,16 @@ const initialItems: Notification[] = [
 export default function Notifications() {
   const [, setLocation] = useLocation();
   const [items, setItems] = useState<Notification[]>(initialItems);
+  // As de "responderam você" vêm do localStorage e ficam ACIMA dos exemplos:
+  // são as que acabaram de acontecer, por ação sua.
+  const [replies, setReplies] = useState<ReplyNotification[]>([]);
 
-  const unreadCount = items.filter((item) => item.unread).length;
+  useEffect(() => {
+    setReplies(readNotifications());
+  }, []);
+
+  const unreadCount =
+    items.filter((item) => item.unread).length + replies.filter((item) => !item.read).length;
 
   function open(item: Notification) {
     setItems((current) =>
@@ -94,9 +110,17 @@ export default function Notifications() {
     if (item.bookId) setLocation(`/book/${item.bookId}`);
   }
 
+  function openReply(item: ReplyNotification) {
+    setReplies(markNotificationRead(item.id));
+    setLocation(`/book/${item.bookId}`);
+  }
+
   function markAllRead() {
     setItems((current) => current.map((entry) => ({ ...entry, unread: false })));
+    setReplies(markAllNotificationsRead());
   }
+
+  const isEmpty = items.length === 0 && replies.length === 0;
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="notifications-page">
@@ -116,7 +140,7 @@ export default function Notifications() {
         }
       />
 
-      {items.length === 0 ? (
+      {isEmpty ? (
         <div className="px-8 py-24 text-center space-y-4" data-testid="notifications-empty">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-white/5 flex items-center justify-center">
             <Bell className="w-7 h-7 text-white/20" />
@@ -126,6 +150,47 @@ export default function Notifications() {
         </div>
       ) : (
         <div className="px-5" data-testid="notifications-list">
+          {replies.map((item) => {
+            const membro = findMember(item.fromSlug);
+            return (
+              <button
+                key={item.id}
+                onClick={() => openReply(item)}
+                className="w-full flex items-start gap-3 py-4 border-b border-white/5 text-left hover:bg-white/[0.03] transition-colors"
+                data-testid={`notification-reply-${item.id}`}
+              >
+                <div
+                  className={`w-9 h-9 rounded-full bg-gradient-to-br ${
+                    membro?.color ?? "from-amber-500/30 to-orange-600/30"
+                  } flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold`}
+                >
+                  {membro?.name.charAt(0) ?? "?"}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3
+                      className={`text-sm line-clamp-1 ${
+                        item.read ? "font-medium text-white/70" : "font-semibold text-white"
+                      }`}
+                    >
+                      {membro?.name ?? "Um leitor"} respondeu você
+                    </h3>
+                    {!item.read && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" aria-label="Não lida" />
+                    )}
+                  </div>
+                  <p className="text-xs text-white/40 leading-relaxed mt-1 line-clamp-2 italic">
+                    "{item.text}"
+                  </p>
+                  <p className="text-[11px] text-white/25 mt-1.5">
+                    {relativeDate(item.date.slice(0, 10))}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+
           {items.map((item) => {
             const Icon = item.icon;
             return (
