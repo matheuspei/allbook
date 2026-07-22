@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Bell, User } from "lucide-react";
+import { Bell, User, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { openSearch } from "@/lib/search";
 
 export default function TopNav() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -28,13 +29,6 @@ export default function TopNav() {
     return () => document.removeEventListener("scroll", handleScroll, { capture: true });
   }, []);
 
-  const navLinks = [
-    { name: "Início", path: "/" },
-    { name: "Biblioteca", path: "/library" },
-    { name: "Categorias", path: "/discover" },
-    { name: "Estatísticas", path: "/statistics" },
-  ];
-
   /**
    * O fundo transparente existe para o menu flutuar sobre a imagem grande da
    * Início. Nas outras telas não há imagem embaixo — ali ele só deixava o
@@ -43,6 +37,16 @@ export default function TopNav() {
    */
   const isHome = location === "/";
   const opaque = scrolled || !isHome;
+
+  /**
+   * A lupa é global, mas a busca mora na Início. Fora dela, volto para a Início
+   * antes de abrir; o pedido fica guardado em `search.ts` e é consumido quando a
+   * Início monta (ver o comentário lá).
+   */
+  const handleSearch = () => {
+    if (!isHome) navigate("/");
+    openSearch();
+  };
 
   return (
     <header
@@ -62,34 +66,16 @@ export default function TopNav() {
           </span>
         </Link>
 
-        <nav
-          data-testid="nav-links"
-          className="hidden sm:flex items-center gap-1 overflow-x-auto scrollbar-hide"
-        >
-          {navLinks.map((link) => {
-            const isActive =
-              link.path === "/"
-                ? location === "/"
-                : location.startsWith(link.path);
-            return (
-              <Link
-                key={link.path}
-                href={link.path}
-                data-testid={`link-nav-${link.name.toLowerCase()}`}
-                className={cn(
-                  "px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
-                  isActive
-                    ? "text-primary-foreground bg-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {link.name}
-              </Link>
-            );
-          })}
-        </nav>
-
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSearch}
+            data-testid="button-search"
+            aria-label="Buscar"
+            className="p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Search className="w-5 h-5" />
+          </button>
           <Link
             href="/notifications"
             data-testid="button-notifications"
@@ -108,33 +94,6 @@ export default function TopNav() {
             <User className="w-4 h-4" />
           </Link>
         </div>
-      </div>
-
-      <div
-        className="sm:hidden flex items-center gap-1 px-4 pb-2 overflow-x-auto scrollbar-hide"
-        data-testid="nav-links-mobile"
-      >
-        {navLinks.map((link) => {
-          const isActive =
-            link.path === "/"
-              ? location === "/"
-              : location.startsWith(link.path);
-          return (
-            <Link
-              key={link.path}
-              href={link.path}
-              data-testid={`link-nav-mobile-${link.name.toLowerCase()}`}
-              className={cn(
-                "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
-                isActive
-                  ? "text-primary-foreground bg-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {link.name}
-            </Link>
-          );
-        })}
       </div>
     </header>
   );

@@ -362,21 +362,24 @@ Começar um segundo fazia o primeiro sumir sem deixar rastro.
   para quem nunca ouviu nada. Misturar produzia uma cena confusa, achada
   testando: remover um livro com o X o fazia reaparecer ali mesmo, como exemplo.
 
-### Menu inferior e a Busca (22/07) — decidido NÃO mexer por ora
+### Menu inferior, TopNav e a Busca (22/07)
 
-Ao revisar o `BottomNav` (Início · Biblioteca · Descobrir · Perfil), levantei dois
-pontos e o Matheus decidiu **manter tudo como está**. Fica registrado para não se
-propor a mesma coisa de novo sem saber que já foi conversado:
+Revisão da navegação com o Matheus. O que ficou:
 
-- **A Busca não tem aba própria.** Ela vive *dentro* da tela Descobrir (o campo
-  "Buscar títulos, autores..." em `Discover.tsx`). Em Audible/Storytel/Spotify a
-  lupa costuma ser aba fixa no menu de baixo. **Rejeitado por ora:** criar uma aba
-  "Buscar" com lupa (viraria 5 abas) e a alternativa de trocar "Descobrir" por
-  "Buscar". Pode ser retomado no futuro.
-- **Nome divergente para a mesma tela `/discover`:** "Categorias" no TopNav e
-  "Descobrir" no BottomNav. **Decisão:** deixar como está — não incomodou o Matheus.
-- **"Descobrir" é necessário?** Sim; é a vitrine de exploração, padrão de mercado.
-  Nunca esteve em questão tirá-la.
+- **`/discover` tem UM nome só: "Categorias".** Antes era "Categorias" no TopNav e
+  "Descobrir" no BottomNav — a mesma tela com dois nomes confundia. Padronizado em
+  "Categorias" nos dois lugares (feito no BottomNav). **Motivo:** alinhar com o nome
+  que já existia no topo.
+- **A busca da Home estava MORTA.** `Home.tsx` já tinha a busca pronta
+  (`showSearch` + `SearchResults`), mas `setShowSearch(true)` não era chamado em
+  lugar nenhum — não havia botão para abri-la. O Matheus quer a busca acessível
+  **na própria tela Início, no topo**. (Ver decisão de desenho abaixo quando fechada.)
+- **O TopNav duplica o BottomNav.** Em celular o topo repetia os mesmos destinos do
+  menu de baixo (Início, Biblioteca, Categorias) + Estatísticas, numa fileira que
+  rola — o "informação demais" e o "botão Início que não faz sentido" que o Matheus
+  apontou. Ideia em avaliação: enxugar o topo (logo + busca + sino + perfil) e deixar
+  a navegação só no BottomNav, que é o padrão mobile. Estatísticas continua acessível
+  pelo Perfil, então não se perde.
 
 ---
 

@@ -7,6 +7,7 @@ import Fuse from "fuse.js";
 import { catalog, getBooksByIds, type Book } from "@/lib/books";
 import { collections, homeRows, getBooksForCollection } from "@/lib/collections";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
+import { SEARCH_OPEN_EVENT, consumeSearchRequest } from "@/lib/search";
 import BookActionsMenu from "@/components/BookActionsMenu";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
@@ -510,10 +511,25 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
+  /**
+   * A lupa do TopNav abre a busca daqui. Enquanto a Início está montada, o
+   * evento faz o trabalho; se a lupa foi tocada em outra tela, o TopNav navega
+   * para cá e o pedido guardado é consumido no mount. Ver `lib/search.ts`.
+   */
+  useEffect(() => {
+    const open = () => {
+      consumeSearchRequest();
+      setShowSearch(true);
+    };
+    window.addEventListener(SEARCH_OPEN_EVENT, open);
+    if (consumeSearchRequest()) setShowSearch(true);
+    return () => window.removeEventListener(SEARCH_OPEN_EVENT, open);
+  }, []);
+
   return (
     <div className="min-h-screen pb-24 bg-[#141414]" data-testid="page-home">
       {showSearch && (
-        <div className="fixed inset-0 z-40 bg-[#141414]">
+        <div className="fixed inset-0 z-[60] bg-[#141414]">
           <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
             <button onClick={() => { setShowSearch(false); setSearchQuery(""); }} className="text-white/70" data-testid="button-close-search">
               <ChevronLeft className="w-5 h-5" />
