@@ -23,7 +23,13 @@ export interface Profile {
   bio: string;
 }
 
-export const MAX_BIO = 160;
+/**
+ * Limite de caracteres da bio. Era 160 (estilo Twitter antigo), que ficou curto
+ * demais para alguém se apresentar. 300 dá espaço para umas 2-3 frases sem virar
+ * um textão — a bio também aparece junto dos comentários nos livros, então ela
+ * precisa continuar concisa.
+ */
+export const MAX_BIO = 300;
 
 export const defaultProfile: Profile = {
   name: "Matheus",
