@@ -6,10 +6,17 @@
  * dono e sem data. Estrutura assim responde "o que disseram deste livro", mas
  * não responde "o que o Beto andou comentando", que é justamente o que a
  * Comunidade precisa saber. Aqui o comentário tem autor (slug de alguém de
- * `community.ts`), livro e data, e as duas perguntas se respondem por filtro.
+ * `community.ts`), alvo e data, e as duas perguntas se respondem por filtro.
  *
  * É também o formato que o banco vai querer: uma tabela de comentários com
- * chave para usuário e para livro. Quando houver API, isto vira uma chamada.
+ * chave para usuário e para o alvo. Quando houver API, isto vira uma chamada.
+ *
+ * **O alvo pode ser um livro OU uma pessoa** (autor/narrador). Os dois moram na
+ * mesma lista de propósito: são a mesma coisa — alguém escreveu algo, com data
+ * e curtidas — e separá-los obrigava a duplicar ordenação, curtida e o resolver
+ * de autor. Comentário de livro tem `bookId`; comentário de pessoa tem
+ * `personSlug` + `about`. Nunca os dois. (Os de pessoa nasceram num arquivo à
+ * parte, `person-comments.ts`, e foram trazidos para cá — o arquivo saiu.)
  *
  * Os autores são os leitores fictícios — esqueleto de propósito, até haver
  * gente de verdade.
@@ -22,7 +29,15 @@ export interface Comment {
   id: string;
   /** `slug` de quem escreveu, em `community.ts`. */
   authorSlug: string;
-  bookId: number;
+  /** Alvo-livro: o `id` em `books.ts`. Presente só em comentário de livro. */
+  bookId?: number;
+  /** Alvo-pessoa: o `slug` em `people.ts`. Presente só em comentário de pessoa. */
+  personSlug?: string;
+  /**
+   * Em comentário de pessoa, sobre qual chapéu ela está falando — o mesmo nome
+   * pode escrever e narrar, e "escreve bem" não é elogio à narração.
+   */
+  about?: "author" | "narrator";
   /**
    * O comentário ao qual este responde. Vazio = comentário de primeiro nível.
    *
@@ -34,9 +49,10 @@ export interface Comment {
   /**
    * De 1 a 5, como as estrelas mostradas na tela do livro.
    *
-   * **Resposta não tem nota**, e por isso o campo é opcional: quem responde
-   * está falando com uma pessoa, não avaliando o livro. Estrela na resposta
-   * misturaria as duas coisas e sujaria a média.
+   * **Opcional, e ausente em dois casos:** resposta (quem responde fala com uma
+   * pessoa, não avalia o livro) e comentário de pessoa (nota de gente é placar
+   * público sobre um profissional — ver a decisão em `PersonProfile`). Estrela
+   * nesses casos misturaria coisas diferentes e sujaria a média do livro.
    */
   rating?: number;
   text: string;
@@ -121,6 +137,28 @@ export const comments: Comment[] = [
   { id: "r6", parentId: "c20", authorSlug: "juliana-s", bookId: 7, likes: 9, dislikes: 0, date: "2026-07-14", text: "Comecei ontem por causa deste comentário. Já entendi o que você quis dizer sobre as vozes." },
   { id: "r7", parentId: "c26", authorSlug: "marcos-v", bookId: 125, likes: 14, dislikes: 9, date: "2026-07-09", text: "\"Leve com desconfiança\" é o melhor conselho que já li sobre esse livro." },
   { id: "r8", parentId: "c17", authorSlug: "carla-lima", bookId: 130, likes: 21, dislikes: 12, date: "2026-06-19", text: "Discordo. Ele não ficou parecido com o noticiário — a gente é que passou a ler o noticiário procurando o livro." },
+
+  // — comentários sobre PESSOAS (autor/narrador). Sem nota, sem bookId. —
+  // — Rafael Nogueira, narrador de ficção científica —
+  { id: "p1", authorSlug: "carla-lima", personSlug: "rafael-nogueira", about: "narrator", likes: 34, dislikes: 2, date: "2026-07-18", text: "Ele dá voz diferente para cada personagem sem cair na imitação. É raro e faz muita diferença em livro longo." },
+  { id: "p2", authorSlug: "beto", personSlug: "rafael-nogueira", about: "narrator", likes: 9, dislikes: 6, date: "2026-07-04", text: "Bom, mas respira demais nas pausas. Só reparei porque ouço em 1,5x." },
+
+  // — Frank Herbert, autor —
+  { id: "p3", authorSlug: "carla-lima", personSlug: "frank-herbert", about: "author", likes: 41, dislikes: 3, date: "2026-07-13", text: "Constrói mundo melhor do que constrói personagem, e mesmo assim ninguém chegou perto." },
+  { id: "p4", authorSlug: "felipe-g", personSlug: "frank-herbert", about: "author", likes: 12, dislikes: 8, date: "2026-06-25", text: "Os apêndices são metade da graça e some tudo no áudio. Não é culpa dele, mas pesa." },
+
+  // — Lívia Bonfim, narradora de biografia —
+  { id: "p5", authorSlug: "juliana-s", personSlug: "livia-bonfim", about: "narrator", likes: 27, dislikes: 0, date: "2026-07-16", text: "A voz dela combina com memória, com alguém contando a própria vida. Em ficção eu não sei se funcionaria igual." },
+
+  // — Diogo Serrano, narrador de terror —
+  { id: "p9", authorSlug: "beto", personSlug: "diogo-serrano", about: "narrator", likes: 38, dislikes: 5, date: "2026-07-12", text: "Sabe exatamente onde parar de falar. Metade do susto num livro de terror é o silêncio, e ele entende isso." },
+
+  // — Stephen King, autor —
+  { id: "p6", authorSlug: "beto", personSlug: "stephen-king", about: "author", likes: 52, dislikes: 11, date: "2026-07-10", text: "Escreve criança melhor do que qualquer um. Os finais são outra conversa." },
+  { id: "p7", authorSlug: "ana-paula", personSlug: "stephen-king", about: "author", likes: 18, dislikes: 4, date: "2026-06-19", text: "Entrei pelos filmes e demorei a entender que o medo, nele, é quase sempre sobre a cidade e não sobre o monstro." },
+
+  // — Morgan Housel, autor —
+  { id: "p8", authorSlug: "marcos-v", personSlug: "morgan-housel", about: "author", likes: 22, dislikes: 1, date: "2026-07-07", text: "Escreve sobre dinheiro sem vender nada. Já é mais do que a estante inteira do lado." },
 ];
 
 /** Do mais novo para o mais velho — a ordem em que se lê comentário. */
@@ -152,6 +190,17 @@ export function commentsForBook(bookId: number): Comment[] {
 }
 
 /**
+ * Os comentários sobre uma pessoa (autor/narrador), na mesma ordem por
+ * engajamento. Não têm resposta hoje — mas o `!parentId` fica de guarda para
+ * quando tiverem.
+ */
+export function commentsForPerson(personSlug: string): Comment[] {
+  return comments
+    .filter((item) => item.personSlug === personSlug && !item.parentId)
+    .sort((a, b) => engagementOf(b) - engagementOf(a) || byNewest(a, b));
+}
+
+/**
  * As respostas a um comentário, **da mais antiga para a mais nova**.
  *
  * Aqui a ordem é cronológica de propósito, ao contrário do primeiro nível: numa
@@ -174,7 +223,7 @@ export function repliesTo(commentId: string): Comment[] {
  */
 export function commentsByAuthor(authorSlug: string): Comment[] {
   return comments
-    .filter((item) => item.authorSlug === authorSlug && !item.parentId)
+    .filter((item) => item.authorSlug === authorSlug && !item.parentId && item.bookId !== undefined)
     .sort(byNewest);
 }
 
@@ -183,7 +232,7 @@ export function authorOf(comment: Comment): CommunityMember | undefined {
   return findMember(comment.authorSlug);
 }
 
-/** O livro comentado, já resolvido. */
+/** O livro comentado, já resolvido. `undefined` num comentário de pessoa. */
 export function bookOf(comment: Comment): Book | undefined {
   return catalog.find((book) => book.id === comment.bookId);
 }

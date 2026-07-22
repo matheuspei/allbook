@@ -6,7 +6,7 @@ import PersonAvatar, { hueDoNome } from "@/components/PersonAvatar";
 import BookGrid from "@/components/BookGrid";
 import { findPerson, roleLabels, type Person } from "@/lib/people";
 import { getBooksByGenre } from "@/lib/books";
-import { commentAuthorOf, commentsForPerson } from "@/lib/person-comments";
+import { authorOf as commentAuthorOf, commentsForPerson } from "@/lib/comments";
 import {
   dislikeCount,
   likeCount,
@@ -162,7 +162,8 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
 /**
  * O que os leitores dizem sobre esta pessoa.
  *
- * Sem estrelas, de propósito — o motivo está em `lib/person-comments.ts`. Em
+ * Sem estrelas, de propósito — o motivo está em `Comment.rating`, em
+ * `lib/comments.ts`. Em
  * resumo: nota de pessoa é placar público sobre um profissional, e a nota que
  * de fato ajuda a escolher (a da narração) pertence ao par livro+narrador, não
  * à pessoa em geral.

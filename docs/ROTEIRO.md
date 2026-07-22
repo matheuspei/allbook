@@ -219,11 +219,18 @@ comentários de livro (reaproveita `reactions.ts`, não duplica).
 - **O comentário diz sobre qual chapéu está falando** (`about: author |
   narrator`), e a etiqueta "sobre a obra"/"sobre a narração" só aparece em quem
   faz os dois. "Escreve bem" não é elogio à narração.
-- **PENDENTE — unificar com `comments.ts`:** os comentários de pessoa nasceram
-  em `lib/person-comments.ts`, arquivo separado, porque `comments.ts` estava
-  sendo editado noutra janela na mesma hora. O certo é uma lista só com um campo
-  de alvo (livro ou pessoa). A lógica de curtida já é compartilhada; falta juntar
-  as listas e as funções de filtro.
+- ~~PENDENTE — unificar com `comments.ts`~~ — **FEITO em 22/07.** Os comentários
+  de pessoa nasceram em `lib/person-comments.ts` só porque `comments.ts` estava
+  ocupado noutra janela; agora vivem na mesma lista. Como ficou: o `Comment`
+  ganhou `personSlug?` e `about?` ao lado de `bookId?` — um comentário tem **ou**
+  `bookId` (livro) **ou** `personSlug` (pessoa), nunca os dois. `commentsForBook`
+  e `commentsForPerson` filtram cada um o seu; `person-comments.ts` foi apagado.
+  **Aprendido:** tornar `bookId` opcional obrigou um `bookId === undefined` de
+  guarda em `commentsByAuthor` (o perfil do leitor só lista comentário de livro),
+  em `activity.ts` e no `CommentThread` — os três já pulavam alvo sem livro, mas
+  agora o tipo os força a admitir isso. Verificado: livro, perfil de pessoa,
+  perfil de leitor e atividade seguem certos, sem comentário de pessoa vazando
+  como se fosse de livro.
 
 ### Trabalhar com duas janelas do Claude Code ao mesmo tempo (21/07)
 
