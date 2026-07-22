@@ -221,7 +221,10 @@ completo — com o **quadro de trabalho** que diz quem está com o quê agora �
   **não precisa colar frase nenhuma** — isto acontece automaticamente. Só quando ele
   mandar explicitamente uma faixa ("fica no servidor") é que você segue a ordem dele.
 - **Nunca edite um arquivo que a outra janela declarou** no quadro.
-- **Só uma janela roda o servidor** (porta 3000). A outra usa `npm run check`.
+- **Só uma janela roda o servidor** (porta 3000), mas **as duas verificam nele**: o
+  Vite recarrega sozinho a cada arquivo salvo, então qualquer janela testa a própria
+  mudança abrindo `http://localhost:3000` no navegador. Quem não subiu o servidor não
+  liga um segundo — só olha o app que já está no ar.
 - **No commit, adicione só os seus arquivos** (`git add <caminho>`) — **nunca `git add -A`,
   `git add .` ou `git commit -a`**, senão você sobe o trabalho pela metade da outra janela
   (o hook empurra pro GitHub na hora). Rode `git pull --rebase` antes de commitar.

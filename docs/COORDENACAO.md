@@ -50,11 +50,20 @@ que você precisa daquele arquivo e espere a outra liberar; (c) se for urgente,
 avise o Matheus para ele coordenar. O que **não** pode é as duas salvarem o mesmo
 arquivo sem saber uma da outra — foi assim que o conflito aconteceu.
 
-### 3. Só uma janela roda o servidor (porta 3000)
+### 3. Só uma janela roda o servidor (porta 3000) — mas as duas verificam nele
 `npm run dev` e `npm run dev:client` ocupam a porta 3000. **Só uma janela sobe o
-servidor** — marque "sim" na coluna do quadro. A outra janela usa `npm run check`
-(verifica tipos, não precisa de porta) e **não** sobe um segundo servidor. Se as
-duas subirem, a segunda dá erro de porta ocupada ou rouba a porta da primeira.
+servidor** — marque "sim" na coluna do quadro. Se as duas subirem, a segunda dá
+erro de porta ocupada ou rouba a porta da primeira.
+
+**Isso não impede a outra janela de testar.** O servidor do Vite recarrega o app
+sozinho a cada arquivo salvo (hot-reload), então **as duas janelas verificam no
+mesmo app rodando** — basta abrir `http://localhost:3000` no navegador (ferramentas
+Claude-in-Chrome) e conferir a própria mudança ali. Quem não subiu o servidor
+**não liga um segundo**; apenas olha o app que já está no ar. O Matheus costuma
+deixar o app aberto no Chrome dele na porta 3000 — dá para testar direto nele.
+
+Além do teste visual, use `npm run check` (verifica tipos, não precisa de porta)
+antes de commitar.
 
 ### 4. Commit e push com cuidado — o hook empurra sozinho
 O hook `post-commit` faz **push automático para o GitHub a cada commit**. Com duas
