@@ -22,6 +22,7 @@ import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
 import PersonProfile from "@/pages/PersonProfile";
 import CategoryBooks from "@/pages/CategoryBooks";
+import Collection from "@/pages/Collection";
 import AudioPlayer from "@/pages/AudioPlayer";
 import BottomNav from "@/components/layout/BottomNav";
 import TopNav from "@/components/layout/TopNav";
@@ -94,6 +95,7 @@ function Router() {
           <Route path="/book/:id" component={BookDetails} />
           <Route path="/person/:slug" component={PersonProfile} />
           <Route path="/category/:slug" component={CategoryBooks} />
+          <Route path="/collection/:slug" component={Collection} />
           <Route path="/player/:id" component={AudioPlayer} />
           <Route component={NotFound} />
         </Switch>

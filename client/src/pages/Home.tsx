@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Fuse from "fuse.js";
 
 import { catalog, getBooksByIds, type Book } from "@/lib/books";
+import { collections } from "@/lib/collections";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
 import BookActionsMenu from "@/components/BookActionsMenu";
 
@@ -74,16 +75,8 @@ const continueListening = getBooksByIds([1, 7, 4]).map((book, index) => ({
   progress: [45, 23, 78][index] ?? 30,
 }));
 
-const categoryCards = [
-  { label: "Só na AllBook", gradient: "from-orange-600 to-red-700" },
-  { label: "Best-sellers Internacionais", gradient: "from-blue-600 to-teal-500" },
-  { label: "Mais Ouvidos", gradient: "from-pink-600 to-rose-500" },
-  { label: "Favoritos", gradient: "from-teal-500 to-cyan-400" },
-  { label: "O Brasil Curtiu", gradient: "from-red-700 to-rose-600" },
-  { label: "Lançamentos", gradient: "from-purple-700 to-violet-500" },
-  { label: "Para Maratonar", gradient: "from-teal-600 to-emerald-500" },
-  { label: "Autoajuda & Negócios", gradient: "from-amber-600 to-orange-500" },
-];
+// Os cards coloridos de categoria vêm de `lib/collections.ts` (label, gradiente
+// e destino), a mesma fonte que a tela `/collection/:slug` usa.
 
 // As fileiras da Home são montadas a partir do catálogo em lib/books.ts,
 // para não duplicar os dados fixos entre Home e Descobrir.
@@ -261,6 +254,8 @@ function HeroBillboard() {
 }
 
 function CategoryGrid() {
+  const [, setLocation] = useLocation();
+
   return (
     <section className="px-4 py-6 space-y-4" data-testid="category-grid">
       <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
@@ -277,13 +272,14 @@ function CategoryGrid() {
       </div>
 
       <div className="grid grid-cols-2 gap-3" data-testid="category-cards">
-        {categoryCards.map((cat, idx) => (
+        {collections.map((colecao) => (
           <button
-            key={idx}
-            data-testid={`card-category-${idx}`}
-            className={`bg-gradient-to-br ${cat.gradient} rounded-lg p-4 text-left font-semibold text-sm text-white h-20 flex items-end hover:opacity-90 transition-opacity active:scale-[0.98]`}
+            key={colecao.slug}
+            onClick={() => setLocation(`/collection/${colecao.slug}`)}
+            data-testid={`card-category-${colecao.slug}`}
+            className={`bg-gradient-to-br ${colecao.gradient} rounded-lg p-4 text-left font-semibold text-sm text-white h-20 flex items-end hover:opacity-90 transition-opacity active:scale-[0.98]`}
           >
-            {cat.label}
+            {colecao.label}
           </button>
         ))}
       </div>
