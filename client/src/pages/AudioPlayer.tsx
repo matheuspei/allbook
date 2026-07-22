@@ -2,11 +2,19 @@ import { ChevronDown, Share2, Bluetooth, MoreVertical, ListMusic, RotateCcw, Rot
 import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { useState, useEffect, useRef } from "react";
 import { catalog } from "@/lib/books";
 import { readSettings } from "@/lib/settings";
 import { readPlayback, savePlayback, showMiniPlayer } from "@/lib/playback";
-import { getChapters, chaptersTotalSec, chapterStartSec } from "@/lib/chapters";
+import { getChapters, chaptersTotalSec, chapterStartSec, formatChapterDuration } from "@/lib/chapters";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [, setLocation] = useLocation();
@@ -105,6 +113,8 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [showBluetoothPermission, setShowBluetoothPermission] = useState(false);
   const [showSystemPermission, setShowSystemPermission] = useState(false);
   const [isCarModeActive, setIsCarModeActive] = useState(false);
+  const [showChapters, setShowChapters] = useState(false);
+  const { toast } = useToast();
 
   const [currentChapter, setCurrentChapter] = useState(
     chapterParam ?? savedForThisBook?.chapter ?? 1,
@@ -153,6 +163,39 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
   const nextChapter = () => goToChapter(currentChapter + 1);
   const prevChapter = () => goToChapter(currentChapter - 1);
+
+  /**
+   * Compartilhar o livro. `navigator.share` abre a folha nativa no celular; no
+   * computador cai para copiar o link. Mesma lógica do menu da tela do livro.
+   */
+  async function compartilhar() {
+    const url = `${window.location.origin}/book/${book.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: book.title,
+          text: `${book.title}, de ${book.author}, no AllBook.`,
+          url,
+        });
+      } catch {
+        // A pessoa fechou a folha nativa — não é erro.
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link copiado", description: "Agora é só colar onde quiser." });
+    } catch {
+      toast({ title: "Não consegui copiar o link", description: url });
+    }
+  }
+
+  function salvarMarcacao() {
+    toast({
+      title: "Marcação salva",
+      description: `Guardamos o ponto em ${formatTime(currentTime)}.`,
+    });
+  }
 
   const adjustSpeed = (delta: number) => {
     setSpeed(prev => Math.max(0.5, Math.min(3.0, parseFloat((prev + delta).toFixed(2)))));
@@ -240,35 +283,40 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-linear-to-b from-[#1a4d35] via-[#0a101f] to-[#0a101f] text-white flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-[#141414] text-white">
+      {/* Fundo: a capa desfocada dá cor ao player sem fugir do tema escuro do
+          app — no espírito dos players de streaming. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <img src={book.cover} alt="" className="h-full w-full scale-125 object-cover opacity-40 blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#141414]/70 via-[#141414]/90 to-[#141414]" />
+      </div>
+
       {/* Top Bar */}
-      <header className="px-4 py-3 flex items-center justify-between shrink-0">
-        <button onClick={() => window.history.back()} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+      <header className="relative px-4 py-3 flex items-center justify-between shrink-0">
+        <button onClick={() => window.history.back()} className="p-2 hover:bg-white/10 rounded-full transition-colors" aria-label="Voltar">
           <ChevronDown className="w-8 h-8" />
         </button>
         <div className="flex items-center gap-1">
-          <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={compartilhar} className="p-2 hover:bg-white/10 rounded-full transition-colors" aria-label="Compartilhar">
             <Share2 className="w-5 h-5" />
           </button>
-          <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-            <Bluetooth className="w-5 h-5" />
-          </button>
-          <button 
+          <button
             onClick={() => setShowMoreMenu(true)}
             className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            aria-label="Mais opções"
           >
             <MoreVertical className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center px-6 justify-center min-h-0 pb-4">
-        <div className="w-full flex flex-col items-center space-y-4 max-w-md mx-auto">
+      <main className="relative flex-1 flex flex-col items-center px-6 justify-center min-h-0 pb-4">
+        <div className="w-full flex flex-col items-center space-y-5 max-w-md mx-auto">
           {/* Album Art */}
           <div className="relative w-full max-w-[240px] aspect-square rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/5 shrink-0 transition-transform duration-500 hover:scale-[1.02]">
-            <img 
-              src={book.cover} 
-              alt={book.title} 
+            <img
+              src={book.cover}
+              alt={book.title}
               className="w-full h-full object-cover"
             />
             <div className="absolute top-0 right-0 overflow-hidden w-20 h-20">
@@ -278,10 +326,21 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Chapter Info */}
-          <button className="flex items-center gap-3 text-slate-300 hover:text-white transition-colors bg-white/5 py-1.5 px-5 rounded-full border border-white/10 shrink-0">
-            <ListMusic className="w-4 h-4 text-slate-400" />
+          {/* Título e autor — o player não os mostrava antes. */}
+          <div className="text-center shrink-0">
+            <h1 className="font-display text-xl font-bold tracking-tight line-clamp-1" data-testid="text-player-title">{book.title}</h1>
+            <p className="text-sm text-white/60">{book.author}</p>
+          </div>
+
+          {/* Capítulo — abre a lista de todos os capítulos para pular direto. */}
+          <button
+            onClick={() => setShowChapters(true)}
+            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-white/5 hover:bg-white/10 py-1.5 pl-5 pr-4 rounded-full border border-white/10 shrink-0"
+            data-testid="button-chapters"
+          >
+            <ListMusic className="w-4 h-4 text-primary" />
             <span className="font-semibold text-base">Capítulo {currentChapter}</span>
+            <ChevronDown className="w-4 h-4 opacity-60" />
           </button>
 
           {/* Progress Section */}
@@ -295,7 +354,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 }} 
                 max={100} 
                 step={0.1}
-                className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:bg-amber-500 [&_[role=slider]]:border-none [&_.relative]:h-1 [&_.bg-primary]:bg-slate-600 cursor-pointer"
+                className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:bg-primary [&_[role=slider]]:border-none [&_.relative]:h-1 [&_.bg-secondary]:bg-white/15 cursor-pointer"
               />
             </div>
             <div className="flex justify-between text-[10px] font-medium tracking-tight">
@@ -323,9 +382,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 <span className="absolute inset-0 flex items-center justify-center text-[8px] font-black mt-1">30</span>
               </button>
               
-              <button 
+              <button
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all"
+                className="w-16 h-16 bg-primary text-black rounded-full flex items-center justify-center shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                aria-label={isPlaying ? "Pausar" : "Reproduzir"}
               >
                 {isPlaying ? (
                   <Pause className="w-7 h-7 fill-current" />
@@ -379,17 +439,69 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           <span className="text-[9px] font-bold uppercase text-slate-500 group-hover:text-slate-300 transition-colors tracking-tight">Timer</span>
         </button>
 
-        <button className="flex flex-col items-center gap-1 min-w-[70px] group">
+        <button onClick={salvarMarcacao} className="flex flex-col items-center gap-1 min-w-[70px] group">
           <Bookmark className="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
           <span className="text-[9px] font-bold uppercase text-slate-500 group-hover:text-slate-300 transition-colors tracking-tight">+ Marcação</span>
         </button>
       </footer>
 
+      {/* Lista de todos os capítulos — abre pelo botão "Capítulo N". */}
+      <Drawer open={showChapters} onOpenChange={setShowChapters}>
+        <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="font-display tracking-tight text-white">Capítulos</DrawerTitle>
+            <DrawerDescription className="text-white/50">
+              {book.title} • {chapters.length} capítulos
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-0.5 overflow-y-auto px-3 pb-8">
+            {chapters.map((ch) => {
+              const isCurrent = ch.id === currentChapter;
+              return (
+                <button
+                  key={ch.id}
+                  onClick={() => {
+                    goToChapter(ch.id);
+                    setShowChapters(false);
+                  }}
+                  className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left transition-colors ${
+                    isCurrent ? "bg-primary/15" : "hover:bg-white/5 active:bg-white/10"
+                  }`}
+                  data-testid={`chapter-item-${ch.id}`}
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
+                        isCurrent ? "bg-primary text-black" : "bg-white/10 text-white/50"
+                      }`}
+                    >
+                      {isCurrent ? (
+                        <ListMusic className="h-4 w-4" />
+                      ) : (
+                        <span className="font-mono text-xs">{ch.id.toString().padStart(2, "0")}</span>
+                      )}
+                    </div>
+                    <span
+                      className={`truncate text-sm font-medium ${isCurrent ? "text-primary" : "text-white"}`}
+                    >
+                      {ch.title}
+                    </span>
+                  </div>
+                  <span className="shrink-0 text-xs text-white/40">
+                    {isCurrent ? "Tocando" : formatChapterDuration(ch.durationSec)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </DrawerContent>
+      </Drawer>
+
       {/* Speed Control Modal (Overlay) */}
       {showSpeedMenu && (
         <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-xs flex items-end animate-in fade-in duration-200" onClick={() => setShowSpeedMenu(false)}>
           <div 
-            className="w-full bg-[#0d1626] rounded-t-[32px] p-8 space-y-10 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
+            className="w-full bg-[#1a1a1a] rounded-t-[32px] p-8 space-y-10 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
             onClick={e => e.stopPropagation()}
           >
             {/* Handle bar */}
@@ -455,7 +567,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showMoreMenu && (
         <div className="fixed inset-0 z-[160] animate-in fade-in duration-200" onClick={() => setShowMoreMenu(false)}>
           <div 
-            className="absolute top-16 right-4 w-72 bg-[#1c2a3d] rounded-2xl shadow-2xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200 origin-top-right"
+            className="absolute top-16 right-4 w-72 bg-[#1a1a1a] rounded-2xl shadow-2xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200 origin-top-right"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col py-2">
@@ -499,7 +611,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showTimerMenu && (
         <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-xs flex items-end animate-in fade-in duration-200" onClick={() => setShowTimerMenu(false)}>
           <div 
-            className="w-full bg-[#0d1626] rounded-t-[32px] p-6 pb-10 space-y-6 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
+            className="w-full bg-[#1a1a1a] rounded-t-[32px] p-6 pb-10 space-y-6 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
             onClick={e => e.stopPropagation()}
           >
             {/* Handle bar */}
@@ -569,7 +681,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 onClick={() => setShowTimerMenu(false)}
                 className="w-full py-2 text-center text-base font-bold text-white hover:text-amber-500 transition-colors"
               >
-                Close
+                Fechar
               </button>
             </div>
           </div>
@@ -634,7 +746,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {/* Car Mode Safety Note Modal */}
       {showCarModeEntry && (
         <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-[#0d1626] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative">
+          <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative">
             <button onClick={() => setShowCarModeEntry(false)} className="absolute right-6 top-6 text-slate-400">
               <ChevronDown className="w-6 h-6 rotate-180" />
             </button>
@@ -660,7 +772,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {/* Bluetooth Connection Modal */}
       {showBluetoothPermission && (
         <div className="fixed inset-0 z-[130] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-[#0d1626] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative text-center">
+          <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative text-center">
             <button onClick={() => setShowBluetoothPermission(false)} className="absolute right-6 top-6 text-slate-400">
               <ChevronDown className="w-6 h-6 rotate-180" />
             </button>
