@@ -208,6 +208,24 @@ ao banco de dados).
 
 Detalhes e checklist completo em `docs/ROTEIRO.md`.
 
+## Trabalhar com duas janelas ao mesmo tempo (regra importante)
+O Matheus costuma abrir **duas janelas do Claude Code na mesma pasta**. Como as duas
+mexem nos mesmos arquivos e no mesmo git, elas podem se atropelar. O combinado
+completo — com o **quadro de trabalho** que diz quem está com o quê agora — fica em
+**`docs/COORDENACAO.md`**; mantenha a sua linha do quadro atualizada. O essencial:
+
+- **Assuma a faixa livre sozinho, sem esperar o Matheus pedir.** Na **primeira tarefa
+  de cada sessão**, antes de editar qualquer arquivo: leia `docs/COORDENACAO.md`, veja
+  no quadro qual faixa está livre e **registre-se nela** (se as duas estiverem livres,
+  pegue a faixa que combina com a tarefa pedida; sozinho, pegue a Janela A). O Matheus
+  **não precisa colar frase nenhuma** — isto acontece automaticamente. Só quando ele
+  mandar explicitamente uma faixa ("fica no servidor") é que você segue a ordem dele.
+- **Nunca edite um arquivo que a outra janela declarou** no quadro.
+- **Só uma janela roda o servidor** (porta 3000). A outra usa `npm run check`.
+- **No commit, adicione só os seus arquivos** (`git add <caminho>`) — **nunca `git add -A`,
+  `git add .` ou `git commit -a`**, senão você sobe o trabalho pela metade da outra janela
+  (o hook empurra pro GitHub na hora). Rode `git pull --rebase` antes de commitar.
+
 ## Git / backup (regra importante)
 - Ao terminar uma tela ou etapa, fazer **commit + push automaticamente** para o GitHub
   e depois **avisar em uma frase** o que foi salvo.

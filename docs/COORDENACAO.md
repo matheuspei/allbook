@@ -1,0 +1,97 @@
+# Coordenação entre duas janelas do Claude Code
+
+> **Por que este arquivo existe.** O Matheus costuma trabalhar com **duas janelas
+> do Claude Code abertas ao mesmo tempo, na mesma pasta do projeto**. Como as duas
+> mexem nos mesmos arquivos e no mesmo git, elas podem se atropelar: uma edita o
+> que a outra está escrevendo, as duas sobem o servidor na mesma porta, ou uma faz
+> commit levando junto o trabalho pela metade da outra. Este documento é o
+> **combinado** que as duas seguem para isso não acontecer. Ele é lido no começo de
+> cada sessão (o `CLAUDE.md` aponta para cá).
+
+---
+
+## O quadro de trabalho (leia e atualize sempre)
+
+**A janela se registra sozinha — o Matheus não cola frase nenhuma.** Na primeira
+tarefa de cada sessão, antes de mexer em qualquer arquivo, **leia a tabela abaixo**,
+veja qual faixa está livre e **escreva a sua linha** assumindo essa faixa. Se as
+duas estiverem livres, pegue a que combina com a tarefa pedida; se você é a única
+janela aberta, assuma a Janela A. Ao terminar ou trocar de tarefa, **limpe a sua
+linha** (volte para "— livre —"). O quadro é a fonte da verdade sobre quem está com
+o quê **agora**.
+
+| Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
+|--------|-----------------------------|-----------------------|--------------------------|------------|
+| A | — livre — | — | não | — |
+| B | — livre — | — | não | — |
+
+> Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
+> linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —
+> linha velha de horas atrás pode ser limpa.
+
+---
+
+## As regras
+
+### 1. Cada janela numa faixa diferente
+O jeito mais seguro de não colidir é **não trabalhar no mesmo lugar**. Divida por
+área. Divisão sugerida (ajuste conforme a tarefa, mas registre no quadro):
+
+- **Faixa da tela / frontend** → `client/` (as telas, componentes, estilos).
+- **Faixa de dados / servidor** → `server/`, `shared/`, `script/`.
+
+Se as duas precisam mexer em telas ao mesmo tempo, divida por **tela**: uma janela
+na tela Descobrir, outra no Perfil — e cada uma declara no quadro os arquivos dela.
+
+### 2. Nunca edite um arquivo que a outra janela declarou
+Se o arquivo que você precisa está na faixa da outra janela, **não edite por cima**.
+Opções, nesta ordem: (a) faça a sua parte em outro arquivo; (b) escreva no quadro
+que você precisa daquele arquivo e espere a outra liberar; (c) se for urgente,
+avise o Matheus para ele coordenar. O que **não** pode é as duas salvarem o mesmo
+arquivo sem saber uma da outra — foi assim que o conflito aconteceu.
+
+### 3. Só uma janela roda o servidor (porta 3000)
+`npm run dev` e `npm run dev:client` ocupam a porta 3000. **Só uma janela sobe o
+servidor** — marque "sim" na coluna do quadro. A outra janela usa `npm run check`
+(verifica tipos, não precisa de porta) e **não** sobe um segundo servidor. Se as
+duas subirem, a segunda dá erro de porta ocupada ou rouba a porta da primeira.
+
+### 4. Commit e push com cuidado — o hook empurra sozinho
+O hook `post-commit` faz **push automático para o GitHub a cada commit**. Com duas
+janelas isso exige disciplina, senão vira bagunça:
+
+- **Nunca use `git add -A`, `git add .` ou `git commit -a`.** Eles varrem *tudo* que
+  mudou na pasta — inclusive o trabalho pela metade da outra janela — e sobem junto.
+  **Adicione só os arquivos da sua faixa, um a um:** `git add client/src/pages/Perfil.tsx`.
+- **Antes de commitar, traga o que a outra já subiu:** `git pull --rebase`. Isso
+  evita o push ser recusado por a outra janela ter publicado antes de você.
+- **Commits pequenos e frequentes.** Quanto menor a janela de tempo entre editar e
+  commitar, menor a chance de as duas baterem.
+- **Avise no quadro** (ou pela voz) quando for commitar, para a outra não commitar no
+  mesmo instante.
+
+### 5. Arquivos gerados e scripts pesados — um de cada vez
+`npm run catalogo` e `npm run build` reescrevem arquivos gerados
+(`client/src/lib/catalog-enriched.ts`, capas, `dist/`). **Só uma janela roda esses
+por vez** — avise no quadro antes. Duas rodando ao mesmo tempo corrompem a saída.
+
+### 6. Ao terminar, limpe a sua linha
+Acabou a tarefa ou vai trocar de assunto? Volte a sua linha do quadro para
+"— livre —". Linha esquecida faz a outra janela achar que uma área está travada
+quando não está.
+
+---
+
+## Resumo em uma frase
+**Leia o quadro, escolha uma faixa só sua, não edite o que a outra declarou, só uma
+sobe o servidor, e no commit adicione apenas os seus arquivos (nunca `git add -A`).**
+
+---
+
+## Se isto ainda não bastar (opção avançada: worktrees)
+Se mesmo assim as janelas se atrapalharem muito, o passo seguinte é dar a **cada
+janela a sua própria cópia isolada** do projeto com `git worktree` — aí elas nem
+enxergam os arquivos uma da outra, e só se encontram na hora de juntar no GitHub. É
+mais robusto, porém mais complexo (pastas separadas, juntar branches depois). Peça
+ao Claude para montar isso **só se o quadro acima não resolver** — para o uso do dia
+a dia, o combinado deste arquivo costuma bastar.
