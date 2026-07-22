@@ -180,7 +180,7 @@ export default function ProfileEdit() {
               id="bio"
               value={form.bio}
               onChange={(e) => update("bio", e.target.value.slice(0, MAX_BIO))}
-              rows={3}
+              rows={6}
               placeholder="Conte o que você gosta de ouvir. Isso aparece junto dos seus comentários nos livros."
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary/50 transition-colors resize-none placeholder:text-white/25"
               data-testid="input-bio"
