@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { MessageSquare, Sparkles, Star } from "lucide-react";
+import { MessageSquare, Sparkles } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import {
@@ -139,12 +139,6 @@ function EventoDaComunidade({ event }: { event: ActivityEvent }) {
 
         <div className="flex items-center gap-3 mt-1.5 text-[10px] text-white/25">
           <span>{relativeDate(event.date)}</span>
-          {event.comment && (
-            <span className="flex items-center gap-0.5">
-              <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
-              {event.comment.rating}
-            </span>
-          )}
           {event.recommended && (
             <span className="flex items-center gap-1">
               <Sparkles className="w-2.5 h-2.5" />

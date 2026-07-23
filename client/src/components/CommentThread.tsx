@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { CornerDownRight, Star, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
+import { CornerDownRight, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import { repliesTo, type Comment } from "@/lib/comments";
@@ -112,21 +112,13 @@ export default function CommentThread({
       className="bg-white/5 p-4 rounded-xl border border-white/5"
       data-testid={`card-review-${comment.id}`}
     >
-      <div className="flex justify-between items-center">
-        <AutorDoComentario slug={comment.authorSlug} />
-        {comment.rating !== undefined && (
-          <div className="flex gap-0.5">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`w-2.5 h-2.5 ${
-                  i < comment.rating! ? "fill-amber-500 text-amber-500" : "text-white/20"
-                }`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {/*
+        Sem estrela aqui. A nota do comentário ficava colada no nome do leitor e
+        lia-se como "pontuação do usuário" — e usuário não é avaliado (nem há como
+        avaliar no app). A nota do livro fica no topo da seção; a de profissional,
+        no perfil de autor/narrador. Ver a mesma decisão em `comments.ts` (Comment.rating).
+      */}
+      <AutorDoComentario slug={comment.authorSlug} />
 
       <p className="text-sm text-white/70 leading-relaxed italic mt-3">"{comment.text}"</p>
 

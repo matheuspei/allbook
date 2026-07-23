@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
-import { Check, Headphones, Library as LibraryIcon, Plus, Star } from "lucide-react";
+import { Check, Headphones, Library as LibraryIcon, Plus } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
@@ -205,15 +205,9 @@ export default function UserProfile() {
                     className="w-11 h-[59px] rounded object-cover shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xs font-semibold line-clamp-1 group-hover:text-primary transition-colors">
-                        {book.title}
-                      </h3>
-                      <span className="flex items-center gap-0.5 text-[10px] text-white/40 shrink-0">
-                        <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
-                        {comment.rating}
-                      </span>
-                    </div>
+                    <h3 className="text-xs font-semibold line-clamp-1 group-hover:text-primary transition-colors">
+                      {book.title}
+                    </h3>
                     <p className="text-xs text-white/60 leading-relaxed mt-1 line-clamp-3">
                       {comment.text}
                     </p>
