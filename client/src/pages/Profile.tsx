@@ -195,7 +195,7 @@ export default function Profile() {
                 <div
                   key={item.id}
                   title={item.label}
-                  className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-orange-600 flex items-center justify-center shadow-md shadow-amber-500/40 ring-1 ring-amber-300/50"
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shadow-md shadow-primary/40 ring-1 ring-primary/40"
                 >
                   <Icon className="w-4 h-4 text-white drop-shadow" strokeWidth={2} />
                 </div>
@@ -325,7 +325,7 @@ export default function Profile() {
                 <div
                   className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
                     item.unlocked
-                      ? "bg-gradient-to-br from-amber-300 via-amber-500 to-orange-600 shadow-lg shadow-amber-500/30 ring-1 ring-amber-300/40 group-hover:shadow-amber-500/50 group-hover:scale-105"
+                      ? "bg-gradient-to-br from-primary to-orange-600 shadow-lg shadow-primary/30 ring-1 ring-primary/40 group-hover:shadow-primary/50 group-hover:scale-105"
                       : "border border-white/10 border-dashed group-hover:border-white/20"
                   }`}
                 >

@@ -100,7 +100,7 @@ export default function UserProfile() {
                 <div
                   key={item.id}
                   title={item.label}
-                  className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-orange-600 flex items-center justify-center shadow-md shadow-amber-500/40 ring-1 ring-amber-300/50"
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shadow-md shadow-primary/40 ring-1 ring-primary/40"
                 >
                   <Icon className="w-4 h-4 text-white drop-shadow" strokeWidth={2} />
                 </div>
