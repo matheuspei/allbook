@@ -1,4 +1,4 @@
-import { ChevronDown, Share2, Bluetooth, MoreVertical, ListMusic, RotateCcw, RotateCw, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Library } from "lucide-react";
+import { ChevronDown, ChevronRight, Share2, Bluetooth, MoreVertical, ListMusic, RotateCcw, RotateCw, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Library } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -331,11 +331,27 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Título e autor — o player não os mostrava antes. */}
-          <div className="text-center shrink-0">
-            <h1 className="font-display text-xl font-bold tracking-tight line-clamp-1" data-testid="text-player-title">{book.title}</h1>
-            <p className="text-sm text-white/60">{book.author}</p>
-          </div>
+          {/* Título e autor — clicáveis, levam à página do livro. Antes o único
+              caminho para os detalhes era o menu "Mais" > "Detalhes do título",
+              escondido demais: tocar no nome é o gesto que a pessoa tenta
+              primeiro. A setinha dá a dica de que dá para tocar. */}
+          <button
+            onClick={() => setLocation(`/book/${book.id}`)}
+            className="group flex flex-col items-center text-center shrink-0"
+            aria-label={`Ver detalhes de ${book.title}`}
+            data-testid="button-player-book"
+          >
+            <span className="flex items-center gap-1.5">
+              <span
+                className="font-display text-xl font-bold tracking-tight line-clamp-1 transition-colors group-hover:text-primary group-active:text-primary"
+                data-testid="text-player-title"
+              >
+                {book.title}
+              </span>
+              <ChevronRight className="w-4 h-4 shrink-0 text-white/40 transition-colors group-hover:text-primary" />
+            </span>
+            <span className="text-sm text-white/60 transition-colors group-hover:text-white/80">{book.author}</span>
+          </button>
 
           {/* Capítulo — abre a lista de todos os capítulos para pular direto. */}
           <button
@@ -604,7 +620,9 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col py-2">
-              <Link href={params.id === 'current' ? '/book/5' : `/book/${params.id}`}>
+              {/* Usa `book.id` (já resolvido) em vez de `params.id`, que podia
+                  ser 'current' e caía num /book/5 fixo — abrindo o livro errado. */}
+              <Link href={`/book/${book.id}`}>
                 <button className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full">
                   <BookOpen className="w-5 h-5 text-slate-400 group-hover:text-white" />
                   <span className="text-sm font-medium">Detalhes do título</span>
