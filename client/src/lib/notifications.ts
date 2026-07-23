@@ -17,6 +17,22 @@
 
 const STORAGE_KEY = "allbook_notifications";
 
+/**
+ * Avisa que as notificações mudaram (nova, lida, todas lidas).
+ *
+ * O sino mora no TopNav, que é global e está sempre montado; a notificação
+ * nasce lá no `CommentThread` e é lida na tela `/notifications` — componentes
+ * distantes que o React não conecta sozinho. O mesmo padrão de evento no
+ * `window` do `search.ts` e do `playback.ts`: quem mexe na lista dispara, o
+ * sino escuta e recalcula o contador. Sem isto, a bolinha do sino só mudaria
+ * ao recarregar a página.
+ */
+export const NOTIFICATIONS_EVENT = "allbook:notifications-changed";
+
+function emitChange(): void {
+  window.dispatchEvent(new Event(NOTIFICATIONS_EVENT));
+}
+
 export interface ReplyNotification {
   id: string;
   /** Quem respondeu — `slug` de um leitor em `community.ts`. */
@@ -69,6 +85,7 @@ export function addNotification(entry: {
 
   const next = [notification, ...readNotifications()];
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  emitChange();
   return next;
 }
 
@@ -77,11 +94,13 @@ export function markNotificationRead(id: string): ReplyNotification[] {
     item.id === id ? { ...item, read: true } : item,
   );
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  emitChange();
   return next;
 }
 
 export function markAllNotificationsRead(): ReplyNotification[] {
   const next = readNotifications().map((item) => ({ ...item, read: true }));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  emitChange();
   return next;
 }

@@ -3,10 +3,28 @@ import { Link, useLocation } from "wouter";
 import { Bell, User, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { openSearch } from "@/lib/search";
+import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notifications";
 
 export default function TopNav() {
   const [location, navigate] = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  // Quantas respostas "responderam você" ainda não foram lidas. É o que acende
+  // (e conta) a marca do sino. Zero = sino limpo, sem marca.
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setUnread(unreadNotificationCount());
+    refresh();
+    // O evento cobre a mesma aba (você respondeu → chegou aviso; abriu a tela e
+    // leu → some). O `storage` cobre a outra aba: o localStorage é compartilhado,
+    // então ler numa aba apaga a marca na outra.
+    window.addEventListener(NOTIFICATIONS_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener(NOTIFICATIONS_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
 
   useEffect(() => {
     /**
@@ -83,7 +101,15 @@ export default function TopNav() {
             className="relative p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+            {unread > 0 && (
+              <span
+                className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white leading-none"
+                data-testid="notifications-badge"
+                aria-label={`${unread} não lidas`}
+              >
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
           </Link>
           <Link
             href="/profile"
