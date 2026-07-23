@@ -131,19 +131,20 @@ export default function Profile() {
     label: string;
     hint?: string;
     href?: string;
+    color: string;
   }[][] = [
     [
-      { icon: Bookmark, label: "Minha lista", hint: libraryCount > 0 ? String(libraryCount) : undefined, href: "/library" },
-      { icon: BarChart3, label: "Estatísticas", href: "/statistics" },
-      { icon: Download, label: "Downloads", hint: downloadCount > 0 ? String(downloadCount) : undefined, href: "/downloads" },
-      { icon: Users, label: "Comunidade", href: "/community" },
+      { icon: Bookmark, label: "Minha lista", hint: libraryCount > 0 ? String(libraryCount) : undefined, href: "/library", color: "from-amber-500 to-orange-600" },
+      { icon: BarChart3, label: "Estatísticas", href: "/statistics", color: "from-violet-500 to-purple-600" },
+      { icon: Download, label: "Downloads", hint: downloadCount > 0 ? String(downloadCount) : undefined, href: "/downloads", color: "from-blue-500 to-cyan-500" },
+      { icon: Users, label: "Comunidade", href: "/community", color: "from-rose-500 to-pink-600" },
     ],
     [
-      { icon: CreditCard, label: "Plano e assinatura", hint: PLAN },
-      { icon: Bell, label: "Notificações", href: "/notifications" },
-      { icon: Settings, label: "Configurações", href: "/settings" },
-      { icon: Share2, label: "Convidar amigos" },
-      { icon: HelpCircle, label: "Ajuda e suporte" },
+      { icon: CreditCard, label: "Plano e assinatura", hint: PLAN, color: "from-emerald-500 to-teal-600" },
+      { icon: Bell, label: "Notificações", href: "/notifications", color: "from-red-500 to-rose-600" },
+      { icon: Settings, label: "Configurações", href: "/settings", color: "from-slate-500 to-slate-600" },
+      { icon: Share2, label: "Convidar amigos", color: "from-fuchsia-500 to-purple-600" },
+      { icon: HelpCircle, label: "Ajuda e suporte", color: "from-cyan-500 to-blue-600" },
     ],
   ];
 
@@ -358,7 +359,9 @@ export default function Profile() {
 
               const content = (
                 <>
-                  <Icon className="w-[18px] h-[18px] text-white/40 shrink-0" strokeWidth={1.75} />
+                  <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center shrink-0`}>
+                    <Icon className="w-[18px] h-[18px] text-white" strokeWidth={2} />
+                  </div>
                   <span className="text-sm flex-1">{item.label}</span>
                   {item.hint && <span className="text-sm text-white/30">{item.hint}</span>}
                   <ChevronRight className="w-4 h-4 text-white/20 shrink-0" />

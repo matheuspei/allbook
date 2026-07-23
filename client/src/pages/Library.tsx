@@ -3,11 +3,13 @@ import { Link, useLocation } from "wouter";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback, remainingLabel } from "@/lib/playback";
+import { useToast } from "@/hooks/use-toast";
 
 import { useEffect, useState } from "react";
 
 export default function Library() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [libraryBooks, setLibraryBooks] = useState<any[]>([]);
 
   // Volta para onde a pessoa estava (Perfil, Início...), e não para um destino
@@ -54,11 +56,20 @@ export default function Library() {
     { key: "listas", label: "Listas" },
   ];
 
-  const menuItems = [
-    { icon: Download, label: "Baixados", count: downloadCount.toString(), color: "from-blue-500 to-cyan-500" },
-    { icon: LayoutGrid, label: "Séries", count: null, color: "from-purple-500 to-pink-500" },
-    { icon: Users, label: "Autores", count: null, color: "from-amber-500 to-orange-500" },
-    { icon: FolderRoot, label: "Gêneros", count: null, color: "from-emerald-500 to-teal-500" },
+  // Baixados e Gêneros já têm tela; Séries e Autores ainda não existem, então
+  // por ora avisam "em breve" (mesmo padrão do Perfil) em vez de não fazer nada.
+  const menuItems: {
+    icon: typeof Download;
+    label: string;
+    count: string | null;
+    color: string;
+    href?: string;
+    soon?: boolean;
+  }[] = [
+    { icon: Download, label: "Baixados", count: downloadCount.toString(), color: "from-blue-500 to-cyan-500", href: "/downloads" },
+    { icon: LayoutGrid, label: "Séries", count: null, color: "from-purple-500 to-pink-500", soon: true },
+    { icon: Users, label: "Autores", count: null, color: "from-amber-500 to-orange-500", soon: true },
+    { icon: FolderRoot, label: "Gêneros", count: null, color: "from-emerald-500 to-teal-500", href: "/discover" },
   ];
 
   return (
@@ -240,8 +251,10 @@ export default function Library() {
         <section className="space-y-3" data-testid="section-menu-items">
           {menuItems.map((item, idx) => {
             const Icon = item.icon;
-            return (
-              <div key={idx} className="bg-white/5 rounded-xl border border-white/5 p-4 flex items-center justify-between group cursor-pointer hover:bg-white/8 transition-colors" data-testid={`menu-item-${item.label.toLowerCase()}`}>
+            const cls = "w-full bg-white/5 rounded-xl border border-white/5 p-4 flex items-center justify-between group hover:bg-white/8 transition-colors";
+            const testId = `menu-item-${item.label.toLowerCase()}`;
+            const inner = (
+              <>
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center`}>
                     <Icon className="w-5 h-5 text-white" />
@@ -254,7 +267,27 @@ export default function Library() {
                   )}
                   <ChevronRight className="w-4 h-4 text-white/20" />
                 </div>
-              </div>
+              </>
+            );
+
+            return item.href ? (
+              <Link key={idx} href={item.href} className={cls} data-testid={testId}>
+                {inner}
+              </Link>
+            ) : (
+              <button
+                key={idx}
+                onClick={() =>
+                  toast({
+                    title: `${item.label} em breve`,
+                    description: "Essa parte do AllBook ainda está sendo construída.",
+                  })
+                }
+                className={`${cls} text-left`}
+                data-testid={testId}
+              >
+                {inner}
+              </button>
             );
           })}
         </section>
