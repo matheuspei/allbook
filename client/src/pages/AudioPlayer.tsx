@@ -15,6 +15,7 @@ import { readSettings } from "@/lib/settings";
 import { readPlayback, savePlayback, showMiniPlayer } from "@/lib/playback";
 import { getChapters, chaptersTotalSec, chapterStartSec, formatChapterDuration } from "@/lib/chapters";
 import { useToast } from "@/hooks/use-toast";
+import { motion } from "framer-motion";
 
 export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [, setLocation] = useLocation();
@@ -457,6 +458,14 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           <div className="space-y-0.5 overflow-y-auto px-3 pb-8">
             {chapters.map((ch) => {
               const isCurrent = ch.id === currentChapter;
+              // Quanto deste capítulo já foi ouvido, pela posição atual: os
+              // capítulos anteriores ficam cheios, o atual mostra o avanço, e os
+              // seguintes ficam vazios. A barra cresce animada ao abrir a lista.
+              const inicio = chapterStartSec(book.id, ch.id);
+              const ouvido = Math.min(Math.max(currentTime - inicio, 0), ch.durationSec);
+              const pct = (ouvido / ch.durationSec) * 100;
+              const concluido = pct >= 99.5;
+              const temBarra = isCurrent || pct > 0;
               return (
                 <button
                   key={ch.id}
@@ -469,26 +478,46 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   }`}
                   data-testid={`chapter-item-${ch.id}`}
                 >
-                  <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
                     <div
                       className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
-                        isCurrent ? "bg-primary text-black" : "bg-white/10 text-white/50"
+                        isCurrent
+                          ? "bg-primary text-black"
+                          : concluido
+                            ? "bg-primary/20 text-primary"
+                            : "bg-white/10 text-white/50"
                       }`}
                     >
                       {isCurrent ? (
                         <ListMusic className="h-4 w-4" />
+                      ) : concluido ? (
+                        <CheckCircle className="h-4 w-4" />
                       ) : (
                         <span className="font-mono text-xs">{ch.id.toString().padStart(2, "0")}</span>
                       )}
                     </div>
-                    <span
-                      className={`truncate text-sm font-medium ${isCurrent ? "text-primary" : "text-white"}`}
-                    >
-                      {ch.title}
-                    </span>
+                    <div className="min-w-0 flex-1">
+                      <span
+                        className={`block truncate text-sm font-medium ${
+                          isCurrent ? "text-primary" : "text-white"
+                        }`}
+                      >
+                        {ch.title}
+                      </span>
+                      {temBarra && (
+                        <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.7, ease: "easeOut" }}
+                            className="h-full rounded-full bg-gradient-to-r from-primary to-[#f59e0b]"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <span className="shrink-0 text-xs text-white/40">
-                    {isCurrent ? "Tocando" : formatChapterDuration(ch.durationSec)}
+                    {isCurrent ? "Tocando" : concluido ? "Ouvido" : formatChapterDuration(ch.durationSec)}
                   </span>
                 </button>
               );
