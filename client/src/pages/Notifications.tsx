@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { Bell, Flame, Gift, Mic, Sparkles, Tag } from "lucide-react";
+import { motion } from "framer-motion";
+import { Bell, Flame, Gift, Mic, Sparkles, Tag, type LucideIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
-import { getBooksByIds } from "@/lib/books";
-import { relativeDate } from "@/lib/activity";
+import { catalog, getBooksByIds } from "@/lib/books";
 import { findMember } from "@/lib/community";
 import {
   markAllNotificationsRead,
@@ -16,111 +16,220 @@ import {
 /**
  * Notificações (`/notifications`).
  *
- * Sem backend, os avisos são de exemplo — mas apontam para livros que existem
- * de verdade no catálogo, para os links funcionarem. Quando a API existir,
- * `initialItems` vira uma chamada com TanStack Query.
+ * **Por que a tela foi repaginada.** Antes era uma lista chapada: todo aviso
+ * com o mesmo ícone cinza, o mesmo peso e nenhuma cor — destoava do resto do
+ * app, que é colorido. Três mudanças resolvem isso, e todas são as mesmas
+ * ideias já usadas em outras telas:
+ *
+ * 1. **Cor por tipo de aviso**, no quadradinho em degradê do menu do Perfil.
+ *    A cor não é enfeite: ela diz de que assunto é o aviso antes de você ler.
+ * 2. **A capa do livro** quando o aviso fala de um livro. Reconhecer a capa é
+ *    mais rápido do que ler o título, e é o que a Comunidade já faz.
+ * 3. **Agrupado por tempo** (Hoje / Esta semana / Antes), numa lista só. Antes
+ *    as respostas ficavam sempre no topo e os exemplos embaixo, o que é uma
+ *    ordem arbitrária: aviso é coisa cronológica.
+ *
+ * **As duas origens continuam diferentes por baixo.** As de "responderam você"
+ * nascem de ação sua e moram no `localStorage` (ver `lib/notifications.ts`);
+ * as de sistema são exemplos fixos, porque não há servidor que as emita. Elas
+ * se juntam só na hora de mostrar — quando houver API, os exemplos saem e o
+ * resto da tela não muda.
  */
 
-type Notification = {
-  id: number;
-  icon: typeof Bell;
-  title: string;
-  body: string;
-  time: string;
+type Faixa = "Hoje" | "Esta semana" | "Antes";
+
+/**
+ * Um aviso já pronto para a tela, venha ele de onde vier. Unificar os dois
+ * formatos aqui é o que permite ordenar e agrupar tudo junto.
+ */
+type Aviso = {
+  id: string;
+  /** De onde veio: muda o desenho (avatar de gente x quadradinho de ícone). */
+  tipo: "resposta" | "sistema";
+  titulo: string;
+  corpo: string;
+  /** ISO. É o que ordena e agrupa — por isso os exemplos também têm data real. */
+  data: string;
+  /** Classes do degradê (`from-… to-…`). */
+  cor: string;
+  icone?: LucideIcon;
+  /** Inicial de quem respondeu, para o avatar. */
+  inicial?: string;
   bookId?: number;
-  unread: boolean;
+  lida: boolean;
 };
+
+/** Data ISO de N dias atrás. Os exemplos precisam de data de verdade para
+ *  cair na faixa certa hoje, amanhã e daqui a um mês. */
+function diasAtras(dias: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - dias);
+  return d.toISOString();
+}
 
 // Confere se os livros citados existem antes de montar os avisos.
 const [duna, habitos, iluminado, psicologia] = getBooksByIds([7, 102, 105, 101]);
 
-const initialItems: Notification[] = [
-  {
-    id: 1,
-    icon: Sparkles,
-    title: "Novo na AllBook",
-    body: `${duna?.title ?? "Duna"} chegou ao catálogo, narrado na íntegra.`,
-    time: "há 2 horas",
-    bookId: duna?.id,
-    unread: true,
-  },
-  {
-    id: 2,
-    icon: Flame,
-    title: "Sua sequência continua",
-    body: "3 semanas seguidas ouvindo. Faltam 15 minutos para manter a de hoje.",
-    time: "há 5 horas",
-    unread: true,
-  },
-  {
-    id: 3,
-    icon: Mic,
-    title: "Novo narrador",
-    body: `${iluminado?.title ?? "O Iluminado"} ganhou uma nova narração.`,
-    time: "ontem",
-    bookId: iluminado?.id,
-    unread: true,
-  },
-  {
-    id: 4,
-    icon: Tag,
-    title: "Livro da sua lista em oferta",
-    body: `${psicologia?.title ?? "A Psicologia Financeira"} está com 40% de desconto esta semana.`,
-    time: "há 2 dias",
-    bookId: psicologia?.id,
-    unread: false,
-  },
-  {
-    id: 5,
-    icon: Gift,
-    title: "Um mês grátis para indicar",
-    body: "Convide alguém e vocês dois ganham 30 dias de Premium.",
-    time: "há 4 dias",
-    unread: false,
-  },
-  {
-    id: 6,
-    icon: Bell,
-    title: "Você parou no capítulo 4",
-    body: `Continue ${habitos?.title ?? "Hábitos Atômicos"} de onde parou.`,
-    time: "há 1 semana",
-    bookId: habitos?.id,
-    unread: false,
-  },
-];
+/**
+ * Os avisos de exemplo. Ficam numa função (e não numa constante) porque as
+ * datas são relativas a agora: constante de módulo congelaria o "hoje" no
+ * instante em que o arquivo foi carregado.
+ */
+function avisosDoSistema(): Aviso[] {
+  return [
+    {
+      id: "s1",
+      tipo: "sistema",
+      icone: Sparkles,
+      cor: "from-primary to-orange-600",
+      titulo: "Novo na AllBook",
+      corpo: `${duna?.title ?? "Duna"} chegou ao catálogo, narrado na íntegra.`,
+      data: diasAtras(0),
+      bookId: duna?.id,
+      lida: false,
+    },
+    {
+      id: "s2",
+      tipo: "sistema",
+      icone: Flame,
+      cor: "from-orange-500 to-red-600",
+      titulo: "Sua sequência continua",
+      corpo: "3 semanas seguidas ouvindo. Faltam 15 minutos para manter a de hoje.",
+      data: diasAtras(0),
+      lida: false,
+    },
+    {
+      id: "s3",
+      tipo: "sistema",
+      icone: Mic,
+      cor: "from-violet-500 to-purple-600",
+      titulo: "Novo narrador",
+      corpo: `${iluminado?.title ?? "O Iluminado"} ganhou uma nova narração.`,
+      data: diasAtras(1),
+      bookId: iluminado?.id,
+      lida: false,
+    },
+    {
+      id: "s4",
+      tipo: "sistema",
+      icone: Tag,
+      cor: "from-emerald-500 to-teal-600",
+      titulo: "Livro da sua lista em oferta",
+      corpo: `${psicologia?.title ?? "A Psicologia Financeira"} está com 40% de desconto esta semana.`,
+      data: diasAtras(2),
+      bookId: psicologia?.id,
+      lida: true,
+    },
+    {
+      id: "s5",
+      tipo: "sistema",
+      icone: Gift,
+      cor: "from-fuchsia-500 to-purple-600",
+      titulo: "Um mês grátis para indicar",
+      corpo: "Convide alguém e vocês dois ganham 30 dias de Premium.",
+      data: diasAtras(4),
+      lida: true,
+    },
+    {
+      id: "s6",
+      tipo: "sistema",
+      icone: Bell,
+      cor: "from-blue-500 to-cyan-500",
+      titulo: "Você parou no capítulo 4",
+      corpo: `Continue ${habitos?.title ?? "Hábitos Atômicos"} de onde parou.`,
+      data: diasAtras(9),
+      bookId: habitos?.id,
+      lida: true,
+    },
+  ];
+}
+
+/** Converte a notificação guardada no `localStorage` no formato da tela. */
+function deResposta(item: ReplyNotification): Aviso {
+  const membro = findMember(item.fromSlug);
+  return {
+    id: item.id,
+    tipo: "resposta",
+    titulo: `${membro?.name ?? "Um leitor"} respondeu você`,
+    corpo: `“${item.text}”`,
+    data: item.date,
+    // A cor do avatar da própria pessoa: é assim que ela aparece nas outras
+    // telas, e reconhecer a cor é reconhecer quem falou.
+    cor: membro?.color ?? "from-primary to-orange-600",
+    inicial: membro?.name.charAt(0) ?? "?",
+    bookId: item.bookId,
+    lida: item.read,
+  };
+}
+
+function faixaDe(iso: string): Faixa {
+  const dias = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (dias < 1) return "Hoje";
+  if (dias < 7) return "Esta semana";
+  return "Antes";
+}
+
+/**
+ * Há quanto tempo o aviso chegou.
+ *
+ * **Por que não usa o `relativeDate` do `activity.ts`:** aquele recebe só a
+ * data (`AAAA-MM-DD`) e assume meio-dia, o que é o bastante para "comentou há
+ * 3 dias". Aqui não serve por dois motivos. Primeiro, o fuso: recortar os dez
+ * primeiros caracteres de um ISO (que é UTC) pode cair no dia anterior, e a
+ * tela chegou a mostrar "ontem" dentro do grupo "Hoje" — as duas contas
+ * discordavam. Segundo, aviso é coisa de hora: "há 2 h" diz mais que "hoje".
+ * Esta versão usa o instante inteiro, a mesma base do `faixaDe`, então rótulo
+ * e grupo nunca se contradizem.
+ */
+function quandoFoi(iso: string): string {
+  const minutos = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (minutos < 1) return "agora";
+  if (minutos < 60) return `há ${minutos} min`;
+
+  const horas = Math.floor(minutos / 60);
+  if (horas < 24) return `há ${horas} h`;
+
+  const dias = Math.floor(horas / 24);
+  if (dias === 1) return "ontem";
+  if (dias < 7) return `há ${dias} dias`;
+  if (dias < 14) return "há 1 semana";
+  if (dias < 31) return `há ${Math.floor(dias / 7)} semanas`;
+  if (dias < 60) return "há 1 mês";
+  return `há ${Math.floor(dias / 30)} meses`;
+}
+
+const ORDEM_DAS_FAIXAS: Faixa[] = ["Hoje", "Esta semana", "Antes"];
 
 export default function Notifications() {
   const [, setLocation] = useLocation();
-  const [items, setItems] = useState<Notification[]>(initialItems);
-  // As de "responderam você" vêm do localStorage e ficam ACIMA dos exemplos:
-  // são as que acabaram de acontecer, por ação sua.
-  const [replies, setReplies] = useState<ReplyNotification[]>([]);
+  const [sistema, setSistema] = useState<Aviso[]>(() => avisosDoSistema());
+  const [respostas, setRespostas] = useState<ReplyNotification[]>([]);
 
   useEffect(() => {
-    setReplies(readNotifications());
+    setRespostas(readNotifications());
   }, []);
 
-  const unreadCount =
-    items.filter((item) => item.unread).length + replies.filter((item) => !item.read).length;
+  const avisos = [...sistema, ...respostas.map(deResposta)].sort((a, b) =>
+    b.data.localeCompare(a.data),
+  );
+  const naoLidas = avisos.filter((item) => !item.lida).length;
 
-  function open(item: Notification) {
-    setItems((current) =>
-      current.map((entry) => (entry.id === item.id ? { ...entry, unread: false } : entry))
-    );
-    if (item.bookId) setLocation(`/book/${item.bookId}`);
+  function abrir(aviso: Aviso) {
+    if (aviso.tipo === "resposta") {
+      // Marca no localStorage — é isso que apaga a marca do sino no TopNav.
+      setRespostas(markNotificationRead(aviso.id));
+    } else {
+      setSistema((atual) =>
+        atual.map((item) => (item.id === aviso.id ? { ...item, lida: true } : item)),
+      );
+    }
+    if (aviso.bookId) setLocation(`/book/${aviso.bookId}`);
   }
 
-  function openReply(item: ReplyNotification) {
-    setReplies(markNotificationRead(item.id));
-    setLocation(`/book/${item.bookId}`);
+  function marcarTodasLidas() {
+    setSistema((atual) => atual.map((item) => ({ ...item, lida: true })));
+    setRespostas(markAllNotificationsRead());
   }
-
-  function markAllRead() {
-    setItems((current) => current.map((entry) => ({ ...entry, unread: false })));
-    setReplies(markAllNotificationsRead());
-  }
-
-  const isEmpty = items.length === 0 && replies.length === 0;
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="notifications-page">
@@ -128,9 +237,9 @@ export default function Notifications() {
         title="Notificações"
         fallback="/profile"
         action={
-          unreadCount > 0 ? (
+          naoLidas > 0 ? (
             <button
-              onClick={markAllRead}
+              onClick={marcarTodasLidas}
               className="text-xs font-medium text-white/50 hover:text-white transition-colors shrink-0"
               data-testid="button-mark-all-read"
             >
@@ -140,91 +249,132 @@ export default function Notifications() {
         }
       />
 
-      {isEmpty ? (
+      {/* Quantas esperam por você. Some quando não há nenhuma — placar zerado
+          não informa nada e só ocupa espaço. */}
+      {naoLidas > 0 && (
+        <div className="px-5 pb-3 flex items-center gap-2" data-testid="notifications-summary">
+          <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center">
+            {naoLidas}
+          </span>
+          <span className="text-xs text-white/50">
+            {naoLidas === 1 ? "aviso novo" : "avisos novos"}
+          </span>
+        </div>
+      )}
+
+      {avisos.length === 0 ? (
         <div className="px-8 py-24 text-center space-y-4" data-testid="notifications-empty">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-white/5 flex items-center justify-center">
-            <Bell className="w-7 h-7 text-white/20" />
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/25 to-orange-600/10 ring-1 ring-primary/20 flex items-center justify-center">
+            <Bell className="w-7 h-7 text-primary" />
           </div>
           <h2 className="text-lg font-bold font-display">Nada por aqui</h2>
           <p className="text-sm text-white/40">Seus avisos aparecem nesta tela.</p>
         </div>
       ) : (
-        <div className="px-5" data-testid="notifications-list">
-          {replies.map((item) => {
-            const membro = findMember(item.fromSlug);
+        <div className="px-5 space-y-1" data-testid="notifications-list">
+          {ORDEM_DAS_FAIXAS.map((faixa) => {
+            const daFaixa = avisos.filter((item) => faixaDe(item.data) === faixa);
+            if (daFaixa.length === 0) return null;
+
             return (
-              <button
-                key={item.id}
-                onClick={() => openReply(item)}
-                className="w-full flex items-start gap-3 py-4 border-b border-white/5 text-left hover:bg-white/[0.03] transition-colors"
-                data-testid={`notification-reply-${item.id}`}
-              >
-                <div
-                  className={`w-9 h-9 rounded-full bg-gradient-to-br ${
-                    membro?.color ?? "from-amber-500/30 to-orange-600/30"
-                  } flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold`}
-                >
-                  {membro?.name.charAt(0) ?? "?"}
+              <section key={faixa}>
+                <h2 className="text-[11px] font-semibold text-white/35 uppercase tracking-wider px-1 mt-5 mb-2 first:mt-0">
+                  {faixa}
+                </h2>
+                <div className="space-y-2">
+                  {daFaixa.map((aviso, i) => (
+                    <Cartao key={aviso.id} aviso={aviso} indice={i} onAbrir={abrir} />
+                  ))}
                 </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3
-                      className={`text-sm line-clamp-1 ${
-                        item.read ? "font-medium text-white/70" : "font-semibold text-white"
-                      }`}
-                    >
-                      {membro?.name ?? "Um leitor"} respondeu você
-                    </h3>
-                    {!item.read && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" aria-label="Não lida" />
-                    )}
-                  </div>
-                  <p className="text-xs text-white/40 leading-relaxed mt-1 line-clamp-2 italic">
-                    "{item.text}"
-                  </p>
-                  <p className="text-[11px] text-white/25 mt-1.5">
-                    {relativeDate(item.date.slice(0, 10))}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-
-          {items.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => open(item)}
-                className="w-full flex items-start gap-3 py-4 border-b border-white/5 text-left hover:bg-white/[0.03] transition-colors"
-                data-testid={`notification-${item.id}`}
-              >
-                <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center shrink-0 mt-0.5">
-                  <Icon className="w-4 h-4 text-white/50" strokeWidth={1.75} />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3
-                      className={`text-sm line-clamp-1 ${
-                        item.unread ? "font-semibold text-white" : "font-medium text-white/70"
-                      }`}
-                    >
-                      {item.title}
-                    </h3>
-                    {item.unread && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" aria-label="Não lida" />
-                    )}
-                  </div>
-                  <p className="text-xs text-white/40 leading-relaxed mt-1">{item.body}</p>
-                  <p className="text-[11px] text-white/25 mt-1.5">{item.time}</p>
-                </div>
-              </button>
+              </section>
             );
           })}
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Um aviso.
+ *
+ * O não-lido não se distingue só por um pontinho: ganha fundo em degradê
+ * laranja e um anel finíssimo. Num celular, um ponto de seis pixels é fácil
+ * demais de não ver — o que é novo tem que saltar de relance.
+ */
+function Cartao({
+  aviso,
+  indice,
+  onAbrir,
+}: {
+  aviso: Aviso;
+  indice: number;
+  onAbrir: (aviso: Aviso) => void;
+}) {
+  const Icone = aviso.icone;
+  const livro = aviso.bookId ? catalog.find((item) => item.id === aviso.bookId) : undefined;
+
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      // O atraso cresce por item, mas trava em 0,3s: sem o teto, uma lista
+      // longa faria o último aviso chegar segundos depois do primeiro.
+      transition={{ duration: 0.25, delay: Math.min(indice * 0.05, 0.3) }}
+      onClick={() => onAbrir(aviso)}
+      className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-colors ${
+        aviso.lida
+          ? "bg-white/[0.02] hover:bg-white/[0.06]"
+          : "bg-gradient-to-r from-primary/12 to-white/[0.02] ring-1 ring-primary/20 hover:from-primary/20"
+      }`}
+      data-testid={`notification-${aviso.id}`}
+    >
+      {aviso.tipo === "resposta" ? (
+        <span
+          className={`w-10 h-10 rounded-full bg-gradient-to-br ${aviso.cor} flex items-center justify-center shrink-0 text-sm font-bold shadow-md`}
+        >
+          {aviso.inicial}
+        </span>
+      ) : (
+        <span
+          className={`w-10 h-10 rounded-xl bg-gradient-to-br ${aviso.cor} flex items-center justify-center shrink-0 shadow-md`}
+        >
+          {Icone && <Icone className="w-[18px] h-[18px] text-white" strokeWidth={2} />}
+        </span>
+      )}
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <h3
+            className={`text-sm line-clamp-1 ${
+              aviso.lida ? "font-medium text-white/70" : "font-semibold text-white"
+            }`}
+          >
+            {aviso.titulo}
+          </h3>
+          {!aviso.lida && (
+            <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" aria-label="Não lida" />
+          )}
+        </div>
+
+        <p
+          className={`text-xs leading-relaxed mt-1 line-clamp-2 ${
+            aviso.tipo === "resposta" ? "italic text-white/45" : "text-white/40"
+          }`}
+        >
+          {aviso.corpo}
+        </p>
+
+        <p className="text-[11px] text-white/25 mt-1.5">{quandoFoi(aviso.data)}</p>
+      </div>
+
+      {livro && (
+        <img
+          src={livro.cover}
+          alt={livro.title}
+          className="w-10 h-[54px] rounded-md object-cover shrink-0"
+        />
+      )}
+    </motion.button>
   );
 }

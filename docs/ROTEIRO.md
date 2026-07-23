@@ -450,6 +450,41 @@ refazer a análise:
   e raspar o site fere os termos de uso. Open Library e Google Books servem para
   capa e ficha, **não** para nota — a cobertura de avaliação das duas é fraca.
 
+**Decidido em 24/07 — quem leva estrela e quem não leva.** Estrela é de **obra**
+(o livro) e de **profissional** (autor/narrador, na "Nota média" do
+`PersonProfile`). **Leitor não leva estrela.** A que existia ficava colada no
+nome de quem comentou — no cartão do livro, no perfil do leitor e no mural da
+Comunidade — e lia-se como *pontuação do usuário*, sendo que por baixo era a
+nota que a pessoa deu ao livro. Some com o mal-entendido e com a promessa falsa:
+no app **não há como avaliar nada** ainda. O campo `Comment.rating` continua no
+dado, só não aparece — quando existir avaliação de verdade, ele já está lá.
+
+---
+
+## 4.6 Notificações: por que a tela foi repaginada (24/07)
+
+A tela era uma lista chapada — todo aviso com o mesmo ícone cinza, o mesmo peso,
+nenhuma cor — e destoava do resto do app. O que foi decidido:
+
+- **Cor por tipo de aviso**, reusando o quadradinho em degradê do menu do Perfil.
+  A cor **não é enfeite**: diz de que assunto é o aviso antes de você ler.
+- **Capa do livro** quando o aviso fala de um livro. Reconhecer a capa é mais
+  rápido que ler o título — é o que a Comunidade já fazia.
+- **Uma lista só, agrupada por tempo** (Hoje / Esta semana / Antes).
+  **Rejeitado:** o desenho antigo, com as respostas sempre no topo e os exemplos
+  embaixo. Aquilo é ordem arbitrária — aviso é coisa cronológica, e separar por
+  origem expunha ao usuário uma distinção que só interessa ao código.
+- **Não-lido ganhou fundo laranja e anel**, não só o pontinho. Num celular, um
+  ponto de seis pixels é fácil demais de não ver.
+
+**Achado que custou tempo, para ninguém repetir:** o `relativeDate` do
+`activity.ts` recebe só `AAAA-MM-DD`. Recortar os dez primeiros caracteres de um
+ISO (que é **UTC**) pode cair no dia anterior ao local — a tela chegou a mostrar
+"ontem" dentro do grupo "Hoje", porque o rótulo e o agrupamento usavam contas
+diferentes. Por isso existe o `quandoFoi` local ao `Notifications.tsx`: usa o
+instante inteiro, a mesma base do agrupamento, e ainda dá granularidade de hora
+("há 2 h"), que é o que um aviso pede. **Não troque um pelo outro.**
+
 ---
 
 ## 5. Backlog de faxina técnica (não urgente)

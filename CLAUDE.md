@@ -34,6 +34,26 @@ programação** — leve isso em conta em tudo.
 - `npm run db:push` — (uso futuro) cria/atualiza as tabelas no banco de dados.
 - `npm run catalogo` — busca capas e fichas reais dos livros (ver abaixo).
 
+### O servidor tem que rodar no terminal do Matheus, não dentro do Claude
+
+**Sintoma:** o servidor caía toda vez que o Matheus fechava e reabria o Claude
+Code (ou fechava a tampa do MacBook), e era preciso subir de novo.
+
+**Causa, apurada em 24/07:** quando o Claude roda `npm run dev`, o processo
+nasce **no mesmo grupo de processos da sessão do Claude** (confirmado com
+`ps -o pid,ppid,pgid`: o `npm`, o `tsx` e o shell compartilhavam o PGID, e o pai
+de tudo era o processo do Claude Code). Ao encerrar a sessão, o sistema mata o
+grupo inteiro — e o servidor vai junto. **Não é bug do projeto**; é só quem é o
+dono do processo.
+
+**Solução:** rodar por `scripts/servidor.sh`, num Terminal de verdade. Aí a
+cadeia vira `npm run dev` → `zsh` → `login` → `Terminal.app`, independente das
+sessões do Claude. Dê um duplo clique no arquivo ou rode `zsh scripts/servidor.sh`.
+
+**Consequência para o Claude:** não suba o servidor em segundo plano na sessão —
+ele cai sozinho e dá a falsa impressão de que algo quebrou. Verifique se a porta
+3000 já responde; se não responder, peça ao Matheus para rodar o script.
+
 ### `npm run catalogo` — de onde vêm as capas e as fichas
 
 O catálogo tem duas metades. **A curada à mão** fica em `books.ts`: id, título em
