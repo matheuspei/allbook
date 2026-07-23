@@ -289,7 +289,7 @@ export default function Profile() {
                   </p>
                   <p className="text-[10px] text-white/40 mt-0.5 line-clamp-1">{book.author}</p>
                   {note && (
-                    <p className="text-[11px] text-white/55 leading-snug mt-1 line-clamp-2 italic">
+                    <p className="text-[11px] text-white/55 leading-snug mt-1 italic">
                       “{note}”
                     </p>
                   )}

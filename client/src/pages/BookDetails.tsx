@@ -302,11 +302,19 @@ export default function BookDetails({ params }: { params: { id: string } }) {
         <div className="absolute inset-0 bg-gradient-to-r from-[#141414]/60 to-transparent" />
 
         <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-4">
-          <Link href="/">
-            <button className="p-2.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-colors" data-testid="button-back">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-          </Link>
+          {/*
+            Voltar pelo histórico, não para um destino fixo: quem chegou aqui
+            pelo perfil de um leitor volta ao perfil, quem veio da Início volta à
+            Início. O `href="/"` fixo daqui fazia o botão sempre cair na Início.
+          */}
+          <button
+            onClick={() => (window.history.length > 1 ? window.history.back() : setLocation("/"))}
+            className="p-2.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 hover:bg-black/60 transition-colors"
+            aria-label="Voltar"
+            data-testid="button-back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           {/*
             Os três pontinhos ficam aqui em cima, onde Netflix e Spotify os
             põem. Antes o "Mais" dividia uma fileira no meio da tela com um
