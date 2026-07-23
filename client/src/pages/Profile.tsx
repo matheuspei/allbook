@@ -195,9 +195,9 @@ export default function Profile() {
                 <div
                   key={item.id}
                   title={item.label}
-                  className="w-8 h-8 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center"
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-orange-600 flex items-center justify-center shadow-md shadow-amber-500/40 ring-1 ring-amber-300/50"
                 >
-                  <Icon className="w-4 h-4 text-primary" strokeWidth={2} />
+                  <Icon className="w-4 h-4 text-white drop-shadow" strokeWidth={2} />
                 </div>
               );
             })}
@@ -323,15 +323,15 @@ export default function Profile() {
                 data-testid={`achievement-${item.id}`}
               >
                 <div
-                  className={`w-11 h-11 rounded-full flex items-center justify-center border transition-colors ${
+                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
                     item.unlocked
-                      ? "border-primary/40 bg-primary/10 group-hover:bg-primary/20"
-                      : "border-white/10 border-dashed group-hover:border-white/20"
+                      ? "bg-gradient-to-br from-amber-300 via-amber-500 to-orange-600 shadow-lg shadow-amber-500/30 ring-1 ring-amber-300/40 group-hover:shadow-amber-500/50 group-hover:scale-105"
+                      : "border border-white/10 border-dashed group-hover:border-white/20"
                   }`}
                 >
                   <Icon
-                    className={`w-[18px] h-[18px] ${item.unlocked ? "text-primary" : "text-white/20"}`}
-                    strokeWidth={1.75}
+                    className={`w-[18px] h-[18px] ${item.unlocked ? "text-white drop-shadow-sm" : "text-white/20"}`}
+                    strokeWidth={item.unlocked ? 2 : 1.75}
                   />
                 </div>
                 <span
