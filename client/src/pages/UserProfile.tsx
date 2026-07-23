@@ -126,21 +126,30 @@ export default function UserProfile() {
         {books.length === 0 ? (
           <p className="text-sm text-white/40 py-6">Ainda não recomendou nada.</p>
         ) : (
-          <div className="grid grid-cols-3 gap-3" data-testid="user-recommendations-grid">
-            {books.map((book) => (
+          <div className="space-y-3" data-testid="user-recommendations-grid">
+            {books.map(({ book, note }) => (
               <Link
                 key={book.id}
                 href={`/book/${book.id}`}
-                className="group"
+                className="flex gap-3 group"
                 data-testid={`user-recommendation-${book.id}`}
               >
-                <div className="rounded-lg overflow-hidden aspect-[3/4] mb-2 transition-transform duration-200 group-hover:scale-105">
-                  <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
+                <img
+                  src={book.cover}
+                  alt={book.title}
+                  className="w-11 h-[59px] rounded object-cover shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xs font-medium leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                    {book.title}
+                  </h3>
+                  <p className="text-[10px] text-white/40 mt-0.5 line-clamp-1">{book.author}</p>
+                  {note && (
+                    <p className="text-[11px] text-white/55 leading-snug mt-1 line-clamp-2 italic">
+                      “{note}”
+                    </p>
+                  )}
                 </div>
-                <h3 className="text-xs font-medium leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-                  {book.title}
-                </h3>
-                <p className="text-[10px] text-white/40 mt-0.5 line-clamp-1">{book.author}</p>
               </Link>
             ))}
           </div>

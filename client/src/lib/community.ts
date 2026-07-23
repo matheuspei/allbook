@@ -23,6 +23,8 @@ export interface Recommendation {
   bookId: number;
   /** ISO. */
   date: string;
+  /** Por que a pessoa recomenda. Opcional — nem toda recomendação tem texto. */
+  note?: string;
 }
 
 export interface CommunityMember {
@@ -46,7 +48,7 @@ export const community: CommunityMember[] = [
     memberSince: "janeiro de 2025",
     hoursListened: 212,
     recommendations: [
-      { bookId: 2, date: "2026-07-20" },
+      { bookId: 2, date: "2026-07-20", note: "Não consegui parar nas últimas duas horas. O fim me pegou de surpresa." },
       { bookId: 1, date: "2026-07-14" },
       { bookId: 120, date: "2026-06-30" },
       { bookId: 3, date: "2026-06-11" },
@@ -61,7 +63,7 @@ export const community: CommunityMember[] = [
     memberSince: "março de 2025",
     hoursListened: 148,
     recommendations: [
-      { bookId: 112, date: "2026-07-18" },
+      { bookId: 112, date: "2026-07-18", note: "Ouvi numa viagem de trabalho e mudou como eu penso em decisão." },
       { bookId: 113, date: "2026-07-07" },
       { bookId: 101, date: "2026-06-16" },
       { bookId: 108, date: "2026-05-30" },
@@ -75,7 +77,7 @@ export const community: CommunityMember[] = [
     memberSince: "novembro de 2024",
     hoursListened: 389,
     recommendations: [
-      { bookId: 140, date: "2026-07-15" },
+      { bookId: 140, date: "2026-07-15", note: "Um clássico que envelhece bem. Devia ser leitura obrigatória." },
       { bookId: 136, date: "2026-07-01" },
       { bookId: 130, date: "2026-06-18" },
       { bookId: 131, date: "2026-06-02" },
@@ -90,7 +92,7 @@ export const community: CommunityMember[] = [
     memberSince: "junho de 2025",
     hoursListened: 96,
     recommendations: [
-      { bookId: 107, date: "2026-07-21" },
+      { bookId: 107, date: "2026-07-21", note: "Perfeito pra quem tem pouco tempo e quer começar por algo leve." },
       { bookId: 102, date: "2026-07-04" },
       { bookId: 124, date: "2026-06-09" },
     ],
@@ -103,7 +105,7 @@ export const community: CommunityMember[] = [
     memberSince: "fevereiro de 2025",
     hoursListened: 267,
     recommendations: [
-      { bookId: 7, date: "2026-07-13" },
+      { bookId: 7, date: "2026-07-13", note: "A melhor ficção científica que já ouvi. Simplesmente épico." },
       { bookId: 109, date: "2026-06-26" },
       { bookId: 8, date: "2026-06-15" },
       { bookId: 129, date: "2026-05-24" },
@@ -118,7 +120,7 @@ export const community: CommunityMember[] = [
     memberSince: "agosto de 2025",
     hoursListened: 74,
     recommendations: [
-      { bookId: 105, date: "2026-07-11" },
+      { bookId: 105, date: "2026-07-11", note: "Dormir depois desse? Só de luz acesa. Vale cada arrepio." },
       { bookId: 104, date: "2026-06-29" },
       { bookId: 144, date: "2026-06-12" },
       { bookId: 145, date: "2026-05-21" },
@@ -132,7 +134,7 @@ export const community: CommunityMember[] = [
     memberSince: "abril de 2025",
     hoursListened: 131,
     recommendations: [
-      { bookId: 101, date: "2026-07-17" },
+      { bookId: 101, date: "2026-07-17", note: "Mudou minha relação com dinheiro de vez. Recomendo a todo mundo." },
       { bookId: 137, date: "2026-06-20" },
       { bookId: 125, date: "2026-05-14" },
     ],
@@ -146,7 +148,7 @@ export const community: CommunityMember[] = [
     hoursListened: 305,
     recommendations: [
       { bookId: 203, date: "2026-07-10" },
-      { bookId: 102, date: "2026-07-02" },
+      { bookId: 102, date: "2026-07-02", note: "Reouvi três vezes. Cada vez acho um detalhe novo." },
       { bookId: 4, date: "2026-06-23" },
       { bookId: 201, date: "2026-06-08" },
     ],
@@ -178,9 +180,11 @@ export function findMember(slug: string): CommunityMember | undefined {
  * Os livros recomendados por essa pessoa, do mais recente para o mais antigo e
  * sem ids órfãos.
  */
-export function recommendationsOf(member: CommunityMember): Book[] {
+export function recommendationsOf(member: CommunityMember): { book: Book; note: string }[] {
   return [...member.recommendations]
     .sort((a, b) => b.date.localeCompare(a.date))
-    .map((item) => catalog.find((book) => book.id === item.bookId))
-    .filter((book): book is Book => book !== undefined);
+    .flatMap((item) => {
+      const book = catalog.find((b) => b.id === item.bookId);
+      return book ? [{ book, note: item.note ?? "" }] : [];
+    });
 }

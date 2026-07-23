@@ -66,7 +66,7 @@ export default function Profile() {
   const [downloadCount, setDownloadCount] = useState(0);
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
   const [profile, setProfile] = useState<UserProfile>(readProfile);
-  const [recommendations, setRecommendations] = useState<Book[]>(readRecommendations);
+  const [recommendations, setRecommendations] = useState<{ book: Book; note: string }[]>(readRecommendations);
   const [session, setSession] = useState<Session | null>(readSession);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
 
@@ -231,22 +231,30 @@ export default function Profile() {
             </p>
           </Link>
         ) : (
-          <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-1" data-testid="recommendations-row">
-            {recommendations.map((book) => (
+          <div className="space-y-3" data-testid="recommendations-row">
+            {recommendations.map(({ book, note }) => (
               <Link
                 key={book.id}
                 href={`/book/${book.id}`}
-                className="w-[68px] shrink-0"
+                className="flex gap-3 group"
                 data-testid={`recommendation-${book.id}`}
               >
                 <img
                   src={book.cover}
                   alt={book.title}
-                  className="w-full aspect-[3/4] rounded object-cover"
+                  className="w-11 h-[59px] rounded object-cover shrink-0"
                 />
-                <p className="text-[10px] text-white/50 leading-tight line-clamp-2 mt-1.5">
-                  {book.title}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                    {book.title}
+                  </p>
+                  <p className="text-[10px] text-white/40 mt-0.5 line-clamp-1">{book.author}</p>
+                  {note && (
+                    <p className="text-[11px] text-white/55 leading-snug mt-1 line-clamp-2 italic">
+                      “{note}”
+                    </p>
+                  )}
+                </div>
               </Link>
             ))}
           </div>
