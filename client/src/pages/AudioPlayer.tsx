@@ -13,7 +13,7 @@ import { useState, useEffect, useRef } from "react";
 import { catalog } from "@/lib/books";
 import { readSettings } from "@/lib/settings";
 import { readPlayback, savePlayback, showMiniPlayer } from "@/lib/playback";
-import { getChapters, chaptersTotalSec, chapterStartSec, formatChapterDuration } from "@/lib/chapters";
+import { getChapters, chaptersTotalSec, chapterStartSec, chapterAtSec, formatChapterDuration } from "@/lib/chapters";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
@@ -61,21 +61,30 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     : savedForThisBook?.positionSec ?? 0;
 
   const [currentTime, setCurrentTime] = useState(initialPosition);
-  const [progress, setProgress] = useState([(initialPosition / durationSeconds) * 100]);
+
+  /**
+   * O capítulo atual e a barra de progresso são do **capítulo**, não do livro
+   * inteiro. Antes a barra era o livro todo (12h, 31h…) e o rótulo "Capítulo N"
+   * não acompanhava quando se arrastava — dava a sensação de "pulou vários
+   * capítulos". Agora tudo deriva da posição real: o capítulo é calculado dela,
+   * e arrastar a barra move só dentro do capítulo atual (metade = metade do
+   * capítulo). A visão do livro inteiro fica na lista de capítulos.
+   */
+  const currentChapter = chapterAtSec(book.id, currentTime);
+  const chapterStart = chapterStartSec(book.id, currentChapter);
+  const chapterDuration = chapters[currentChapter - 1]?.durationSec ?? durationSeconds;
+  const positionInChapter = Math.min(Math.max(currentTime - chapterStart, 0), chapterDuration);
+  const chapterProgress = (positionInChapter / chapterDuration) * 100;
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlaying) {
       interval = setInterval(() => {
-        setCurrentTime(prev => {
-          const next = prev + 1;
-          setProgress([(next / durationSeconds) * 100]);
-          return next;
-        });
+        setCurrentTime(prev => Math.min(prev + 1, durationSeconds));
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, durationSeconds]);
 
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.floor(Math.abs(seconds));
@@ -117,10 +126,6 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [showChapters, setShowChapters] = useState(false);
   const { toast } = useToast();
 
-  const [currentChapter, setCurrentChapter] = useState(
-    chapterParam ?? savedForThisBook?.chapter ?? 1,
-  );
-
   useEffect(() => {
     showMiniPlayer();
   }, [book.id]);
@@ -156,10 +161,9 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
   const goToChapter = (target: number) => {
     const clamped = Math.min(Math.max(target, 1), chapters.length);
-    const start = chapterStartSec(book.id, clamped);
-    setCurrentChapter(clamped);
-    setCurrentTime(start);
-    setProgress([(start / durationSeconds) * 100]);
+    // Move a posição para o início do capítulo; o capítulo atual e a barra
+    // derivam disso sozinhos.
+    setCurrentTime(chapterStartSec(book.id, clamped));
   };
 
   const nextChapter = () => goToChapter(currentChapter + 1);
@@ -347,21 +351,21 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           {/* Progress Section */}
           <div className="w-full space-y-2 px-2 shrink-0">
             <div className="relative pt-1">
-              <Slider 
-                value={progress} 
+              <Slider
+                value={[chapterProgress]}
                 onValueChange={(val) => {
-                  setProgress(val);
-                  setCurrentTime((val[0] / 100) * durationSeconds);
-                }} 
-                max={100} 
+                  // Arrastar move só dentro do capítulo atual.
+                  setCurrentTime(chapterStart + (val[0] / 100) * chapterDuration);
+                }}
+                max={100}
                 step={0.1}
                 className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:bg-primary [&_[role=slider]]:border-none [&_.relative]:h-1 [&_.bg-secondary]:bg-white/15 cursor-pointer"
               />
             </div>
             <div className="flex justify-between text-[10px] font-medium tracking-tight">
-              <span className="text-slate-400">{formatTime(currentTime)}</span>
-              <span className="text-slate-200">{formatRemaining(durationSeconds, currentTime)}</span>
-              <span className="text-slate-400">-{formatTime(durationSeconds - currentTime)}</span>
+              <span className="text-slate-400">{formatTime(positionInChapter)}</span>
+              <span className="text-slate-200">{formatRemaining(chapterDuration, positionInChapter)}</span>
+              <span className="text-slate-400">-{formatTime(chapterDuration - positionInChapter)}</span>
             </div>
           </div>
 
