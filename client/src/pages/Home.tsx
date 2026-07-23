@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Fuse from "fuse.js";
 
-import { catalog, getBooksByIds, type Book } from "@/lib/books";
+import { catalog, getBooksByIds, duracaoEstimada, genres, type Book, type Genre } from "@/lib/books";
 import { collections, homeRows, getBooksForCollection } from "@/lib/collections";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
 import { SEARCH_OPEN_EVENT, consumeSearchRequest } from "@/lib/search";
@@ -15,53 +15,80 @@ import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
 import coverBusiness from "@/assets/images/cover-business.png";
 import coverBiography from "@/assets/images/cover-biography.png";
 import coverProductivity from "@/assets/images/cover-productivity.png";
+import coverRomance from "@/assets/images/cover-romance.png";
+import coverMystery from "@/assets/images/cover-mystery.png";
+import coverHorror from "@/assets/images/cover-horror.png";
 
-const heroBooks = [
-  {
-    id: 101,
-    title: "A Psicologia Financeira",
-    author: "Morgan Housel",
-    narrator: "Lidiane Maravilha",
-    cover: coverBusiness,
-    duration: "8h 32min",
-    badge: "AllBook Original",
-    description: "Histórias sobre como lidamos com o dinheiro. O sucesso financeiro não depende de inteligência — depende de comportamento.",
-    rating: 4.8,
-  },
-  {
-    id: 102,
-    title: "Hábitos Atômicos",
-    author: "James Clear",
-    narrator: "Ricardo Marques",
-    cover: coverProductivity,
-    duration: "10h 15min",
-    badge: "Mais Ouvido",
-    description: "Um método fácil e comprovado de criar bons hábitos e eliminar os maus. Pequenas mudanças, resultados notáveis.",
-    rating: 4.9,
-  },
-  {
-    id: 7,
-    title: "Duna",
-    author: "Frank Herbert",
-    narrator: "Bruno Rocha",
-    cover: coverScifi,
-    duration: "21h 48min",
-    badge: "Exclusivo AllBook",
-    description: "Uma saga épica de aventura, política e ecologia em um planeta desértico. O clássico da ficção científica que influenciou gerações.",
-    rating: 4.9,
-  },
-  {
-    id: 111,
-    title: "Minha História",
-    author: "Michelle Obama",
-    narrator: "Ana Paula Silva",
-    cover: coverBiography,
-    duration: "19h 20min",
-    badge: "Best-Seller",
-    description: "A história íntima e inspiradora da ex-primeira-dama dos Estados Unidos. Uma jornada de superação e determinação.",
-    rating: 4.8,
-  },
-];
+/**
+ * Os livros do billboard do topo (a "capa" do app).
+ *
+ * Antes eram quatro ids escolhidos a dedo e escritos à mão — sem nenhum critério
+ * que explicasse por que aqueles e não outros. Agora saem de uma regra real:
+ * **os mais bem avaliados do catálogo, um por gênero** para não repetir tema.
+ * Assim a capa sempre destaca o melhor do acervo e se atualiza sozinha quando o
+ * catálogo muda; ninguém precisa manter uma lista fixa na mão.
+ *
+ * O texto de cada destaque (a "chamada") continua escrito à mão, porque a
+ * sinopse importada da Open Library vem em inglês e cheia de texto de divulgação.
+ * Livro sem chamada própria cai na frase padrão do gênero, então a capa nunca
+ * fica sem descrição mesmo se a seleção mudar.
+ */
+const artePorGenero: Record<Genre, string> = {
+  "Ficção Científica": coverScifi,
+  Romance: coverRomance,
+  Terror: coverHorror,
+  Mistério: coverMystery,
+  Negócios: coverBusiness,
+  Biografia: coverBiography,
+  Autoajuda: coverSelfhelp,
+  Produtividade: coverProductivity,
+};
+
+const chamadaPorLivro: Record<number, string> = {
+  7: "Uma saga épica de aventura, política e ecologia em um planeta desértico. O clássico da ficção científica que influenciou gerações.",
+  102: "Um método fácil e comprovado de criar bons hábitos e abandonar os maus. Pequenas mudanças, resultados notáveis.",
+  105: "Isolado pela neve num hotel vazio, um zelador enlouquece enquanto forças sombrias cercam sua família. Terror psicológico no ponto mais alto.",
+  136: "O relato real de uma menina judia escondida do nazismo. Um testemunho de coragem e esperança que atravessou gerações.",
+  140: "Elizabeth e o orgulhoso Sr. Darcy trocam farpas antes de trocar o coração. O romance mais querido de Jane Austen.",
+  101: "Histórias sobre como lidamos com o dinheiro. O sucesso financeiro não depende de inteligência — depende de comportamento.",
+  111: "A história íntima e inspiradora da ex-primeira-dama dos Estados Unidos. Uma jornada de superação e determinação.",
+};
+
+const chamadaPorGenero: Record<Genre, string> = {
+  "Ficção Científica": "Mundos, tecnologias e futuros que esticam a imaginação.",
+  Romance: "Histórias de amor que ficam com você muito depois do fim.",
+  Terror: "Suspense e medo para ouvir com a luz acesa.",
+  Mistério: "Pistas, reviravoltas e segredos até a última cena.",
+  Negócios: "Ideias para pensar melhor sobre dinheiro, trabalho e decisões.",
+  Biografia: "A vida real de quem deixou marca no mundo.",
+  Autoajuda: "Um empurrão para mudar hábitos e enxergar a vida de outro jeito.",
+  Produtividade: "Métodos simples para render mais sem se sobrecarregar.",
+};
+
+/** Os mais bem avaliados, um por gênero — os cinco de maior nota vão à capa. */
+function destaquesDaCapa(): Book[] {
+  const melhorDeCadaGenero = genres
+    .map(({ label }) =>
+      catalog
+        .filter((book) => book.genre === label)
+        .sort((a, b) => b.rating - a.rating)[0]
+    )
+    .filter((book): book is Book => Boolean(book));
+
+  return melhorDeCadaGenero.sort((a, b) => b.rating - a.rating).slice(0, 5);
+}
+
+const heroBooks = destaquesDaCapa().map((book) => ({
+  id: book.id,
+  title: book.title,
+  author: book.author,
+  narrator: book.narrator,
+  cover: artePorGenero[book.genre],
+  duration: duracaoEstimada(book.pages),
+  badge: "Mais bem avaliados",
+  description: chamadaPorLivro[book.id] ?? chamadaPorGenero[book.genre],
+  rating: book.rating,
+}));
 
 /**
  * "Continuar ouvindo" — os livros já começados.
@@ -90,6 +117,10 @@ function HeroBillboard() {
   const dragStartX = useRef<number | null>(null);
   const dragStartY = useRef<number | null>(null);
   const isDragging = useRef(false);
+  // Distingue "toquei no banner" (abre o livro) de "arrastei para trocar de
+  // slide" (não abre nada). Um arraste também dispara clique no fim; sem isto,
+  // deslizar entre capas abriria a página do livro sem querer.
+  const suppressClick = useRef(false);
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % heroBooks.length);
@@ -102,6 +133,7 @@ function HeroBillboard() {
 
   const handleSwipe = useCallback((deltaX: number) => {
     if (Math.abs(deltaX) < 50) return;
+    suppressClick.current = true;
     if (deltaX < 0) {
       setCurrentIndex((prev) => (prev + 1) % heroBooks.length);
     } else {
@@ -112,6 +144,7 @@ function HeroBillboard() {
   const onTouchStart = (e: React.TouchEvent) => {
     dragStartX.current = e.touches[0].clientX;
     dragStartY.current = e.touches[0].clientY;
+    suppressClick.current = false;
   };
 
   const onTouchEnd = (e: React.TouchEvent) => {
@@ -128,6 +161,7 @@ function HeroBillboard() {
   const onMouseDown = (e: React.MouseEvent) => {
     dragStartX.current = e.clientX;
     isDragging.current = true;
+    suppressClick.current = false;
   };
 
   const onMouseUp = (e: React.MouseEvent) => {
@@ -139,16 +173,30 @@ function HeroBillboard() {
 
   const hero = heroBooks[currentIndex];
 
+  // Tocar em qualquer parte do banner abre a página do livro — o mesmo destino
+  // de "Mais Informações". Os botões (Ouvir, Mais Informações, bolinhas) cuidam
+  // do próprio clique, então são ignorados aqui. E um arraste não conta como
+  // toque (ver `suppressClick`).
+  const onBillboardClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("button, a")) return;
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
+    }
+    setLocation(`/book/${hero.id}`);
+  };
+
   return (
     <section
       data-testid="hero-billboard"
-      className="relative w-full select-none"
+      className="relative w-full select-none cursor-pointer"
       style={{ height: "75vh", minHeight: "480px" }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
       onMouseLeave={() => { isDragging.current = false; dragStartX.current = null; }}
+      onClick={onBillboardClick}
     >
       {heroBooks.map((book, idx) => (
         <div
@@ -187,8 +235,12 @@ function HeroBillboard() {
 
         <div className="flex items-center gap-3 text-xs text-white/50">
           <span>{hero.author}</span>
-          <span>•</span>
-          <span>{hero.duration}</span>
+          {hero.duration && (
+            <>
+              <span>•</span>
+              <span>{hero.duration}</span>
+            </>
+          )}
           <span>•</span>
           <div className="flex items-center gap-1">
             <Star className="w-3 h-3 fill-primary text-primary" />
