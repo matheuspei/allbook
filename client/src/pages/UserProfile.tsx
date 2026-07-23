@@ -8,6 +8,7 @@ import { relativeDate } from "@/lib/activity";
 import { commentsByAuthor, bookOf } from "@/lib/comments";
 import { findMember, recommendationsOf } from "@/lib/community";
 import { isFollowing, toggleFollow } from "@/lib/following";
+import { getAchievementsByIds } from "@/lib/achievements";
 
 /**
  * Perfil público de outro leitor (`/user/:slug`).
@@ -90,6 +91,23 @@ export default function UserProfile() {
             {books.length} {books.length === 1 ? "recomendação" : "recomendações"}
           </span>
         </div>
+
+        {member.achievementIds.length > 0 && (
+          <div className="flex items-center gap-1.5 mt-4 flex-wrap" data-testid="user-trophies">
+            {getAchievementsByIds(member.achievementIds).map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.id}
+                  title={item.label}
+                  className="w-8 h-8 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center"
+                >
+                  <Icon className="w-4 h-4 text-primary" strokeWidth={2} />
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/*
           O botão que faltava. Seguir nasce aqui — depois de você ler o que a

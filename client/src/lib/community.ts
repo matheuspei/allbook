@@ -36,6 +36,8 @@ export interface CommunityMember {
   /** Quando entrou, em texto — só para dar densidade ao perfil. */
   memberSince: string;
   hoursListened: number;
+  /** Ids das conquistas (troféus) desta pessoa — ver `lib/achievements.ts`. */
+  achievementIds: string[];
   recommendations: Recommendation[];
 }
 
@@ -47,6 +49,7 @@ export const community: CommunityMember[] = [
     color: "from-rose-500 to-pink-600",
     memberSince: "janeiro de 2025",
     hoursListened: 212,
+    achievementIds: ["primeira-escuta", "maratonista", "constante", "coruja", "centenario", "voz-ativa", "recomendador"],
     recommendations: [
       { bookId: 2, date: "2026-07-20", note: "Não consegui parar nas últimas duas horas. O fim me pegou de surpresa." },
       { bookId: 1, date: "2026-07-14" },
@@ -62,6 +65,7 @@ export const community: CommunityMember[] = [
     color: "from-amber-500 to-orange-600",
     memberSince: "março de 2025",
     hoursListened: 148,
+    achievementIds: ["primeira-escuta", "maratonista", "constante", "explorador", "recomendador"],
     recommendations: [
       { bookId: 112, date: "2026-07-18", note: "Ouvi numa viagem de trabalho e mudou como eu penso em decisão." },
       { bookId: 113, date: "2026-07-07" },
@@ -76,6 +80,7 @@ export const community: CommunityMember[] = [
     color: "from-violet-500 to-purple-600",
     memberSince: "novembro de 2024",
     hoursListened: 389,
+    achievementIds: ["primeira-escuta", "maratonista", "centenario", "constante", "coruja", "explorador", "concluido", "ecletico", "voz-ativa", "curtido", "recomendador"],
     recommendations: [
       { bookId: 140, date: "2026-07-15", note: "Um clássico que envelhece bem. Devia ser leitura obrigatória." },
       { bookId: 136, date: "2026-07-01" },
@@ -91,6 +96,7 @@ export const community: CommunityMember[] = [
     color: "from-emerald-500 to-teal-600",
     memberSince: "junho de 2025",
     hoursListened: 96,
+    achievementIds: ["primeira-escuta", "maratonista", "constante"],
     recommendations: [
       { bookId: 107, date: "2026-07-21", note: "Perfeito pra quem tem pouco tempo e quer começar por algo leve." },
       { bookId: 102, date: "2026-07-04" },
@@ -104,6 +110,7 @@ export const community: CommunityMember[] = [
     color: "from-blue-500 to-indigo-600",
     memberSince: "fevereiro de 2025",
     hoursListened: 267,
+    achievementIds: ["primeira-escuta", "maratonista", "centenario", "constante", "explorador", "concluido", "recomendador", "formador-de-roda"],
     recommendations: [
       { bookId: 7, date: "2026-07-13", note: "A melhor ficção científica que já ouvi. Simplesmente épico." },
       { bookId: 109, date: "2026-06-26" },
@@ -119,6 +126,7 @@ export const community: CommunityMember[] = [
     color: "from-red-600 to-rose-700",
     memberSince: "agosto de 2025",
     hoursListened: 74,
+    achievementIds: ["primeira-escuta", "coruja", "constante"],
     recommendations: [
       { bookId: 105, date: "2026-07-11", note: "Dormir depois desse? Só de luz acesa. Vale cada arrepio." },
       { bookId: 104, date: "2026-06-29" },
@@ -133,6 +141,7 @@ export const community: CommunityMember[] = [
     color: "from-cyan-500 to-blue-600",
     memberSince: "abril de 2025",
     hoursListened: 131,
+    achievementIds: ["primeira-escuta", "maratonista", "constante", "explorador", "recomendador"],
     recommendations: [
       { bookId: 101, date: "2026-07-17", note: "Mudou minha relação com dinheiro de vez. Recomendo a todo mundo." },
       { bookId: 137, date: "2026-06-20" },
@@ -146,6 +155,7 @@ export const community: CommunityMember[] = [
     color: "from-fuchsia-500 to-purple-600",
     memberSince: "dezembro de 2024",
     hoursListened: 305,
+    achievementIds: ["primeira-escuta", "maratonista", "centenario", "constante", "concluido", "ecletico", "curtido", "recomendador"],
     recommendations: [
       { bookId: 203, date: "2026-07-10" },
       { bookId: 102, date: "2026-07-02", note: "Reouvi três vezes. Cada vez acho um detalhe novo." },

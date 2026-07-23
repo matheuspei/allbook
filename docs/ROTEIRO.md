@@ -403,6 +403,24 @@ comunidade.
   bonito, mas mexe mais no layout) e uma tela dedicada de conquistas. Ficou a
   grade única com o toque mostrando a dica.
 
+### Perfil repaginado: motivo na recomendação, troféus estampados, cabeçalho premium (23/07)
+
+O Matheus achou o perfil próprio "cru" — reparou-se que ele era até mais simples
+que o de outros leitores (`UserProfile`, que já tinha avatar colorido e "membro
+desde"). Pediu três coisas, feitas nos **dois** perfis e alinhadas antes:
+
+- **Recomendação com motivo.** Cada livro recomendado carrega um "por que
+  recomendo" (opcional). `recommendations.ts` passou de `number[]` para
+  `{ id, note }`, com migração do formato antigo. Editável em `RecommendationsEdit`
+  (campo por livro); exibido em `Profile` e `UserProfile` como lista com a frase em
+  itálico. Os leitores fictícios (`community.ts`) ganharam motivos.
+- **Troféus estampados.** Fileira das conquistas desbloqueadas no topo do perfil,
+  na cor da marca. Membros da comunidade têm agora `achievementIds` (mock).
+- **Cabeçalho premium + cartões.** Brilho da marca no topo, avatar com anel em
+  degradê, selo do plano ao lado do nome, e os 4 números viraram cartões com ícone.
+- **Decisão:** aplicar nos dois perfis, não só no próprio. `unlocked`/`achievementIds`
+  seguem mock até haver backend.
+
 ---
 
 ## 4. DEPOIS do frontend — o motor (resumo)

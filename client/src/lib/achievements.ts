@@ -192,3 +192,17 @@ export const achievements: Achievement[] = [
 
 /** Quantas já foram conquistadas — o "X de N" da tela. */
 export const unlockedCount = achievements.filter((item) => item.unlocked).length;
+
+/** Só as conquistadas — usadas para "estampar" os troféus no topo do perfil. */
+export const unlockedAchievements = achievements.filter((item) => item.unlocked);
+
+/**
+ * Conquistas a partir de uma lista de ids, na ordem pedida e sem ids órfãos.
+ * Usada pelos perfis dos leitores da comunidade, que guardam só os ids.
+ */
+export function getAchievementsByIds(ids: string[]): Achievement[] {
+  return ids.flatMap((id) => {
+    const found = achievements.find((item) => item.id === id);
+    return found ? [found] : [];
+  });
+}
