@@ -501,7 +501,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showSpeedMenu && (
         <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-xs flex items-end animate-in fade-in duration-200" onClick={() => setShowSpeedMenu(false)}>
           <div 
-            className="w-full bg-[#1a1a1a] rounded-t-[32px] p-8 space-y-10 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
+            className="w-full bg-[#0d1626] rounded-t-[32px] p-8 space-y-10 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
             onClick={e => e.stopPropagation()}
           >
             {/* Handle bar */}
@@ -567,7 +567,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showMoreMenu && (
         <div className="fixed inset-0 z-[160] animate-in fade-in duration-200" onClick={() => setShowMoreMenu(false)}>
           <div 
-            className="absolute top-16 right-4 w-72 bg-[#1a1a1a] rounded-2xl shadow-2xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200 origin-top-right"
+            className="absolute top-16 right-4 w-72 bg-[#1c2a3d] rounded-2xl shadow-2xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200 origin-top-right"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col py-2">
@@ -577,28 +577,62 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   <span className="text-sm font-medium">Detalhes do título</span>
                 </button>
               </Link>
-              
-              <button className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group">
+
+              {/* O Bluetooth voltou para cá, dentro do menu "Mais", em vez de um
+                  botão solto no topo. */}
+              <button
+                onClick={() => { setShowMoreMenu(false); setShowBluetoothPermission(true); }}
+                className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
+              >
+                <Bluetooth className="w-5 h-5 text-slate-400 group-hover:text-white" />
+                <span className="text-sm font-medium">Conectar dispositivo Bluetooth</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  toast({ title: "Marcado como concluído", description: `${book.title} entrou nos seus títulos ouvidos.` });
+                }}
+                className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
+              >
                 <CheckCircle className="w-5 h-5 text-slate-400 group-hover:text-white" />
                 <span className="text-sm font-medium">Marcar como concluído</span>
               </button>
 
-              <button className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group">
+              <button
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  toast({ title: "Marcações e notas", description: "Suas marcações e notas deste título aparecerão aqui." });
+                }}
+                className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
+              >
                 <Bookmark className="w-5 h-5 text-slate-400 group-hover:text-white" />
                 <span className="text-sm font-medium">Marcações e notas</span>
               </button>
 
-              <button className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group">
+              <button
+                onClick={() => { setShowMoreMenu(false); setLocation('/settings'); }}
+                className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
+              >
                 <Settings className="w-5 h-5 text-slate-400 group-hover:text-white" />
                 <span className="text-sm font-medium">Configurações do tocador</span>
               </button>
 
-              <button className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group">
+              <button
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  toast({ title: "Log de escuta", description: `Você está no capítulo ${currentChapter} de ${book.title}.` });
+                }}
+                className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
+              >
                 <History className="w-5 h-5 text-slate-400 group-hover:text-white" />
                 <span className="text-sm font-medium">Log de escuta</span>
               </button>
 
-              <button className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group">
+              <button
+                onClick={() => { setShowMoreMenu(false); setLocation('/discover'); }}
+                className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
+              >
                 <Library className="w-5 h-5 text-slate-400 group-hover:text-white" />
                 <span className="text-sm font-medium">Títulos recomendados</span>
               </button>
@@ -611,7 +645,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showTimerMenu && (
         <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-xs flex items-end animate-in fade-in duration-200" onClick={() => setShowTimerMenu(false)}>
           <div 
-            className="w-full bg-[#1a1a1a] rounded-t-[32px] p-6 pb-10 space-y-6 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
+            className="w-full bg-[#0d1626] rounded-t-[32px] p-6 pb-10 space-y-6 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
             onClick={e => e.stopPropagation()}
           >
             {/* Handle bar */}
@@ -746,7 +780,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {/* Car Mode Safety Note Modal */}
       {showCarModeEntry && (
         <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative">
+          <div className="w-full max-w-sm bg-[#0d1626] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative">
             <button onClick={() => setShowCarModeEntry(false)} className="absolute right-6 top-6 text-slate-400">
               <ChevronDown className="w-6 h-6 rotate-180" />
             </button>
@@ -772,7 +806,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {/* Bluetooth Connection Modal */}
       {showBluetoothPermission && (
         <div className="fixed inset-0 z-[130] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative text-center">
+          <div className="w-full max-w-sm bg-[#0d1626] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative text-center">
             <button onClick={() => setShowBluetoothPermission(false)} className="absolute right-6 top-6 text-slate-400">
               <ChevronDown className="w-6 h-6 rotate-180" />
             </button>
