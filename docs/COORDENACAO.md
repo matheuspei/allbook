@@ -24,7 +24,7 @@ o quê **agora**.
 |--------|-----------------------------|-----------------------|--------------------------|------------|
 | A | — livre — (comentar em qualquer livro FEITO 24/07, commit 9281380: caixa própria + lib/myComments.ts) | — | não — serviço launchd sempre no ar | 24/07 |
 | B | — livre — (busca virou aba "Buscar" no menu de baixo, modelo Apple TV — commit a3ab28e. Pendência de PRODUTO p/ Matheus: "Categorias"/browse perdeu porta fixa) | — | não — serviço launchd sempre no ar | 24/07 |
-| C | Premium: sino conta avisos de sistema + despir ícones coloridos (Notificações, Biblioteca) — Matheus liberou, A/B livres e commitadas | TopNav.tsx, notifications.ts, Notifications.tsx, Library.tsx | não — serviço launchd sempre no ar | 24/07 |
+| C | — livre — (Biblioteca 24/07: bloco de atalhos mortos trocado pela fileira "Sugestões para você" — commit + roteiro atualizados) | — | não — serviço launchd sempre no ar | 24/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —

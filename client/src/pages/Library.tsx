@@ -1,17 +1,15 @@
-import { ChevronRight, Play, Download, Users, FolderRoot, LayoutGrid, Trophy, Grid3X3, BookOpen, Plus, ArrowLeft, X } from "lucide-react";
+import { ChevronRight, Play, Trophy, BookOpen, Plus, ArrowLeft, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback, remainingLabel } from "@/lib/playback";
-import { libraryBooks as lerBiblioteca, readDownloads } from "@/lib/library";
-import type { Book } from "@/lib/books";
-import { useToast } from "@/hooks/use-toast";
+import { libraryBooks as lerBiblioteca } from "@/lib/library";
+import { catalog, getBooksByGenre, type Book } from "@/lib/books";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function Library() {
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
   const [libraryBooks, setLibraryBooks] = useState<{ book: Book; addedAt: string }[]>([]);
 
   // Volta para onde a pessoa estava (Perfil, Início...), e não para um destino
@@ -23,7 +21,6 @@ export default function Library() {
       setLocation("/");
     }
   }
-  const [downloadCount, setDownloadCount] = useState(0);
   const [activeTab, setActiveTab] = useState("todos");
 
   /**
@@ -47,7 +44,6 @@ export default function Library() {
     // A lista vem de lib/library.ts, já resolvida pelo catálogo — a cópia de
     // título/capa que ficava no localStorage envelhecia a cada build.
     setLibraryBooks(lerBiblioteca());
-    setDownloadCount(readDownloads().length);
   }, []);
 
   const tabs = [
@@ -57,22 +53,24 @@ export default function Library() {
     { key: "listas", label: "Listas" },
   ];
 
-  // Baixados e Gêneros já têm tela; Séries e Autores ainda não existem, então
-  // por ora avisam "em breve" (mesmo padrão do Perfil) em vez de não fazer nada.
-  // Ícones em tom neutro único (como o Perfil), não mais um gradiente de cor por
-  // item — o "arco-íris" dava cara de template feito por IA.
-  const menuItems: {
-    icon: typeof Download;
-    label: string;
-    count: string | null;
-    href?: string;
-    soon?: boolean;
-  }[] = [
-    { icon: Download, label: "Baixados", count: downloadCount.toString(), href: "/downloads" },
-    { icon: LayoutGrid, label: "Séries", count: null, soon: true },
-    { icon: Users, label: "Autores", count: null, soon: true },
-    { icon: FolderRoot, label: "Gêneros", count: null, href: "/discover" },
-  ];
+  /**
+   * "Sugestões para você" — outros livros dos gêneros que você já salva, tirando
+   * os que já estão na lista, dos mais bem avaliados para baixo. Biblioteca vazia
+   * cai nos melhores do catálogo inteiro. Substituiu um bloco de atalhos que não
+   * agregavam (Séries/Autores eram "em breve"; Baixados repetia a aba do topo;
+   * Gêneros só levava à Descobrir). É real, sem backend — como o resto do app.
+   */
+  const suggestions = useMemo(() => {
+    const salvos = new Set(libraryBooks.map(({ book }) => book.id));
+    const generos = Array.from(new Set(libraryBooks.map(({ book }) => book.genre)));
+    const candidatos = generos.length
+      ? generos.flatMap((genero) => getBooksByGenre(genero))
+      : catalog;
+    return candidatos
+      .filter((livro) => !salvos.has(livro.id))
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, 12);
+  }, [libraryBooks]);
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="library-page">
@@ -250,49 +248,29 @@ export default function Library() {
           </Link>
         </section>
 
-        <section className="space-y-3" data-testid="section-menu-items">
-          {menuItems.map((item, idx) => {
-            const Icon = item.icon;
-            const cls = "w-full bg-white/5 rounded-xl border border-white/5 p-4 flex items-center justify-between group hover:bg-white/8 transition-colors";
-            const testId = `menu-item-${item.label.toLowerCase()}`;
-            const inner = (
-              <>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-white/80" strokeWidth={1.8} />
+        {suggestions.length > 0 && (
+          <section className="space-y-4" data-testid="section-suggestions">
+            <h2 className="text-xl font-bold font-display">Sugestões para você</h2>
+            <div className="flex overflow-x-auto scrollbar-hide gap-3 -mx-5 px-5 pb-2 snap-x snap-mandatory">
+              {suggestions.map((book) => (
+                <Link
+                  key={book.id}
+                  href={`/book/${book.id}`}
+                  className="min-w-[130px] max-w-[130px] snap-start group"
+                  data-testid={`card-suggestion-${book.id}`}
+                >
+                  <div className="relative aspect-[3/4] rounded-lg overflow-hidden border border-white/5 shadow-lg mb-2 transition-transform duration-300 group-hover:scale-105">
+                    <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
                   </div>
-                  <span className="font-bold">{item.label}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {item.count !== null && (
-                    <span className="text-white/40 text-sm">{item.count}</span>
-                  )}
-                  <ChevronRight className="w-4 h-4 text-white/20" />
-                </div>
-              </>
-            );
-
-            return item.href ? (
-              <Link key={idx} href={item.href} className={cls} data-testid={testId}>
-                {inner}
-              </Link>
-            ) : (
-              <button
-                key={idx}
-                onClick={() =>
-                  toast({
-                    title: `${item.label} em breve`,
-                    description: "Essa parte do AllBook ainda está sendo construída.",
-                  })
-                }
-                className={`${cls} text-left`}
-                data-testid={testId}
-              >
-                {inner}
-              </button>
-            );
-          })}
-        </section>
+                  <h3 className="text-sm font-medium text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                    {book.title}
+                  </h3>
+                  <p className="text-xs text-white/40 mt-0.5 line-clamp-1">{book.author}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

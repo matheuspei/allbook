@@ -739,7 +739,10 @@ a subir os áudios de verdade a gente vê o que fica original."* Não mexer agor
   Descobrir depois que a busca tomou a porta do menu). Mas **não quer deixar o
   espaço vazio** ("a aba ficaria morta"). Proposta em avaliação: trocar por uma
   fileira "Sugestões para você" (recomendados a partir dos gêneros da biblioteca —
-  real, sem backend). **Aguardando o aval do formato antes de construir.**
+  real, sem backend). **FEITO** — o Matheus aprovou o formato: os 4 atalhos saíram
+  e a fileira "Sugestões para você" entrou (recomendados dos gêneros da biblioteca,
+  mais bem avaliados primeiro; biblioteca vazia cai nos melhores do catálogo). O
+  código órfão do menu (o `toast` de "em breve", o `downloadCount`) saiu junto.
 
 **Próximos passos desta frente:** propagar `text-xl` e o brilho de fundo às demais
 telas · conferir capas erradas com o olho (backlog da seção 5, ainda de pé).
