@@ -447,6 +447,30 @@ código admitiam ser gambiarra.
 - A lógica não mudou: casamento direto (sem acento) e, só se não achar, Fuse.js
   para tolerar erro de digitação — o mesmo de antes, agora num lugar só.
 
+### Busca virou aba "Buscar" no menu de baixo — modelo Apple TV (24/07, fim do dia)
+
+Evolução da decisão acima, a partir de uma referência do Matheus (a tela "Buscar"
+da Apple TV). As mudanças de rumo, com o porquê:
+
+- **Rejeitada a "busca embutida na Início".** Chegou a ser escolhida e começada
+  (campo no topo da Home, resultados inline), mas a referência da Apple TV mostrou
+  que o estado vazio bonito — **grade de capas recomendadas antes de digitar** — é
+  cara de **tela dedicada**, e não combina com a Início, que já tem conteúdo
+  próprio. O experimento inline foi revertido (não chegou a commitar).
+- **Busca virou uma ABA no menu de baixo** (`BottomNav`: "Buscar" no lugar de
+  "Categorias"), abrindo `/search`. É o padrão de Netflix/Spotify/Apple TV: busca
+  é destino fixo embaixo, não uma barra que persegue toda tela. Por isso a **lupa
+  do topo (`TopNav`) saiu**.
+- **`/search` deixou de ser tela cheia** (`isBare`) e virou aba de verdade: mantém
+  TopNav + BottomNav + MiniPlayer; sem cabeçalho fixo nem seta de voltar. Estado
+  vazio = grade **"Em alta"** (mais bem avaliados; dá para personalizar por perfil
+  quando houver backend). Ao digitar, os resultados do `SearchResults` compartilhado.
+- **Pendência de produto (não resolvida):** "Categorias" (`/discover`) **perdeu a
+  entrada no menu de baixo**. A tela ainda existe (rota `/category/:slug` viva), mas
+  o browse por gênero ficou sem porta fixa. Caminho natural: **dobrar a grade de
+  gêneros dentro da Busca** (como Spotify/Apple TV — "Browse all" abaixo do campo).
+  Decisão do Matheus pendente; não mexer sem ele.
+
 ### Conquistas viram muitas medalhas, coloridas (22/07)
 
 Eram 4 conquistas discretas, embutidas em `Profile.tsx`, de propósito sóbrias
