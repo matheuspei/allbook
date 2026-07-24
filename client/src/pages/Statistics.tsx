@@ -54,11 +54,11 @@ export default function Statistics() {
   };
 
   // Mesma chave usada no Perfil: os dois lugares abrem o mesmo painel.
-  const quickStats: { icon: typeof Headphones; label: string; value: string; color: string; key: StatKey }[] = [
-    { icon: Headphones, label: "Horas ouvidas", value: "47h", color: "from-blue-500 to-cyan-500", key: "horas" },
-    { icon: BookOpen, label: "Títulos", value: String(libraryCount), color: "from-purple-500 to-pink-500", key: "titulos" },
-    { icon: Flame, label: "Sequência", value: "3 sem.", color: "from-amber-500 to-orange-500", key: "sequencia" },
-    { icon: Target, label: "Concluídos", value: "2", color: "from-emerald-500 to-teal-500", key: "concluidos" },
+  const quickStats: { icon: typeof Headphones; label: string; value: string; key: StatKey }[] = [
+    { icon: Headphones, label: "Horas ouvidas", value: "47h", key: "horas" },
+    { icon: BookOpen, label: "Títulos", value: String(libraryCount), key: "titulos" },
+    { icon: Flame, label: "Sequência", value: "3 sem.", key: "sequencia" },
+    { icon: Target, label: "Concluídos", value: "2", key: "concluidos" },
   ];
 
   // Copia de verdade — o toast antigo anunciava a cópia sem copiar nada.
@@ -94,8 +94,8 @@ export default function Statistics() {
                 className="bg-white/5 rounded-xl border border-white/5 p-4 space-y-3 text-left hover:bg-white/10 active:scale-95 transition-all duration-150"
                 data-testid={`stat-card-${stat.label.toLowerCase().replace(/ /g, '-')}`}
               >
-                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
-                  <Icon className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-primary" strokeWidth={2} />
                 </div>
                 <div>
                   <span className="text-2xl font-bold">{stat.value}</span>

@@ -280,7 +280,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           </div>
 
           <div className="w-full flex flex-col items-center gap-12">
-            <div className="text-4xl font-black tracking-tighter text-slate-300">
+            <div className="text-4xl font-black tracking-tighter text-white/70">
               -{formatTime(chapterDuration - positionInChapter)}
             </div>
 
@@ -311,7 +311,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           </div>
         </main>
 
-        <footer className="mt-auto py-8 text-center text-slate-500 text-sm font-medium">
+        <footer className="mt-auto py-8 text-center text-white/40 text-sm font-medium">
           Mantenha os olhos na estrada.
         </footer>
       </div>
@@ -410,9 +410,9 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               />
             </div>
             <div className="flex justify-between text-[10px] font-medium tracking-tight">
-              <span className="text-slate-400">{formatTime(positionInChapter)}</span>
-              <span className="text-slate-200">{formatRemaining(chapterDuration, positionInChapter)}</span>
-              <span className="text-slate-400">-{formatTime(chapterDuration - positionInChapter)}</span>
+              <span className="text-white/50">{formatTime(positionInChapter)}</span>
+              <span className="text-white/80">{formatRemaining(chapterDuration, positionInChapter)}</span>
+              <span className="text-white/50">-{formatTime(chapterDuration - positionInChapter)}</span>
             </div>
           </div>
 
@@ -420,7 +420,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           <div className="w-full flex items-center justify-around px-2 shrink-0">
             <button
               onClick={prevChapter}
-              className="text-slate-300 hover:text-white transition-colors"
+              className="text-white/70 hover:text-white transition-colors"
               aria-label="Capítulo anterior"
             >
               <SkipBack className="w-7 h-7" />
@@ -458,7 +458,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
             <button
               onClick={nextChapter}
-              className="text-slate-300 hover:text-white transition-colors"
+              className="text-white/70 hover:text-white transition-colors"
               aria-label="Próximo capítulo"
             >
               <SkipForward className="w-7 h-7" />
@@ -474,28 +474,28 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           className="flex flex-col items-center gap-1 min-w-[70px] group"
         >
           <span className="text-xs font-bold group-hover:text-amber-500 transition-colors">{speed.toFixed(2).replace('.', ',')}x</span>
-          <span className="text-[9px] font-bold uppercase text-slate-500 group-hover:text-slate-300 transition-colors tracking-tight">Velocidade</span>
+          <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">Velocidade</span>
         </button>
         
         <button 
           onClick={handleCarModeClick}
           className="flex flex-col items-center gap-1 min-w-[70px] group"
         >
-          <Car className="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
-          <span className="text-[9px] font-bold uppercase text-slate-500 group-hover:text-slate-300 transition-colors tracking-tight">Modo Carro</span>
+          <Car className="w-5 h-5 text-white/50 group-hover:text-amber-500 transition-colors" />
+          <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">Modo Carro</span>
         </button>
 
         <button 
           onClick={() => setShowTimerMenu(true)}
           className="flex flex-col items-center gap-1 min-w-[70px] group"
         >
-          <Timer className={`w-5 h-5 ${selectedTimer !== "Desligado" ? "text-amber-500" : "text-slate-400"} group-hover:text-amber-500 transition-colors`} />
-          <span className="text-[9px] font-bold uppercase text-slate-500 group-hover:text-slate-300 transition-colors tracking-tight">Temporizador</span>
+          <Timer className={`w-5 h-5 ${selectedTimer !== "Desligado" ? "text-amber-500" : "text-white/50"} group-hover:text-amber-500 transition-colors`} />
+          <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">Temporizador</span>
         </button>
 
         <button onClick={salvarMarcacao} className="flex flex-col items-center gap-1 min-w-[70px] group">
-          <Bookmark className="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
-          <span className="text-[9px] font-bold uppercase text-slate-500 group-hover:text-slate-300 transition-colors tracking-tight">+ Marcação</span>
+          <Bookmark className="w-5 h-5 text-white/50 group-hover:text-amber-500 transition-colors" />
+          <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">+ Marcação</span>
         </button>
       </footer>
 
@@ -583,11 +583,11 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showSpeedMenu && (
         <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-xs flex items-end animate-in fade-in duration-200" onClick={() => setShowSpeedMenu(false)}>
           <div 
-            className="w-full bg-[#0d1626] rounded-t-[32px] p-8 space-y-10 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
+            className="w-full bg-[#1a1a1a] rounded-t-[32px] p-8 space-y-10 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
             onClick={e => e.stopPropagation()}
           >
             {/* Handle bar */}
-            <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto -mt-2" />
+            <div className="w-12 h-1.5 bg-white/15 rounded-full mx-auto -mt-2" />
             
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold font-display">Velocidade</h3>
@@ -610,7 +610,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   min={0.5}
                   max={3.0} 
                   step={0.05}
-                  className="[&_[role=slider]]:h-7 [&_[role=slider]]:w-7 [&_[role=slider]]:bg-amber-500 [&_[role=slider]]:border-none [&_.relative]:h-1.5 [&_.bg-primary]:bg-slate-700"
+                  className="[&_[role=slider]]:h-7 [&_[role=slider]]:w-7 [&_[role=slider]]:bg-amber-500 [&_[role=slider]]:border-none [&_.relative]:h-1.5 [&_.bg-primary]:bg-white/15"
                 />
               </div>
 
@@ -631,7 +631,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   className={`py-3 rounded-xl border transition-all flex flex-col items-center justify-center gap-0.5 ${
                     speed === preset 
                       ? "bg-amber-500/10 border-amber-500 text-amber-500" 
-                      : "border-white/10 text-slate-300 hover:border-white/30"
+                      : "border-white/10 text-white/70 hover:border-white/30"
                   }`}
                 >
                   <span className="text-base font-bold">{preset.toFixed(1).replace('.', ',')}</span>
@@ -657,7 +657,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   ser 'current' e caía num /book/5 fixo — abrindo o livro errado. */}
               <Link href={`/book/${book.id}`}>
                 <button className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full">
-                  <BookOpen className="w-5 h-5 text-slate-400 group-hover:text-white" />
+                  <BookOpen className="w-5 h-5 text-white/50 group-hover:text-white" />
                   <span className="text-sm font-medium">Detalhes do título</span>
                 </button>
               </Link>
@@ -668,7 +668,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 onClick={() => { setShowMoreMenu(false); setShowBluetoothPermission(true); }}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
-                <Bluetooth className="w-5 h-5 text-slate-400 group-hover:text-white" />
+                <Bluetooth className="w-5 h-5 text-white/50 group-hover:text-white" />
                 <span className="text-sm font-medium">Conectar dispositivo Bluetooth</span>
               </button>
 
@@ -679,7 +679,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 }}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
-                <CheckCircle className="w-5 h-5 text-slate-400 group-hover:text-white" />
+                <CheckCircle className="w-5 h-5 text-white/50 group-hover:text-white" />
                 <span className="text-sm font-medium">Marcar como concluído</span>
               </button>
 
@@ -690,7 +690,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 }}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
-                <Bookmark className="w-5 h-5 text-slate-400 group-hover:text-white" />
+                <Bookmark className="w-5 h-5 text-white/50 group-hover:text-white" />
                 <span className="text-sm font-medium">Marcações e notas</span>
               </button>
 
@@ -698,7 +698,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 onClick={() => { setShowMoreMenu(false); setLocation('/settings'); }}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
-                <Settings className="w-5 h-5 text-slate-400 group-hover:text-white" />
+                <Settings className="w-5 h-5 text-white/50 group-hover:text-white" />
                 <span className="text-sm font-medium">Configurações do tocador</span>
               </button>
 
@@ -709,7 +709,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 }}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
-                <History className="w-5 h-5 text-slate-400 group-hover:text-white" />
+                <History className="w-5 h-5 text-white/50 group-hover:text-white" />
                 <span className="text-sm font-medium">Histórico de escuta</span>
               </button>
 
@@ -717,7 +717,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 onClick={() => { setShowMoreMenu(false); setLocation('/discover'); }}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
-                <Library className="w-5 h-5 text-slate-400 group-hover:text-white" />
+                <Library className="w-5 h-5 text-white/50 group-hover:text-white" />
                 <span className="text-sm font-medium">Títulos recomendados</span>
               </button>
             </div>
@@ -729,11 +729,11 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showTimerMenu && (
         <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-xs flex items-end animate-in fade-in duration-200" onClick={() => setShowTimerMenu(false)}>
           <div 
-            className="w-full bg-[#0d1626] rounded-t-[32px] p-6 pb-10 space-y-6 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
+            className="w-full bg-[#1a1a1a] rounded-t-[32px] p-6 pb-10 space-y-6 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
             onClick={e => e.stopPropagation()}
           >
             {/* Handle bar */}
-            <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto -mt-2" />
+            <div className="w-12 h-1.5 bg-white/15 rounded-full mx-auto -mt-2" />
             
             <div className="px-2">
               <h3 className="text-lg font-bold font-display mb-6">Temporizador de soneca</h3>
@@ -757,7 +757,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                     }}
                     className="w-full flex items-center justify-between py-4 px-2 hover:bg-white/5 rounded-xl transition-colors group"
                   >
-                    <span className={`text-base ${selectedTimer === option ? "text-white font-semibold" : "text-slate-300"}`}>
+                    <span className={`text-base ${selectedTimer === option ? "text-white font-semibold" : "text-white/70"}`}>
                       {option}
                     </span>
                     {/* Os botões de -/+ que ficavam aqui eram mortos (sem
@@ -782,7 +782,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   }}
                   className="w-full py-4 px-2 text-left hover:bg-white/5 rounded-xl transition-colors"
                 >
-                  <span className="text-base text-slate-300">Personalizar</span>
+                  <span className="text-base text-white/70">Personalizar</span>
                 </button>
               </div>
             </div>
@@ -812,9 +812,9 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                     type="number" 
                     value={customHours}
                     onChange={(e) => setCustomHours(e.target.value)}
-                    className="w-16 bg-transparent border-b-2 border-slate-400 text-center text-2xl font-medium focus:border-white outline-none transition-colors"
+                    className="w-16 bg-transparent border-b-2 border-white/40 text-center text-2xl font-medium focus:border-white outline-none transition-colors"
                   />
-                  <span className="text-sm text-slate-300">Horas</span>
+                  <span className="text-sm text-white/70">Horas</span>
                 </div>
                 
                 <div className="flex flex-col items-center gap-2">
@@ -822,20 +822,20 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                     type="number" 
                     value={customMinutes}
                     onChange={(e) => setCustomMinutes(e.target.value)}
-                    className="w-16 bg-transparent border-b-2 border-slate-400 text-center text-2xl font-medium focus:border-white outline-none transition-colors"
+                    className="w-16 bg-transparent border-b-2 border-white/40 text-center text-2xl font-medium focus:border-white outline-none transition-colors"
                   />
-                  <span className="text-sm text-slate-300">Minutos</span>
+                  <span className="text-sm text-white/70">Minutos</span>
                 </div>
               </div>
 
-              <p className="text-center text-sm text-slate-400">
+              <p className="text-center text-sm text-white/50">
                 (máx: 24 horas, mín: 1 minuto)
               </p>
 
               <div className="flex justify-end gap-6 pt-2">
                 <button 
                   onClick={() => setShowCustomTimer(false)}
-                  className="text-sm font-bold text-slate-300 hover:text-white uppercase tracking-wider px-2 py-1"
+                  className="text-sm font-bold text-white/70 hover:text-white uppercase tracking-wider px-2 py-1"
                 >
                   Cancelar
                 </button>
@@ -844,7 +844,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                     setSelectedTimer(`${customHours}h ${customMinutes}m`);
                     setShowCustomTimer(false);
                   }}
-                  className="text-sm font-bold text-slate-300 hover:text-white uppercase tracking-wider px-2 py-1"
+                  className="text-sm font-bold text-white/70 hover:text-white uppercase tracking-wider px-2 py-1"
                 >
                   Ok
                 </button>
@@ -857,21 +857,21 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {/* Car Mode Safety Note Modal */}
       {showCarModeEntry && (
         <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-[#0d1626] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative">
-            <button onClick={() => setShowCarModeEntry(false)} className="absolute right-6 top-6 text-slate-400" aria-label="Fechar">
+          <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative">
+            <button onClick={() => setShowCarModeEntry(false)} className="absolute right-6 top-6 text-white/50" aria-label="Fechar">
               <ChevronDown className="w-6 h-6 rotate-180" />
             </button>
             <div className="text-center space-y-4 pt-4">
               <h3 className="text-xl font-bold font-display">Nota de segurança</h3>
-              <p className="text-sm text-slate-300 leading-relaxed">
+              <p className="text-sm text-white/70 leading-relaxed">
                 Não interaja com este aplicativo enquanto dirige. Use este aplicativo somente quando permitido por lei e pelas regras de trânsito aplicáveis e quando for seguro fazê-lo.
               </p>
-              <p className="text-sm text-slate-300 leading-relaxed font-semibold italic">
+              <p className="text-sm text-white/70 leading-relaxed font-semibold italic">
                 Usar o aplicativo AllBook durante a condução é perigoso e pode resultar em ferimentos graves, morte ou danos à propriedade.
               </p>
               <Button 
                 onClick={proceedToBluetooth}
-                className="w-full bg-white text-black hover:bg-slate-200 font-bold py-6 rounded-full mt-4"
+                className="w-full bg-white text-black hover:bg-white/90 font-bold py-6 rounded-full mt-4"
               >
                 Ouça em seu carro
               </Button>
@@ -883,8 +883,8 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {/* Bluetooth Connection Modal */}
       {showBluetoothPermission && (
         <div className="fixed inset-0 z-[130] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-[#0d1626] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative text-center">
-            <button onClick={() => setShowBluetoothPermission(false)} className="absolute right-6 top-6 text-slate-400" aria-label="Fechar">
+          <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative text-center">
+            <button onClick={() => setShowBluetoothPermission(false)} className="absolute right-6 top-6 text-white/50" aria-label="Fechar">
               <ChevronDown className="w-6 h-6 rotate-180" />
             </button>
             
@@ -898,7 +898,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               <h3 className="text-lg font-bold leading-tight">
                 Conectar por Bluetooth?
               </h3>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-white/50">
                 Isso permite que o AllBook se conecte automaticamente a dispositivos Bluetooth próximos.
               </p>
               <div className="space-y-3 pt-4">
@@ -911,7 +911,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 </Button>
                 <button 
                   onClick={() => setShowBluetoothPermission(false)}
-                  className="text-sm font-bold text-slate-300 hover:text-white pt-2 block w-full"
+                  className="text-sm font-bold text-white/70 hover:text-white pt-2 block w-full"
                 >
                   Cancelar
                 </button>
