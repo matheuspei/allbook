@@ -82,29 +82,38 @@ function Router() {
     <div className={`min-h-screen bg-[#141414] ${isBare ? "" : "pb-20"}`}>
       {!isBare && <TopNav />}
       <div className={!isBare && !isHomePage ? "pt-14" : ""}>
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/login" component={Login} />
-          <Route path="/discover" component={Discover} />
-          <Route path="/search" component={Search} />
-          <Route path="/library" component={Library} />
-          <Route path="/statistics" component={Statistics} />
-          <Route path="/profile/edit" component={ProfileEdit} />
-          <Route path="/profile/recommendations" component={RecommendationsEdit} />
-          <Route path="/profile" component={Profile} />
-          <Route path="/settings" component={SettingsPage} />
-          <Route path="/plans" component={Plans} />
-          <Route path="/community" component={Community} />
-          <Route path="/user/:slug" component={UserProfile} />
-          <Route path="/downloads" component={Downloads} />
-          <Route path="/notifications" component={Notifications} />
-          <Route path="/book/:id" component={BookDetails} />
-          <Route path="/person/:slug" component={PersonProfile} />
-          <Route path="/category/:slug" component={CategoryBooks} />
-          <Route path="/collection/:slug" component={Collection} />
-          <Route path="/player/:id" component={AudioPlayer} />
-          <Route component={NotFound} />
-        </Switch>
+        {/* Transição suave entre telas: a tela nova entra com um fade-in curto.
+            Feito com classe CSS (`animate-in fade-in`, do tw-animate-css) e NÃO
+            com framer/AnimatePresence de propósito — keyframe CSS não sofre o
+            "throttle" de requestAnimationFrame quando a janela perde o foco, então
+            a tela nunca fica presa num estado semitransparente; no pior caso ela
+            só aparece direto, sem o fade. `key={location}` re-dispara o fade a
+            cada troca de rota; `location` explícito no Switch casa a rota certa. */}
+        <div key={location} className="animate-in fade-in duration-200">
+          <Switch location={location}>
+            <Route path="/" component={Home} />
+            <Route path="/login" component={Login} />
+            <Route path="/discover" component={Discover} />
+            <Route path="/search" component={Search} />
+            <Route path="/library" component={Library} />
+            <Route path="/statistics" component={Statistics} />
+            <Route path="/profile/edit" component={ProfileEdit} />
+            <Route path="/profile/recommendations" component={RecommendationsEdit} />
+            <Route path="/profile" component={Profile} />
+            <Route path="/settings" component={SettingsPage} />
+            <Route path="/plans" component={Plans} />
+            <Route path="/community" component={Community} />
+            <Route path="/user/:slug" component={UserProfile} />
+            <Route path="/downloads" component={Downloads} />
+            <Route path="/notifications" component={Notifications} />
+            <Route path="/book/:id" component={BookDetails} />
+            <Route path="/person/:slug" component={PersonProfile} />
+            <Route path="/category/:slug" component={CategoryBooks} />
+            <Route path="/collection/:slug" component={Collection} />
+            <Route path="/player/:id" component={AudioPlayer} />
+            <Route component={NotFound} />
+          </Switch>
+        </div>
       </div>
       {!isLoginPage && !isSearchPage && <MiniPlayer />}
       {!isBare && <BottomNav />}

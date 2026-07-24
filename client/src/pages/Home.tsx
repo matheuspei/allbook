@@ -353,7 +353,7 @@ function ContinueListeningSection() {
 
   return (
     <section className="px-4 py-2 space-y-4" data-testid="continue-listening">
-      <h2 className="font-display font-bold text-lg text-white">
+      <h2 className="font-display font-bold text-xl text-white">
         Continuar ouvindo como <span className="text-white/70">{readProfile().name}</span>
       </h2>
       <div className="flex overflow-x-auto scrollbar-hide gap-3 -mx-4 px-4 pb-2">
@@ -435,7 +435,7 @@ function BookCarousel({ slug, title, books }: { slug: string; title: string; boo
   return (
     <section className="py-2 space-y-3" data-testid={`carousel-${slug}`}>
       <div className="flex items-center justify-between px-4">
-        <h2 className="font-display font-bold text-lg text-white">{title}</h2>
+        <h2 className="font-display font-bold text-xl text-white">{title}</h2>
         <button
           onClick={() => setLocation(`/collection/${slug}`)}
           className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors"

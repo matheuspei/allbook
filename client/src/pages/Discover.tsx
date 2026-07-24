@@ -1,7 +1,6 @@
 import { Search, ChevronRight, Star } from "lucide-react";
 import { useLocation } from "wouter";
 import { useMemo } from "react";
-import { motion } from "framer-motion";
 
 import { genres, getBooksByIds, getBooksByGenre, genreSlug, type Genre } from "@/lib/books";
 import CategoryCard from "@/components/CategoryCard";
@@ -20,15 +19,20 @@ function normalize(str: string) {
 function GenreGrid({ onSelect }: { onSelect: (genre: Genre) => void }) {
   return (
     <section className="px-4 py-4 space-y-4" data-testid="discover-genres">
-      <h2 className="font-display font-bold text-lg text-white tracking-tight">Navegar por gênero</h2>
+      <h2 className="font-display font-bold text-xl text-white tracking-tight">Navegar por gênero</h2>
 
+      {/* Entrada em cascata dos cards, em CSS (tw-animate-css) e NÃO em framer:
+          keyframe CSS não trava semitransparente quando a janela perde o foco — o
+          framer, via requestAnimationFrame, chegava a deixar cards invisíveis. O
+          `animationDelay` por índice dá o efeito cascata; `fill-mode-both` mantém
+          o card no estado inicial durante o atraso, e o `fade-in` termina sempre
+          em opacidade cheia, então no pior caso o card só aparece sem o atraso. */}
       <div className="grid grid-cols-2 gap-3">
         {genres.map((genre, i) => (
-          <motion.div
+          <div
             key={genre.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: i * 0.04, ease: "easeOut" }}
+            className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300"
+            style={{ animationDelay: `${i * 45}ms` }}
           >
             <CategoryCard
               label={genre.label}
@@ -39,7 +43,7 @@ function GenreGrid({ onSelect }: { onSelect: (genre: Genre) => void }) {
               onClick={() => onSelect(genre.label)}
               testId={`card-genre-${normalize(genre.label).replace(/\s/g, "-")}`}
             />
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>
@@ -52,7 +56,7 @@ function TopTenRow() {
 
   return (
     <section className="py-3 space-y-3" data-testid="discover-top-ten">
-      <h2 className="font-display font-bold text-lg text-white tracking-tight px-4">Top 10 da semana</h2>
+      <h2 className="font-display font-bold text-xl text-white tracking-tight px-4">Top 10 da semana</h2>
 
       <div className="flex overflow-x-auto scrollbar-hide gap-3 px-4 pb-2 snap-x snap-mandatory">
         {books.map((book, idx) => {
@@ -120,7 +124,7 @@ function ReleasesRow() {
   return (
     <section className="py-3 space-y-3" data-testid="discover-releases">
       <div className="flex items-center justify-between px-4">
-        <h2 className="font-display font-bold text-lg text-white tracking-tight">Lançamentos</h2>
+        <h2 className="font-display font-bold text-xl text-white tracking-tight">Lançamentos</h2>
         <button className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors" data-testid="button-releases-see-all">
           Ver tudo
           <ChevronRight className="w-3.5 h-3.5" />
