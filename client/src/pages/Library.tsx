@@ -59,18 +59,19 @@ export default function Library() {
 
   // Baixados e Gêneros já têm tela; Séries e Autores ainda não existem, então
   // por ora avisam "em breve" (mesmo padrão do Perfil) em vez de não fazer nada.
+  // Ícones em tom neutro único (como o Perfil), não mais um gradiente de cor por
+  // item — o "arco-íris" dava cara de template feito por IA.
   const menuItems: {
     icon: typeof Download;
     label: string;
     count: string | null;
-    color: string;
     href?: string;
     soon?: boolean;
   }[] = [
-    { icon: Download, label: "Baixados", count: downloadCount.toString(), color: "from-blue-500 to-cyan-500", href: "/downloads" },
-    { icon: LayoutGrid, label: "Séries", count: null, color: "from-purple-500 to-pink-500", soon: true },
-    { icon: Users, label: "Autores", count: null, color: "from-amber-500 to-orange-500", soon: true },
-    { icon: FolderRoot, label: "Gêneros", count: null, color: "from-emerald-500 to-teal-500", href: "/discover" },
+    { icon: Download, label: "Baixados", count: downloadCount.toString(), href: "/downloads" },
+    { icon: LayoutGrid, label: "Séries", count: null, soon: true },
+    { icon: Users, label: "Autores", count: null, soon: true },
+    { icon: FolderRoot, label: "Gêneros", count: null, href: "/discover" },
   ];
 
   return (
@@ -257,8 +258,8 @@ export default function Library() {
             const inner = (
               <>
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center`}>
-                    <Icon className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-white/80" strokeWidth={1.8} />
                   </div>
                   <span className="font-bold">{item.label}</span>
                 </div>

@@ -22,9 +22,9 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (App.tsx NÃO está comigo — livre para B/C) | — | não — serviço launchd sempre no ar | 24/07 |
-| B | Busca Apple TV: grade "Em alta" na /search FEITO (commit 1498dae). PENDENTE: migrar p/ aba "Buscar" no menu de baixo — **preciso do App.tsx** (hoje na faixa A) | Search.tsx + SearchResults.tsx (feitos); pendentes: App.tsx (de A), BottomNav.tsx, TopNav.tsx | não — serviço launchd sempre no ar | 24/07 |
-| C | — livre — (fase 2 concluída 24/07: transições de página em CSS no App.tsx + títulos maiores em Início/Descobrir. App.tsx mexido SÓ no envelope de rotas — a aba de busca da B segue livre; BottomNav/TopNav intocados) | — | não — serviço launchd sempre no ar | 24/07 |
+| A | — livre — (comentar em qualquer livro FEITO 24/07, commit 9281380: caixa própria + lib/myComments.ts) | — | não — serviço launchd sempre no ar | 24/07 |
+| B | — livre — (busca virou aba "Buscar" no menu de baixo, modelo Apple TV — commit a3ab28e. Pendência de PRODUTO p/ Matheus: "Categorias"/browse perdeu porta fixa) | — | não — serviço launchd sempre no ar | 24/07 |
+| C | Premium: sino conta avisos de sistema + despir ícones coloridos (Notificações, Biblioteca) — Matheus liberou, A/B livres e commitadas | TopNav.tsx, notifications.ts, Notifications.tsx, Library.tsx | não — serviço launchd sempre no ar | 24/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —

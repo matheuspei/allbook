@@ -718,6 +718,29 @@ a subir os áudios de verdade a gente vê o que fica original."* Não mexer agor
   subiram de `text-lg` para `text-xl` (mais presença). O núcleo de vitrine
   (Início/Descobrir) ficou coeso entre si; as demais telas seguem como refinamento.
 
+**Fase 3 (mesma sessão) — sino e mais arco-íris despido:**
+- **O sino agora conta os avisos de sistema, não só as respostas.** Era um
+  descompasso: a tela dizia "3 avisos novos" e o sino ficava limpo, porque
+  `unreadNotificationCount` só olhava as respostas do `localStorage`. A raiz: os
+  avisos de sistema (mock em `Notifications.tsx`) não tinham "lida" persistido.
+  Agora o estado de lida deles mora em `notifications.ts` (`allbook_system_read`),
+  o contador soma respostas + sistema, e ler na tela apaga a marca do sino.
+- **Ícones despidos nas Notificações e na Biblioteca.** Os gradientes coloridos por
+  item (Notificações: cor por tipo de aviso; Biblioteca: Baixados/Séries/Autores/
+  Gêneros) viraram o mesmo quadradinho neutro do Perfil. **Isto reverte a decisão
+  da seção 4.6** (cor por tipo de aviso): a justificativa de "reusar o quadradinho
+  do Perfil" caducou quando o Perfil foi despido, e o Matheus prioriza a sobriedade
+  premium. Os **avatares de pessoa** (resposta) seguem coloridos — ali a cor é
+  identidade, não enfeite. A animação dos cards de notificação também migrou de
+  framer para CSS (mesmo bug de travar sem foco).
+- **Bloco de menu da Biblioteca (Baixados/Séries/Autores/Gêneros) — a remover e
+  SUBSTITUIR.** O Matheus concordou que ele não agrega (Séries/Autores são "em
+  breve"/mortos; Baixados duplica a aba do topo; Gêneros virou acesso acidental à
+  Descobrir depois que a busca tomou a porta do menu). Mas **não quer deixar o
+  espaço vazio** ("a aba ficaria morta"). Proposta em avaliação: trocar por uma
+  fileira "Sugestões para você" (recomendados a partir dos gêneros da biblioteca —
+  real, sem backend). **Aguardando o aval do formato antes de construir.**
+
 **Próximos passos desta frente:** propagar `text-xl` e o brilho de fundo às demais
 telas · conferir capas erradas com o olho (backlog da seção 5, ainda de pé).
 

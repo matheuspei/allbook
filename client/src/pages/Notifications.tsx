@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { motion } from "framer-motion";
 import { Bell, Flame, Gift, Mic, Sparkles, Tag, type LucideIcon } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { catalog, getBooksByIds } from "@/lib/books";
 import { findMember } from "@/lib/community";
 import {
+  isSystemRead,
   markAllNotificationsRead,
+  markAllSystemRead,
   markNotificationRead,
+  markSystemRead,
   readNotifications,
   type ReplyNotification,
 } from "@/lib/notifications";
@@ -202,7 +204,11 @@ const ORDEM_DAS_FAIXAS: Faixa[] = ["Hoje", "Esta semana", "Antes"];
 
 export default function Notifications() {
   const [, setLocation] = useLocation();
-  const [sistema, setSistema] = useState<Aviso[]>(() => avisosDoSistema());
+  // O "lida" dos avisos de sistema vem do localStorage (via `isSystemRead`), a
+  // mesma fonte que o sino do TopNav conta — assim tela e sino nunca discordam.
+  const [sistema, setSistema] = useState<Aviso[]>(() =>
+    avisosDoSistema().map((a) => ({ ...a, lida: isSystemRead(a.id) })),
+  );
   const [respostas, setRespostas] = useState<ReplyNotification[]>([]);
 
   useEffect(() => {
@@ -219,6 +225,7 @@ export default function Notifications() {
       // Marca no localStorage — é isso que apaga a marca do sino no TopNav.
       setRespostas(markNotificationRead(aviso.id));
     } else {
+      markSystemRead(aviso.id); // persiste no localStorage e atualiza o sino
       setSistema((atual) =>
         atual.map((item) => (item.id === aviso.id ? { ...item, lida: true } : item)),
       );
@@ -227,6 +234,7 @@ export default function Notifications() {
   }
 
   function marcarTodasLidas() {
+    markAllSystemRead(); // persiste no localStorage e atualiza o sino
     setSistema((atual) => atual.map((item) => ({ ...item, lida: true })));
     setRespostas(markAllNotificationsRead());
   }
@@ -315,14 +323,14 @@ function Cartao({
   const livro = aviso.bookId ? catalog.find((item) => item.id === aviso.bookId) : undefined;
 
   return (
-    <motion.button
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      // O atraso cresce por item, mas trava em 0,3s: sem o teto, uma lista
-      // longa faria o último aviso chegar segundos depois do primeiro.
-      transition={{ duration: 0.25, delay: Math.min(indice * 0.05, 0.3) }}
+    <button
+      // Entrada em cascata em CSS (não framer): keyframe não trava a tela
+      // semitransparente se a janela perde o foco. O atraso por item dá a
+      // cascata, com teto de 0,3s para a lista longa não chegar segundos depois;
+      // `fill-mode-both` segura o estado inicial durante o atraso.
+      style={{ animationDelay: `${Math.min(indice * 50, 300)}ms` }}
       onClick={() => onAbrir(aviso)}
-      className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-colors ${
+      className={`animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300 w-full flex items-start gap-3 p-3 rounded-xl text-left transition-colors ${
         aviso.lida
           ? "bg-white/[0.02] hover:bg-white/[0.06]"
           : "bg-gradient-to-r from-primary/12 to-white/[0.02] ring-1 ring-primary/20 hover:from-primary/20"
@@ -336,10 +344,11 @@ function Cartao({
           {aviso.inicial}
         </span>
       ) : (
-        <span
-          className={`w-10 h-10 rounded-xl bg-gradient-to-br ${aviso.cor} flex items-center justify-center shrink-0 shadow-md`}
-        >
-          {Icone && <Icone className="w-[18px] h-[18px] text-white" strokeWidth={2} />}
+        // Ícone de sistema em tom neutro único (como o Perfil e a Biblioteca) —
+        // não mais um gradiente de cor por tipo. O avatar de resposta acima segue
+        // com a cor da pessoa, que é identidade, não enfeite.
+        <span className="w-10 h-10 rounded-xl bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
+          {Icone && <Icone className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />}
         </span>
       )}
 
@@ -375,6 +384,6 @@ function Cartao({
           className="w-10 h-[54px] rounded-md object-cover shrink-0"
         />
       )}
-    </motion.button>
+    </button>
   );
 }

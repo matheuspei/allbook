@@ -7,8 +7,8 @@ import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notification
 export default function TopNav() {
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
-  // Quantas respostas "responderam você" ainda não foram lidas. É o que acende
-  // (e conta) a marca do sino. Zero = sino limpo, sem marca.
+  // Quantos avisos ainda não lidos: respostas "responderam você" + avisos de
+  // sistema. É o que acende e conta a marca do sino. Zero = sino limpo.
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {

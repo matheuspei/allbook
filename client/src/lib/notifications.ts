@@ -65,8 +65,52 @@ export function readNotifications(): ReplyNotification[] {
   }
 }
 
+/**
+ * Avisos de sistema (lançamento, oferta, sequência…). São mock e vivem em
+ * `Notifications.tsx`, mas o estado de "lida" mora aqui, no `localStorage`, para
+ * o sino do TopNav poder contá-los também — antes ele só via as respostas e
+ * ficava limpo mesmo com avisos de sistema por ler. Os ids abaixo são os que
+ * nascem NÃO-lidos; precisam bater com `avisosDoSistema()` em `Notifications.tsx`.
+ */
+const SYSTEM_READ_KEY = "allbook_system_read";
+export const SYSTEM_UNREAD_IDS = ["s1", "s2", "s3"];
+
+function readSystemRead(): string[] {
+  try {
+    const stored = JSON.parse(localStorage.getItem(SYSTEM_READ_KEY) || "[]");
+    return Array.isArray(stored) ? stored.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Um aviso de sistema está lido? Os que nascem lidos contam sempre como lidos. */
+export function isSystemRead(id: string): boolean {
+  return !SYSTEM_UNREAD_IDS.includes(id) || readSystemRead().includes(id);
+}
+
+export function markSystemRead(id: string): void {
+  const atual = readSystemRead();
+  if (SYSTEM_UNREAD_IDS.includes(id) && !atual.includes(id)) {
+    localStorage.setItem(SYSTEM_READ_KEY, JSON.stringify([...atual, id]));
+    emitChange();
+  }
+}
+
+export function markAllSystemRead(): void {
+  localStorage.setItem(SYSTEM_READ_KEY, JSON.stringify(SYSTEM_UNREAD_IDS));
+  emitChange();
+}
+
+function unreadSystemCount(): number {
+  const lidos = readSystemRead();
+  return SYSTEM_UNREAD_IDS.filter((id) => !lidos.includes(id)).length;
+}
+
+/** O que acende o sino: respostas por ler + avisos de sistema por ler. */
 export function unreadNotificationCount(): number {
-  return readNotifications().filter((item) => !item.read).length;
+  const respostas = readNotifications().filter((item) => !item.read).length;
+  return respostas + unreadSystemCount();
 }
 
 export function addNotification(entry: {
