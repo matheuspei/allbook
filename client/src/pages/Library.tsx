@@ -3,6 +3,9 @@ import { Link, useLocation } from "wouter";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback, remainingLabel } from "@/lib/playback";
+import { libraryBooks as lerBiblioteca, readDownloads } from "@/lib/library";
+import type { Book } from "@/lib/books";
+import { openSearch } from "@/lib/search";
 import { useToast } from "@/hooks/use-toast";
 
 import { useEffect, useState } from "react";
@@ -10,7 +13,7 @@ import { useEffect, useState } from "react";
 export default function Library() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [libraryBooks, setLibraryBooks] = useState<any[]>([]);
+  const [libraryBooks, setLibraryBooks] = useState<{ book: Book; addedAt: string }[]>([]);
 
   // Volta para onde a pessoa estava (Perfil, Início...), e não para um destino
   // fixo. Se ela abriu a URL direto, cai na Início.
@@ -42,11 +45,10 @@ export default function Library() {
   }, []);
 
   useEffect(() => {
-    const savedLibrary = JSON.parse(localStorage.getItem("allbook_library") || "[]");
-    setLibraryBooks(savedLibrary);
-    
-    const savedDownloads = JSON.parse(localStorage.getItem("allbook_downloads") || "[]");
-    setDownloadCount(savedDownloads.length);
+    // A lista vem de lib/library.ts, já resolvida pelo catálogo — a cópia de
+    // título/capa que ficava no localStorage envelhecia a cada build.
+    setLibraryBooks(lerBiblioteca());
+    setDownloadCount(readDownloads().length);
   }, []);
 
   const tabs = [
@@ -74,10 +76,9 @@ export default function Library() {
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="library-page">
-      {/* O deslocamento acompanha a altura do TopNav, que ganha uma segunda
-          fileira de links em telas estreitas (88px) e encolhe para 56px de
-          `sm` para cima — mesmo ajuste feito no PageHeader. */}
-      <header className="sticky top-[88px] sm:top-14 z-30 bg-[#141414]/95 backdrop-blur-md border-b border-white/5">
+      {/* O deslocamento acompanha a altura do TopNav: uma fileira só, 56px,
+          em qualquer largura — mesmo ajuste feito no PageHeader. */}
+      <header className="sticky top-14 z-30 bg-[#141414]/95 backdrop-blur-md border-b border-white/5">
         <div className="px-5 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -92,7 +93,12 @@ export default function Library() {
               <h1 className="text-2xl font-bold font-display" data-testid="text-library-title">Minha Lista</h1>
             </div>
             <div className="flex items-center gap-3">
-              <button className="p-2 hover:bg-white/10 rounded-full transition-colors" data-testid="button-search">
+              <button
+                onClick={() => { setLocation("/"); openSearch(); }}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Buscar"
+                data-testid="button-search"
+              >
                 <Search className="w-5 h-5 text-white/70" />
               </button>
               <Avatar className="w-8 h-8 border border-white/20">
@@ -133,27 +139,31 @@ export default function Library() {
               </Badge>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              {libraryBooks.map((item) => (
-                <Link key={item.id} href={`/book/${item.id}`}>
-                  <div className="group cursor-pointer space-y-2" data-testid={`card-library-${item.id}`}>
+              {libraryBooks.map(({ book }) => (
+                <Link key={book.id} href={`/book/${book.id}`}>
+                  <div className="group cursor-pointer space-y-2" data-testid={`card-library-${book.id}`}>
                     <div className="relative aspect-[3/4] rounded-lg overflow-hidden border border-white/5 shadow-lg">
-                      <img src={item.cover} alt={item.title} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" />
+                      <img src={book.cover} alt={book.title} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
-                        <Link href={`/player/${item.id}`}>
-                          <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-lg">
-                            <Play className="w-5 h-5 text-black fill-black ml-0.5" />
-                          </div>
-                        </Link>
+                        {/* Botão, não Link: link dentro de link é HTML inválido
+                            e deixava o clique no play ambíguo. */}
+                        <button
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLocation(`/player/${book.id}`); }}
+                          className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-lg"
+                          aria-label={`Ouvir ${book.title}`}
+                        >
+                          <Play className="w-5 h-5 text-black fill-black ml-0.5" />
+                        </button>
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-xs font-semibold truncate group-hover:text-amber-500 transition-colors">{item.title}</h3>
-                      <p className="text-[10px] text-white/40 truncate">{item.author}</p>
+                      <h3 className="text-xs font-semibold truncate group-hover:text-amber-500 transition-colors">{book.title}</h3>
+                      <p className="text-[10px] text-white/40 truncate">{book.author}</p>
                     </div>
                   </div>
                 </Link>
               ))}
-              <button className="aspect-[3/4] rounded-lg border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-2 hover:border-white/20 hover:bg-white/5 transition-colors" data-testid="button-add-more">
+              <button onClick={() => setLocation("/discover")} className="aspect-[3/4] rounded-lg border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-2 hover:border-white/20 hover:bg-white/5 transition-colors" data-testid="button-add-more">
                 <Plus className="w-8 h-8 text-white/30" />
                 <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">Adicionar</span>
               </button>

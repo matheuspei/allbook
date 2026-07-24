@@ -4,42 +4,28 @@ import { Download, Play, Trash2, WifiOff } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
-import { catalog, type Book } from "@/lib/books";
+import type { Book } from "@/lib/books";
+import { downloadedBooks, removeDownload } from "@/lib/library";
 
 /**
  * Downloads (`/downloads`) — os livros marcados como baixados na tela de
  * Detalhes do Livro.
  *
- * O `localStorage` guarda só uma lista de ids (é o que `BookDetails.tsx` grava
- * em `allbook_downloads`); os dados do livro vêm do catálogo. Enquanto não
- * existe áudio real, "baixado" é só uma marca — nenhum arquivo é gravado.
+ * A lista de ids mora em `lib/library.ts` (chave `allbook_downloads`); os
+ * dados do livro vêm do catálogo. Enquanto não existe áudio real, "baixado" é
+ * só uma marca — nenhum arquivo é gravado.
  */
-
-const STORAGE_KEY = "allbook_downloads";
-
-function readDownloads(): Book[] {
-  const ids: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  if (!Array.isArray(ids)) return [];
-
-  // Os ids são gravados como texto pelo BookDetails, mas o catálogo usa número.
-  return ids
-    .map((id) => catalog.find((book) => String(book.id) === String(id)))
-    .filter((book): book is Book => book !== undefined);
-}
 
 export default function Downloads() {
   const { toast } = useToast();
   const [books, setBooks] = useState<Book[]>([]);
 
   useEffect(() => {
-    setBooks(readDownloads());
+    setBooks(downloadedBooks());
   }, []);
 
   function remove(book: Book) {
-    const ids: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    const kept = Array.isArray(ids) ? ids.filter((id) => String(id) !== String(book.id)) : [];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(kept));
-
+    removeDownload(book.id);
     setBooks((current) => current.filter((item) => item.id !== book.id));
     toast({
       title: "Download removido",

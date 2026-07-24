@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { catalog, findGenreBySlug, slugify, duracaoEstimada } from "@/lib/books";
+import { catalog, findGenreBySlug, getBooksByGenre, slugify, duracaoEstimada } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { commentsForBook } from "@/lib/comments";
 import CommentThread from "@/components/CommentThread";
@@ -16,62 +16,46 @@ import PersonAvatar from "@/components/PersonAvatar";
 import { motion } from "framer-motion";
 import { getChapters, chaptersTotalSec, chapterStartSec, formatChapterDuration, formatBookDuration } from "@/lib/chapters";
 import { readPlaybackList, playbackPercent, remainingLabel, type Playback } from "@/lib/playback";
+import {
+  addToLibrary as salvarNaBiblioteca,
+  isInLibrary,
+  removeFromLibrary,
+} from "@/lib/library";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
-import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
-import coverRomance from "@/assets/images/cover-romance.png";
-import coverMystery from "@/assets/images/cover-mystery.png";
-import coverBusiness from "@/assets/images/cover-business.png";
-import coverBiography from "@/assets/images/cover-biography.png";
-import coverHorror from "@/assets/images/cover-horror.png";
-import coverProductivity from "@/assets/images/cover-productivity.png";
 
+/**
+ * Ficha curada à mão de alguns livros. Só o que o catálogo NÃO sabe entra aqui
+ * (resumo revisado, duração oficial, notas de narração/história). Título,
+ * autor, capa, nota e gênero vêm sempre do catálogo — quando a ficha também os
+ * trazia, ela cobria a capa real baixada com a genérica do gênero.
+ */
 const bookData: Record<string, any> = {
   "1": {
-    title: "O massacre da família Hope",
-    author: "Riley Sager",
     duration: "12h 45min",
-    rating: 4.5,
     reviewsCount: 128,
-    genre: "Mistério",
     summary: "Setenta anos atrás, a mansão Hope foi palco de um crime brutal que chocou a pacata cidade litorânea. Agora, Kit McDeere é contratada como cuidadora de Lenora Hope, a única sobrevivente do massacre, que nunca falou sobre aquela noite. Em uma casa caindo aos pedaços, Kit descobre que os segredos da família Hope são muito mais profundos e perigosos do que qualquer um poderia imaginar.",
-    cover: coverMystery,
     performance: 4.8,
     story: 4.3
   },
   "5": {
-    title: "Organize-se",
-    author: "Ciara Conlon",
     duration: "4h 42min",
-    rating: 4.3,
     reviewsCount: 116,
-    genre: "Produtividade",
     summary: "Neste guia prático, Ciara Conlon apresenta técnicas essenciais para retomar o controle de sua vida e carreira. Aprenda a eliminar distrações, priorizar o que realmente importa e criar sistemas de organização que funcionam no longo prazo. Um audiolivro indispensável para quem busca fazer mais em menos tempo sem sacrificar o bem-estar mental.",
-    cover: coverSelfhelp,
     performance: 4.5,
     story: 4.1
   },
   "101": {
-    title: "A Psicologia Financeira",
-    author: "Morgan Housel",
     duration: "8h 12min",
-    rating: 4.8,
     reviewsCount: 342,
-    genre: "Negócios",
     summary: "O sucesso financeiro tem menos a ver com a sua inteligência e muito mais com o seu comportamento. Morgan Housel compartilha 19 histórias curtas que exploram as formas estranhas como as pessoas pensam sobre o dinheiro e ensina como ter uma relação melhor com suas finanças, focando na liberdade e na paz de espírito em vez de apenas números.",
-    cover: coverBusiness,
     performance: 4.9,
     story: 4.7
   },
   "102": {
-    title: "Hábitos Atômicos",
-    author: "James Clear",
     duration: "9h 30min",
-    rating: 4.9,
     reviewsCount: 856,
-    genre: "Produtividade",
     summary: "Pequenas mudanças, resultados impressionantes. James Clear revela como transformações minúsculas no seu dia a dia podem levar a resultados gigantescos. Baseado em ciência biológica e psicológica, este audiolivro oferece um método comprovado para quebrar maus hábitos e construir rotinas positivas de forma automática.",
-    cover: coverProductivity,
     performance: 4.9,
     story: 4.9
   }
@@ -207,8 +191,8 @@ export default function BookDetails({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const library = JSON.parse(localStorage.getItem("allbook_library") || "[]");
-    setIsAdded(library.some((b: any) => b.id === params.id));
+    // A lista mora em lib/library.ts — a mesma fonte da Biblioteca e do Perfil.
+    setIsAdded(isInLibrary(Number(params.id)));
   }, [params.id]);
 
   /**
@@ -258,24 +242,15 @@ export default function BookDetails({ params }: { params: { id: string } }) {
 
 
   const addToLibrary = () => {
-    const library = JSON.parse(localStorage.getItem("allbook_library") || "[]");
     if (!isAdded) {
-      const newBook = {
-        id: params.id,
-        title: book.title,
-        author: book.author,
-        cover: book.cover,
-        addedAt: new Date().toISOString()
-      };
-      localStorage.setItem("allbook_library", JSON.stringify([...library, newBook]));
+      salvarNaBiblioteca(Number(params.id));
       setIsAdded(true);
       toast({
         title: "Adicionado!",
         description: `${book.title} agora está na sua biblioteca.`,
       });
     } else {
-      const filtered = library.filter((b: any) => b.id !== params.id);
-      localStorage.setItem("allbook_library", JSON.stringify(filtered));
+      removeFromLibrary(Number(params.id));
       setIsAdded(false);
       toast({
         title: "Removido",
@@ -284,11 +259,40 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     }
   };
 
-  const relatedBooks = [
-    { id: '101', title: "A Psicologia Financeira", author: "Morgan Housel", duration: "8h 12m", rating: 4.8, reviews: 342 },
-    { id: '102', title: "Hábitos Atômicos", author: "James Clear", duration: "9h 30m", rating: 4.9, reviews: 856, isExclusive: true },
-    { id: '1', title: "O massacre da família Hope", author: "Riley Sager", duration: "12h 45m", rating: 4.5, reviews: 128 },
-  ];
+  /**
+   * "Você também pode gostar": livros do mesmo gênero, tirando o próprio livro
+   * aberto. Antes era uma lista fixa de 3 títulos, igual em toda página — e que
+   * incluía o próprio livro que a pessoa estava vendo.
+   */
+  const relatedBooks = getBooksByGenre(book.genre)
+    .filter((entry) => String(entry.id) !== params.id)
+    .slice(0, 6);
+
+  // Id que não existe no catálogo: tela de "não encontrado" em vez de uma
+  // ficha falsa ("Título do Livro / Autor Desconhecido").
+  if (!catalog.some((entry) => String(entry.id) === params.id)) {
+    return (
+      <div
+        className="min-h-screen bg-[#141414] text-white flex flex-col items-center justify-center gap-4 px-6 text-center"
+        data-testid="book-not-found"
+      >
+        <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center">
+          <BookOpen className="w-10 h-10 text-white/20" />
+        </div>
+        <h1 className="text-xl font-bold font-display">Livro não encontrado</h1>
+        <p className="text-sm text-white/50 max-w-xs">
+          Este título não está no catálogo — o link pode estar errado.
+        </p>
+        <Button
+          onClick={() => setLocation("/discover")}
+          className="mt-2 bg-white text-black hover:bg-white/90 font-bold"
+          data-testid="button-back-to-discover"
+        >
+          Explorar o catálogo
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="book-details-page">
@@ -531,7 +535,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           <div className="space-y-3">
             {comentarios.length === 0 ? (
               <p className="text-sm text-white/40 py-2" data-testid="text-no-reviews">
-                Ninguém comentou este ainda.
+                Ninguém comentou este livro ainda.
               </p>
             ) : (
               comentarios.map((comment) => (
@@ -553,15 +557,8 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               <Link key={item.id} href={`/book/${item.id}`}>
                 <div className="min-w-[130px] snap-start space-y-2 cursor-pointer group" data-testid={`card-related-${item.id}`}>
                   <div className="relative aspect-[3/4] rounded-lg overflow-hidden shadow-lg border border-white/5 transition-transform group-hover:scale-105 duration-300">
-                    <img src={coverData[item.id as keyof typeof coverData] || coverScifi} alt={item.title} className="w-full h-full object-cover" />
+                    <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {item.isExclusive && (
-                      <div className="absolute top-2 left-2">
-                        <Badge className="bg-amber-500 text-black border-none text-[8px] px-1.5 py-0.5 font-bold uppercase">
-                          Exclusivo
-                        </Badge>
-                      </div>
-                    )}
                   </div>
                   <div className="space-y-0.5">
                     <h4 className="text-xs font-bold truncate group-hover:text-amber-500 transition-colors">{item.title}</h4>
@@ -580,10 +577,3 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     </div>
   );
 }
-
-const coverData = {
-  "1": coverMystery,
-  "5": coverSelfhelp,
-  "101": coverBusiness,
-  "102": coverProductivity
-};

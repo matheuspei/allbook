@@ -12,6 +12,7 @@ import {
 } from "@/lib/activity";
 import { findMember } from "@/lib/community";
 import { readFollowing } from "@/lib/following";
+import { readLibrary } from "@/lib/library";
 
 /**
  * Comunidade (`/community`).
@@ -39,11 +40,8 @@ export default function Community() {
     setFollowing(readFollowing());
     setEvents(activityFeed());
 
-    const library = JSON.parse(localStorage.getItem("allbook_library") || "[]");
-    const ids: number[] = Array.isArray(library)
-      ? library.map((item: { id?: string | number }) => Number(item?.id)).filter(Boolean)
-      : [];
-    setSugestoes(suggestions(ids));
+    // Os ids já saem normalizados de lib/library.ts, sem parse manual aqui.
+    setSugestoes(suggestions(readLibrary().map((item) => item.id)));
   }, []);
 
   const seguindo = following

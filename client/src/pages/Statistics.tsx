@@ -4,13 +4,23 @@ import PageHeader from "@/components/PageHeader";
 import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { readLibrary } from "@/lib/library";
 
 export default function Statistics() {
   const { toast } = useToast();
   const [activeFilter, setActiveFilter] = useState("Mensalmente");
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
+
+  // A contagem de títulos vem da biblioteca real (localStorage), a mesma que
+  // Perfil e Biblioteca mostram — antes era um "5" escrito à mão que
+  // contradizia as outras telas.
+  const [libraryCount, setLibraryCount] = useState(0);
+  useEffect(() => {
+    // lib/library.ts já engole storage corrompido e devolve lista vazia.
+    setLibraryCount(readLibrary().length);
+  }, []);
 
   const chartData: Record<string, any[]> = {
     "Hoje": [
@@ -46,16 +56,25 @@ export default function Statistics() {
   // Mesma chave usada no Perfil: os dois lugares abrem o mesmo painel.
   const quickStats: { icon: typeof Headphones; label: string; value: string; color: string; key: StatKey }[] = [
     { icon: Headphones, label: "Horas ouvidas", value: "47h", color: "from-blue-500 to-cyan-500", key: "horas" },
-    { icon: BookOpen, label: "Títulos", value: "5", color: "from-purple-500 to-pink-500", key: "titulos" },
+    { icon: BookOpen, label: "Títulos", value: String(libraryCount), color: "from-purple-500 to-pink-500", key: "titulos" },
     { icon: Flame, label: "Sequência", value: "3 sem.", color: "from-amber-500 to-orange-500", key: "sequencia" },
     { icon: Target, label: "Concluídos", value: "2", color: "from-emerald-500 to-teal-500", key: "concluidos" },
   ];
 
-  const handleShare = () => {
-    toast({
-      title: "Estatísticas compartilhadas!",
-      description: "O link das suas estatísticas foi copiado para a área de transferência.",
-    });
+  // Copia de verdade — o toast antigo anunciava a cópia sem copiar nada.
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copiado!",
+        description: "O link das suas estatísticas foi copiado para a área de transferência.",
+      });
+    } catch {
+      toast({
+        title: "Não deu para copiar",
+        description: "O navegador bloqueou o acesso à área de transferência.",
+      });
+    }
   };
 
   return (
@@ -188,7 +207,13 @@ export default function Statistics() {
         </section>
 
         <section className="space-y-4" data-testid="section-library-count">
-          <h2 className="text-lg font-bold font-display">Você tem 5 títulos na sua Biblioteca</h2>
+          <h2 className="text-lg font-bold font-display">
+            {libraryCount === 0
+              ? "Sua Biblioteca ainda está vazia"
+              : libraryCount === 1
+                ? "Você tem 1 título na sua Biblioteca"
+                : `Você tem ${libraryCount} títulos na sua Biblioteca`}
+          </h2>
           <Link href="/library">
             <div className="bg-white/5 rounded-xl border border-white/5 p-4 flex items-center justify-between hover:bg-white/8 transition-colors cursor-pointer" data-testid="card-library-link">
               <div className="flex items-center gap-4">

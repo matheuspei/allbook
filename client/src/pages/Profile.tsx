@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
 import { readRecommendations } from "@/lib/recommendations";
+import { readDownloads, readLibrary } from "@/lib/library";
 import { achievements, unlockedCount, unlockedAchievements, type Achievement } from "@/lib/achievements";
 import type { Book } from "@/lib/books";
 
@@ -81,11 +82,9 @@ export default function Profile() {
     setRecommendations(readRecommendations());
     setSession(readSession());
 
-    // Mesmas chaves usadas pelas telas Biblioteca e Downloads.
-    const savedLibrary = JSON.parse(localStorage.getItem("allbook_library") || "[]");
-    const savedDownloads = JSON.parse(localStorage.getItem("allbook_downloads") || "[]");
-    setLibraryCount(Array.isArray(savedLibrary) ? savedLibrary.length : 0);
-    setDownloadCount(Array.isArray(savedDownloads) ? savedDownloads.length : 0);
+    // Mesma fonte usada pelas telas Biblioteca e Downloads (lib/library.ts).
+    setLibraryCount(readLibrary().length);
+    setDownloadCount(readDownloads().length);
   }, []);
 
   /** Aviso para as opções cujas telas ainda não foram construídas. */

@@ -15,6 +15,13 @@ import { useToast } from "@/hooks/use-toast";
 import { catalog, findGenreBySlug, slugify } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { isRecommended as estaRecomendado, toggleRecommendation } from "@/lib/recommendations";
+import {
+  addDownload,
+  addToLibrary as salvarNaBiblioteca,
+  isDownloaded as estaBaixado,
+  isInLibrary,
+  removeFromLibrary,
+} from "@/lib/library";
 
 /**
  * O menu "Mais" (os três pontinhos) de um livro.
@@ -81,18 +88,14 @@ export default function BookActionsMenu({
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // O `localStorage` guarda os ids como texto desde antes deste componente.
+  // A URL do livro usa o id como texto; a lista e os downloads (lib/library.ts)
+  // trabalham com o id em número.
   const id = String(bookId);
+  const idNumerico = Number(bookId);
   const book = catalog.find((item) => String(item.id) === id);
 
-  const [isAdded, setIsAdded] = useState(() => {
-    const library = JSON.parse(localStorage.getItem("allbook_library") || "[]");
-    return library.some((item: { id: string }) => item.id === id);
-  });
-  const [isDownloaded, setIsDownloaded] = useState(() => {
-    const downloads = JSON.parse(localStorage.getItem("allbook_downloads") || "[]");
-    return downloads.includes(id);
-  });
+  const [isAdded, setIsAdded] = useState(() => isInLibrary(idNumerico));
+  const [isDownloaded, setIsDownloaded] = useState(() => estaBaixado(idNumerico));
   const [isDownloading, setIsDownloading] = useState(false);
   const [isRecommended, setIsRecommended] = useState(() => estaRecomendado(Number(bookId)));
 
@@ -105,30 +108,14 @@ export default function BookActionsMenu({
   const genero = findGenreBySlug(slugify(book.genre));
 
   function addToLibrary() {
-    const library = JSON.parse(localStorage.getItem("allbook_library") || "[]");
     if (isAdded) {
-      localStorage.setItem(
-        "allbook_library",
-        JSON.stringify(library.filter((item: { id: string }) => item.id !== id)),
-      );
+      removeFromLibrary(idNumerico);
       setIsAdded(false);
       toast({ title: "Removido", description: "O livro saiu da sua biblioteca." });
       return;
     }
 
-    localStorage.setItem(
-      "allbook_library",
-      JSON.stringify([
-        ...library,
-        {
-          id,
-          title: book!.title,
-          author: book!.author,
-          cover: book!.cover,
-          addedAt: new Date().toISOString(),
-        },
-      ]),
-    );
+    salvarNaBiblioteca(idNumerico);
     setIsAdded(true);
     toast({ title: "Adicionado!", description: `${book!.title} agora está na sua biblioteca.` });
   }
@@ -143,11 +130,7 @@ export default function BookActionsMenu({
     setIsDownloading(true);
 
     setTimeout(() => {
-      const downloads = JSON.parse(localStorage.getItem("allbook_downloads") || "[]");
-      if (!downloads.includes(id)) {
-        downloads.push(id);
-        localStorage.setItem("allbook_downloads", JSON.stringify(downloads));
-      }
+      addDownload(idNumerico);
       setIsDownloading(false);
       setIsDownloaded(true);
       toast({
