@@ -38,8 +38,10 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    host: "0.0.0.0",
-    allowedHosts: true,
+    // Só o próprio computador enxerga o servidor de desenvolvimento.
+    // Para testar no celular pela rede, trocar por "0.0.0.0" temporariamente.
+    host: "127.0.0.1",
+    allowedHosts: ["localhost", "127.0.0.1"],
     fs: {
       strict: true,
       deny: ["**/.*"],

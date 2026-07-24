@@ -10,7 +10,7 @@ export async function registerRoutes(
   // prefix all routes with /api
 
   // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  // e.g. storage.createUser(user) or storage.getUserByUsername(username)
 
   return httpServer;
 }
