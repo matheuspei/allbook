@@ -24,7 +24,7 @@ o quê **agora**.
 |--------|-----------------------------|-----------------------|--------------------------|------------|
 | A | — livre — (App.tsx NÃO está comigo — livre para B/C) | — | não — serviço launchd sempre no ar | 24/07 |
 | B | Busca Apple TV: grade "Em alta" na /search FEITO (commit 1498dae). PENDENTE: migrar p/ aba "Buscar" no menu de baixo — **preciso do App.tsx** (hoje na faixa A) | Search.tsx + SearchResults.tsx (feitos); pendentes: App.tsx (de A), BottomNav.tsx, TopNav.tsx | não — serviço launchd sempre no ar | 24/07 |
-| C | — livre — (terminou a faxina premium 24/07: itens 1, 2 e 5 feitos e commitados — Perfil, Descobrir, Home, CategoryCard, coverFallback, books. NÃO toquei App.tsx/BottomNav/TopNav: livres p/ B. Hierarquia tipográfica e transições de página adiadas, ver ROTEIRO 4.9) | — | não — serviço launchd sempre no ar | 24/07 |
+| C | — livre — (fase 2 concluída 24/07: transições de página em CSS no App.tsx + títulos maiores em Início/Descobrir. App.tsx mexido SÓ no envelope de rotas — a aba de busca da B segue livre; BottomNav/TopNav intocados) | — | não — serviço launchd sempre no ar | 24/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —

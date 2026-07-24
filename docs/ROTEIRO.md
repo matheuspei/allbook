@@ -677,18 +677,25 @@ adiado torná-lo condicional (aparece em todo livro, o que esvazia o selo). Nest
 sessão o Matheus decidiu **deixar como está**: *"é só protótipo; quando começarmos
 a subir os áudios de verdade a gente vê o que fica original."* Não mexer agora.
 
-**Adiado de propósito, com motivo:**
-- **Hierarquia tipográfica sistêmica** (títulos de herói maiores, mais respiro): só
-  compensa feita **em todas as telas de uma vez**. Aumentar títulos só na Descobrir
-  deixaria ela fora de sintonia com a Início e as demais — *pior* que não fazer.
-  Fica para uma passada dedicada, tocando todas as telas juntas.
-- **Transições entre telas** (fade/slide ao navegar): dependem do `App.tsx`, que
-  nesta sessão estava na **faixa da Janela B** (migração da busca para aba do menu
-  inferior). Cedido a ela; as transições entram quando o `App.tsx` liberar.
+**Fase 2 (mesma sessão — o Matheus liberou o `App.tsx` e pausou A e B):**
+- **Transições entre telas — FEITAS.** Cada rota entra com um fade curto, montado
+  no `App.tsx` (envelope do `Switch`, com `location` explícito para casar a rota
+  certa durante a troca). **Lição que custou teste, para não repetir:** a 1ª versão
+  usava framer-motion (`AnimatePresence`) e a animação **travava telas
+  semitransparentes** quando a janela do navegador perdia o foco — o
+  `requestAnimationFrame` do framer sofre *throttle* em janela/aba sem foco (o mesmo
+  fenômeno do `setInterval` já citado no CLAUDE.md). Trocado por **CSS**
+  (`animate-in fade-in`, do tw-animate-css): keyframe CSS não depende de rAF, então
+  no pior caso a tela **aparece direto**, nunca presa apagada. **Pela mesma razão,
+  a cascata dos cards da Descobrir também migrou de framer para CSS** — ela chegava
+  a deixar 7 dos 8 cards invisíveis. **Regra:** animação de ENTRADA (que começa
+  invisível) deve ser CSS, não framer, para não travar apagada se o foco sair.
+- **Hierarquia tipográfica — parcial.** Os títulos de seção da Início e da Descobrir
+  subiram de `text-lg` para `text-xl` (mais presença). O núcleo de vitrine
+  (Início/Descobrir) ficou coeso entre si; as demais telas seguem como refinamento.
 
-**Próximos passos desta frente:** replicar brilho + micro-animações nas outras
-telas · hierarquia tipográfica sistêmica · transições de página · conferir capas
-erradas com o olho (backlog da seção 5, ainda de pé).
+**Próximos passos desta frente:** propagar `text-xl` e o brilho de fundo às demais
+telas · conferir capas erradas com o olho (backlog da seção 5, ainda de pé).
 
 ---
 
