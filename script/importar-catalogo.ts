@@ -90,7 +90,10 @@ const ALVOS: Alvo[] = [
   { id: 106, original: "The Silent Patient", autor: "Alex Michaelides" },
   { id: 119, original: "The Da Vinci Code", autor: "Dan Brown" },
   { id: 120, original: "The Girl on the Train", autor: "Paula Hawkins" },
-  { id: 311, original: "Angels and Demons", autor: "Dan Brown" },
+  // A obra existe na Open Library, mas sem cover_i (a busca não trazia imagem);
+  // capa fixada por uma edição Pocket Star. Cuidado: o ISBN 9781400079179, que
+  // parecia servir, é o do "Código Da Vinci" — outro livro do mesmo autor.
+  { id: 311, original: "Angels and Demons", autor: "Dan Brown", isbnDaCapa: "9780743486224" },
   { id: 312, original: "Inferno", autor: "Dan Brown" },
   { id: 313, original: "Sharp Objects", autor: "Gillian Flynn" },
   { id: 314, original: "Into the Water", autor: "Paula Hawkins" },
@@ -122,7 +125,10 @@ const ALVOS: Alvo[] = [
   { id: 319, original: "Brida", autor: "Paulo Coelho" },
 
   // Produtividade
-  // "Organise-se" saiu no Brasil como "Chaos to Control" no original.
+  // "Organize-se" (Ciara Conlon): a Open Library não tem essa obra. Busca por
+  // "Chaos to Control" devolve zero resultados, e por autora só aparece
+  // "Productivity for Dummies" — livro diferente, não serve de capa. Fica na
+  // imagem genérica do gênero até surgir uma capa própria (não pôr a errada).
   { id: 5, original: "Chaos to Control", autor: "Ciara Conlon" },
   { id: 102, original: "Atomic Habits", autor: "James Clear" },
   { id: 107, original: "Essentialism", autor: "Greg McKeown" },

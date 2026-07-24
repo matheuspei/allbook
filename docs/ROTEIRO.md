@@ -611,22 +611,36 @@ propósito e o launchd o reergueu sozinho, com pid novo, voltando a HTTP 200.
 ---
 
 ## 5. Backlog de faxina técnica (não urgente)
-- **Capas faltando:** id 311 (e conferir id 5, "Organize-se", que também não tem
-  ficha no `catalog-enriched.ts`) — acrescentar aos `ALVOS` do
-  `script/importar-catalogo.ts` e rodar `npm run catalogo`.
-- **Paleta do player:** trocar os azul-marinho (`#0d1626`, `text-slate-*`) pelos
-  cinzas do tema (`#1a1a1a`, `white/NN`) — ver seção 4.7.
+- ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
+  foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
+  `cover_i`, por isso a busca por título nunca a trazia). Registrado no `ALVOS`
+  como `isbnDaCapa`. **Cuidado documentado:** o ISBN `9781400079179`, que parecia
+  servir, é o do "Código Da Vinci" — outro livro do mesmo autor. Baixada de forma
+  cirúrgica (só essa capa), sem re-rodar o script inteiro, para não sobrescrever
+  as 57 capas já conferidas à mão.
+  - **id 5 ("Organize-se", Ciara Conlon) fica SEM capa real de propósito:** a
+    Open Library não tem a obra — busca por "Chaos to Control" devolve zero, e por
+    autora só aparece "Productivity for Dummies" (livro diferente). Segue na
+    imagem genérica do gênero até surgir uma capa própria; **não pôr a errada.**
+- ~~**Paleta do player:** azul-marinho (`#0d1626`, `text-slate-*`)~~ — **FEITO
+  24/07**: `#0d1626` virou `#1a1a1a` e os `text-slate-*` viraram `white/NN`,
+  dentro do tema.
 - **Quando o backend nascer:** filtrar campos sensíveis do log de respostas em
   `server/index.ts`; mensagem genérica para erro 500 em produção; hash de senha
   (ver seção 4.7).
-- **`@assets` aponta para pasta inexistente** (`attached_assets/` em `vite.config.ts`). Criar a pasta vazia ou remover o atalho, antes que algum import futuro quebre.
-- **Metatags do Replit no `client/index.html`** (`og:image`/`twitter:image` apontam pro Replit). Trocar por uma imagem do AllBook antes de divulgar links.
+- ~~**`@assets` aponta para pasta inexistente**~~ — **FEITO 24/07**: pasta
+  `attached_assets/` criada (com LEIA-ME); o atalho do `vite.config.ts` deixou de
+  apontar para o vazio.
+- ~~**Metatags do Replit no `client/index.html`**~~ — **FEITO 24/07** (parcial):
+  descrições traduzidas para PT-BR e removidas as imagens e o `@replit` do Replit.
+  Falta só pôr uma imagem própria do AllBook (`og:image`) antes de divulgar links.
 - **Conferir as capas com o olho** (21/07): 57 dos 59 livros ganharam capa real da
   Open Library, mas a busca é por aproximação e pode trazer a arte de outro volume
   da mesma série — aconteceu com "O Problema dos 3 Corpos", já corrigido. Passar
   pelas 8 telas de categoria e, achando alguma trocada, fixar pelo `isbnDaCapa`.
-- **`Statistics.tsx` ainda usa os cartões coloridos antigos** — mesmo tratamento
-  sóbrio que o Perfil recebeu.
+- ~~**`Statistics.tsx` ainda usa os cartões coloridos antigos**~~ — **FEITO
+  24/07**: a grade de números ganhou ícone único da cor da marca (`bg-primary/10`),
+  sem gradiente por item, igual ao Perfil.
 - ~~Backup automático não existe~~ — resolvido em 21/07: o hook `.githooks/post-commit`
   envia todo commit para o GitHub sozinho. Antes disso, todo push era manual.
 - ~~`npm run build` quebrado~~ — resolvido em 21/07: faltava o `script/build.ts` que o `package.json` chamava. Agora gera `dist/public` (frontend) e `dist/index.cjs` (servidor), e o `npm start` sobe.
