@@ -23,6 +23,18 @@ import { catalog, type Book } from "@/lib/books";
 const LIBRARY_KEY = "allbook_library";
 const DOWNLOADS_KEY = "allbook_downloads";
 
+/**
+ * Avisa quem estiver com a lista na tela que ela mudou — mesmo espírito do
+ * `PLAYBACK_EVENT`. Sem isso, tirar um livro da lista pelo menu de "…" deixava
+ * a Biblioteca mostrando o item removido até a pessoa recarregar a página, já
+ * que o menu tem estado próprio e a tela não tinha como saber.
+ */
+export const LIBRARY_EVENT = "allbook:library";
+
+function notifyLibrary(): void {
+  window.dispatchEvent(new Event(LIBRARY_EVENT));
+}
+
 export interface LibraryItem {
   id: number;
   /** ISO de quando o livro entrou na lista. */
@@ -67,6 +79,7 @@ export function readLibrary(): LibraryItem[] {
 function writeLibrary(items: LibraryItem[]): void {
   try {
     localStorage.setItem(LIBRARY_KEY, JSON.stringify(items));
+    notifyLibrary();
   } catch {
     // localStorage cheio ou bloqueado: perder a marcação é chato, mas não é
     // motivo para quebrar o botão que a pessoa acabou de tocar.
@@ -125,6 +138,7 @@ export function readDownloads(): number[] {
 function writeDownloads(ids: number[]): void {
   try {
     localStorage.setItem(DOWNLOADS_KEY, JSON.stringify(ids));
+    notifyLibrary();
   } catch {
     /* mesmo raciocínio de writeLibrary */
   }

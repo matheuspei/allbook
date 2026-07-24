@@ -200,6 +200,17 @@ export function genreGradient(genre: Genre): string {
 }
 
 /**
+ * A mesma estimativa de duração, só que em minutos e em número — é a base de
+ * `duracaoEstimada` e o que a Biblioteca soma para dizer o tamanho do acervo
+ * ("41h de audição"). Livro sem número de páginas conta zero: somar menos é
+ * melhor do que inventar tempo.
+ */
+export function minutosEstimados(pages?: number): number {
+  if (!pages) return 0;
+  return Math.round((pages / 33) * 60);
+}
+
+/**
  * Duração estimada do audiolivro a partir do número de páginas.
  *
  * Um audiolivro roda perto de 9.000 palavras por hora e uma página tem umas 275
@@ -210,7 +221,7 @@ export function genreGradient(genre: Genre): string {
 export function duracaoEstimada(pages?: number): string | undefined {
   if (!pages) return undefined;
 
-  const totalDeMinutos = Math.round((pages / 33) * 60);
+  const totalDeMinutos = minutosEstimados(pages);
   const horas = Math.floor(totalDeMinutos / 60);
   const minutos = totalDeMinutos % 60;
   return `${horas}h ${String(minutos).padStart(2, "0")}min`;

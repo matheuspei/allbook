@@ -22,9 +22,15 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (comentar em qualquer livro FEITO 24/07, commit 9281380: caixa própria + lib/myComments.ts) | — | não — serviço launchd sempre no ar | 24/07 |
-| B | — livre — (busca virou aba "Buscar" no menu de baixo, modelo Apple TV — commit a3ab28e. Pendência de PRODUTO p/ Matheus: "Categorias"/browse perdeu porta fixa) | — | não — serviço launchd sempre no ar | 24/07 |
-| C | — livre — (Biblioteca 24/07: bloco de atalhos mortos trocado pela fileira "Sugestões para você" — commit + roteiro atualizados) | — | não — serviço launchd sempre no ar | 24/07 |
+| A | — livre — (Biblioteca reformada 24/07: filtros reais com contagem, lista/grade + ordenação, cabeçalho sem avatar duplicado — ver ROTEIRO 4.10) | — | não — serviço launchd sempre no ar | 24/07 21:25 |
+| B | **ocupada** — avatar que amplia ao toque (estilo Instagram), nos comentários e nas fotos de perfil | `components/AvatarAmpliavel.tsx` (novo), `components/CommentThread.tsx`, `components/PersonAvatar.tsx`, `pages/Profile.tsx`, `pages/UserProfile.tsx`, `pages/Community.tsx`, `pages/PersonProfile.tsx` | não — serviço launchd sempre no ar | 24/07 |
+| C | **ocupada** — perfil de EDITORA (livros/autores/narradores da editora) + comentar em perfil | `lib/publishers.ts` (novo) · `lib/comments.ts` · `lib/myComments.ts` · `components/CommentComposer.tsx` · `components/ProfileComments.tsx` (novo) · `pages/PublisherProfile.tsx` (novo) · `pages/BookDetails.tsx` · `App.tsx` | não — serviço launchd sempre no ar | 24/07 21:10 |
+
+> **C precisa de `pages/PersonProfile.tsx` (hoje com a Janela B).** A caixa de
+> comentar precisa entrar também no perfil de autor/narrador — hoje aquela tela só
+> *mostra* comentários, não deixa escrever. **B: ao terminar o avatar ampliável,
+> avise/limpe a linha** que C pluga o componente `ProfileComments` lá (é trocar o
+> bloco `ComentariosDaPessoa` por `<ProfileComments alvo={{ personSlug }} />`).
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —

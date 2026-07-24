@@ -749,6 +749,75 @@ telas · conferir capas erradas com o olho (backlog da seção 5, ainda de pé).
 
 ---
 
+## 4.10 Biblioteca reformada (24/07, noite)
+
+O Matheus abriu a tela e disse que ela **não agradava** — "tem muita coisa aqui
+para ser corrigida", citando o nome, a foto e os botões "Audiolivros",
+"Baixados", "Listas" que "não existem" — e deu **autonomia total** para
+redesenhar, com a régua de sempre: identidade própria, cara premium, muita
+informação **sem** poluir e **sem** cara de IA.
+
+**Decisão de vocabulário: "Biblioteca" é o lugar, "Minha lista" é o que você
+salvou.** A mesma coisa tinha três nomes — o menu de baixo dizia *Biblioteca*, o
+título da tela dizia *Minha Lista* e a seção de dentro dizia *Sua Biblioteca*.
+Renomear tudo para um só nome quebraria o vocabulário já espalhado (a fileira
+"Minha lista" da Início, o botão da ficha do livro, o atalho do Perfil), então
+os dois nomes ficaram, com **papéis distintos**: o lugar e o filtro.
+
+**Decisão de escopo: a Biblioteca é a união de tudo que é seu** — o que está na
+Minha lista, o que está sendo ouvido (**mesmo sem ter sido salvo**) e o que foi
+baixado. Antes ela mostrava só os salvos, e era isso que deixava os filtros sem
+sentido: sem essa união, "Baixados" e "Ouvindo" filtrariam um conjunto que já
+era só uma coisa.
+
+**As quatro abas antigas foram rejeitadas, e o motivo importa mais que a
+remoção.** *Todos / Audiolivros / Baixados / Listas* eram **enfeite**: o código
+guardava qual estava selecionada e **nunca usava esse valor** — clicar não mudava
+um pixel. Além disso "Audiolivros" não separa nada num app em que **tudo** é
+audiolivro, e "Listas" não existe no produto. Os filtros de hoje saem de estado
+real (progresso, lista, downloads), mostram a **contagem** junto e **somem quando
+zeram** — chip que não leva a lugar nenhum ensina a pessoa a desconfiar da tela.
+
+**Saíram do cabeçalho:** a **seta de voltar** (isto é aba fixa do menu de baixo,
+não tela interna — não há "de onde" voltar) e o **avatar**, que aparecia
+**duplicado**, logo abaixo do avatar do `TopNav`. No lugar, título grande e uma
+linha de resumo **calculada** ("9 títulos · 2 em andamento · 134h de audição").
+
+**O cartão do troféu "3 semanas seguidas" foi removido.** Era número **fixo no
+código** dentro de um degradê laranja — as duas coisas que a faxina premium (4.9)
+tirou do resto do app. Virou uma linha sóbria de acesso às Estatísticas, com o
+quadradinho neutro do Perfil. **Nada nesta tela é escrito à mão:** contagens,
+horas (`minutosEstimados`, a mesma conta da ficha) e progresso vêm de
+`lib/library.ts` e `lib/playback.ts`.
+
+**Densidade sem poluição:** o acervo virou **lista ou grade** (a preferência fica
+guardada), com **ordenação** por recentes, título, autor ou progresso; cada linha
+mostra gênero, duração estimada, selo de baixado e a porcentagem ouvida. O
+"Continuar ouvindo" virou **um destaque só** — o último livro —, e os demais em
+andamento aparecem na lista com barra de progresso, em vez de repetir a
+informação em dois lugares.
+
+**Duas armadilhas apuradas testando no navegador, para não repetir:**
+- **`snap-mandatory` come o `padding` do carrossel.** O encaixe alinha o primeiro
+  card ao início da área de rolagem e ignora o `px-5`: a capa encostava na borda
+  da tela. Conserto: `scroll-pl-5` junto com o padding. **A Início e a Descobrir
+  usam o mesmo padrão e têm o mesmo defeito** — ficou de fora por serem faixa de
+  outra janela.
+- **Botão com rótulo dentro de card estreito espreme o texto.** "Retomar" escrito
+  ao lado do tempo cortava "4h 15m restantes" no celular; virou botão redondo de
+  play, fora da coluna de texto.
+
+**`LIBRARY_EVENT` novo em `lib/library.ts`.** O menu "…" de um livro tem estado
+próprio, então tirar algo da lista por ele deixava a Biblioteca mostrando o item
+removido até recarregar a página. Agora gravar a lista ou os downloads dispara um
+evento, no mesmo espírito do `PLAYBACK_EVENT` — e a tela se refaz sozinha.
+
+**Ficou de fora (de propósito):** `BookDetails` e `BookActionsMenu` ainda escrevem
+"Minha Lista" com maiúscula no meio da frase; uniformizar a grafia é trabalho de
+outra faixa, não desta tela.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
