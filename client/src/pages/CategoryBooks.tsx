@@ -35,7 +35,9 @@ export default function CategoryBooks({ params }: { params: { slug: string } }) 
   }
 
   const livros = getBooksByGenre(genero).sort((a, b) => b.rating - a.rating);
-  const notaMedia = livros.reduce((soma, livro) => soma + livro.rating, 0) / livros.length;
+  const notaMedia = livros.length
+    ? livros.reduce((soma, livro) => soma + livro.rating, 0) / livros.length
+    : 0;
 
   return (
     <div className="pb-10" data-testid="category-books">

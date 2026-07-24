@@ -66,6 +66,10 @@ export function activityFeed(limit = 40): ActivityEvent[] {
   }
 
   for (const comment of comments) {
+    // Resposta a outro comentário não é atividade própria: fora do fio ela
+    // aparece sem contexto — e ainda tomava o lugar do comentário de primeiro
+    // nível da mesma pessoa no mesmo livro.
+    if (comment.parentId) continue;
     if (!following.includes(comment.authorSlug)) continue;
     const member = findMember(comment.authorSlug);
     const book = catalog.find((entry) => entry.id === comment.bookId);
@@ -82,7 +86,12 @@ export function activityFeed(limit = 40): ActivityEvent[] {
       member,
       book,
       recommended: existente?.recommended ?? false,
-      comment,
+      // Se a pessoa comentou mais de uma vez no mesmo livro, mostra o mais
+      // recente — antes ficava o último do array, que podia ser o mais antigo.
+      comment:
+        existente?.comment && existente.comment.date > comment.date
+          ? existente.comment
+          : comment,
     });
   }
 
@@ -147,7 +156,7 @@ export function suggestions(libraryIds: number[], limit = 4): Suggestion[] {
     return {
       member,
       books: books.slice(0, 3),
-      reason: `${books.length} recomendações`,
+      reason: books.length === 1 ? "1 recomendação" : `${books.length} recomendações`,
       weight: books.length,
     };
   });

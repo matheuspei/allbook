@@ -8,6 +8,7 @@ import { catalog, getBooksByIds, duracaoEstimada, genres, type Book, type Genre 
 import { collections, homeRows, getBooksForCollection } from "@/lib/collections";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
 import { SEARCH_OPEN_EVENT, consumeSearchRequest } from "@/lib/search";
+import { readProfile } from "@/lib/profile";
 import BookActionsMenu from "@/components/BookActionsMenu";
 
 import coverScifi from "@/assets/images/cover-scifi.png";
@@ -272,6 +273,7 @@ function HeroBillboard() {
             <button
               key={idx}
               data-testid={`button-hero-dot-${idx}`}
+              aria-label={`Destaque ${idx + 1}`}
               onClick={() => setCurrentIndex(idx)}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 idx === currentIndex
@@ -293,12 +295,12 @@ function CategoryGrid() {
     <section className="px-4 py-6 space-y-4" data-testid="category-grid">
       <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
         <button data-testid="filter-audiobooks" className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors">
-          Audiobooks
+          Audiolivros
         </button>
         <button data-testid="filter-podcasts" className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors">
           Podcasts
         </button>
-        <button data-testid="filter-categories" className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors flex items-center gap-1">
+        <button data-testid="filter-categories" onClick={() => setLocation("/discover")} className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors flex items-center gap-1">
           Categorias
           <ChevronRight className="w-3 h-3 rotate-90" />
         </button>
@@ -356,7 +358,7 @@ function ContinueListeningSection() {
   return (
     <section className="px-4 py-2 space-y-4" data-testid="continue-listening">
       <h2 className="font-display font-bold text-lg text-white">
-        Continuar ouvindo como <span className="text-white/70">matheus</span>
+        Continuar ouvindo como <span className="text-white/70">{readProfile().name}</span>
       </h2>
       <div className="flex overflow-x-auto scrollbar-hide gap-3 -mx-4 px-4 pb-2">
         {items.map((book) => (
@@ -471,7 +473,9 @@ function BookCarousel({ slug, title, books }: { slug: string; title: string; boo
                 */}
                 <BookActionsMenu bookId={book.id}>
                   <button
-                    className="p-1 rounded-full bg-black/50 text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    // No celular não existe hover: o botão fica sempre visível
+                    // e só de `sm` para cima passa a aparecer ao passar o mouse.
+                    className="p-1 rounded-full bg-black/50 text-white/70 hover:text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                     onClick={(e) => e.stopPropagation()}
                     aria-label={`Mais opções de ${book.title}`}
                     data-testid={`button-options-${book.id}`}

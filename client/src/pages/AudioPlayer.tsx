@@ -18,6 +18,33 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
 export default function AudioPlayer({ params }: { params: { id: string } }) {
+  // Id que não existe no catálogo: tela de "não encontrado" em vez de tocar
+  // silenciosamente o primeiro livro do catálogo. `/player/current` é o atalho
+  // da barrinha e continua caindo no último livro ouvido, mais abaixo.
+  if (params.id !== "current" && !catalog.some((item) => item.id === Number(params.id))) {
+    return (
+      <div
+        className="min-h-screen bg-[#141414] text-white flex flex-col items-center justify-center gap-4 px-6 text-center"
+        data-testid="player-not-found"
+      >
+        <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center">
+          <BookOpen className="w-10 h-10 text-white/20" />
+        </div>
+        <h1 className="text-xl font-bold font-display">Livro não encontrado</h1>
+        <p className="text-sm text-white/50 max-w-xs">
+          Este título não está no catálogo — o link pode estar errado.
+        </p>
+        <Link
+          href="/discover"
+          className="mt-2 px-6 py-2.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-white/90 transition-colors"
+          data-testid="link-back-to-discover"
+        >
+          Explorar o catálogo
+        </Link>
+      </div>
+    );
+  }
+
   const [, setLocation] = useLocation();
   const [isPlaying, setIsPlaying] = useState(true);
 
@@ -254,7 +281,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
           <div className="w-full flex flex-col items-center gap-12">
             <div className="text-4xl font-black tracking-tighter text-slate-300">
-              -02:28
+              -{formatTime(chapterDuration - positionInChapter)}
             </div>
 
             <div className="w-full flex items-center justify-around">
@@ -273,7 +300,11 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 {isPlaying ? <Pause className="w-16 h-16 fill-current" /> : <Play className="w-16 h-16 fill-current ml-2" />}
               </button>
 
-              <button className="p-6 text-white active:scale-90 transition-transform">
+              <button
+                onClick={salvarMarcacao}
+                className="p-6 text-white active:scale-90 transition-transform"
+                aria-label="Salvar marcação"
+              >
                 <Bookmark className="w-16 h-16" />
               </button>
             </div>
@@ -387,9 +418,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
           {/* Playback Controls */}
           <div className="w-full flex items-center justify-around px-2 shrink-0">
-            <button 
+            <button
               onClick={prevChapter}
               className="text-slate-300 hover:text-white transition-colors"
+              aria-label="Capítulo anterior"
             >
               <SkipBack className="w-7 h-7" />
             </button>
@@ -424,9 +456,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               </button>
             </div>
 
-            <button 
+            <button
               onClick={nextChapter}
               className="text-slate-300 hover:text-white transition-colors"
+              aria-label="Próximo capítulo"
             >
               <SkipForward className="w-7 h-7" />
             </button>
@@ -457,7 +490,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           className="flex flex-col items-center gap-1 min-w-[70px] group"
         >
           <Timer className={`w-5 h-5 ${selectedTimer !== "Desligado" ? "text-amber-500" : "text-slate-400"} group-hover:text-amber-500 transition-colors`} />
-          <span className="text-[9px] font-bold uppercase text-slate-500 group-hover:text-slate-300 transition-colors tracking-tight">Timer</span>
+          <span className="text-[9px] font-bold uppercase text-slate-500 group-hover:text-slate-300 transition-colors tracking-tight">Temporizador</span>
         </button>
 
         <button onClick={salvarMarcacao} className="flex flex-col items-center gap-1 min-w-[70px] group">
@@ -672,12 +705,12 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               <button
                 onClick={() => {
                   setShowMoreMenu(false);
-                  toast({ title: "Log de escuta", description: `Você está no capítulo ${currentChapter} de ${book.title}.` });
+                  toast({ title: "Histórico de escuta", description: `Você está no capítulo ${currentChapter} de ${book.title}.` });
                 }}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
                 <History className="w-5 h-5 text-slate-400 group-hover:text-white" />
-                <span className="text-sm font-medium">Log de escuta</span>
+                <span className="text-sm font-medium">Histórico de escuta</span>
               </button>
 
               <button
@@ -703,7 +736,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto -mt-2" />
             
             <div className="px-2">
-              <h3 className="text-lg font-bold font-display mb-6">Configurações do Timer</h3>
+              <h3 className="text-lg font-bold font-display mb-6">Temporizador de soneca</h3>
               
               <div className="space-y-1">
                 {[
@@ -727,17 +760,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                     <span className={`text-base ${selectedTimer === option ? "text-white font-semibold" : "text-slate-300"}`}>
                       {option}
                     </span>
+                    {/* Os botões de -/+ que ficavam aqui eram mortos (sem
+                        onClick) e ainda aninhavam button dentro de button —
+                        voltam quando "Fim do capítulo" tiver contagem real. */}
                     <div className="flex items-center gap-2">
-                      {option === "Fim do capítulo" && (
-                        <div className="flex items-center gap-2 mr-4">
-                          <button className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <button className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
                       {selectedTimer === option && (
                         <div className="w-5 h-5 text-white">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -832,7 +858,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showCarModeEntry && (
         <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
           <div className="w-full max-w-sm bg-[#0d1626] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative">
-            <button onClick={() => setShowCarModeEntry(false)} className="absolute right-6 top-6 text-slate-400">
+            <button onClick={() => setShowCarModeEntry(false)} className="absolute right-6 top-6 text-slate-400" aria-label="Fechar">
               <ChevronDown className="w-6 h-6 rotate-180" />
             </button>
             <div className="text-center space-y-4 pt-4">
@@ -858,7 +884,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showBluetoothPermission && (
         <div className="fixed inset-0 z-[130] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
           <div className="w-full max-w-sm bg-[#0d1626] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative text-center">
-            <button onClick={() => setShowBluetoothPermission(false)} className="absolute right-6 top-6 text-slate-400">
+            <button onClick={() => setShowBluetoothPermission(false)} className="absolute right-6 top-6 text-slate-400" aria-label="Fechar">
               <ChevronDown className="w-6 h-6 rotate-180" />
             </button>
             
@@ -870,10 +896,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
             <div className="space-y-4">
               <h3 className="text-lg font-bold leading-tight">
-                Isso permite que a AllBook se conecte automaticamente a dispositivos Bluetooth próximos.
+                Conectar por Bluetooth?
               </h3>
               <p className="text-sm text-slate-400">
-                Isso permite que a AllBook se conecte automaticamente a dispositivos Bluetooth próximos.
+                Isso permite que o AllBook se conecte automaticamente a dispositivos Bluetooth próximos.
               </p>
               <div className="space-y-3 pt-4">
                 <Button 

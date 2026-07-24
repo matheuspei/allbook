@@ -138,7 +138,7 @@ const catalogoCurado: BookCurado[] = [
   { id: 319, title: "Brida", author: "Paulo Coelho", narrator: "Tiago Abravanel", cover: coverSelfhelp, rating: 4.2, genre: "Autoajuda" },
 
   // Produtividade
-  { id: 5, title: "Organize-se", author: "Ciara Conlon", narrator: "Maitê Cunha", cover: coverSelfhelp, rating: 4.3, genre: "Produtividade" },
+  { id: 5, title: "Organize-se", author: "Ciara Conlon", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.3, genre: "Produtividade" },
   { id: 102, title: "Hábitos Atômicos", author: "James Clear", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.9, genre: "Produtividade" },
   { id: 107, title: "Essencialismo", author: "Greg McKeown", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.6, genre: "Produtividade" },
   { id: 124, title: "Os 7 Hábitos", author: "Stephen R. Covey", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.8, genre: "Produtividade" },

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { readSession, signOut, type Session } from "@/lib/auth";
+import { clearPlayback } from "@/lib/playback";
 import {
   SPEED_PRESETS,
   formatSpeed,
@@ -87,12 +88,13 @@ export default function Settings() {
     });
   }
 
-  /** Apaga lista e downloads. Não mexe no perfil nem na sessão. */
+  /** Apaga lista, downloads e progresso de escuta. Não mexe no perfil nem na sessão. */
   function handleClearData() {
     for (const { key } of DATA_KEYS) localStorage.removeItem(key);
+    clearPlayback();
     setCounts(readCounts());
     setConfirming(null);
-    toast({ title: "Dados apagados", description: "A lista e os downloads voltaram ao zero." });
+    toast({ title: "Dados apagados", description: "Lista, downloads e progresso de escuta voltaram ao zero." });
   }
 
   const storedTotal = DATA_KEYS.reduce((sum, { key }) => sum + (counts[key] || 0), 0);
