@@ -10,13 +10,34 @@
  * livro sem comentário semeado (a maioria — ex.: "Garota Exemplar") não tinha como
  * receber comentário nenhum. Quando houver servidor, isto vira POST/GET e a tela
  * não muda, porque ela já junta esta fonte com a fixa.
+ *
+ * **O alvo deixou de ser só o livro.** Agora um comentário seu pode ser sobre um
+ * livro, uma pessoa (autor/narrador) ou uma editora — os mesmos três alvos de
+ * `comments.ts`. Antes o campo era um `bookId` obrigatório, e por isso o perfil
+ * de autor, de narrador e de editora só *mostrava* o que os leitores fictícios
+ * tinham dito: não havia onde escrever. Um comentário guardado antes desta
+ * mudança tem só `bookId` e continua válido — nada precisou ser migrado.
  */
 
 const STORAGE_KEY = "allbook_my_comments";
 
+/**
+ * Onde o comentário foi deixado. Exatamente um campo por alvo — o tipo em união
+ * impede escrever um comentário que é de livro e de editora ao mesmo tempo.
+ */
+export type CommentTarget =
+  | { bookId: number; personSlug?: never; publisherSlug?: never }
+  | { personSlug: string; bookId?: never; publisherSlug?: never }
+  | { publisherSlug: string; bookId?: never; personSlug?: never };
+
 export interface MyComment {
   id: string;
-  bookId: number;
+  /** O `id` em `books.ts`. */
+  bookId?: number;
+  /** O `slug` em `people.ts`. */
+  personSlug?: string;
+  /** O `slug` em `publishers.ts`. */
+  publisherSlug?: string;
   text: string;
   /** ISO completo — ordena do mais novo para o mais velho. */
   date: string;
@@ -24,6 +45,15 @@ export interface MyComment {
 
 /** Quanto cabe num comentário. Curto de propósito: comentário, não resenha. */
 export const MAX_COMMENT = 600;
+
+/** Um comentário sem alvo nenhum é lixo — não teria como voltar à tela. */
+function temAlvo(item: MyComment): boolean {
+  return (
+    typeof item.bookId === "number" ||
+    typeof item.personSlug === "string" ||
+    typeof item.publisherSlug === "string"
+  );
+}
 
 export function readMyComments(): MyComment[] {
   try {
@@ -34,19 +64,25 @@ export function readMyComments(): MyComment[] {
       (item): item is MyComment =>
         item &&
         typeof item.id === "string" &&
-        typeof item.bookId === "number" &&
         typeof item.text === "string" &&
-        typeof item.date === "string",
+        typeof item.date === "string" &&
+        temAlvo(item),
     );
   } catch {
     return [];
   }
 }
 
-/** Os seus comentários de um livro, do mais novo para o mais velho. */
-export function myCommentsForBook(bookId: number): MyComment[] {
+function ehDoAlvo(item: MyComment, target: CommentTarget): boolean {
+  if (target.bookId !== undefined) return item.bookId === target.bookId;
+  if (target.personSlug !== undefined) return item.personSlug === target.personSlug;
+  return item.publisherSlug === target.publisherSlug;
+}
+
+/** Os seus comentários de um alvo, do mais novo para o mais velho. */
+export function myCommentsFor(target: CommentTarget): MyComment[] {
   return readMyComments()
-    .filter((item) => item.bookId === bookId)
+    .filter((item) => ehDoAlvo(item, target))
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 
@@ -56,13 +92,13 @@ function save(list: MyComment[]): MyComment[] {
 }
 
 /** Você comenta. Devolve a lista nova para a tela já mostrar. */
-export function addComment(bookId: number, text: string): MyComment[] {
+export function addComment(target: CommentTarget, text: string): MyComment[] {
   const clean = text.trim().slice(0, MAX_COMMENT);
   if (!clean) return readMyComments();
 
   const comment: MyComment = {
     id: `myc-${Date.now()}`,
-    bookId,
+    ...target,
     text: clean,
     date: new Date().toISOString(),
   };

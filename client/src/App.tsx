@@ -23,6 +23,7 @@ import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
 import PersonProfile from "@/pages/PersonProfile";
+import PublisherProfile from "@/pages/PublisherProfile";
 import CategoryBooks from "@/pages/CategoryBooks";
 import Collection from "@/pages/Collection";
 import AudioPlayer from "@/pages/AudioPlayer";
@@ -106,6 +107,7 @@ function Router() {
             <Route path="/notifications" component={Notifications} />
             <Route path="/book/:id" component={BookDetails} />
             <Route path="/person/:slug" component={PersonProfile} />
+            <Route path="/publisher/:slug" component={PublisherProfile} />
             <Route path="/category/:slug" component={CategoryBooks} />
             <Route path="/collection/:slug" component={Collection} />
             <Route path="/player/:id" component={AudioPlayer} />

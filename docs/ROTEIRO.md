@@ -818,6 +818,74 @@ outra faixa, não desta tela.
 
 ---
 
+## 4.11 Editora ganhou perfil, e comentar deixou de ser só de livro (24/07, noite)
+
+O Matheus pediu **perfil de editora**, com os livros dela, as pessoas ligadas a
+ela e liberdade para comentar — e comentário também nos perfis de autor e
+narrador. Rota nova: `/publisher/:slug`, com `lib/publishers.ts` por trás.
+
+**Por que a editora merecia perfil:** ela é a **terceira assinatura** de todo
+audiolivro (autor, narrador, editora) e era a única sem lugar nenhum no app — o
+nome não aparecia nem na ficha do livro. Quem gosta do trabalho de uma casa (a
+tradução dos clássicos, a escolha de quem narra) não tinha como ver o resto do
+catálogo dela.
+
+**Rejeitado: um campo `publisher` em cada livro do `books.ts`.** Seria o
+caminho óbvio e é o pior: a mesma editora se repetiria dezenas de vezes, e
+"Companhia das Letras" com uma vírgula fora do lugar viraria uma segunda
+editora. A relação é declarada **uma vez por editora**, como lista de ids, e o
+mapa livro → editora é derivado — que é também o formato que a tabela do banco
+vai querer.
+
+**Rejeitado: inventar ficha institucional (ano de fundação, sede, tamanho).**
+São empresas reais; "fundada em 1986 em São Paulo" sem fonte é dado falso, e
+daqui a um mês ninguém saberia que foi chute. A ficha mostra só o que o próprio
+catálogo do AllBook sabe — títulos, nota média, autores, narradores, gêneros —
+como `people.ts` já fazia com autor e narrador.
+
+**A atribuição livro → editora é aproximada, e está escrito no arquivo.** Boa
+parte confere com a edição brasileira real (Dan Brown no Arqueiro, Tolkien na
+HarperCollins, King na Suma); o resto foi agrupado por afinidade de catálogo
+para não sobrar editora com um título só — perfil de uma linha não mostra nada.
+**Quando o `npm run catalogo` passar a trazer o campo `publishers` da Open
+Library, é de lá que a lista deve sair.**
+
+**Comentário de editora entra na MESMA lista de `comments.ts`**, como terceiro
+alvo (`publisherSlug`), ao lado de livro e pessoa. É a mesma decisão que trouxe
+o antigo `person-comments.ts` para dentro: são a mesma coisa — alguém escreveu
+algo, com data e curtidas —, e separar obrigaria a triplicar ordenação, curtida
+e o resolver de autor.
+
+**`myComments.ts` deixou de ser só de livro.** O alvo virou união de livro,
+pessoa ou editora. Era o que faltava para o pedido "as pessoas são livres para
+comentar lá": os perfis **mostravam** o que os leitores fictícios disseram, mas
+não tinham onde escrever. Nada precisou ser migrado — comentário salvo antes tem
+`bookId` e continua válido.
+
+**Como o pedido foi interpretado:** o Matheus falou em "a editora, o autor e o
+narrador entrarem no perfil e comentarem". O app **não tem conta de editora nem
+de autor** — os perfis são fichas de catálogo, não usuários que fazem login.
+Então quem comenta é **o leitor** (você, com o nome do seu perfil), em qualquer
+um dos três tipos de perfil. Se um dia existir login de profissional, o alvo já
+está pronto; o que muda é quem escreve.
+
+**Selo quadrado para editora, bolinha para gente.** O avatar redondo é a
+linguagem de pessoa no app inteiro; editora é marca. A forma diferente evita que
+"Publicado por" na ficha do livro pareça mais um autor. A cor sai do mesmo hash
+de nome do avatar, então cada editora tem sempre a mesma cor.
+
+**Sem estrelas no perfil de editora**, pela razão já registrada em
+`Comment.rating`: nota de quem trabalha vira placar público, e a nota que ajuda
+a escolher (a da narração) pertence ao par livro+narrador.
+
+**Ficou de fora, por coordenação e não por decisão:** a caixa de comentar **no
+perfil de autor/narrador**. `pages/PersonProfile.tsx` estava declarado por outra
+janela no quadro de `COORDENACAO.md` na hora. O componente compartilhado
+(`ProfileComments`) já existe e está em uso no perfil de editora — plugar lá é
+trocar o bloco `ComentariosDaPessoa` por `<ProfileComments alvo={{ personSlug }} />`.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

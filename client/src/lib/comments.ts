@@ -11,12 +11,13 @@
  * É também o formato que o banco vai querer: uma tabela de comentários com
  * chave para usuário e para o alvo. Quando houver API, isto vira uma chamada.
  *
- * **O alvo pode ser um livro OU uma pessoa** (autor/narrador). Os dois moram na
- * mesma lista de propósito: são a mesma coisa — alguém escreveu algo, com data
- * e curtidas — e separá-los obrigava a duplicar ordenação, curtida e o resolver
- * de autor. Comentário de livro tem `bookId`; comentário de pessoa tem
- * `personSlug` + `about`. Nunca os dois. (Os de pessoa nasceram num arquivo à
- * parte, `person-comments.ts`, e foram trazidos para cá — o arquivo saiu.)
+ * **O alvo pode ser um livro, uma pessoa (autor/narrador) OU uma editora.** Os
+ * três moram na mesma lista de propósito: são a mesma coisa — alguém escreveu
+ * algo, com data e curtidas — e separá-los obrigava a duplicar ordenação,
+ * curtida e o resolver de autor. Comentário de livro tem `bookId`; de pessoa,
+ * `personSlug` + `about`; de editora, `publisherSlug`. Nunca mais de um. (Os de
+ * pessoa nasceram num arquivo à parte, `person-comments.ts`, e foram trazidos
+ * para cá — o arquivo saiu. A editora já nasceu aqui, pelo mesmo motivo.)
  *
  * Os autores são os leitores fictícios — esqueleto de propósito, até haver
  * gente de verdade.
@@ -33,6 +34,8 @@ export interface Comment {
   bookId?: number;
   /** Alvo-pessoa: o `slug` em `people.ts`. Presente só em comentário de pessoa. */
   personSlug?: string;
+  /** Alvo-editora: o `slug` em `publishers.ts`. Presente só em comentário de editora. */
+  publisherSlug?: string;
   /**
    * Em comentário de pessoa, sobre qual chapéu ela está falando — o mesmo nome
    * pode escrever e narrar, e "escreve bem" não é elogio à narração.
@@ -159,6 +162,26 @@ export const comments: Comment[] = [
 
   // — Morgan Housel, autor —
   { id: "p8", authorSlug: "marcos-v", personSlug: "morgan-housel", about: "author", likes: 22, dislikes: 1, date: "2026-07-07", text: "Escreve sobre dinheiro sem vender nada. Já é mais do que a estante inteira do lado." },
+
+  // — comentários sobre EDITORAS. Sem nota e sem bookId, como os de pessoa. —
+  // O assunto aqui é o trabalho editorial — tradução, escolha de narrador,
+  // catálogo, produção do áudio —, não o livro isolado. Nem toda editora tem
+  // comentário semeado de propósito: as vazias mostram que a caixa de escrever
+  // funciona em qualquer perfil.
+  { id: "e1", authorSlug: "carla-lima", publisherSlug: "aleph", likes: 39, dislikes: 2, date: "2026-07-19", text: "Eles tratam ficção científica como literatura séria, com glossário e nota de tradução. Depois de ouvir os três de Asimov aqui, edição descuidada de outra casa dói." },
+  { id: "e2", authorSlug: "felipe-g", publisherSlug: "aleph", likes: 8, dislikes: 14, date: "2026-06-27", text: "O catálogo é ótimo e o áudio demora demais a sair. Terminei de ler no papel antes de a versão narrada aparecer." },
+  { id: "e3", authorSlug: "beto", publisherSlug: "suma", likes: 46, dislikes: 5, date: "2026-07-17", text: "Escolheram o Otávio Marques para o King inteiro e não trocaram no meio da série. Parece pouco, mas é o que faz a maratona funcionar." },
+  { id: "e4", authorSlug: "ana-paula", publisherSlug: "suma", likes: 12, dislikes: 3, date: "2026-06-22", text: "Livro grande demais sem divisão de capítulo decente. Perdi meu lugar duas vezes em It e tive que caçar pelo texto." },
+  { id: "e5", authorSlug: "juliana-s", publisherSlug: "companhia-das-letras", likes: 51, dislikes: 4, date: "2026-07-20", text: "A tradução dos clássicos é a melhor que existe em português, e dá para ouvir isso — frase que não trava, ninguém tropeçando em inversão esquisita." },
+  { id: "e6", authorSlug: "marcos-v", publisherSlug: "companhia-das-letras", likes: 17, dislikes: 9, date: "2026-07-01", text: "Catálogo impecável e apresentação sisuda. As fichas dos audiolivros vêm quase vazias, só o resumo da orelha." },
+  { id: "e7", authorSlug: "ricardo", publisherSlug: "sextante", likes: 33, dislikes: 11, date: "2026-07-14", text: "Publicam o que funciona, e às vezes o mesmo livro três vezes com título diferente. Ainda assim é a estante que mais mexeu com a minha rotina." },
+  { id: "e8", authorSlug: "luciana", publisherSlug: "sextante", likes: 15, dislikes: 2, date: "2026-06-16", text: "A Maitê Cunha narrando praticamente todo o catálogo de produtividade dá uma unidade boa. Sei o que esperar antes de apertar o play." },
+  { id: "e9", authorSlug: "ana-paula", publisherSlug: "intrinseca", likes: 28, dislikes: 3, date: "2026-07-18", text: "Sabem exatamente onde cortar o capítulo para eu não conseguir parar. Isso é decisão de edição, não sorte do autor." },
+  { id: "e10", authorSlug: "juliana-s", publisherSlug: "intrinseca", likes: 9, dislikes: 7, date: "2026-06-30", text: "Metade do catálogo parece o mesmo livro com a capa trocada. Quando acerta, acerta muito." },
+  { id: "e11", authorSlug: "felipe-g", publisherSlug: "arqueiro", likes: 24, dislikes: 6, date: "2026-07-11", text: "Não fingem ser o que não são: é entretenimento bem feito, com narração limpa e ritmo que não deixa a atenção cair no trânsito." },
+  { id: "e12", authorSlug: "carla-lima", publisherSlug: "arqueiro", likes: 11, dislikes: 8, date: "2026-06-24", text: "O Cid Moreira nos três do Dan Brown é acerto. O resto do catálogo eu ouço e esqueço na mesma semana." },
+  { id: "e13", authorSlug: "beto", publisherSlug: "harpercollins-brasil", likes: 30, dislikes: 4, date: "2026-07-09", text: "Ter o Tolkien inteiro no mesmo lugar, com os nomes traduzidos do mesmo jeito em todos os livros, resolve uma confusão de trinta anos." },
+  { id: "e14", authorSlug: "luciana", publisherSlug: "objetiva", likes: 19, dislikes: 1, date: "2026-07-05", text: "Escolhem bem quem narra memória. A Lívia Bonfim lendo a Michelle Obama não parece atriz fazendo voz, parece alguém contando." },
 ];
 
 /** Do mais novo para o mais velho — a ordem em que se lê comentário. */
@@ -197,6 +220,18 @@ export function commentsForBook(bookId: number): Comment[] {
 export function commentsForPerson(personSlug: string): Comment[] {
   return comments
     .filter((item) => item.personSlug === personSlug && !item.parentId)
+    .sort((a, b) => engagementOf(b) - engagementOf(a) || byNewest(a, b));
+}
+
+/**
+ * Os comentários sobre uma editora, na mesma ordem por engajamento dos demais.
+ *
+ * O `!parentId` fica de guarda como no de pessoa: hoje não há resposta em
+ * perfil de editora, mas a estrutura já aceita.
+ */
+export function commentsForPublisher(publisherSlug: string): Comment[] {
+  return comments
+    .filter((item) => item.publisherSlug === publisherSlug && !item.parentId)
     .sort((a, b) => engagementOf(b) - engagementOf(a) || byNewest(a, b));
 }
 

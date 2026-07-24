@@ -6,8 +6,9 @@ import { initialOf, readProfile } from "@/lib/profile";
 import {
   addComment,
   removeComment,
-  myCommentsForBook,
+  myCommentsFor,
   MAX_COMMENT,
+  type CommentTarget,
   type MyComment,
 } from "@/lib/myComments";
 
@@ -20,29 +21,41 @@ import {
  * nenhum jeito de mudar isso. Agora qualquer livro recebe comentário, guardado no
  * `localStorage` (via `myComments.ts`), com o seu nome de perfil como autor.
  *
+ * **Serve aos três alvos** — livro, pessoa (autor/narrador) e editora —, porque a
+ * caixa é a mesma em qualquer um deles: identidade, campo, contador e botão. Um
+ * componente por tela de perfil só criaria três caixas para divergirem depois.
+ * Quem chama passa o alvo e o texto de convite.
+ *
  * **Sem estrela e sem curtir/responder no próprio comentário, de propósito:** a
  * tela decidiu não mostrar nota colada no nome de quem comenta (viraria "placar do
  * usuário" — ver `comments.ts` e `CommentThread`), e reagir ou responder ao
  * próprio comentário não faz sentido no esqueleto.
  */
-export default function CommentComposer({ bookId }: { bookId: number }) {
+export default function CommentComposer({
+  alvo,
+  placeholder = "Deixe seu comentário sobre este livro…",
+}: {
+  alvo: CommentTarget;
+  /** O convite dentro do campo. Muda com o alvo: livro, pessoa ou editora. */
+  placeholder?: string;
+}) {
   const { toast } = useToast();
   const perfil = readProfile();
   const [texto, setTexto] = useState("");
-  const [meus, setMeus] = useState<MyComment[]>(() => myCommentsForBook(bookId));
+  const [meus, setMeus] = useState<MyComment[]>(() => myCommentsFor(alvo));
 
   function publicar() {
     const limpo = texto.trim();
     if (!limpo) return;
-    addComment(bookId, limpo);
-    setMeus(myCommentsForBook(bookId));
+    addComment(alvo, limpo);
+    setMeus(myCommentsFor(alvo));
     setTexto("");
     toast({ title: "Comentário publicado" });
   }
 
   function apagar(id: string) {
     removeComment(id);
-    setMeus(myCommentsForBook(bookId));
+    setMeus(myCommentsFor(alvo));
     toast({ title: "Comentário apagado" });
   }
 
@@ -70,7 +83,7 @@ export default function CommentComposer({ bookId }: { bookId: number }) {
         <textarea
           value={texto}
           onChange={(e) => setTexto(e.target.value.slice(0, MAX_COMMENT))}
-          placeholder="Deixe seu comentário sobre este livro…"
+          placeholder={placeholder}
           rows={3}
           className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-white/25 resize-none"
           data-testid="comment-input"

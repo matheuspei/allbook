@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { catalog, findGenreBySlug, getBooksByGenre, slugify, duracaoEstimada } from "@/lib/books";
 import { findPerson } from "@/lib/people";
+import { publisherOfBook } from "@/lib/publishers";
+import PublisherMark from "@/components/PublisherMark";
 import { commentsForBook } from "@/lib/comments";
 import CommentThread from "@/components/CommentThread";
 import CommentComposer from "@/components/CommentComposer";
@@ -130,6 +132,45 @@ function PessoaDoLivro({
       data-testid={`link-person-${pessoa.slug}`}
     >
       {conteudo}
+      <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
+    </button>
+  );
+}
+
+/**
+ * A editora do livro, levando ao perfil dela.
+ *
+ * Fica na mesma grade de "Escrito por" e "Narrado por" porque é a terceira
+ * assinatura do audiolivro — antes o nome de quem publicou não aparecia em
+ * lugar nenhum do app. O selo é quadrado, e não redondo como o das pessoas:
+ * editora é marca, não gente (ver `PublisherMark`).
+ *
+ * Livro ainda sem editora atribuída simplesmente não mostra a linha, em vez de
+ * mostrar um bloco vazio.
+ */
+function EditoraDoLivro({ bookId }: { bookId: number }) {
+  const [, navegar] = useLocation();
+  const editora = publisherOfBook(bookId);
+
+  if (!editora) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => navegar(`/publisher/${editora.slug}`)}
+      aria-label={`Ver o perfil da editora ${editora.name}`}
+      className="flex items-center gap-3 rounded-xl bg-white/5 p-3 text-left ring-1 ring-white/5 transition-colors hover:bg-white/10 active:bg-white/15"
+      data-testid={`link-publisher-${editora.slug}`}
+    >
+      <PublisherMark name={editora.name} size="sm" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-[10px] uppercase tracking-widest text-white/40">
+          Publicado por
+        </span>
+        <span className="block truncate text-sm font-semibold text-white" data-testid="text-publisher">
+          {editora.name}
+        </span>
+      </span>
       <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
     </button>
   );
@@ -364,6 +405,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
         <div className="grid gap-2 py-2">
           <PessoaDoLivro papel="Escrito por" nome={book.author} testid="text-author" />
           <PessoaDoLivro papel="Narrado por" nome={book.narrator} testid="text-narrator" />
+          <EditoraDoLivro bookId={Number(params.id)} />
         </div>
 
         <div className="flex gap-3">
@@ -540,7 +582,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               esqueleto (fixos) vêm logo abaixo. Sem caixa, livro sem comentário
               semeado ficava mudo — foi o que o Matheus notou no "Garota Exemplar".
             */}
-            <CommentComposer bookId={Number(params.id)} />
+            <CommentComposer alvo={{ bookId: Number(params.id) }} />
             {comentarios.map((comment) => (
               <CommentThread
                 key={comment.id}
