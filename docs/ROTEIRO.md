@@ -54,7 +54,10 @@ Checklist das telas que faltam:
 - [x] **Configurações** — PRONTA (21/07). Rota `/settings`, chegando pelo Perfil.
   Só o que o app obedece de verdade: velocidade inicial do player, o que está
   guardado neste navegador (com faxina) e a conta. Ver as decisões abaixo.
-- [ ] Busca (tela própria)
+- [x] **Busca (tela própria)** — PRONTA (24/07). Rota `/search`, tela cheia (sem
+  menus, como o player). A lupa do TopNav, a barra da Descobrir e a lupa da
+  Biblioteca levam a ela. Fonte única em `components/SearchResults.tsx`. Ver a
+  decisão "Busca ganhou endereço próprio" abaixo.
 - [x] **Categoria / Gênero** — PRONTA (21/07). Rota `/category/:slug`. É o destino do
   link de gênero na tela do livro e dos cartões coloridos da Descobrir, que antes
   filtravam na própria tela (o `TODO` do `Discover.tsx` saiu com isso).
@@ -381,6 +384,37 @@ Revisão da navegação com o Matheus. O que ficou:
   a navegação só no BottomNav, que é o padrão mobile. Estatísticas continua acessível
   pelo Perfil, então não se perde.
 
+### Busca ganhou endereço próprio (24/07) — FEITO
+
+Antes a busca **funcionava, mas não tinha tela.** Era um overlay que morava
+dentro da Início e era aberto por uma ponte de evento (`lib/search.ts` +
+`SEARCH_OPEN_EVENT`): a lupa do TopNav, fora da Início, navegava para a Início e
+disparava o evento para o overlay abrir. A Descobrir tinha uma busca **separada**,
+com o mesmo `SearchResults` copiado. O item "Busca (tela própria)" do checklist
+seguia aberto porque busca de verdade **é uma tela**, não um overlay preso a outra.
+
+**O que foi decidido (com o Matheus, na hora):** criar a rota `/search`, tela
+cheia como o player/login, e **aposentar o overlay + a ponte de evento**. A lupa
+do TopNav, a barra da Descobrir e a lupa da Biblioteca agora só navegam para
+`/search`. Ganhos: **URL própria** (dá para voltar pelo botão do navegador), uma
+**implementação única** e o fim de um contorno que os próprios comentários do
+código admitiam ser gambiarra.
+
+- **Rejeitado: manter o overlay e só unir o código.** Era a opção conservadora
+  (não mexer no que funciona), mas deixava o checklist em aberto e o contorno de
+  pé. Como o overlay era reconhecidamente um remendo, trocá-lo por uma rota limpa
+  é melhoria, não reescrita gratuita. Isto **reverte a decisão de 22/07** que
+  montou a ponte de evento — decisão tomada quando a busca da Home estava "morta"
+  e o objetivo era só fazê-la abrir de qualquer tela.
+- **`SearchResults` virou um componente só** em `client/src/components/SearchResults.tsx`.
+  Some a duplicação Home/Descobrir que a auditoria (4.7) mandava unir "junto com a
+  tela própria de Busca" — as duas coisas, feitas juntas.
+- **A barra da Descobrir não busca mais ali:** virou um campo falso (botão com
+  cara de input) que leva a `/search`. Mantém a "barra de busca no topo" que o
+  conteúdo da Descobrir pede, sem uma segunda busca viva.
+- A lógica não mudou: casamento direto (sem acento) e, só se não achar, Fuse.js
+  para tolerar erro de digitação — o mesmo de antes, agora num lugar só.
+
 ### Conquistas viram muitas medalhas, coloridas (22/07)
 
 Eram 4 conquistas discretas, embutidas em `Profile.tsx`, de propósito sóbrias
@@ -527,9 +561,9 @@ o que foi **decidido, rejeitado ou adiado** — e o porquê.
   de quais livros o ganham — adiado.
 - **Abas da Biblioteca (Todos/Audiolivros/Baixados/Listas) não filtram**: dar
   função de verdade é uma feature, não um conserto — adiado.
-- **Unificar a busca duplicada** (Home e Discover têm o mesmo `SearchResults`
-  quase idêntico): vale extrair para um componente quando a tela própria de
-  Busca (checklist) for construída — fazer as duas coisas juntas.
+- ~~**Unificar a busca duplicada** (Home e Discover têm o mesmo `SearchResults`
+  quase idêntico)~~ — **FEITO em 24/07**, junto com a tela própria de Busca. Há um
+  `components/SearchResults.tsx` único; ver "Busca ganhou endereço próprio".
 - **"Minha lista" da Home é curada, não a biblioteca real**: alimentar do
   localStorage muda o conceito da fileira; decisão de produto para o Matheus.
 - **Senha em texto puro no `shared/schema.ts` / `MemStorage`**: sem uso real

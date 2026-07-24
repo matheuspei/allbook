@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback, remainingLabel } from "@/lib/playback";
 import { libraryBooks as lerBiblioteca, readDownloads } from "@/lib/library";
 import type { Book } from "@/lib/books";
-import { openSearch } from "@/lib/search";
 import { useToast } from "@/hooks/use-toast";
 
 import { useEffect, useState } from "react";
@@ -94,7 +93,7 @@ export default function Library() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => { setLocation("/"); openSearch(); }}
+                onClick={() => setLocation("/search")}
                 className="p-2 hover:bg-white/10 rounded-full transition-colors"
                 aria-label="Buscar"
                 data-testid="button-search"

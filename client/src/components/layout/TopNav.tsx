@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Bell, User, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { openSearch } from "@/lib/search";
 import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notifications";
 
 export default function TopNav() {
@@ -56,15 +55,8 @@ export default function TopNav() {
   const isHome = location === "/";
   const opaque = scrolled || !isHome;
 
-  /**
-   * A lupa é global, mas a busca mora na Início. Fora dela, volto para a Início
-   * antes de abrir; o pedido fica guardado em `search.ts` e é consumido quando a
-   * Início monta (ver o comentário lá).
-   */
-  const handleSearch = () => {
-    if (!isHome) navigate("/");
-    openSearch();
-  };
+  /** A lupa é global e leva à tela de Busca, que tem endereço próprio (`/search`). */
+  const handleSearch = () => navigate("/search");
 
   return (
     <header

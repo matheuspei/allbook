@@ -1,10 +1,8 @@
-import { Search, X, ChevronRight, Star } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Search, ChevronRight, Star } from "lucide-react";
 import { useLocation } from "wouter";
-import { useState, useMemo } from "react";
-import Fuse from "fuse.js";
+import { useMemo } from "react";
 
-import { catalog, genres, getBooksByIds, genreSlug, type Book, type Genre } from "@/lib/books";
+import { genres, getBooksByIds, genreSlug, type Genre } from "@/lib/books";
 
 
 const topWeekIds = [7, 102, 101, 104, 2, 130, 111, 129, 106, 4];
@@ -15,77 +13,6 @@ function normalize(str: string) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
-}
-
-function BookCard({ book }: { book: Book }) {
-  const [, setLocation] = useLocation();
-
-  return (
-    <div
-      className="group cursor-pointer"
-      onClick={() => setLocation(`/book/${book.id}`)}
-      data-testid={`card-discover-${book.id}`}
-    >
-      <div className="relative rounded-lg overflow-hidden aspect-[3/4] mb-2 transition-transform duration-200 group-hover:scale-105">
-        <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
-      </div>
-      <h3 className="text-xs font-medium text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-        {book.title}
-      </h3>
-      <p className="text-[10px] text-white/50 mt-0.5 line-clamp-1">{book.author}</p>
-    </div>
-  );
-}
-
-function SearchResults({ query, onClear }: { query: string; onClear: () => void }) {
-  const results = useMemo(() => {
-    if (!query.trim()) return [];
-
-    const q = normalize(query);
-
-    const direct = catalog.filter(
-      (book) => normalize(book.title).includes(q) || normalize(book.author).includes(q)
-    );
-
-    if (direct.length > 0) return direct;
-
-    const fuse = new Fuse(catalog, {
-      keys: ["title", "author"],
-      threshold: 0.4,
-      distance: 100,
-      minMatchCharLength: 2,
-      includeScore: true,
-    });
-
-    return fuse.search(query).map((result) => result.item);
-  }, [query]);
-
-  return (
-    <section className="px-4 py-4 space-y-4" data-testid="discover-search-results">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display font-bold text-xl text-white tracking-tight">Resultados</h2>
-        <span className="text-xs text-white/50">{results.length} encontrados</span>
-      </div>
-
-      {results.length > 0 ? (
-        <div className="grid grid-cols-3 gap-3">
-          {results.map((book) => (
-            <BookCard key={book.id} book={book} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16 space-y-3">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white/5 mb-2">
-            <Search className="w-6 h-6 text-white/30" />
-          </div>
-          <p className="text-white/50">Nenhum resultado para "{query}"</p>
-          <button onClick={onClear} className="text-primary text-sm font-bold" data-testid="button-discover-clear-search">
-            Limpar busca
-          </button>
-        </div>
-      )}
-    </section>
-  );
 }
 
 function GenreGrid({ onSelect }: { onSelect: (genre: Genre) => void }) {
@@ -217,44 +144,29 @@ function ReleasesRow() {
 
 export default function Discover() {
   const [, navegar] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const isSearching = searchQuery.trim().length > 0;
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414]" data-testid="page-discover">
+      {/*
+        A barra de busca leva à tela de Busca (`/search`), que é a única
+        implementação da busca. Aqui é só a porta de entrada: um campo falso
+        (botão com cara de input) que, ao ser tocado, navega para lá.
+      */}
       <div className="px-4 pt-4 pb-1">
-        <div className="relative">
+        <button
+          type="button"
+          onClick={() => navegar("/search")}
+          className="relative w-full flex items-center h-10 rounded-lg bg-white/10 pl-9 pr-3 text-left"
+          data-testid="button-discover-search"
+        >
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-          <Input
-            type="text"
-            placeholder="Buscar títulos, autores..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/10 border-none pl-9 pr-9 h-10 rounded-lg text-white placeholder:text-white/40 focus-visible:ring-1 focus-visible:ring-primary/50"
-            data-testid="input-discover-search"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
-              data-testid="button-discover-clear-input"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+          <span className="text-sm text-white/40">Buscar títulos, autores...</span>
+        </button>
       </div>
 
-      {isSearching ? (
-        <SearchResults query={searchQuery} onClear={() => setSearchQuery("")} />
-      ) : (
-        <>
-          <GenreGrid onSelect={(genero) => navegar(`/category/${genreSlug(genero)}`)} />
-          <TopTenRow />
-          <ReleasesRow />
-        </>
-      )}
+      <GenreGrid onSelect={(genero) => navegar(`/category/${genreSlug(genero)}`)} />
+      <TopTenRow />
+      <ReleasesRow />
     </div>
   );
 }

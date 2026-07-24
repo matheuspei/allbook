@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Discover from "@/pages/Discover";
+import Search from "@/pages/Search";
 import Library from "@/pages/Library";
 import Statistics from "@/pages/Statistics";
 import Profile from "@/pages/Profile";
@@ -70,7 +71,9 @@ function Router() {
   const isPlayerPage = location.startsWith('/player');
   /** Login é tela cheia como o player: sem menus, sem MiniPlayer. */
   const isLoginPage = location === '/login';
-  const isBare = isPlayerPage || isLoginPage;
+  /** Busca também é tela cheia, focada no campo, como o player e o login. */
+  const isSearchPage = location === '/search';
+  const isBare = isPlayerPage || isLoginPage || isSearchPage;
 
   const isHomePage = location === '/';
 
@@ -82,6 +85,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/login" component={Login} />
           <Route path="/discover" component={Discover} />
+          <Route path="/search" component={Search} />
           <Route path="/library" component={Library} />
           <Route path="/statistics" component={Statistics} />
           <Route path="/profile/edit" component={ProfileEdit} />
@@ -100,7 +104,7 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </div>
-      {!isLoginPage && <MiniPlayer />}
+      {!isLoginPage && !isSearchPage && <MiniPlayer />}
       {!isBare && <BottomNav />}
     </div>
   );

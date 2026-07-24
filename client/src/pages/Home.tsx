@@ -1,13 +1,10 @@
-import { Search, Play, Star, ChevronRight, X, Info, MoreVertical, ChevronLeft } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Play, Star, ChevronRight, Info, MoreVertical, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import Fuse from "fuse.js";
 
 import { catalog, getBooksByIds, duracaoEstimada, genres, type Book, type Genre } from "@/lib/books";
 import { collections, homeRows, getBooksForCollection } from "@/lib/collections";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
-import { SEARCH_OPEN_EVENT, consumeSearchRequest } from "@/lib/search";
 import { readProfile } from "@/lib/profile";
 import BookActionsMenu from "@/components/BookActionsMenu";
 
@@ -496,134 +493,9 @@ function BookCarousel({ slug, title, books }: { slug: string; title: string; boo
   );
 }
 
-function SearchResults({ query, onClear }: { query: string; onClear: () => void }) {
-  const [, setLocation] = useLocation();
-
-  const allBooks = catalog;
-
-  const filteredBooks = useMemo(() => {
-    if (!query.trim()) return [];
-
-    const normalize = (str: string) =>
-      str.normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-
-    const q = normalize(query);
-
-    const directResults = allBooks.filter(book =>
-      normalize(book.title).includes(q) ||
-      normalize(book.author).includes(q)
-    );
-
-    if (directResults.length > 0) return directResults;
-
-    const fuse = new Fuse(allBooks, {
-      keys: ['title', 'author'],
-      threshold: 0.4,
-      distance: 100,
-      minMatchCharLength: 2,
-      includeScore: true
-    });
-
-    return fuse.search(query).map(result => result.item);
-  }, [query, allBooks]);
-
-  return (
-    <section className="px-4 py-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display font-bold text-xl text-white">Resultados</h2>
-        <span className="text-xs text-white/50">{filteredBooks.length} encontrados</span>
-      </div>
-
-      {filteredBooks.length > 0 ? (
-        <div className="grid grid-cols-3 gap-3">
-          {filteredBooks.map((book) => (
-            <div key={book.id} className="group cursor-pointer" onClick={() => setLocation(`/book/${book.id}`)} data-testid={`card-search-${book.id}`}>
-              <div className="relative rounded-lg overflow-hidden aspect-[3/4] mb-2 transition-transform duration-200 group-hover:scale-105">
-                <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
-              </div>
-              <h3 className="text-xs font-medium text-white leading-tight line-clamp-2">{book.title}</h3>
-              <p className="text-[10px] text-white/50 mt-0.5">{book.author}</p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16 space-y-3">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white/5 mb-2">
-            <Search className="w-6 h-6 text-white/30" />
-          </div>
-          <p className="text-white/50">Nenhum resultado para "{query}"</p>
-          <button onClick={onClear} className="text-primary text-sm font-bold" data-testid="button-clear-search">
-            Limpar busca
-          </button>
-        </div>
-      )}
-    </section>
-  );
-}
-
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
-
-  /**
-   * A lupa do TopNav abre a busca daqui. Enquanto a Início está montada, o
-   * evento faz o trabalho; se a lupa foi tocada em outra tela, o TopNav navega
-   * para cá e o pedido guardado é consumido no mount. Ver `lib/search.ts`.
-   */
-  useEffect(() => {
-    const open = () => {
-      consumeSearchRequest();
-      setShowSearch(true);
-    };
-    window.addEventListener(SEARCH_OPEN_EVENT, open);
-    if (consumeSearchRequest()) setShowSearch(true);
-    return () => window.removeEventListener(SEARCH_OPEN_EVENT, open);
-  }, []);
-
   return (
     <div className="min-h-screen pb-24 bg-[#141414]" data-testid="page-home">
-      {showSearch && (
-        <div className="fixed inset-0 z-[60] bg-[#141414]">
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
-            <button onClick={() => { setShowSearch(false); setSearchQuery(""); }} className="text-white/70" data-testid="button-close-search">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <Input
-                type="text"
-                placeholder="Pesquisar títulos ou autores"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
-                className="w-full bg-white/10 border-none pl-9 pr-9 h-10 rounded-lg text-white placeholder:text-white/40 focus-visible:ring-1 focus-visible:ring-primary/50"
-                data-testid="input-search"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
-                  data-testid="button-clear-input"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="overflow-y-auto" style={{ height: "calc(100vh - 56px)" }}>
-            {searchQuery.trim() ? (
-              <SearchResults query={searchQuery} onClear={() => setSearchQuery("")} />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-white/30 text-sm">Digite para pesquisar</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       <HeroBillboard />
 
       <div className="relative z-10 -mt-4">
