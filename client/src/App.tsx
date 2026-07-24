@@ -72,9 +72,7 @@ function Router() {
   const isPlayerPage = location.startsWith('/player');
   /** Login é tela cheia como o player: sem menus, sem MiniPlayer. */
   const isLoginPage = location === '/login';
-  /** Busca também é tela cheia, focada no campo, como o player e o login. */
-  const isSearchPage = location === '/search';
-  const isBare = isPlayerPage || isLoginPage || isSearchPage;
+  const isBare = isPlayerPage || isLoginPage;
 
   const isHomePage = location === '/';
 
@@ -115,7 +113,7 @@ function Router() {
           </Switch>
         </div>
       </div>
-      {!isLoginPage && !isSearchPage && <MiniPlayer />}
+      {!isLoginPage && <MiniPlayer />}
       {!isBare && <BottomNav />}
     </div>
   );

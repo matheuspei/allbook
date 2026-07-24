@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Bookmark, Sparkles, User } from "lucide-react";
+import { Home, Bookmark, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BottomNav() {
@@ -8,7 +8,7 @@ export default function BottomNav() {
   const navItems = [
     { name: "Início", path: "/", icon: Home },
     { name: "Biblioteca", path: "/library", icon: Bookmark },
-    { name: "Categorias", path: "/discover", icon: Sparkles },
+    { name: "Buscar", path: "/search", icon: Search },
     { name: "Perfil", path: "/profile", icon: User },
   ];
 

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Bell, User, Search } from "lucide-react";
+import { Bell, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notifications";
 
 export default function TopNav() {
-  const [location, navigate] = useLocation();
+  const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   // Quantas respostas "responderam você" ainda não foram lidas. É o que acende
   // (e conta) a marca do sino. Zero = sino limpo, sem marca.
@@ -55,9 +55,6 @@ export default function TopNav() {
   const isHome = location === "/";
   const opaque = scrolled || !isHome;
 
-  /** A lupa é global e leva à tela de Busca, que tem endereço próprio (`/search`). */
-  const handleSearch = () => navigate("/search");
-
   return (
     <header
       data-testid="top-nav"
@@ -77,15 +74,6 @@ export default function TopNav() {
         </Link>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleSearch}
-            data-testid="button-search"
-            aria-label="Buscar"
-            className="p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Search className="w-5 h-5" />
-          </button>
           <Link
             href="/notifications"
             data-testid="button-notifications"
