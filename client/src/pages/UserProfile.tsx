@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 import { Check, Headphones, Library as LibraryIcon, Plus } from "lucide-react";
 
+import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { relativeDate } from "@/lib/activity";
@@ -63,11 +64,18 @@ export default function UserProfile() {
 
       <header className="px-5 pt-6 pb-6">
         <div className="flex items-center gap-4">
-          <div
-            className={`w-16 h-16 rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center font-display font-bold text-xl shrink-0`}
+          <AvatarAmpliavel
+            nome={member.name}
+            inicial={member.name.charAt(0)}
+            fundoClasse={`bg-gradient-to-br ${member.color}`}
+            legenda={`Na AllBook desde ${member.memberSince}`}
           >
-            {member.name.charAt(0)}
-          </div>
+            <div
+              className={`w-16 h-16 rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center font-display font-bold text-xl shrink-0`}
+            >
+              {member.name.charAt(0)}
+            </div>
+          </AvatarAmpliavel>
 
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold font-display tracking-tight" data-testid="text-user-name">

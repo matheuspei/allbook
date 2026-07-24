@@ -886,6 +886,56 @@ trocar o bloco `ComentariosDaPessoa` por `<ProfileComments alvo={{ personSlug }}
 
 ---
 
+## 4.12 Foto que amplia ao toque, estilo Instagram (24/07, noite)
+
+**O pedido:** tocar na foto de alguém — no comentário ou no perfil — e ela
+abrir grande, como no Instagram.
+
+**Onde vale e onde não vale.** Ampliar entrou no **comentário** (e na sua
+própria resposta), no **seu perfil**, no **perfil de outro leitor** e no de
+**autor/narrador**. Ficou **de fora** onde o avatar é porta de entrada e não
+retrato: a fileira "Seguindo" e a lista de atividade da **Comunidade**, a lista
+de **Notificações** e o cartão de autor/narrador da ficha do livro
+(`BookDetails`). Ali o toque leva ao perfil da pessoa, que é o que se espera —
+e é também o que o Instagram faz no feed.
+
+**Mudança de comportamento no comentário:** antes, bolinha e nome levavam os
+dois ao perfil. Agora **a bolinha amplia e o nome leva ao perfil**. Foi decisão
+consciente: quem toca numa foto espera ver a foto, e o nome continua sendo o
+caminho para o perfil (com rótulo dizendo isso, para leitor de tela).
+
+**Ampliar bolinha de iniciais parece inútil hoje, e é de propósito.** Nenhum
+leitor da comunidade tem foto ainda (e a pasta `assets/images/people/` está
+vazia): o que amplia é a letra sobre o degradê. O gesto já fica pronto e, no dia
+em que a foto chegar, nenhuma tela muda. Onde já **há** foto de verdade — a sua,
+do `ProfileEdit` — o resultado final já aparece.
+
+**Três armadilhas técnicas, todas encontradas testando no navegador** (estão
+comentadas em `components/AvatarAmpliavel.tsx`, e valem para qualquer camada
+sobreposta que se faça daqui em diante):
+
+1. **Camada desenhada no lugar onde nasce fica atrás do conteúdo.** O miolo das
+   telas mora dentro de um `main` com `z-10`, que cria uma caixa de
+   empilhamento: o `z-60` da camada só valia lá dentro, e os menus (`z-50`, no
+   nível de fora) passavam por cima.
+2. **Portal para o `<body>` conserta a pintura e quebra os eventos.** O React
+   escuta eventos num ponto só, o `#root`; o que nasce fora dali não chega até
+   ele — clique e tecla morrem. **O destino certo do portal é `#root`.**
+3. **O Esc não funcionou nem por `useEffect` nem pelo `onKeyDown` do React.** O
+   que funciona é registrar o ouvinte da janela dentro do `ref` do elemento, que
+   roda na hora em que ele entra na tela. De quebra, a camada toma o foco ao
+   abrir e o devolve ao avatar ao fechar — o certo para teclado e leitor de tela.
+
+**Apurado sem virar decisão (para ninguém repetir a investigação):** as abas que
+o Claude controla pelo Chrome ficam com `visibilityState: "hidden"`, e o
+navegador congela as animações nelas — medi **zero quadros em 300 ms**. Na
+prática: camada com Framer Motion abre pela metade e não some da página, e isso
+**não é bug do app**. Para conferir animação, o jeito é olhar no navegador do
+Matheus, ou verificar por estado e foco (foi o que fiz: o foco volta ao avatar
+depois do Esc, e ele só volta se o fechamento tiver rodado).
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

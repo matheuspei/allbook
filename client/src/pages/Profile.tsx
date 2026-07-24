@@ -30,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { useToast } from "@/hooks/use-toast";
 import { readSession, signOut, type Session } from "@/lib/auth";
@@ -153,8 +154,17 @@ export default function Profile() {
         <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-primary/25 via-primary/[0.06] to-transparent pointer-events-none" />
 
         <div className="relative flex items-center gap-4">
-          {/* Anel em degradê da marca ao redor do avatar. */}
-          <div className="p-[2.5px] rounded-full bg-gradient-to-br from-primary to-amber-400 shrink-0">
+          {/* Anel em degradê da marca ao redor do avatar. Tocar na foto amplia
+              (mesmo gesto do Instagram) — quem quer trocar a foto usa o
+              "Editar perfil" logo abaixo. */}
+          <AvatarAmpliavel
+            nome={profile.name}
+            foto={profile.photo || undefined}
+            inicial={initialOf(profile.name)}
+            legenda="você"
+            fundoClasse="bg-[#1e1e1e]"
+            className="p-[2.5px] bg-gradient-to-br from-primary to-amber-400 shrink-0"
+          >
             <Avatar className="w-16 h-16 border-2 border-[#141414]">
               {profile.photo && (
                 <AvatarImage src={profile.photo} alt={profile.name} className="object-cover" />
@@ -163,7 +173,7 @@ export default function Profile() {
                 {initialOf(profile.name)}
               </AvatarFallback>
             </Avatar>
-          </div>
+          </AvatarAmpliavel>
 
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold font-display tracking-tight truncate" data-testid="text-profile-name">

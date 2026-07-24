@@ -1,3 +1,4 @@
+import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import { cn } from "@/lib/utils";
 
 /**
@@ -22,6 +23,15 @@ export function hueDoNome(nome: string): number {
   return hash;
 }
 
+/**
+ * O degradê do avatar sem foto, como valor de CSS. Exportado para a versão
+ * ampliada poder repetir exatamente o mesmo fundo da bolinha pequena.
+ */
+export function fundoDoNome(nome: string): string {
+  const hue = hueDoNome(nome);
+  return `linear-gradient(145deg, hsl(${hue} 65% 46%), hsl(${(hue + 45) % 360} 70% 28%))`;
+}
+
 /** "J.R.R. Tolkien" → "JT". Primeira letra do primeiro e do último nome. */
 function iniciais(nome: string): string {
   const partes = nome.trim().split(/\s+/);
@@ -44,16 +54,21 @@ export default function PersonAvatar({
   photo,
   size = "md",
   className,
+  ampliavel,
+  legenda,
 }: {
   name: string;
   photo?: string;
   size?: AvatarSize;
   className?: string;
+  /** Tocar amplia a foto em tela cheia (ver `AvatarAmpliavel`). */
+  ampliavel?: boolean;
+  /** Linha discreta embaixo do nome na versão ampliada, ex.: "Autor e narrador". */
+  legenda?: string;
 }) {
   const { caixa, texto } = TAMANHOS[size];
-  const hue = hueDoNome(name);
 
-  return (
+  const avatar = (
     <div
       className={cn(
         "relative shrink-0 overflow-hidden rounded-full ring-2 ring-white/15 shadow-lg shadow-black/40",
@@ -66,12 +81,7 @@ export default function PersonAvatar({
         <img src={photo} alt={name} className="h-full w-full object-cover" />
       ) : (
         <>
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `linear-gradient(145deg, hsl(${hue} 65% 46%), hsl(${(hue + 45) % 360} 70% 28%))`,
-            }}
-          />
+          <div className="absolute inset-0" style={{ background: fundoDoNome(name) }} />
           {/* Brilho no alto: dá volume e evita o aspecto de retângulo chapado. */}
           <div className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent" />
           <span
@@ -87,5 +97,19 @@ export default function PersonAvatar({
         </>
       )}
     </div>
+  );
+
+  if (!ampliavel) return avatar;
+
+  return (
+    <AvatarAmpliavel
+      nome={name}
+      foto={photo}
+      inicial={iniciais(name)}
+      legenda={legenda}
+      fundoStyle={{ background: fundoDoNome(name) }}
+    >
+      {avatar}
+    </AvatarAmpliavel>
   );
 }

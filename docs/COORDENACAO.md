@@ -23,8 +23,8 @@ o quê **agora**.
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
 | A | — livre — (Biblioteca reformada 24/07: filtros reais com contagem, lista/grade + ordenação, cabeçalho sem avatar duplicado — ver ROTEIRO 4.10) | — | não — serviço launchd sempre no ar | 24/07 21:25 |
-| B | **ocupada** — avatar que amplia ao toque (estilo Instagram), nos comentários e nas fotos de perfil | `components/AvatarAmpliavel.tsx` (novo), `components/CommentThread.tsx`, `components/PersonAvatar.tsx`, `pages/Profile.tsx`, `pages/UserProfile.tsx`, `pages/Community.tsx`, `pages/PersonProfile.tsx` | não — serviço launchd sempre no ar | 24/07 |
-| C | **ocupada** — perfil de EDITORA (livros/autores/narradores da editora) + comentar em perfil | `lib/publishers.ts` (novo) · `lib/comments.ts` · `lib/myComments.ts` · `components/CommentComposer.tsx` · `components/ProfileComments.tsx` (novo) · `pages/PublisherProfile.tsx` (novo) · `pages/BookDetails.tsx` · `App.tsx` | não — serviço launchd sempre no ar | 24/07 21:10 |
+| B | — livre — (foto que amplia ao toque, estilo Instagram, 24/07: comentários + perfis — ver ROTEIRO 4.12. **`pages/PersonProfile.tsx` está liberado para a C**) | — | não — serviço launchd sempre no ar | 24/07 22:10 |
+| C | **em espera** — perfil de EDITORA entregue e commitado (4c1d654, ver ROTEIRO 4.11). Falta só plugar a caixa de comentar no perfil de autor/narrador — depende da B | — nenhum agora; aguardando `pages/PersonProfile.tsx` — | não — serviço launchd sempre no ar | 24/07 21:45 |
 
 > **C precisa de `pages/PersonProfile.tsx` (hoje com a Janela B).** A caixa de
 > comentar precisa entrar também no perfil de autor/narrador — hoje aquela tela só

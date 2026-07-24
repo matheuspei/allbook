@@ -77,7 +77,13 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
         />
 
         <div className="relative flex flex-col items-center px-4 pb-6 pt-8 text-center">
-          <PersonAvatar name={person.name} photo={person.photo} size="xl" />
+          <PersonAvatar
+            name={person.name}
+            photo={person.photo}
+            size="xl"
+            ampliavel
+            legenda={papeis.join(" e ")}
+          />
 
           <h1 className="mt-4 font-display text-2xl font-bold tracking-tight text-white">
             {person.name}

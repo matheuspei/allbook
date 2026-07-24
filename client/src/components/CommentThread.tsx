@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { CornerDownRight, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
 
+import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import { useToast } from "@/hooks/use-toast";
 import { repliesTo, type Comment } from "@/lib/comments";
 import { findMember, findMemberByName } from "@/lib/community";
@@ -273,9 +274,20 @@ function MinhaResposta({
     <div data-testid={`my-reply-${resposta.id}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[9px] font-bold shrink-0">
-            {initialOf(profile.name)}
-          </span>
+          <AvatarAmpliavel
+            nome={profile.name}
+            foto={profile.photo || undefined}
+            inicial={initialOf(profile.name)}
+            legenda="você"
+          >
+            <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[9px] font-bold shrink-0 overflow-hidden">
+              {profile.photo ? (
+                <img src={profile.photo} alt="" className="h-full w-full object-cover" />
+              ) : (
+                initialOf(profile.name)
+              )}
+            </span>
+          </AvatarAmpliavel>
           <span className="text-xs font-bold">
             {profile.name} <span className="font-normal text-white/30">· você</span>
           </span>
@@ -376,8 +388,13 @@ function Acoes({
 }
 
 /**
- * Quem escreveu. O nome leva ao perfil — é dali que sai o "seguir". Slug que
- * não existe mais aparece sem link, em vez de prometer uma tela vazia.
+ * Quem escreveu. Dois toques diferentes no mesmo bloco, como no Instagram:
+ * **a foto amplia** ali mesmo, **o nome leva ao perfil** — é dali que sai o
+ * "seguir". Antes a foto também levava ao perfil; virou o gesto de ampliar
+ * porque é o que se espera ao tocar numa foto, e o nome continua sendo o
+ * caminho para o perfil (com o rótulo dizendo isso, para quem usa leitor de
+ * tela). Slug que não existe mais aparece sem link nem ampliação, em vez de
+ * prometer uma tela vazia.
  */
 function AutorDoComentario({ slug, small }: { slug: string; small?: boolean }) {
   const [, navegar] = useLocation();
@@ -408,17 +425,25 @@ function AutorDoComentario({ slug, small }: { slug: string; small?: boolean }) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => navegar(`/user/${membro.slug}`)}
-      className="flex items-center gap-2 group"
-      aria-label={`Ver o perfil de ${membro.name}`}
-      data-testid={`link-reviewer-${membro.slug}`}
-    >
-      {avatar}
-      <span className={`${texto} font-bold group-hover:text-primary transition-colors`}>
+    <div className="flex items-center gap-2">
+      <AvatarAmpliavel
+        nome={membro.name}
+        inicial={membro.name.charAt(0)}
+        fundoClasse={`bg-gradient-to-br ${membro.color}`}
+        legenda="Leitor da AllBook"
+      >
+        {avatar}
+      </AvatarAmpliavel>
+
+      <button
+        type="button"
+        onClick={() => navegar(`/user/${membro.slug}`)}
+        className={`${texto} font-bold hover:text-primary transition-colors`}
+        aria-label={`Ver o perfil de ${membro.name}`}
+        data-testid={`link-reviewer-${membro.slug}`}
+      >
         {membro.name}
-      </span>
-    </button>
+      </button>
+    </div>
   );
 }
