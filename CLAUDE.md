@@ -100,8 +100,9 @@ Consequências práticas ao revisar:
   640px, ou use o modo dispositivo do DevTools.
 - A moldura tem o próprio `overflow`, então **quem rola é ela, não a janela**.
   Código que lê `window.scrollY` ou chama `window.scrollTo` não funciona na
-  prévia (funciona no app real). Ainda há `window.scrollTo` em `Discover.tsx` e
-  `BookDetails.tsx` — inofensivo, mas não faz nada na prévia.
+  prévia (funciona no app real). Ainda há `window.scrollTo` em `BookDetails.tsx`,
+  `CategoryBooks.tsx`, `Collection.tsx` e `PersonProfile.tsx` — inofensivo, mas
+  não faz nada na prévia.
 
 ## Tecnologias (stack)
 **Frontend:** React 19, Vite, TypeScript (strict), Tailwind CSS v4 (plugin
@@ -172,6 +173,7 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
 | `/book/:id` | BookDetails |
 | `/person/:slug` | PersonProfile (autor **e** narrador na mesma tela) |
 | `/category/:slug` | CategoryBooks (todos os livros de um gênero) |
+| `/collection/:slug` | Collection (livros de uma coleção curada, ex.: "Lançamentos") |
 | `/player/:id` | AudioPlayer |
 
 **Ordem importa:** `/profile/edit` e `/profile/recommendations` vêm **antes** de

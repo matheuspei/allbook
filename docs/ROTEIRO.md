@@ -487,7 +487,75 @@ instante inteiro, a mesma base do agrupamento, e ainda dá granularidade de hora
 
 ---
 
+## 4.7 Auditoria geral do projeto (24/07) — decisões e o que ficou de fora
+
+Três revisões em paralelo (segurança, interface, qualidade) varreram o projeto
+inteiro. O que foi **corrigido** está no código e no histórico do git; aqui fica
+o que foi **decidido, rejeitado ou adiado** — e o porquê.
+
+**Decisões tomadas:**
+- **Servidor de desenvolvimento fechado para a rede** (`127.0.0.1` em vez de
+  `0.0.0.0`, e `allowedHosts` restrito a localhost). Motivo: o `0.0.0.0` +
+  `allowedHosts: true` (resquício da Replit) expunha o app a qualquer aparelho
+  no Wi-Fi e desligava a proteção do Vite contra DNS rebinding. Para testar no
+  celular pela rede um dia, trocar temporariamente — tem comentário no
+  `vite.config.ts` explicando.
+- **Vulnerabilidades de dependências: corrigir sem `--force`.** `npm audit fix`
+  + atualização manual de `drizzle-orm`/`drizzle-kit`/`tsx` zerou quase tudo
+  (14 → 4). As 4 restantes (moderadas) estão num `esbuild` antigo embutido no
+  `drizzle-kit` — ferramenta que só roda na máquina local, nunca no app; o
+  `npm audit fix --force` que as "resolveria" faria um **downgrade** do
+  drizzle-kit para 2022, então foi rejeitado. Somem quando o drizzle-kit
+  atualizar a cadeia interna.
+- **Ficha curada do `BookDetails` só guarda o que o catálogo não sabe** (resumo,
+  duração, notas de narração/história). Título, autor, capa, nota e gênero vêm
+  sempre do catálogo — a ficha antiga cobria a capa real com a genérica.
+- **Id inexistente na URL mostra "não encontrado"**, tanto em `/book/:id` quanto
+  em `/player/:id` (o player tocava silenciosamente o primeiro livro do
+  catálogo). `/player/current` segue caindo no último ouvido.
+- **A faxina de Configurações agora apaga também o progresso de escuta** — o
+  comentário em `playback.ts` prometia isso e o código não cumpria; alinhado
+  para o lado do comentário porque "apagar dados" sem apagar o progresso
+  surpreenderia.
+
+**Rejeitado / adiado, com motivo:**
+- **Repaginar a paleta do player** (overlays azul-marinho `#0d1626` e
+  `text-slate-*`, fora do tema): mudança grande de aparência, melhor o Matheus
+  ver e decidir o visual — fica para uma tarefa própria.
+- **Selo "AllBook Original" condicional**: hoje aparece em todo livro, o que
+  esvazia o selo. Pede um campo `original` no catálogo e uma decisão editorial
+  de quais livros o ganham — adiado.
+- **Abas da Biblioteca (Todos/Audiolivros/Baixados/Listas) não filtram**: dar
+  função de verdade é uma feature, não um conserto — adiado.
+- **Unificar a busca duplicada** (Home e Discover têm o mesmo `SearchResults`
+  quase idêntico): vale extrair para um componente quando a tela própria de
+  Busca (checklist) for construída — fazer as duas coisas juntas.
+- **"Minha lista" da Home é curada, não a biblioteca real**: alimentar do
+  localStorage muda o conceito da fileira; decisão de produto para o Matheus.
+- **Senha em texto puro no `shared/schema.ts` / `MemStorage`**: sem uso real
+  hoje (zero rotas). Regra registrada para quando o backend nascer: renomear
+  para `passwordHash`, hashear (bcrypt/argon2), nunca retornar o campo.
+
+**Apurado sem gerar mudança:**
+- Nenhum segredo/chave no código; `.env` ignorado corretamente; sem XSS
+  explorável no cliente (rotas com parâmetro só fazem busca em catálogo fixo).
+- O `window.scrollTo` citado no CLAUDE.md **saiu do Discover.tsx**; hoje está em
+  BookDetails, CategoryBooks, Collection e PersonProfile (inofensivo; sem efeito
+  na moldura de dev).
+- Livro 311 ("Anjos e Demônios") é o único das coleções sem capa real — incluir
+  nos `ALVOS` e rodar `npm run catalogo` numa próxima sessão (ver backlog).
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
+- **Capas faltando:** id 311 (e conferir id 5, "Organize-se", que também não tem
+  ficha no `catalog-enriched.ts`) — acrescentar aos `ALVOS` do
+  `script/importar-catalogo.ts` e rodar `npm run catalogo`.
+- **Paleta do player:** trocar os azul-marinho (`#0d1626`, `text-slate-*`) pelos
+  cinzas do tema (`#1a1a1a`, `white/NN`) — ver seção 4.7.
+- **Quando o backend nascer:** filtrar campos sensíveis do log de respostas em
+  `server/index.ts`; mensagem genérica para erro 500 em produção; hash de senha
+  (ver seção 4.7).
 - **`@assets` aponta para pasta inexistente** (`attached_assets/` em `vite.config.ts`). Criar a pasta vazia ou remover o atalho, antes que algum import futuro quebre.
 - **Metatags do Replit no `client/index.html`** (`og:image`/`twitter:image` apontam pro Replit). Trocar por uma imagem do AllBook antes de divulgar links.
 - **Conferir as capas com o olho** (21/07): 57 dos 59 livros ganharam capa real da
