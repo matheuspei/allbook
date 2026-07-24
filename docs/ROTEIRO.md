@@ -66,7 +66,14 @@ Checklist das telas que faltam:
   entrando sozinha se o arquivo for posto em `client/src/assets/images/people/`.
   Para isso o catálogo ganhou o campo `narrator` e cresceu de 38 para 59 títulos —
   perfil de autor com um livro só não mostrava nada.
-- [ ] **Planos / Assinatura** — depende do modelo de negócio (ainda em aberto). Hoje o app é **gratuito**; ver "Modelo de negócio e a função central" abaixo.
+- [x] **Planos / Assinatura → virou "Meu acesso"** (`/plans`, 24/07). Por decisão
+  do Matheus, a tela **não fala de preço nem de plano pago** e **não insinua
+  cobrança futura** — ele não quer expor a estratégia nem criar ansiedade. Ela só
+  celebra, no presente, o que a pessoa já tem (catálogo, player, listas, downloads,
+  comunidade, sem anúncios). O item do Perfil "Plano e assinatura" virou "Meu
+  acesso" (ícone de cartão saiu, puxava pra pagamento). Modelo de negócio segue em
+  aberto (ver "Modelo de negócio e a função central" acima). **Pendente:** decidir
+  se o selo "Premium" no topo do Perfil sai — ele também sinaliza plano pago.
 - [ ] Boas-vindas (onboarding)
 - [x] **Ligar Estatísticas ao menu** — feito: já estava no TopNav e agora também no
   Perfil. O cabeçalho que colidia com o TopNav ao rolar foi corrigido.

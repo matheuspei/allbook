@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
-  CreditCard,
   Download,
   Flame,
   HelpCircle,
@@ -139,7 +138,7 @@ export default function Profile() {
       { icon: Users, label: "Comunidade", href: "/community", color: "from-rose-500 to-pink-600" },
     ],
     [
-      { icon: CreditCard, label: "Plano e assinatura", hint: PLAN, color: "from-emerald-500 to-teal-600" },
+      { icon: CheckCircle2, label: "Meu acesso", href: "/plans", color: "from-emerald-500 to-teal-600" },
       { icon: Bell, label: "Notificações", href: "/notifications", color: "from-red-500 to-rose-600" },
       { icon: Settings, label: "Configurações", href: "/settings", color: "from-slate-500 to-slate-600" },
       { icon: Share2, label: "Convidar amigos", color: "from-fuchsia-500 to-purple-600" },
