@@ -25,7 +25,7 @@ function normalize(str: string) {
     .toLowerCase();
 }
 
-function ResultCard({ book }: { book: Book }) {
+export function ResultCard({ book }: { book: Book }) {
   const [, setLocation] = useLocation();
 
   return (

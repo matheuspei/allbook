@@ -1,9 +1,10 @@
 import { Search as SearchIcon, X, ChevronLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
-import SearchResults from "@/components/SearchResults";
+import { catalog } from "@/lib/books";
+import SearchResults, { ResultCard } from "@/components/SearchResults";
 
 /**
  * Tela de Busca — endereço próprio (`/search`).
@@ -19,6 +20,31 @@ import SearchResults from "@/components/SearchResults";
  * no campo, que abre já com o cursor. O cabeçalho fica fixo no topo e a lista
  * rola por baixo.
  */
+/**
+ * Estado vazio da busca (nada digitado): uma grade de capas recomendadas, no
+ * estilo da tela "Buscar" da Apple TV — a pessoa já vê livros bons antes de
+ * pesquisar qualquer coisa. Fonte hoje: "Em alta" = mais bem avaliados do
+ * catálogo (sem backend). Quando houver servidor, dá pra personalizar por
+ * perfil / histórico, como a Apple faz.
+ */
+function SearchSuggestions() {
+  const emAlta = useMemo(
+    () => [...catalog].sort((a, b) => b.rating - a.rating).slice(0, 12),
+    []
+  );
+
+  return (
+    <section className="px-4 py-4 space-y-3" data-testid="search-suggestions">
+      <h2 className="font-display font-bold text-lg text-white tracking-tight">Em alta</h2>
+      <div className="grid grid-cols-3 gap-3">
+        {emAlta.map((book) => (
+          <ResultCard key={book.id} book={book} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function Search() {
   const [, navigate] = useLocation();
   const [query, setQuery] = useState("");
@@ -65,9 +91,7 @@ export default function Search() {
         {query.trim() ? (
           <SearchResults query={query} onClear={() => setQuery("")} />
         ) : (
-          <div className="flex items-center justify-center h-[50vh]">
-            <p className="text-white/30 text-sm">Digite para pesquisar</p>
-          </div>
+          <SearchSuggestions />
         )}
       </div>
     </div>
