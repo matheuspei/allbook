@@ -22,8 +22,8 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — | — | não | — |
-| B | — livre — | — | não | — |
+| A | — livre — | — | não (Matheus roda o servidor no terminal dele) | 23/07 |
+| B | — livre — | — | não — agora roda no Terminal do Matheus (`scripts/servidor.sh`), fora das sessões do Claude | 24/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —

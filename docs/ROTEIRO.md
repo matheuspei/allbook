@@ -3,7 +3,7 @@
 _Documento vivo. Atualizado em 21/07/2026 (tarde). Serve de "mapa" pra continuar o projeto entre sessões._
 
 Repositório: `github.com/matheuspei/allbook` · branch `main` · roda em `localhost:3000`
-Pasta local (Mac): `~/Downloads/allbook-project` · atalhos no terminal: `allbook` (abre) e `allbook-r` (retoma conversa)
+Pasta local (Mac): `~/Projects/allbook-project` (saiu de `~/Downloads` em 24/07: a pasta Downloads não é sincronizada pelo iCloud e é alvo de limpeza) · atalhos no terminal: `allbook` (abre) e `allbook-r` (retoma conversa)
 
 ---
 
