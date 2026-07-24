@@ -8,15 +8,6 @@ import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playb
 import { readProfile } from "@/lib/profile";
 import BookActionsMenu from "@/components/BookActionsMenu";
 
-import coverScifi from "@/assets/images/cover-scifi.png";
-import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
-import coverBusiness from "@/assets/images/cover-business.png";
-import coverBiography from "@/assets/images/cover-biography.png";
-import coverProductivity from "@/assets/images/cover-productivity.png";
-import coverRomance from "@/assets/images/cover-romance.png";
-import coverMystery from "@/assets/images/cover-mystery.png";
-import coverHorror from "@/assets/images/cover-horror.png";
-
 /**
  * Os livros do billboard do topo (a "capa" do app).
  *
@@ -31,16 +22,6 @@ import coverHorror from "@/assets/images/cover-horror.png";
  * Livro sem chamada própria cai na frase padrão do gênero, então a capa nunca
  * fica sem descrição mesmo se a seleção mudar.
  */
-const artePorGenero: Record<Genre, string> = {
-  "Ficção Científica": coverScifi,
-  Romance: coverRomance,
-  Terror: coverHorror,
-  Mistério: coverMystery,
-  Negócios: coverBusiness,
-  Biografia: coverBiography,
-  Autoajuda: coverSelfhelp,
-  Produtividade: coverProductivity,
-};
 
 const chamadaPorLivro: Record<number, string> = {
   7: "Uma saga épica de aventura, política e ecologia em um planeta desértico. O clássico da ficção científica que influenciou gerações.",
@@ -81,7 +62,9 @@ const heroBooks = destaquesDaCapa().map((book) => ({
   title: book.title,
   author: book.author,
   narrator: book.narrator,
-  cover: artePorGenero[book.genre],
+  // A capa REAL do livro (o `books.ts` já cai na arte genérica do gênero quando
+  // não há capa baixada). Antes o billboard usava sempre a genérica.
+  cover: book.cover,
   duration: duracaoEstimada(book.pages),
   badge: "Mais bem avaliados",
   description: chamadaPorLivro[book.id] ?? chamadaPorGenero[book.genre],
@@ -200,87 +183,109 @@ function HeroBillboard() {
         <div
           key={book.id}
           className="absolute inset-0 transition-opacity duration-700"
-          style={{ opacity: idx === currentIndex ? 1 : 0 }}
+          style={{ opacity: idx === currentIndex ? 1 : 0, pointerEvents: idx === currentIndex ? "auto" : "none" }}
+          aria-hidden={idx !== currentIndex}
         >
+          {/*
+            A capa real é pequena (~320px de largura). Esticá-la para preencher o
+            billboard inteiro a deixava borrada. Solução em duas camadas: o FUNDO é
+            a capa ampliada e BORRADA de propósito (o borrão esconde o serrilhado do
+            aumento), e por cima entra a capa NÍTIDA, inteira (`object-contain`) e
+            reduzida — como é mostrada menor que o original, sai afiada.
+          */}
           <img
             src={book.cover}
-            alt={book.title}
-            className="w-full h-full object-cover"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-50"
           />
-        </div>
-      ))}
+          <div className="absolute inset-x-0 top-0 h-[54%] flex items-center justify-center px-6 pt-6">
+            <img
+              src={book.cover}
+              alt={book.title}
+              className="h-full w-auto max-w-[60%] object-contain rounded-xl shadow-2xl shadow-black/60 ring-1 ring-white/10"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#141414]/70 to-transparent" />
 
-      <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/60 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#141414]/70 to-transparent" />
+          {/*
+            A legenda e os botões vivem DENTRO do slide, para trocarem junto com a
+            capa. Antes o texto ficava fora e mudava na hora, enquanto a imagem
+            levava 0,7s no fade — durante a troca aparecia a capa de um livro com o
+            título de outro (a capa real traz o título impresso, então saltava aos
+            olhos). Como um bloco só, capa e texto nunca mais se desencontram.
+          */}
+          <div className="absolute bottom-0 left-0 right-0 p-5 pb-8 space-y-3">
+            <div className="inline-flex items-center gap-2">
+              <span className="text-xs font-bold text-primary uppercase tracking-widest" data-testid="text-hero-badge">
+                {book.badge}
+              </span>
+            </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-5 pb-8 space-y-3">
-        <div className="inline-flex items-center gap-2">
-          <span className="text-xs font-bold text-primary uppercase tracking-widest" data-testid="text-hero-badge">
-            {hero.badge}
-          </span>
-        </div>
+            <h1
+              data-testid="text-hero-title"
+              className="font-display text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight max-w-sm"
+            >
+              {book.title}
+            </h1>
 
-        <h1
-          data-testid="text-hero-title"
-          className="font-display text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight max-w-sm"
-        >
-          {hero.title}
-        </h1>
+            <p className="text-sm text-white/70 max-w-sm leading-relaxed line-clamp-3" data-testid="text-hero-description">
+              {book.description}
+            </p>
 
-        <p className="text-sm text-white/70 max-w-sm leading-relaxed line-clamp-3" data-testid="text-hero-description">
-          {hero.description}
-        </p>
-
-        <div className="flex items-center gap-3 text-xs text-white/50">
-          <span>{hero.author}</span>
-          {hero.duration && (
-            <>
+            <div className="flex items-center gap-3 text-xs text-white/50">
+              <span>{book.author}</span>
+              {book.duration && (
+                <>
+                  <span>•</span>
+                  <span>{book.duration}</span>
+                </>
+              )}
               <span>•</span>
-              <span>{hero.duration}</span>
-            </>
-          )}
-          <span>•</span>
-          <div className="flex items-center gap-1">
-            <Star className="w-3 h-3 fill-primary text-primary" />
-            <span>{hero.rating}</span>
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 fill-primary text-primary" />
+                <span>{book.rating}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                data-testid="button-hero-play"
+                onClick={() => setLocation(`/player/${book.id}`)}
+                className="flex items-center gap-2 bg-white text-black font-bold px-6 py-2.5 rounded-md text-sm hover:bg-white/90 transition-colors"
+              >
+                <Play className="w-4 h-4 fill-black" />
+                Ouvir
+              </button>
+              <button
+                data-testid="button-hero-info"
+                onClick={() => setLocation(`/book/${book.id}`)}
+                className="flex items-center gap-2 bg-white/20 text-white font-semibold px-6 py-2.5 rounded-md text-sm hover:bg-white/30 transition-colors backdrop-blur-sm"
+              >
+                <Info className="w-4 h-4" />
+                Mais Informações
+              </button>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 pt-4" data-testid="hero-pagination">
+              {heroBooks.map((_, dotIdx) => (
+                <button
+                  key={dotIdx}
+                  data-testid={`button-hero-dot-${dotIdx}`}
+                  aria-label={`Destaque ${dotIdx + 1}`}
+                  onClick={() => setCurrentIndex(dotIdx)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    dotIdx === currentIndex
+                      ? "bg-white w-6"
+                      : "bg-white/40 hover:bg-white/60"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
-
-        <div className="flex items-center gap-3 pt-2">
-          <button
-            data-testid="button-hero-play"
-            onClick={() => setLocation(`/player/${hero.id}`)}
-            className="flex items-center gap-2 bg-white text-black font-bold px-6 py-2.5 rounded-md text-sm hover:bg-white/90 transition-colors"
-          >
-            <Play className="w-4 h-4 fill-black" />
-            Ouvir
-          </button>
-          <button
-            data-testid="button-hero-info"
-            onClick={() => setLocation(`/book/${hero.id}`)}
-            className="flex items-center gap-2 bg-white/20 text-white font-semibold px-6 py-2.5 rounded-md text-sm hover:bg-white/30 transition-colors backdrop-blur-sm"
-          >
-            <Info className="w-4 h-4" />
-            Mais Informações
-          </button>
-        </div>
-
-        <div className="flex items-center justify-center gap-2 pt-4" data-testid="hero-pagination">
-          {heroBooks.map((_, idx) => (
-            <button
-              key={idx}
-              data-testid={`button-hero-dot-${idx}`}
-              aria-label={`Destaque ${idx + 1}`}
-              onClick={() => setCurrentIndex(idx)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                idx === currentIndex
-                  ? "bg-white w-6"
-                  : "bg-white/40 hover:bg-white/60"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
+      ))}
     </section>
   );
 }
@@ -291,12 +296,6 @@ function CategoryGrid() {
   return (
     <section className="px-4 py-6 space-y-4" data-testid="category-grid">
       <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
-        <button data-testid="filter-audiobooks" className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors">
-          Audiolivros
-        </button>
-        <button data-testid="filter-podcasts" className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors">
-          Podcasts
-        </button>
         <button data-testid="filter-categories" onClick={() => setLocation("/discover")} className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors flex items-center gap-1">
           Categorias
           <ChevronRight className="w-3 h-3 rotate-90" />
