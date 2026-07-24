@@ -66,10 +66,34 @@ Checklist das telas que faltam:
   entrando sozinha se o arquivo for posto em `client/src/assets/images/people/`.
   Para isso o catálogo ganhou o campo `narrator` e cresceu de 38 para 59 títulos —
   perfil de autor com um livro só não mostrava nada.
-- [ ] Planos / Assinatura
+- [ ] **Planos / Assinatura** — depende do modelo de negócio (ainda em aberto). Hoje o app é **gratuito**; ver "Modelo de negócio e a função central" abaixo.
 - [ ] Boas-vindas (onboarding)
 - [x] **Ligar Estatísticas ao menu** — feito: já estava no TopNav e agora também no
   Perfil. O cabeçalho que colidia com o TopNav ao rolar foi corrigido.
+
+### Modelo de negócio e a função central (24/07) — visão do Matheus, ainda em aberto
+
+Registro da visão que o Matheus contou nesta data. **Não é decisão fechada** — ele
+mesmo disse que ainda não sabe "como oferecer isso ao público". Fica aqui para não
+se perder e para a tela de Planos **não inventar números** que ele não decidiu.
+
+**A função que "muda tudo" (livro sob demanda com IA):** o usuário escolhe
+**qualquer** livro. Se ainda não existe em áudio — ou não está na plataforma —, o
+AllBook busca o texto e **gera a narração/dublagem inteira com inteligência
+artificial**. Na prática, o catálogo passa a ser "qualquer livro que a pessoa
+quiser", não só os que já foram gravados. É a ideia central do app na fase inicial.
+
+**Modelo pensado (começo):**
+- **Gratuito** pelo menos até os primeiros **200 a 500 usuários** — fase de tração,
+  sem cobrar.
+- Depois, um **plano comum** que já inclui a função — por exemplo, escolher **1
+  livro por mês** para ser narrado sob demanda.
+
+**Em aberto (falta antes de uma tela de Planos definitiva):** preço do plano, nome,
+se há teste grátis, e principalmente *como* a narração por IA é oferecida e
+limitada. Enquanto isso não fecha, a tela de Planos deve refletir a fase real
+(**app gratuito agora**) e, no máximo, antecipar a função como "o que vem" — sem
+preço inventado.
 
 ### Estilo: evitar a "cara de IA"
 A primeira versão do Perfil foi rejeitada por parecer gerada automaticamente. Os
