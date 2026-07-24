@@ -11,6 +11,7 @@ import { catalog, findGenreBySlug, getBooksByGenre, slugify, duracaoEstimada } f
 import { findPerson } from "@/lib/people";
 import { commentsForBook } from "@/lib/comments";
 import CommentThread from "@/components/CommentThread";
+import CommentComposer from "@/components/CommentComposer";
 import { readReactions, type Reactions } from "@/lib/reactions";
 import PersonAvatar from "@/components/PersonAvatar";
 import { motion } from "framer-motion";
@@ -533,20 +534,21 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           </div>
 
           <div className="space-y-3">
-            {comentarios.length === 0 ? (
-              <p className="text-sm text-white/40 py-2" data-testid="text-no-reviews">
-                Ninguém comentou este livro ainda.
-              </p>
-            ) : (
-              comentarios.map((comment) => (
-                <CommentThread
-                  key={comment.id}
-                  comment={comment}
-                  reactions={reactions}
-                  onReactionsChange={setReactions}
-                />
-              ))
-            )}
+            {/*
+              A caixa de comentar vale para TODOS os livros (antes não existia).
+              Ela também mostra e apaga os seus comentários. Os comentários do
+              esqueleto (fixos) vêm logo abaixo. Sem caixa, livro sem comentário
+              semeado ficava mudo — foi o que o Matheus notou no "Garota Exemplar".
+            */}
+            <CommentComposer bookId={Number(params.id)} />
+            {comentarios.map((comment) => (
+              <CommentThread
+                key={comment.id}
+                comment={comment}
+                reactions={reactions}
+                onReactionsChange={setReactions}
+              />
+            ))}
           </div>
         </section>
 
