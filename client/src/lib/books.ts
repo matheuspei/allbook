@@ -8,6 +8,7 @@ import coverHorror from "@/assets/images/cover-horror.png";
 import coverProductivity from "@/assets/images/cover-productivity.png";
 
 import { fichasImportadas } from "./catalog-enriched";
+import { capaTipografica } from "./coverFallback";
 
 export type Genre =
   | "Ficção Científica"
@@ -151,7 +152,10 @@ const catalogoCurado: BookCurado[] = [
  */
 export const catalog: Book[] = catalogoCurado.map((livro) => ({
   ...livro,
-  cover: capasPorId[livro.id] ?? livro.cover,
+  // Capa real baixada pelo script; na falta dela, uma capa tipográfica gerada
+  // (título + autor sobre fundo sóbrio), em vez do PNG genérico de gênero que
+  // se repetia e dava cara de protótipo.
+  cover: capasPorId[livro.id] ?? capaTipografica(livro.title, livro.author, livro.genre),
   ...(fichasImportadas[livro.id] ?? {}),
 }));
 
