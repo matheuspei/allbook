@@ -34,7 +34,7 @@ programação** — leve isso em conta em tudo.
 - `npm run db:push` — (uso futuro) cria/atualiza as tabelas no banco de dados.
 - `npm run catalogo` — busca capas e fichas reais dos livros (ver abaixo).
 
-### O servidor tem que rodar no terminal do Matheus, não dentro do Claude
+### O servidor roda como serviço do sistema (launchd), fora da sessão do Claude
 
 **Sintoma:** o servidor caía toda vez que o Matheus fechava e reabria o Claude
 Code (ou fechava a tampa do MacBook), e era preciso subir de novo.
@@ -46,13 +46,31 @@ de tudo era o processo do Claude Code). Ao encerrar a sessão, o sistema mata o
 grupo inteiro — e o servidor vai junto. **Não é bug do projeto**; é só quem é o
 dono do processo.
 
-**Solução:** rodar por `scripts/servidor.sh`, num Terminal de verdade. Aí a
-cadeia vira `npm run dev` → `zsh` → `login` → `Terminal.app`, independente das
-sessões do Claude. Dê um duplo clique no arquivo ou rode `zsh scripts/servidor.sh`.
+**Solução (24/07): virou um serviço do sistema (launchd).** Rodar num Terminal
+(`scripts/servidor.sh`) já tirava o servidor do grupo do Claude, mas ainda exigia
+uma janela aberta e não voltava sozinho se caísse. Agora o servidor é um
+**LaunchAgent** (`com.allbook.devserver`), no mesmo esquema que o voicemode já usa
+nesta máquina: o **sistema** é dono do processo, ele **sobe ao ligar o Mac**
+(`RunAtLoad`) e **se reergue sozinho** se cair (`KeepAlive`). Gerência pelo
+`scripts/servidor-servico.sh`:
 
-**Consequência para o Claude:** não suba o servidor em segundo plano na sessão —
-ele cai sozinho e dá a falsa impressão de que algo quebrou. Verifique se a porta
-3000 já responde; se não responder, peça ao Matheus para rodar o script.
+- `zsh scripts/servidor-servico.sh instalar` — cria e liga o serviço (uma vez só).
+- `… status` — diz se está carregado e se a porta 3000 responde.
+- `… logs` — log ao vivo (`~/Library/Logs/allbook-devserver.log`).
+- `… reiniciar` — após mexer no código do servidor (`server/`); o Vite recarrega
+  o frontend sozinho, mas mudança no back-end pede reinício.
+- `… parar` / `iniciar` / `desinstalar`.
+
+O `scripts/servidor.sh` (rodar num Terminal) continua como **alternativa manual**,
+para quem não quiser o serviço sempre no ar. **Não use os dois ao mesmo tempo** —
+brigam pela porta 3000.
+
+**Consequência para o Claude:** não suba `npm run dev` solto na sessão — esse
+morre com a sessão. Mas o serviço launchd é diferente: rodar
+`zsh scripts/servidor-servico.sh instalar`/`iniciar`/`status` **de dentro de uma
+sessão do Claude é seguro**, porque o launchd bootstrapa o job no domínio do
+usuário, não no grupo de processos da sessão. Com o serviço no ar, a porta 3000
+já costuma responder; se não responder, rode o `status` e, se preciso, `instalar`.
 
 ### `npm run catalogo` — de onde vêm as capas e as fichas
 

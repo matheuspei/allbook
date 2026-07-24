@@ -581,6 +581,35 @@ o que foi **decidido, rejeitado ou adiado** — e o porquê.
 
 ---
 
+## 4.8 Servidor de desenvolvimento virou serviço do sistema (24/07)
+
+**Problema:** o servidor de dev vivia caindo. A causa (documentada no CLAUDE.md)
+é o processo ficar preso a um terminal ou à sessão do Claude Code — fechar a
+tampa, o terminal ou o Claude matava o grupo de processos e o servidor junto. O
+`scripts/servidor.sh` (rodar num Terminal) já tirava o servidor da sessão do
+Claude, mas ainda exigia uma janela aberta e **não voltava sozinho** se caísse.
+
+**Decisão:** transformar o servidor num **LaunchAgent do launchd**
+(`com.allbook.devserver`), o mesmo mecanismo que o voicemode já usa nesta máquina.
+O sistema passa a ser dono do processo; ele **sobe ao ligar o Mac** (`RunAtLoad`)
+e **se reergue sozinho** se cair (`KeepAlive`). Gerido por
+`scripts/servidor-servico.sh` (instalar / status / logs / reiniciar / parar /
+iniciar / desinstalar). **Verificado no ato:** matei o processo da porta 3000 de
+propósito e o launchd o reergueu sozinho, com pid novo, voltando a HTTP 200.
+
+- **Muda uma regra para o Claude.** Antes era "não suba o servidor, peça ao
+  Matheus". Agora rodar `servidor-servico.sh instalar`/`iniciar`/`status` **de
+  dentro de uma sessão do Claude é seguro** — o launchd bootstrapa o job no
+  domínio GUI do usuário, não no grupo de processos da sessão, então o servidor
+  não morre quando o Claude fecha. `npm run dev` solto na sessão segue proibido.
+- **Rejeitado: só melhorar o `servidor.sh`** (loop de auto-restart + `nohup`).
+  Resolveria a queda por crash, mas continuaria preso a um Terminal aberto e não
+  subiria ao ligar o Mac — não é o "não cair nunca mais" que foi pedido.
+- **`servidor.sh` fica como alternativa manual**, para quem não quiser o serviço
+  sempre no ar. Os dois não rodam juntos (brigam pela porta 3000).
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - **Capas faltando:** id 311 (e conferir id 5, "Organize-se", que também não tem
   ficha no `catalog-enriched.ts`) — acrescentar aos `ALVOS` do

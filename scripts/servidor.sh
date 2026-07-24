@@ -8,6 +8,11 @@
 # aqui, o dono do processo é o Terminal, e ele sobrevive a isso.
 #
 # Uso: dê um duplo clique no arquivo, ou rode `zsh scripts/servidor.sh`.
+#
+# Alternativa recomendada (não precisa deixar janela aberta): instalar o servidor
+# como SERVIÇO do sistema, que sobe sozinho ao ligar o Mac e se reergue se cair:
+#   zsh scripts/servidor-servico.sh instalar
+# Este script aqui vira só a opção manual. Não rode os dois juntos: brigam pela 3000.
 
 cd "$(dirname "$0")/.." || exit 1
 echo "AllBook — subindo o servidor em http://localhost:3000"
