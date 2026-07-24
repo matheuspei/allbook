@@ -1,4 +1,4 @@
-import { Search, ChevronRight, Play, Download, Users, FolderRoot, LayoutGrid, Trophy, Grid3X3, BookOpen, Plus, ArrowLeft, X } from "lucide-react";
+import { ChevronRight, Play, Download, Users, FolderRoot, LayoutGrid, Trophy, Grid3X3, BookOpen, Plus, ArrowLeft, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -92,14 +92,6 @@ export default function Library() {
               <h1 className="text-2xl font-bold font-display" data-testid="text-library-title">Minha Lista</h1>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setLocation("/search")}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                aria-label="Buscar"
-                data-testid="button-search"
-              >
-                <Search className="w-5 h-5 text-white/70" />
-              </button>
               <Avatar className="w-8 h-8 border border-white/20">
                 <AvatarFallback className="bg-gradient-to-br from-amber-500 to-orange-600 text-white font-semibold text-xs">M</AvatarFallback>
               </Avatar>
