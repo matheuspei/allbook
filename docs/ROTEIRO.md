@@ -642,6 +642,56 @@ propósito e o launchd o reergueu sozinho, com pid novo, voltando a HTTP 200.
 
 ---
 
+## 4.9 Faxina "cara premium" (24/07)
+
+O Matheus pediu uma revisão para o app **parecer feito por uma empresa grande, não
+por IA**. Feita pela **Janela C** (A e B pausadas por ele durante o trabalho). O
+que foi construído está no código; aqui fica o **porquê** e o que ficou de fora.
+
+**O maior "tell" de IA era o arco-íris de gradientes coloridos — removido:**
+- **Ícones da lista do Perfil**: cada item tinha um gradiente de cor diferente
+  (violeta, rosa, azul, fúcsia…). Viraram um **quadradinho neutro único**
+  (`bg-white/[0.06]`), ícone claro, traço mais fino. É a mesma cura que a seção
+  "Estilo: evitar a cara de IA" já mandava — só tinha escapado a lista de conta.
+  Troféus e brilho do topo seguem na cor da marca (coesos, não arco-íris).
+- **Cards de categoria** (Início e Descobrir): eram blocos de gradiente chapado
+  com o nome escrito. Viraram um **mosaico de capas reais** dos livros da lista,
+  com o nome sobre um degradê escuro (estilo Spotify/Storytel), num componente
+  único `components/CategoryCard.tsx` usado pelas duas telas. A cor vem do acervo,
+  não de um degradê inventado. O Matheus concordou: *"gostei da ideia dos ícones,
+  mas não dá cara premium — foi ideia minha, mas vamos tirar."*
+
+**Capa de reserva tipográfica:** o PNG genérico de gênero, repetido, denunciava
+protótipo. Criado `client/src/lib/coverFallback.ts`, que gera uma capa
+**tipográfica** (SVG data URI: título em serifa + autor + selo AllBook sobre fundo
+sóbrio do gênero). `books.ts` usa isso no lugar do genérico. Hoje só o id 5
+("Organize-se") cai nele — os outros 57 têm capa real —, mas vale para qualquer
+futuro sem capa. **Revê a nota do backlog** que mandava o id 5 ficar no genérico.
+
+**Micro-animações + profundidade:** a Descobrir ganhou um **brilho sutil da marca
+no topo** (como o Perfil) e uma **entrada em cascata** dos cards de gênero
+(framer-motion). Serve de **referência**; replicar nas demais telas é próximo passo.
+
+**Selo "AllBook Original" — MANTIDO, por decisão do Matheus.** A seção 4.7 tinha
+adiado torná-lo condicional (aparece em todo livro, o que esvazia o selo). Nesta
+sessão o Matheus decidiu **deixar como está**: *"é só protótipo; quando começarmos
+a subir os áudios de verdade a gente vê o que fica original."* Não mexer agora.
+
+**Adiado de propósito, com motivo:**
+- **Hierarquia tipográfica sistêmica** (títulos de herói maiores, mais respiro): só
+  compensa feita **em todas as telas de uma vez**. Aumentar títulos só na Descobrir
+  deixaria ela fora de sintonia com a Início e as demais — *pior* que não fazer.
+  Fica para uma passada dedicada, tocando todas as telas juntas.
+- **Transições entre telas** (fade/slide ao navegar): dependem do `App.tsx`, que
+  nesta sessão estava na **faixa da Janela B** (migração da busca para aba do menu
+  inferior). Cedido a ela; as transições entram quando o `App.tsx` liberar.
+
+**Próximos passos desta frente:** replicar brilho + micro-animações nas outras
+telas · hierarquia tipográfica sistêmica · transições de página · conferir capas
+erradas com o olho (backlog da seção 5, ainda de pé).
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
@@ -652,8 +702,9 @@ propósito e o launchd o reergueu sozinho, com pid novo, voltando a HTTP 200.
   as 57 capas já conferidas à mão.
   - **id 5 ("Organize-se", Ciara Conlon) fica SEM capa real de propósito:** a
     Open Library não tem a obra — busca por "Chaos to Control" devolve zero, e por
-    autora só aparece "Productivity for Dummies" (livro diferente). Segue na
-    imagem genérica do gênero até surgir uma capa própria; **não pôr a errada.**
+    autora só aparece "Productivity for Dummies" (livro diferente). Agora usa a
+    capa **tipográfica** gerada (`lib/coverFallback.ts`) no lugar da imagem
+    genérica de gênero (ver 4.9) até surgir uma capa própria; **não pôr a errada.**
 - ~~**Paleta do player:** azul-marinho (`#0d1626`, `text-slate-*`)~~ — **FEITO
   24/07**: `#0d1626` virou `#1a1a1a` e os `text-slate-*` viraram `white/NN`,
   dentro do tema.
