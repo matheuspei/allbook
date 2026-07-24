@@ -1,8 +1,10 @@
 import { Search, ChevronRight, Star } from "lucide-react";
 import { useLocation } from "wouter";
 import { useMemo } from "react";
+import { motion } from "framer-motion";
 
-import { genres, getBooksByIds, genreSlug, type Genre } from "@/lib/books";
+import { genres, getBooksByIds, getBooksByGenre, genreSlug, type Genre } from "@/lib/books";
+import CategoryCard from "@/components/CategoryCard";
 
 
 const topWeekIds = [7, 102, 101, 104, 2, 130, 111, 129, 106, 4];
@@ -21,15 +23,23 @@ function GenreGrid({ onSelect }: { onSelect: (genre: Genre) => void }) {
       <h2 className="font-display font-bold text-lg text-white tracking-tight">Navegar por gênero</h2>
 
       <div className="grid grid-cols-2 gap-3">
-        {genres.map((genre) => (
-          <button
+        {genres.map((genre, i) => (
+          <motion.div
             key={genre.label}
-            onClick={() => onSelect(genre.label)}
-            data-testid={`card-genre-${normalize(genre.label).replace(/\s/g, "-")}`}
-            className={`bg-gradient-to-br ${genre.gradient} rounded-lg p-4 text-left font-semibold text-sm text-white h-20 flex items-end hover:opacity-90 transition-opacity active:scale-[0.98]`}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: i * 0.04, ease: "easeOut" }}
           >
-            {genre.label}
-          </button>
+            <CategoryCard
+              label={genre.label}
+              covers={[...getBooksByGenre(genre.label)]
+                .sort((a, b) => b.rating - a.rating)
+                .slice(0, 3)
+                .map((book) => book.cover)}
+              onClick={() => onSelect(genre.label)}
+              testId={`card-genre-${normalize(genre.label).replace(/\s/g, "-")}`}
+            />
+          </motion.div>
         ))}
       </div>
     </section>
@@ -146,27 +156,36 @@ export default function Discover() {
   const [, navegar] = useLocation();
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414]" data-testid="page-discover">
-      {/*
-        A barra de busca leva à tela de Busca (`/search`), que é a única
-        implementação da busca. Aqui é só a porta de entrada: um campo falso
-        (botão com cara de input) que, ao ser tocado, navega para lá.
-      */}
-      <div className="px-4 pt-4 pb-1">
-        <button
-          type="button"
-          onClick={() => navegar("/search")}
-          className="relative w-full flex items-center h-10 rounded-lg bg-white/10 pl-9 pr-3 text-left"
-          data-testid="button-discover-search"
-        >
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-          <span className="text-sm text-white/40">Buscar títulos, autores...</span>
-        </button>
-      </div>
+    <div className="relative min-h-screen pb-24 bg-[#141414]" data-testid="page-discover">
+      {/* Brilho sutil da cor da marca no topo — dá profundidade sem fugir do
+          tema escuro, no mesmo espírito do cabeçalho do Perfil. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-primary/10 via-primary/[0.03] to-transparent"
+      />
 
-      <GenreGrid onSelect={(genero) => navegar(`/category/${genreSlug(genero)}`)} />
-      <TopTenRow />
-      <ReleasesRow />
+      <div className="relative">
+        {/*
+          A barra de busca leva à tela de Busca (`/search`), que é a única
+          implementação da busca. Aqui é só a porta de entrada: um campo falso
+          (botão com cara de input) que, ao ser tocado, navega para lá.
+        */}
+        <div className="px-4 pt-4 pb-1">
+          <button
+            type="button"
+            onClick={() => navegar("/search")}
+            className="relative w-full flex items-center h-10 rounded-lg bg-white/10 pl-9 pr-3 text-left"
+            data-testid="button-discover-search"
+          >
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <span className="text-sm text-white/40">Buscar títulos, autores...</span>
+          </button>
+        </div>
+
+        <GenreGrid onSelect={(genero) => navegar(`/category/${genreSlug(genero)}`)} />
+        <TopTenRow />
+        <ReleasesRow />
+      </div>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { collections, homeRows, getBooksForCollection } from "@/lib/collections"
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
 import { readProfile } from "@/lib/profile";
 import BookActionsMenu from "@/components/BookActionsMenu";
+import CategoryCard from "@/components/CategoryCard";
 
 /**
  * Os livros do billboard do topo (a "capa" do app).
@@ -304,14 +305,13 @@ function CategoryGrid() {
 
       <div className="grid grid-cols-2 gap-3" data-testid="category-cards">
         {collections.map((colecao) => (
-          <button
+          <CategoryCard
             key={colecao.slug}
+            label={colecao.label}
+            covers={getBooksForCollection(colecao).slice(0, 3).map((book) => book.cover)}
             onClick={() => setLocation(`/collection/${colecao.slug}`)}
-            data-testid={`card-category-${colecao.slug}`}
-            className={`bg-gradient-to-br ${colecao.gradient} rounded-lg p-4 text-left font-semibold text-sm text-white h-20 flex items-end hover:opacity-90 transition-opacity active:scale-[0.98]`}
-          >
-            {colecao.label}
-          </button>
+            testId={`card-category-${colecao.slug}`}
+          />
         ))}
       </div>
     </section>
