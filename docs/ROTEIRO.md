@@ -72,8 +72,9 @@ Checklist das telas que faltam:
   celebra, no presente, o que a pessoa já tem (catálogo, player, listas, downloads,
   comunidade, sem anúncios). O item do Perfil "Plano e assinatura" virou "Meu
   acesso" (ícone de cartão saiu, puxava pra pagamento). Modelo de negócio segue em
-  aberto (ver "Modelo de negócio e a função central" acima). **Pendente:** decidir
-  se o selo "Premium" no topo do Perfil sai — ele também sinaliza plano pago.
+  aberto (ver "Modelo de negócio e a função central" acima). O selo "Premium" do
+  topo do Perfil **foi removido** (24/07, a pedido do Matheus) pelo mesmo motivo —
+  sinalizava plano pago; a constante `PLAN` saiu junto.
 - [ ] Boas-vindas (onboarding)
 - [x] **Ligar Estatísticas ao menu** — feito: já estava no TopNav e agora também no
   Perfil. O cabeçalho que colidia com o TopNav ao rolar foi corrigido.

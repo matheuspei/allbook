@@ -55,9 +55,6 @@ import type { Book } from "@/lib/books";
  * passam a ler da mesma fonte.
  */
 
-/** O plano ainda é fixo: não existe assinatura de verdade. */
-const PLAN = "Premium";
-
 const summary: { value: string; label: string; key: StatKey; icon: LucideIcon }[] = [
   { value: "47h", label: "ouvidas", key: "horas", icon: Clock },
   { value: "5", label: "títulos", key: "titulos", icon: BookOpen },
@@ -166,14 +163,9 @@ export default function Profile() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold font-display tracking-tight truncate" data-testid="text-profile-name">
-                {profile.name}
-              </h1>
-              <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-semibold shrink-0">
-                {PLAN}
-              </span>
-            </div>
+            <h1 className="text-xl font-bold font-display tracking-tight truncate" data-testid="text-profile-name">
+              {profile.name}
+            </h1>
             <p className="text-sm text-white/40 truncate mt-0.5">{profile.email}</p>
           </div>
         </div>
