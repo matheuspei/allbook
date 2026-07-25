@@ -10,7 +10,9 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { useState, useEffect, useRef } from "react";
+import MarcacoesDoLivro from "@/components/MarcacoesDoLivro";
 import { catalog } from "@/lib/books";
+import { addBookmark, BOOKMARK_EVENT, bookmarkCount } from "@/lib/bookmarks";
 import { readSettings } from "@/lib/settings";
 import { readPlayback, savePlayback, showMiniPlayer } from "@/lib/playback";
 import { getChapters, chaptersTotalSec, chapterStartSec, chapterAtSec, formatChapterDuration } from "@/lib/chapters";
@@ -151,10 +153,26 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [showSystemPermission, setShowSystemPermission] = useState(false);
   const [isCarModeActive, setIsCarModeActive] = useState(false);
   const [showChapters, setShowChapters] = useState(false);
+  const [showMarcacoes, setShowMarcacoes] = useState(false);
+  /*
+   * Quantas marcações este livro tem. Fica no estado (e não numa leitura direta
+   * a cada desenho) para o número na barra de baixo mudar na hora que a pessoa
+   * salva ou apaga — o evento avisa, como no resto da casa.
+   */
+  const [totalDeMarcacoes, setTotalDeMarcacoes] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
     showMiniPlayer();
+  }, [book.id]);
+
+  // A contagem de marcações do livro, sempre em dia: lida ao entrar e a cada
+  // escrita (salvar no botão, apagar no painel).
+  useEffect(() => {
+    const atualizar = () => setTotalDeMarcacoes(bookmarkCount(book.id));
+    atualizar();
+    window.addEventListener(BOOKMARK_EVENT, atualizar);
+    return () => window.removeEventListener(BOOKMARK_EVENT, atualizar);
   }, [book.id]);
 
   /**
@@ -222,10 +240,19 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     }
   }
 
+  /**
+   * Guarda o ponto onde o áudio está. Antes esta função **só mostrava o aviso**
+   * "Guardamos o ponto em 1h 12min" — e não guardava nada: a marcação morria ao
+   * sair da tela. Agora ela grava de verdade (`lib/bookmarks.ts`) e o aviso
+   * oferece o caminho para ver a lista, que é onde a pessoa escreve a nota.
+   */
   function salvarMarcacao() {
+    const { jaExistia } = addBookmark(book.id, currentTime, currentChapter);
     toast({
-      title: "Marcação salva",
-      description: `Guardamos o ponto em ${formatTime(currentTime)}.`,
+      title: jaExistia ? "Este ponto já estava marcado" : "Marcação salva",
+      description: jaExistia
+        ? `Você já tinha guardado ${formatTime(currentTime)} deste título.`
+        : `Guardamos ${formatTime(currentTime)}. Abra "Marcações e notas" para escrever uma nota.`,
     });
   }
 
@@ -254,15 +281,21 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
   const speedPresets = [0.7, 1.0, 1.2, 1.5, 1.7, 2.0];
 
+  /*
+   * O modo carro vinha com um degradê **verde para azul-marinho** (`#1a4d35` →
+   * `#0a101f`), herdado do rascunho antigo: nenhuma das duas cores existe na
+   * identidade do AllBook, e a tela parecia de outro aplicativo. Agora é o
+   * preto da casa com o mesmo calor laranja que abre as telas.
+   */
   if (isCarModeActive) {
     return (
-      <div className="fixed inset-0 z-[200] bg-linear-to-b from-[#1a4d35] via-[#0a101f] to-[#0a101f] text-white flex flex-col p-6 animate-in fade-in duration-500">
+      <div className="fixed inset-0 z-[200] bg-linear-to-b from-[#241a12] via-[#141414] to-[#141414] text-white flex flex-col p-6 animate-in fade-in duration-500">
         <header className="flex justify-between items-center mb-12">
           <button onClick={() => setIsCarModeActive(false)} className="p-2">
             <ChevronDown className="w-10 h-10" />
           </button>
           <div className="bg-white/10 rounded-full px-4 py-1 flex items-center gap-2">
-            <Bluetooth className="w-4 h-4 text-blue-400" />
+            <Bluetooth className="w-4 h-4 text-primary" />
             <span className="text-xs font-bold uppercase tracking-wider">Conectado ao Carro</span>
           </div>
           <button className="p-2 opacity-0 pointer-events-none">
@@ -493,11 +526,50 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">Temporizador</span>
         </button>
 
-        <button onClick={salvarMarcacao} className="flex flex-col items-center gap-1 min-w-[70px] group">
-          <Bookmark className="w-5 h-5 text-white/50 group-hover:text-amber-500 transition-colors" />
-          <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">+ Marcação</span>
+        {/*
+          Toque salva o ponto; toque longo (ou o número, quando há marcações)
+          abre a lista. O ícone fica **cheio** quando o livro já tem marcação —
+          é o único jeito de a barra dizer "tem coisa guardada aqui" sem
+          precisar de um segundo botão.
+        */}
+        <button
+          onClick={salvarMarcacao}
+          onContextMenu={(evento) => {
+            evento.preventDefault();
+            setShowMarcacoes(true);
+          }}
+          className="flex flex-col items-center gap-1 min-w-[70px] group relative"
+          data-testid="button-add-bookmark"
+        >
+          <Bookmark
+            className={`w-5 h-5 transition-colors ${
+              totalDeMarcacoes > 0
+                ? "fill-primary text-primary"
+                : "text-white/50 group-hover:text-amber-500"
+            }`}
+          />
+          <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">
+            + Marcação
+          </span>
         </button>
       </footer>
+
+      {/* O painel que o menu de "…" promete há tempo — agora existe. */}
+      <MarcacoesDoLivro
+        aberto={showMarcacoes}
+        onClose={() => setShowMarcacoes(false)}
+        bookId={book.id}
+        titulo={book.title}
+        tituloDoCapitulo={(chapter) =>
+          chapters.find((ch) => ch.id === chapter)?.title ?? `Capítulo ${chapter}`
+        }
+        formatarTempo={formatTime}
+        onIr={(positionSec) => {
+          setCurrentTime(positionSec);
+          setShowMarcacoes(false);
+          toast({ title: "Voltamos para a marcação", description: formatTime(positionSec) });
+        }}
+      />
 
       {/* Lista de todos os capítulos — abre pelo botão "Capítulo N". */}
       <Drawer open={showChapters} onOpenChange={setShowChapters}>
@@ -649,7 +721,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showMoreMenu && (
         <div className="fixed inset-0 z-[160] animate-in fade-in duration-200" onClick={() => setShowMoreMenu(false)}>
           <div 
-            className="absolute top-16 right-4 w-72 bg-[#1c2a3d] rounded-2xl shadow-2xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200 origin-top-right"
+            /* O fundo era `#1c2a3d`, um azul-marinho da versão antiga: o menu
+               era a única superfície azul do app inteiro. Agora é o mesmo
+               `#1c1c1c` das folhas de baixo e dos cartões. */
+            className="absolute top-16 right-4 w-72 bg-[#1c1c1c] rounded-2xl shadow-2xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200 origin-top-right"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col py-2">
@@ -683,15 +758,21 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 <span className="text-sm font-medium">Marcar como concluído</span>
               </button>
 
+              {/* Abre o painel de verdade. Antes este item mostrava um aviso
+                  prometendo que as marcações "aparecerão aqui" — e não havia
+                  nenhum "aqui" para onde ir. */}
               <button
-                onClick={() => {
-                  setShowMoreMenu(false);
-                  toast({ title: "Marcações e notas", description: "Suas marcações e notas deste título aparecerão aqui." });
-                }}
+                onClick={() => { setShowMoreMenu(false); setShowMarcacoes(true); }}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
+                data-testid="menu-bookmarks"
               >
                 <Bookmark className="w-5 h-5 text-white/50 group-hover:text-white" />
                 <span className="text-sm font-medium">Marcações e notas</span>
+                {totalDeMarcacoes > 0 && (
+                  <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold text-white/70">
+                    {totalDeMarcacoes}
+                  </span>
+                )}
               </button>
 
               <button
@@ -802,7 +883,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {/* Custom Timer Dialog */}
       {showCustomTimer && (
         <div className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-[#3d3d3d] rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          {/* `#3d3d3d` e canto pequeno: era um cinza claro fora da escala do
+              app, com a cara do diálogo padrão do Android. Passou para a mesma
+              superfície e o mesmo raio dos outros quadros do player. */}
+          <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 space-y-8">
               <h3 className="text-xl font-medium text-white">Personalizar duração</h3>
               
@@ -888,9 +972,12 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               <ChevronDown className="w-6 h-6 rotate-180" />
             </button>
             
+            {/* O selo do Bluetooth era azul (a cor do logotipo do padrão), e
+                puxava a tela toda para fora da identidade. O ícone já diz que é
+                Bluetooth; a cor pode ser a da casa. */}
             <div className="flex justify-center pt-4">
-              <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center border border-blue-500/50">
-                <Bluetooth className="w-8 h-8 text-blue-400" />
+              <div className="w-16 h-16 bg-primary/15 rounded-full flex items-center justify-center border border-primary/40">
+                <Bluetooth className="w-8 h-8 text-primary" />
               </div>
             </div>
 
@@ -905,7 +992,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 <Button 
                   onClick={proceedToSystemPermission}
                   variant="outline"
-                  className="w-full border-blue-500/50 text-blue-400 hover:bg-blue-500/10 rounded-full py-6 font-bold"
+                  className="w-full border-primary/50 text-primary hover:bg-primary/10 rounded-full py-6 font-bold"
                 >
                   Conexão automática
                 </Button>
@@ -926,10 +1013,11 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
         <div className="fixed inset-0 z-[140] bg-black/40 flex items-center justify-center p-8 animate-in zoom-in duration-200">
           <div className="w-full max-w-[280px] bg-[#2a2a2a] rounded-[28px] overflow-hidden shadow-2xl animate-in fade-in">
             <div className="p-6 text-center space-y-4">
-              <div className="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center mx-auto border border-blue-500/30">
-                <div className="w-4 h-4 bg-blue-500 rotate-45 flex items-center justify-center">
-                  <div className="w-1 h-1 bg-white rounded-full -rotate-45" />
-                </div>
+              {/* Este quadro imita o diálogo de permissão do sistema. O
+                  losango azul que ficava aqui era uma imitação do ícone do
+                  Android; num diálogo que é nosso, o ícone é o nosso. */}
+              <div className="w-10 h-10 bg-primary/15 rounded-lg flex items-center justify-center mx-auto border border-primary/30">
+                <Bluetooth className="w-5 h-5 text-primary" />
               </div>
               <p className="text-sm font-medium leading-snug">
                 Permitir que <span className="font-bold">AllBook</span> encontre, conecte-se e determine a posição relativa de dispositivos por perto?
@@ -938,7 +1026,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             <div className="flex flex-col border-t border-white/10">
               <button 
                 onClick={activateCarMode}
-                className="py-4 font-bold text-blue-400 hover:bg-white/5 active:bg-white/10 transition-colors"
+                className="py-4 font-bold text-primary hover:bg-white/5 active:bg-white/10 transition-colors"
               >
                 Permitir
               </button>

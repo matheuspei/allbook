@@ -126,30 +126,27 @@ volume** para o plano maior valer a pena (os valores seguem sendo exemplo):
 | Acesso + 2 pedidos | 2 | R$ 69,90 | R$ 25 |
 | Acesso + 3 pedidos | 3 | R$ 89,90 | R$ 23 |
 
-**A sacada que fecha o problema da seção 4.26:** o crédito resolve sozinho o
-receio de custo que derrubou o par de opções no pedido. A regra recomendada é
-distinguir as duas metades do pedido pelo que elas custam ao AllBook:
+**Um pedido = um crédito, sempre.** Trazer e gravar custam o mesmo à pessoa. A
+premissa que sustenta isso, nas palavras do Matheus: **o pedido só existe para
+livro que não está no catálogo do AllBook** — "a ideia é só a gente vai trazer um
+livro que não existe dentro do nosso catálogo". Não há pedido "de graça", então
+não há teto a definir nem regra de abuso a escrever: o crédito é o próprio limite.
 
-- **Trazer um livro que já tem áudio → não gasta crédito.** É barato, e o
-  resultado entra no catálogo **para todos os assinantes** — é investimento de
-  acervo, não produção sob medida.
-- **Gravar (o estúdio narra) → gasta 1 crédito.** É caro e é produção nova.
-
-Com isso o incentivo se alinha **sem precisar de botão nenhum**: ninguém pede
-gravação por capricho, porque gravação custa crédito; e quem ouviu a narração
-existente e **não gostou dela** (a pergunta em aberto da 4.26) tem uma saída
-legítima — pedir a versão do estúdio, gastando um crédito seu. O plano de acesso
-pode pedir "trazer" livremente e **não** pode pedir gravação: é isso que vende o
-plano de cima.
+**Rejeitado (proposta minha, derrubada no mesmo dia): trazer sem gastar crédito,**
+com o argumento de que trazer é barato para o AllBook e o resultado vira acervo
+para todos. O Matheus cortou — *"ele não gera um custo grande para a gente, [mas]
+ele tem que ser consumido um crédito da pessoa"*. O que a proposta não via: um
+pedido gratuito **precisaria** de teto, de regra de abuso e de uma segunda
+categoria de pedido na interface, e tudo isso para dar de graça exatamente o
+serviço que a pessoa está assinando. **Regra que fica: o crédito é a unidade
+única do pedido — nada de duas moedas.**
 
 **Ainda em aberto, e são decisões do Matheus:**
 1. **Crédito acumula ou expira no fim do mês?** Recomendação: acumula enquanto a
    assinatura estiver ativa, com **teto** (ex.: 3 guardados). Crédito que vira pó
    gera raiva por algo que não custou nada ao AllBook; acúmulo infinito cria
    passivo de produção que pode chegar todo de uma vez.
-2. **Quantos "trazer" por mês?** Se for ilimitado, dá para alguém pedir 200
-   títulos numa tarde. Recomendação: um teto generoso e invisível na prática.
-3. Nomes dos planos, teste grátis, e se a fase gratuita (200–500 usuários) vem
+2. Nomes dos planos, teste grátis, e se a fase gratuita (200–500 usuários) vem
    antes de tudo isso.
 
 **Nada disso está no código.** A tela `/plans` continua sem falar de preço, como
@@ -1796,77 +1793,6 @@ alta" — quem vê uma depois da outra reconhece a família.
 
 ---
 
-## 4.26 Quem narra, se já existe narração? (26/07)
-
-O Matheus achou um furo no pedido de livro, e ele é de lógica, não de tela:
-
-> "Se o livro existe narrado, a pessoa escolher o narrador, ela não vai ter esse
-> poder de escolher o narrador, porque o livro já está narrado. (…) Também a
-> pessoa que tá solicitando **não sabe** se existe ou não esse livro dublado."
-
-Ou seja: o formulário pedia "quem narra" **antes** de alguém saber se alguém já
-narrou. Quando o livro já tem áudio, o AllBook traz a narração que existe — e a
-voz escolhida não vale nada. Era **promessa quebrada**, e feita a quem não tinha
-como responder a pergunta.
-
-**A regra que ficou: nunca perguntar o que só o app pode descobrir — e escrever o
-"se" quando a resposta depende dele.** O rótulo do campo virou **"Quem narra, se
-o estúdio gravar"**. Uma palavra resolve: a escolha continua ali para quem quer
-opinar, e agora diz exatamente quando vale. **Rejeitado esconder o campo** até
-saber se o livro tem narração — sem servidor isso é só sonegar informação, e o
-campo escondido faria a pessoa achar que não pode escolher nunca.
-
-**O que o app confere na hora, de verdade:** o próprio catálogo. Digitando o
-título, se ele já está no AllBook aparece um aviso com capa, narrador e o atalho
-"Ouvir agora" (`alreadyInCatalog`, em `lib/requests.ts`). É a única das três
-respostas possíveis que o frontend pode dar sem servidor — as outras duas ("já
-existe narração publicada lá fora" e "ninguém narrou ainda") dependem de uma base
-de audiolivros que ainda não existe, e por isso a **etapa 2 do caminho do pedido
-virou uma pergunta**: "Já existe narração?".
-
-O aviso **não bloqueia** o botão de pedir: o casamento por título é palpite (há
-títulos parecidos), e travar o pedido por palpite é pior do que informar.
-
-### Rejeitado no mesmo dia: deixar a pessoa pedir "produção do estúdio" no pedido
-
-Antes de chegar ao rótulo com "se", a tela ganhou **um par de opções**: *"se já
-existir narração, pode ser ela"* ou *"quero uma do AllBook Studio"*. Como
-interface funcionava — era a pergunta que qualquer pessoa consegue responder sem
-conhecer o livro. **Como negócio era ruim**, e o argumento do Matheus derrubou:
-
-> "Se o livro já existe, pra gente seria mais fácil, mais barato, mais tranquilo
-> produzir o livro, sendo que a pessoa vai pagar a mesma coisa. Quando você
-> coloca isso, você dá a possibilidade à pessoa pular para uma produção do
-> estúdio. Isso pode acabar encarecendo, mas deixando o processo mais trabalhoso
-> pra gente."
-
-**A regra que fica: não oferecer o caminho caro a quem se contentaria com o
-barato.** Diante de dois botões, muita gente marca o que **parece** melhor, não o
-que precisa — e cada uma dessas marcações troca uma narração pronta por uma
-gravação inteira, pelo mesmo preço. O par de opções foi removido, junto com o
-campo `preference` que guardava a escolha.
-
-### Fica em aberto: onde nasce a saída de quem não gosta da narração existente
-
-A pergunta original do Matheus segue de pé — *"se ela não gostar dessa narração e
-preferir a narração com o Inhá, como fica?"*. A saída **não pode** morar no
-pedido, pelo motivo acima. A proposta registrada, para quando ele decidir: ela
-nasce **na ficha do livro**, para quem já tem aquele livro e já ouviu — pedido
-raro, feito por quem tem motivo real, e não a opção padrão de todo mundo. É
-também o lugar natural para o preço aparecer, se a regravação for paga (preço e
-plano continuam em aberto neste roteiro). **Nada disso foi construído** — está
-aqui como decisão pendente, não como plano aprovado.
-
-**Atualização de 26/07 — o mecanismo apareceu:** os planos com **crédito de
-pedido** (ver "Modelo de negócio", atualização de 26/07) resolvem isto sem
-nenhum botão novo. Trazer um livro que já tem áudio **não gasta crédito**; pedir
-que o estúdio grave **gasta 1**. Assim ninguém pula para o caminho caro por
-capricho — ele custa um crédito seu —, e quem realmente não suporta a narração
-existente tem a saída pela qual pagou. Falta só o aval do Matheus e a tela de
-Planos.
-
----
-
 ## 4.27 O botão que apontava para baixo e não abria nada (26/07)
 
 **O que o Matheus viu:** na Início, o botão "Categorias" tinha uma seta apontando
@@ -1972,6 +1898,125 @@ que leva para `/search`, o que a faz parecer a tela Buscar — foi exatamente a
 confusão que o Matheus relatou. As saídas plausíveis: fundir Descobrir com
 Buscar (a Apple TV faz assim), devolver uma aba a ela, ou aposentá-la
 distribuindo suas fileiras entre Início e Buscar. **Decisão do Matheus.**
+
+---
+
+## 4.28 Quem narra, se já existe narração? (26/07)
+
+O Matheus achou um furo no pedido de livro, e ele é de lógica, não de tela:
+
+> "Se o livro existe narrado, a pessoa escolher o narrador, ela não vai ter esse
+> poder de escolher o narrador, porque o livro já está narrado. (…) Também a
+> pessoa que tá solicitando **não sabe** se existe ou não esse livro dublado."
+
+Ou seja: o formulário pedia "quem narra" **antes** de alguém saber se alguém já
+narrou. Quando o livro já tem áudio, o AllBook traz a narração que existe — e a
+voz escolhida não vale nada. Era **promessa quebrada**, e feita a quem não tinha
+como responder a pergunta.
+
+**A regra que ficou: nunca perguntar o que só o app pode descobrir — e escrever o
+"se" quando a resposta depende dele.** O rótulo do campo virou **"Quem narra, se
+o estúdio gravar"**. Uma palavra resolve: a escolha continua ali para quem quer
+opinar, e agora diz exatamente quando vale. **Rejeitado esconder o campo** até
+saber se o livro tem narração — sem servidor isso é só sonegar informação, e o
+campo escondido faria a pessoa achar que não pode escolher nunca.
+
+**O que o app confere na hora, de verdade:** o próprio catálogo. Digitando o
+título, se ele já está no AllBook aparece um aviso com capa, narrador e o atalho
+"Ouvir agora" (`alreadyInCatalog`, em `lib/requests.ts`). É a única das três
+respostas possíveis que o frontend pode dar sem servidor — as outras duas ("já
+existe narração publicada lá fora" e "ninguém narrou ainda") dependem de uma base
+de audiolivros que ainda não existe, e por isso a **etapa 2 do caminho do pedido
+virou uma pergunta**: "Já existe narração?".
+
+O aviso **não bloqueia** o botão de pedir: o casamento por título é palpite (há
+títulos parecidos), e travar o pedido por palpite é pior do que informar.
+
+### Rejeitado no mesmo dia: deixar a pessoa pedir "produção do estúdio" no pedido
+
+Antes de chegar ao rótulo com "se", a tela ganhou **um par de opções**: *"se já
+existir narração, pode ser ela"* ou *"quero uma do AllBook Studio"*. Como
+interface funcionava — era a pergunta que qualquer pessoa consegue responder sem
+conhecer o livro. **Como negócio era ruim**, e o argumento do Matheus derrubou:
+
+> "Se o livro já existe, pra gente seria mais fácil, mais barato, mais tranquilo
+> produzir o livro, sendo que a pessoa vai pagar a mesma coisa. Quando você
+> coloca isso, você dá a possibilidade à pessoa pular para uma produção do
+> estúdio. Isso pode acabar encarecendo, mas deixando o processo mais trabalhoso
+> pra gente."
+
+**A regra que fica: não oferecer o caminho caro a quem se contentaria com o
+barato.** Diante de dois botões, muita gente marca o que **parece** melhor, não o
+que precisa — e cada uma dessas marcações troca uma narração pronta por uma
+gravação inteira, pelo mesmo preço. O par de opções foi removido, junto com o
+campo `preference` que guardava a escolha.
+
+### Fica em aberto: onde nasce a saída de quem não gosta da narração existente
+
+A pergunta original do Matheus segue de pé — *"se ela não gostar dessa narração e
+preferir a narração com o Inhá, como fica?"*. A saída **não pode** morar no
+pedido, pelo motivo acima. A proposta registrada, para quando ele decidir: ela
+nasce **na ficha do livro**, para quem já tem aquele livro e já ouviu — pedido
+raro, feito por quem tem motivo real, e não a opção padrão de todo mundo. É
+também o lugar natural para o preço aparecer, se a regravação for paga (preço e
+plano continuam em aberto neste roteiro). **Nada disso foi construído** — está
+aqui como decisão pendente, não como plano aprovado.
+
+**Atualização de 26/07 — o mecanismo apareceu:** os planos com **crédito de
+pedido** (ver "Modelo de negócio", atualização de 26/07) resolvem isto sem nenhum
+botão novo. Todo pedido **gasta 1 crédito**, trazer ou gravar. Ninguém pula para o
+caminho caro por capricho, porque qualquer pedido custa um crédito seu — e quem
+realmente não suporta a narração existente tem a saída pela qual pagou. E o
+resultado desse pedido **não vira um segundo livro no catálogo**: vira uma segunda
+narração do mesmo livro, com um seletor de narrador (ver 4.28).
+
+---
+
+## 4.29 O player prometia marcações que nunca existiram (26/07)
+
+O Matheus foi usar: abriu o player, tocou nos três pontinhos, escolheu
+"Marcações e notas" — e **não apareceu nada**. Ao investigar, o buraco era maior
+do que o relato:
+
+- o item do menu abria um aviso escrito *"suas marcações e notas deste título
+  aparecerão aqui"* — uma promessa para um lugar que **não existia**;
+- e o botão **"+ Marcação"**, na barra de baixo, também só mostrava um aviso
+  ("Guardamos o ponto em 1h 12min") e **não guardava nada**. Quem marcasse um
+  trecho perdia tudo ao sair da tela.
+
+Ou seja: a função inteira era um cenário. **Agora existe de verdade** —
+`lib/bookmarks.ts` (no molde de `library.ts`: ler nunca quebra, escrever avisa a
+tela por evento) e o painel `MarcacoesDoLivro.tsx`, com as três coisas que uma
+marcação pede: **ir para o ponto**, **escrever a nota** e **apagar**. O menu
+mostra quantas marcações o livro tem, e o ícone da barra fica preenchido quando
+há alguma — sem isso, nada na tela dizia que havia algo guardado.
+
+**Duas decisões pequenas que evitam defeito:** salvar duas vezes no mesmo lugar
+não cria duas linhas (marcações a menos de 5 segundos de distância são a mesma —
+sem isso, dois toques no botão enchiam a lista de repetições), e a nota é
+**opcional**: marcar tem de ser um toque só, escrever é para quando a pessoa
+quiser.
+
+**O vazio tem instrução, não é mudo.** Quem chega ao painel pelo menu precisa
+saber *como* criar a primeira marcação — o botão está na outra ponta da tela.
+
+### O azul que não era da casa
+
+Na mesma passada, o Matheus apontou que o player "distorce a cor do aplicativo".
+Estava certo, e era herança do rascunho antigo:
+
+- o **menu dos três pontinhos** tinha fundo `#1c2a3d`, azul-marinho — a única
+  superfície azul do app inteiro;
+- o **modo carro** abria num degradê **verde → azul-marinho** (`#1a4d35` →
+  `#0a101f`), duas cores que não existem na identidade;
+- os quadros de **Bluetooth** usavam o azul do logotipo do padrão, inclusive um
+  losango que imitava o ícone do Android;
+- o diálogo de duração personalizada era `#3d3d3d` com canto pequeno, com cara
+  de caixa nativa do Android.
+
+Tudo passou para a escala da casa: `#1a1a1a`/`#1c1c1c` com borda branca a 10%, e
+o laranja da marca onde havia azul. **O ícone já diz que é Bluetooth — a cor pode
+ser a nossa**; e num diálogo que é nosso, o ícone é o nosso.
 
 ---
 
