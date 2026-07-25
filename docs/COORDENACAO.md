@@ -22,7 +22,7 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | **ocupada** — Estatísticas de verdade: diário de audição (fundação) + tela reconstruída | `lib/listening.ts` (novo) · `lib/playback.ts` · `pages/Statistics.tsx` · `components/StatSpotlight.tsx` · `pages/Profile.tsx` (só a fileira de números) | não — serviço launchd sempre no ar | 25/07 |
+| A | — livre — (Estatísticas de verdade 25/07: diário de audição alimentado pelo player + tela reconstruída; Perfil ligado na mesma fonte — ver ROTEIRO 4.14) | — | não — serviço launchd sempre no ar | 25/07 |
 | B | — livre — (foto que amplia ao toque, estilo Instagram, 24/07: comentários + perfis — ver ROTEIRO 4.12. **`pages/PersonProfile.tsx` está liberado para a C**) | — | não — serviço launchd sempre no ar | 24/07 22:10 |
 | C | **ocupada** — crédito "Produzido por AllBook Studio" + vozes de IA com perfil próprio (decisão do Matheus 25/07) | `lib/studio.ts` (novo) · `lib/books.ts` (só o campo `narrator` de 10 livros) · `lib/comments.ts` · `pages/Studio.tsx` (novo) · `pages/BookDetails.tsx` · `pages/PersonProfile.tsx` · `App.tsx` | não — serviço launchd sempre no ar | 25/07 |
 

@@ -37,6 +37,8 @@ import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
 import { readRecommendations } from "@/lib/recommendations";
 import { readDownloads, readLibrary } from "@/lib/library";
+import { formatarDuracao } from "@/lib/listening";
+import { lerResumo, type ResumoDeAudicao } from "@/lib/stats";
 import { achievements, unlockedCount, unlockedAchievements, type Achievement } from "@/lib/achievements";
 import type { Book } from "@/lib/books";
 
@@ -56,12 +58,28 @@ import type { Book } from "@/lib/books";
  * passam a ler da mesma fonte.
  */
 
-const summary: { value: string; label: string; key: StatKey; icon: LucideIcon }[] = [
-  { value: "47h", label: "ouvidas", key: "horas", icon: Clock },
-  { value: "5", label: "títulos", key: "titulos", icon: BookOpen },
-  { value: "3 sem.", label: "sequência", key: "sequencia", icon: Flame },
-  { value: "2", label: "concluídos", key: "concluidos", icon: CheckCircle2 },
-];
+/**
+ * A fileira de números do topo — **calculada**, não escrita.
+ *
+ * Era fixa ("47h · 5 · 3 sem. · 2") e não batia com nada: a pessoa podia ter
+ * zero livros começados e mesmo assim ver 47 horas ouvidas. Agora sai da mesma
+ * fonte das Estatísticas (`lib/stats.ts`), então os dois lugares concordam.
+ */
+function numerosDoPerfil(
+  resumo: ResumoDeAudicao
+): { value: string; label: string; key: StatKey; icon: LucideIcon }[] {
+  return [
+    { value: formatarDuracao(resumo.segundos), label: "ouvidas", key: "horas", icon: Clock },
+    { value: String(resumo.titulosComecados), label: "títulos", key: "titulos", icon: BookOpen },
+    {
+      value: resumo.sequenciaDias > 0 ? `${resumo.sequenciaDias} d` : "—",
+      label: "sequência",
+      key: "sequencia",
+      icon: Flame,
+    },
+    { value: String(resumo.concluidos), label: "concluídos", key: "concluidos", icon: CheckCircle2 },
+  ];
+}
 
 export default function Profile() {
   const { toast } = useToast();
@@ -72,6 +90,7 @@ export default function Profile() {
   const [recommendations, setRecommendations] = useState<{ book: Book; note: string }[]>(readRecommendations);
   const [session, setSession] = useState<Session | null>(readSession);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [resumo, setResumo] = useState<ResumoDeAudicao | null>(null);
 
   useEffect(() => {
     // Relê ao voltar das telas de edição.
@@ -82,6 +101,9 @@ export default function Profile() {
     // Mesma fonte usada pelas telas Biblioteca e Downloads (lib/library.ts).
     setLibraryCount(readLibrary().length);
     setDownloadCount(readDownloads().length);
+
+    // Os números do topo saem daqui — a mesma conta das Estatísticas.
+    setResumo(lerResumo());
   }, []);
 
   /** Aviso para as opções cujas telas ainda não foram construídas. */
@@ -221,7 +243,7 @@ export default function Profile() {
 
       <section className="px-5 mt-1" data-testid="section-profile-summary">
         <div className="grid grid-cols-4 gap-2">
-          {summary.map((item) => {
+          {(resumo ? numerosDoPerfil(resumo) : []).map((item) => {
             const Icon = item.icon;
             return (
               <button
@@ -239,7 +261,7 @@ export default function Profile() {
         </div>
       </section>
 
-      <StatSpotlight stat={openStat} onClose={() => setOpenStat(null)} />
+      {resumo && <StatSpotlight stat={openStat} onClose={() => setOpenStat(null)} resumo={resumo} />}
 
       <section className="px-5 py-5 border-b border-white/10" data-testid="section-profile-recommendations">
         <div className="flex items-center justify-between mb-4">

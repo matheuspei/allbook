@@ -1,163 +1,384 @@
-import { ChevronRight, Share2, Trophy, TrendingUp, Headphones, BookOpen, Target, Flame } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
+import { Bar, BarChart, Cell, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import {
+  BookOpen,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Flame,
+  Headphones,
+  Share2,
+  Trophy,
+} from "lucide-react";
+
 import PageHeader from "@/components/PageHeader";
 import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { Button } from "@/components/ui/button";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
-import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { readLibrary } from "@/lib/library";
+import { achievements, unlockedCount } from "@/lib/achievements";
+import { catalog, slugify } from "@/lib/books";
+import { readFollowing } from "@/lib/following";
+import {
+  LISTENING_EVENT,
+  diaISO,
+  diasAtivos,
+  formatarDuracao,
+  porDiaDaSemana,
+  porFaixaDoDia,
+  porLivro,
+  serieDiaria,
+  serieMensal,
+  serieSemanal,
+  type PontoDaSerie,
+} from "@/lib/listening";
+import { readMyComments } from "@/lib/myComments";
+import { PLAYBACK_EVENT, playbackPercent, readPlaybackList } from "@/lib/playback";
+import { readRecommendationIds } from "@/lib/recommendations";
+import {
+  CONCLUIDO_PERCENT,
+  generosMaisOuvidos,
+  lerResumo,
+  pessoaMaisOuvida,
+  type ResumoDeAudicao,
+} from "@/lib/stats";
+
+/**
+ * Estatísticas (`/statistics`).
+ *
+ * **O que esta tela era.** Um mostruário de números inventados: "47h ouvidas",
+ * "3 semanas seguidas", "2 concluídos" e um gráfico de barras — todos escritos
+ * à mão no código, com meses de outubro a fevereiro e um "desde 24 de nov. de
+ * 2025" que envelheceu sozinho. Os quatro filtros do gráfico (Hoje /
+ * Diariamente / Mensalmente / Total) eram **quatro conjuntos de dados falsos**.
+ *
+ * **O que mudou.** Passou a existir um diário de audição (`lib/listening.ts`),
+ * alimentado pelo próprio player: agora todo número aqui é calculado. O que a
+ * tela não consegue calcular, ela não mostra — seção sem dado some, em vez de
+ * exibir zero decorativo.
+ *
+ * **Histórico de demonstração.** O app nasce sem passado, e uma tela vazia não
+ * dá para avaliar nem para usar. Na primeira abertura o diário é semeado com
+ * ~10 semanas plausíveis, e a tela **avisa** isso no rodapé enquanto sobrar
+ * algum dia de exemplo — o uso real vai substituindo dia a dia.
+ *
+ * **Sobriedade.** Saíram o cartão da sequência com degradê âmbar e troféu
+ * grande, o ícone colorido por seção e o quadradinho em degradê do atalho da
+ * Biblioteca — a mesma faxina feita nas outras telas (ver ROTEIRO 4.9).
+ */
+
+type JanelaKey = "7d" | "12s" | "12m";
+
+const JANELAS: { key: JanelaKey; label: string; titulo: string }[] = [
+  { key: "7d", label: "7 dias", titulo: "Últimos 7 dias" },
+  { key: "12s", label: "12 semanas", titulo: "Últimas 12 semanas" },
+  { key: "12m", label: "12 meses", titulo: "Últimos 12 meses" },
+];
+
+/** Semanas desenhadas no mapa de constância. */
+const SEMANAS_NO_MAPA = 12;
+
+/** Faixas de intensidade do mapa, em minutos por dia. */
+const NIVEIS = [0, 20, 45, 75];
+
+function classeDoNivel(sec: number): string {
+  const minutos = sec / 60;
+  if (minutos <= NIVEIS[0]) return "bg-white/[0.05]";
+  if (minutos < NIVEIS[1]) return "bg-primary/25";
+  if (minutos < NIVEIS[2]) return "bg-primary/50";
+  if (minutos < NIVEIS[3]) return "bg-primary/75";
+  return "bg-primary";
+}
+
+const NOMES_DOS_DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+
+function somarDias(data: Date, dias: number): Date {
+  const copia = new Date(data);
+  copia.setDate(copia.getDate() + dias);
+  return copia;
+}
 
 export default function Statistics() {
   const { toast } = useToast();
-  const [activeFilter, setActiveFilter] = useState("Mensalmente");
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
+  const [janela, setJanela] = useState<JanelaKey>("7d");
+  const [resumo, setResumo] = useState<ResumoDeAudicao | null>(null);
 
-  // A contagem de títulos vem da biblioteca real (localStorage), a mesma que
-  // Perfil e Biblioteca mostram — antes era um "5" escrito à mão que
-  // contradizia as outras telas.
-  const [libraryCount, setLibraryCount] = useState(0);
+  /** Relê quando o player credita audição ou quando o progresso muda. */
   useEffect(() => {
-    // lib/library.ts já engole storage corrompido e devolve lista vazia.
-    setLibraryCount(readLibrary().length);
+    const sincronizar = () => setResumo(lerResumo());
+    sincronizar();
+    window.addEventListener(LISTENING_EVENT, sincronizar);
+    window.addEventListener(PLAYBACK_EVENT, sincronizar);
+    return () => {
+      window.removeEventListener(LISTENING_EVENT, sincronizar);
+      window.removeEventListener(PLAYBACK_EVENT, sincronizar);
+    };
   }, []);
 
-  const chartData: Record<string, any[]> = {
-    "Hoje": [
-      { name: "08:00", hours: 0.5 },
-      { name: "12:00", hours: 1.2 },
-      { name: "16:00", hours: 0.8 },
-      { name: "20:00", hours: 0.3 },
-    ],
-    "Diariamente": [
-      { name: "Seg", hours: 1.5 },
-      { name: "Ter", hours: 2.1 },
-      { name: "Qua", hours: 1.8 },
-      { name: "Qui", hours: 2.5 },
-      { name: "Sex", hours: 1.2 },
-      { name: "Sáb", hours: 0.5 },
-      { name: "Dom", hours: 0.8 },
-    ],
-    "Mensalmente": [
-      { name: "out.", hours: 0 },
-      { name: "nov.", hours: 2 },
-      { name: "dez.", hours: 2 },
-      { name: "jan.", hours: 0 },
-      { name: "fev.", hours: 0 },
-    ],
-    "Total": [
-      { name: "2022", hours: 45 },
-      { name: "2023", hours: 120 },
-      { name: "2024", hours: 85 },
-      { name: "2025", hours: 150 },
-    ]
-  };
+  const serie = useMemo<PontoDaSerie[]>(() => {
+    if (!resumo) return [];
+    if (janela === "7d") return serieDiaria(resumo.diario, 7);
+    if (janela === "12s") return serieSemanal(resumo.diario, 12);
+    return serieMensal(resumo.diario, 12);
+  }, [resumo, janela]);
 
-  // Mesma chave usada no Perfil: os dois lugares abrem o mesmo painel.
-  const quickStats: { icon: typeof Headphones; label: string; value: string; key: StatKey }[] = [
-    { icon: Headphones, label: "Horas ouvidas", value: "47h", key: "horas" },
-    { icon: BookOpen, label: "Títulos", value: String(libraryCount), key: "titulos" },
-    { icon: Flame, label: "Sequência", value: "3 sem.", key: "sequencia" },
-    { icon: Target, label: "Concluídos", value: "2", key: "concluidos" },
+  /** Os 12×7 quadradinhos, alinhados por dia da semana como um calendário. */
+  const mapa = useMemo(() => {
+    if (!resumo) return [];
+    const hoje = new Date();
+    const sabadoDaSemana = somarDias(hoje, 6 - hoje.getDay());
+    const total = SEMANAS_NO_MAPA * 7;
+    const celulas: { chave: string; sec: number; futuro: boolean }[] = [];
+
+    for (let i = total - 1; i >= 0; i--) {
+      const data = somarDias(sabadoDaSemana, -i);
+      const chave = diaISO(data);
+      celulas.push({ chave, sec: resumo.diario[chave]?.sec ?? 0, futuro: data > hoje });
+    }
+    return celulas;
+  }, [resumo]);
+
+  const generos = useMemo(
+    () =>
+      resumo
+        ? generosMaisOuvidos(resumo.diario)
+            // Abaixo de 1% o rótulo viraria "0%", que parece defeito.
+            .filter((item) => item.parte >= 0.01)
+            .slice(0, 5)
+        : [],
+    [resumo]
+  );
+  const autor = useMemo(() => (resumo ? pessoaMaisOuvida(resumo.diario, "author") : null), [resumo]);
+  const narrador = useMemo(
+    () => (resumo ? pessoaMaisOuvida(resumo.diario, "narrator") : null),
+    [resumo]
+  );
+
+  const faixas = useMemo(() => {
+    if (!resumo) return [];
+    const bruto = porFaixaDoDia(resumo.diario);
+    const total = Object.values(bruto).reduce((soma, sec) => soma + sec, 0);
+    if (total === 0) return [];
+    return (Object.entries(bruto) as [keyof typeof bruto, number][])
+      .map(([faixa, sec]) => ({ faixa, sec, parte: sec / total }))
+      // Faixa zerada não diz nada — "Tarde 0min" só ocupa linha.
+      .filter((item) => item.sec > 0)
+      .sort((a, b) => b.sec - a.sec);
+  }, [resumo]);
+
+  const diaMaisForte = useMemo(() => {
+    if (!resumo) return null;
+    const dias = porDiaDaSemana(resumo.diario);
+    const maior = Math.max(...dias);
+    if (maior <= 0) return null;
+    return { indice: dias.indexOf(maior), sec: maior };
+  }, [resumo]);
+
+  /** Os concluídos, com capa — vale mais que o número solto. */
+  const concluidos = useMemo(() => {
+    return readPlaybackList()
+      .filter((item) => playbackPercent(item) >= CONCLUIDO_PERCENT)
+      .flatMap((item) => {
+        const livro = catalog.find((b) => b.id === item.bookId);
+        return livro ? [livro] : [];
+      });
+  }, [resumo]);
+
+  const comunidade = useMemo(
+    () => ({
+      comentarios: readMyComments().length,
+      recomendacoes: readRecommendationIds().length,
+      seguindo: readFollowing().length,
+    }),
+    [resumo]
+  );
+
+  const livroMaisOuvido = useMemo(() => {
+    if (!resumo) return null;
+    const topo = porLivro(resumo.diario)[0];
+    if (!topo) return null;
+    const livro = catalog.find((item) => item.id === topo.bookId);
+    return livro ? { livro, sec: topo.sec } : null;
+  }, [resumo]);
+
+  // Primeiro quadro: o diário ainda não foi lido (só existe no navegador).
+  if (!resumo) {
+    return (
+      <div className="min-h-screen bg-[#141414] text-white" data-testid="statistics-page">
+        <PageHeader title="Estatísticas" fallback="/profile" />
+      </div>
+    );
+  }
+
+  const ativos = diasAtivos(resumo.diario);
+  const mediaPorDiaAtivo = ativos > 0 ? resumo.segundos / ativos : 0;
+  const totalDaJanela = serie.reduce((soma, ponto) => soma + ponto.sec, 0);
+
+  /** A frase de contexto do número grande — comparação honesta, sem enfeite. */
+  const comparacao = (() => {
+    if (resumo.segundos === 0) return "Toque em play em algum livro para começar a contar.";
+    if (resumo.semanaPassada === 0 && resumo.estaSemana === 0) return "Nada nos últimos 7 dias.";
+    if (resumo.semanaPassada === 0) return `${formatarDuracao(resumo.estaSemana)} nos últimos 7 dias.`;
+
+    const diferenca = resumo.estaSemana - resumo.semanaPassada;
+    if (Math.abs(diferenca) < 60) return "Mesmo ritmo da semana passada.";
+    return `${formatarDuracao(Math.abs(diferenca))} ${diferenca > 0 ? "a mais" : "a menos"} que na semana anterior.`;
+  })();
+
+  const numeros: { icone: typeof Headphones; label: string; valor: string; key: StatKey }[] = [
+    { icone: Clock, label: "Horas ouvidas", valor: formatarDuracao(resumo.segundos), key: "horas" },
+    {
+      icone: BookOpen,
+      label: "Títulos começados",
+      valor: String(resumo.titulosComecados),
+      key: "titulos",
+    },
+    {
+      icone: Flame,
+      label: "Sequência",
+      valor: resumo.sequenciaDias > 0 ? `${resumo.sequenciaDias} d` : "—",
+      key: "sequencia",
+    },
+    {
+      icone: CheckCircle2,
+      label: "Concluídos",
+      valor: String(resumo.concluidos),
+      key: "concluidos",
+    },
   ];
 
-  // Copia de verdade — o toast antigo anunciava a cópia sem copiar nada.
-  const handleShare = async () => {
+  /**
+   * Copia um resumo em texto — o botão antigo copiava a URL do localhost.
+   * É função de seta atribuída a `const` de propósito: uma `function` seria
+   * içada para antes do `if (!resumo)` acima, e o TypeScript deixaria de saber
+   * que `resumo` já não é nulo aqui dentro.
+   */
+  const compartilhar = async () => {
+    const linhas = [
+      "Minhas estatísticas no AllBook:",
+      `• ${formatarDuracao(resumo.segundos)} ouvidas`,
+      `• ${resumo.titulosComecados} títulos começados, ${resumo.concluidos} concluídos`,
+      resumo.sequenciaDias > 0 ? `• sequência de ${resumo.sequenciaDias} dias` : null,
+      generos[0] ? `• gênero favorito: ${generos[0].genero}` : null,
+    ].filter(Boolean);
+
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link copiado!",
-        description: "O link das suas estatísticas foi copiado para a área de transferência.",
-      });
+      await navigator.clipboard.writeText(linhas.join("\n"));
+      toast({ title: "Resumo copiado", description: "Agora é só colar onde você quiser." });
     } catch {
       toast({
         title: "Não deu para copiar",
         description: "O navegador bloqueou o acesso à área de transferência.",
       });
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="statistics-page">
+    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="statistics-page">
       <PageHeader title="Estatísticas" fallback="/profile" />
 
-      <StatSpotlight stat={openStat} onClose={() => setOpenStat(null)} />
+      <StatSpotlight stat={openStat} onClose={() => setOpenStat(null)} resumo={resumo} />
 
-      <main className="px-5 py-6 space-y-8">
-        <div className="grid grid-cols-2 gap-3">
-          {quickStats.map((stat, idx) => {
-            const Icon = stat.icon;
+      <main className="space-y-10 px-5 py-6">
+        {/* 1. O número que resume tudo. */}
+        <section data-testid="section-hero">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">
+            Você já ouviu
+          </p>
+          <p
+            className="mt-1.5 font-display text-5xl font-bold tracking-tight"
+            data-testid="text-total-hours"
+          >
+            {formatarDuracao(resumo.segundos)}
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-white/45">{comparacao}</p>
+        </section>
+
+        {/* 2. Os quatro números, cada um com seu painel de detalhe. */}
+        <section className="grid grid-cols-2 gap-3">
+          {numeros.map((item) => {
+            const Icone = item.icone;
             return (
               <button
-                key={idx}
-                onClick={() => setOpenStat(stat.key)}
-                className="bg-white/5 rounded-xl border border-white/5 p-4 space-y-3 text-left hover:bg-white/10 active:scale-95 transition-all duration-150"
-                data-testid={`stat-card-${stat.label.toLowerCase().replace(/ /g, '-')}`}
+                key={item.key}
+                onClick={() => setOpenStat(item.key)}
+                className="rounded-xl border border-white/5 bg-white/5 p-4 text-left transition-all duration-150 hover:bg-white/10 active:scale-95"
+                data-testid={`stat-card-${item.key}`}
               >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-primary" strokeWidth={2} />
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                  <Icone className="h-[18px] w-[18px] text-primary" />
                 </div>
-                <div>
-                  <span className="text-2xl font-bold">{stat.value}</span>
-                  <p className="text-[11px] text-white/40 mt-0.5">{stat.label}</p>
-                </div>
+                <p className="mt-3 font-display text-2xl font-bold tracking-tight">{item.valor}</p>
+                <p className="mt-0.5 text-[11px] text-white/40">{item.label}</p>
               </button>
             );
           })}
-        </div>
+        </section>
 
-        <section className="space-y-5" data-testid="section-listening-time">
-          <h2 className="text-lg font-bold font-display flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-amber-500" />
-            Tempo de escuta
-          </h2>
-          
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {["Hoje", "Diariamente", "Mensalmente", "Total"].map((filter) => (
+        {/* 3. Tempo de escuta — agora com dados de verdade. */}
+        <section className="space-y-4" data-testid="section-listening-time">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="font-display text-xl font-bold tracking-tight">Tempo de escuta</h2>
+            <span className="shrink-0 text-xs text-white/40">
+              {formatarDuracao(totalDaJanela)} no período
+            </span>
+          </div>
+
+          <div className="scrollbar-hide flex gap-2 overflow-x-auto">
+            {JANELAS.map((item) => (
               <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                  activeFilter === filter
+                key={item.key}
+                onClick={() => setJanela(item.key)}
+                className={`shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+                  janela === item.key
                     ? "bg-white text-black"
-                    : "bg-white/10 text-white/60 hover:bg-white/15"
+                    : "bg-white/[0.07] text-white/70 hover:bg-white/[0.12]"
                 }`}
-                data-testid={`filter-${filter.toLowerCase()}`}
+                data-testid={`filter-${item.key}`}
               >
-                {filter}
+                {item.label}
               </button>
             ))}
           </div>
 
-          <div className="bg-white/5 rounded-xl border border-white/5 p-5 space-y-4">
-            <h3 className="text-center text-xs font-medium text-white/40 uppercase tracking-wider" data-testid="text-chart-title">
-              {activeFilter === "Hoje" ? "Horas dedicadas hoje" : 
-               activeFilter === "Diariamente" ? "Horas dedicadas por dia" :
-               activeFilter === "Mensalmente" ? "Horas dedicadas por mês" :
-               "Horas dedicadas por ano"}
-            </h3>
-            
-            <div className="h-48 w-full">
+          <div className="rounded-xl border border-white/5 bg-white/5 p-4">
+            <p className="text-center text-[11px] uppercase tracking-wider text-white/35">
+              {JANELAS.find((j) => j.key === janela)!.titulo}
+            </p>
+            <div className="mt-3 h-44 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData[activeFilter]}>
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }}
-                    dy={10}
+                {/* A margem esquerda encosta no eixo, mas não corta: com -18 os
+                    rótulos "1h" e "2h" saíam pela metade. */}
+                <BarChart data={serie} margin={{ top: 4, right: 4, left: -6, bottom: 0 }}>
+                  <XAxis
+                    dataKey="rotulo"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }}
+                    dy={8}
+                    interval={0}
                   />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }}
-                    dx={-5}
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 10 }}
+                    width={34}
+                    tickFormatter={(valor: number) => (valor === 0 ? "0" : `${valor}h`)}
                   />
-                  <Bar dataKey="hours" radius={[6, 6, 0, 0]}>
-                    {chartData[activeFilter].map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.hours > 0 ? "#f59e0b" : "rgba(255,255,255,0.05)"} 
+                  <Bar dataKey="horas" radius={[4, 4, 0, 0]}>
+                    {serie.map((ponto, indice) => (
+                      <Cell
+                        key={ponto.rotulo + indice}
+                        /* A última barra é o período corrente: cheia. As outras,
+                           um tom abaixo. Período vazio vira um risco, não um buraco. */
+                        fill={
+                          ponto.sec === 0
+                            ? "rgba(255,255,255,0.06)"
+                            : indice === serie.length - 1
+                              ? "hsl(var(--primary))"
+                              : "hsl(var(--primary) / 0.65)"
+                        }
                       />
                     ))}
                   </Bar>
@@ -165,70 +386,269 @@ export default function Statistics() {
               </ResponsiveContainer>
             </div>
           </div>
-
-          <Button 
-            onClick={handleShare}
-            className="w-full h-11 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-white"
-            data-testid="button-share-stats"
-          >
-            <Share2 className="w-4 h-4" />
-            Compartilhar estatísticas
-          </Button>
         </section>
 
-        <section className="space-y-4" data-testid="section-weekly-stats">
-          <h2 className="text-lg font-bold font-display">Sua sequência semanal</h2>
-          <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20 p-6 space-y-5">
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-16 h-16 bg-amber-500/20 rounded-2xl flex items-center justify-center">
-                <Trophy className="w-9 h-9 text-amber-500" />
-              </div>
-              <div className="space-y-1.5">
-                <h3 className="text-xl font-bold" data-testid="text-streak-count">3 semanas seguidas 🔥</h3>
-                <p className="text-sm text-white/50 px-4">
-                  Você ouviu pelo menos 1 dia toda semana por 3 semanas desde 24 de nov. de 2025.
-                </p>
-              </div>
+        {/* 4. Constância: um quadradinho por dia, 12 semanas. */}
+        <section className="space-y-4" data-testid="section-consistency">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="font-display text-xl font-bold tracking-tight">Constância</h2>
+            <span className="shrink-0 text-xs text-white/40">
+              {resumo.sequenciaDias === 0
+                ? "sequência parada"
+                : resumo.sequenciaDias === 1
+                  ? "1 dia seguido"
+                  : `${resumo.sequenciaDias} dias seguidos`}
+            </span>
+          </div>
+
+          <div className="rounded-xl border border-white/5 bg-white/5 p-4">
+            <div className="grid grid-flow-col grid-rows-7 gap-1">
+              {mapa.map((celula) => (
+                <div
+                  key={celula.chave}
+                  title={`${celula.chave}: ${formatarDuracao(celula.sec)}`}
+                  className={`aspect-square rounded-[3px] ${
+                    celula.futuro ? "bg-white/[0.02]" : classeDoNivel(celula.sec)
+                  }`}
+                />
+              ))}
             </div>
-            
-            <div className="flex justify-center gap-2 pt-2">
-              {["S", "T", "Q", "Q", "S", "S", "D"].map((day, i) => (
-                <div key={i} className="flex flex-col items-center gap-1">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                    i < 4 ? "bg-amber-500 text-black" : "bg-white/10 text-white/30"
-                  }`}>
-                    {i < 4 ? "✓" : day}
-                  </div>
-                  <span className="text-[9px] text-white/30">{day}</span>
+
+            <div className="mt-3 flex items-center justify-between text-[10px] text-white/30">
+              <span>12 semanas atrás</span>
+              <span className="flex items-center gap-1">
+                menos
+                <span className="h-2.5 w-2.5 rounded-[2px] bg-white/[0.05]" />
+                <span className="h-2.5 w-2.5 rounded-[2px] bg-primary/25" />
+                <span className="h-2.5 w-2.5 rounded-[2px] bg-primary/50" />
+                <span className="h-2.5 w-2.5 rounded-[2px] bg-primary/75" />
+                <span className="h-2.5 w-2.5 rounded-[2px] bg-primary" />
+                mais
+              </span>
+              <span>hoje</span>
+            </div>
+          </div>
+
+          {ativos > 0 && (
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { valor: String(ativos), label: "dias com audição" },
+                { valor: `${resumo.melhorSequencia} d`, label: "melhor sequência" },
+                { valor: formatarDuracao(mediaPorDiaAtivo), label: "média por dia" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-3 text-center"
+                >
+                  <p className="font-display text-lg font-bold tracking-tight">{item.valor}</p>
+                  <p className="mt-0.5 text-[10px] leading-tight text-white/40">{item.label}</p>
                 </div>
               ))}
             </div>
-          </div>
+          )}
         </section>
 
-        <section className="space-y-4" data-testid="section-library-count">
-          <h2 className="text-lg font-bold font-display">
-            {libraryCount === 0
-              ? "Sua Biblioteca ainda está vazia"
-              : libraryCount === 1
-                ? "Você tem 1 título na sua Biblioteca"
-                : `Você tem ${libraryCount} títulos na sua Biblioteca`}
-          </h2>
-          <Link href="/library">
-            <div className="bg-white/5 rounded-xl border border-white/5 p-4 flex items-center justify-between hover:bg-white/8 transition-colors cursor-pointer" data-testid="card-library-link">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-14 bg-gradient-to-br from-amber-500/30 to-orange-600/30 rounded-lg flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-amber-500" />
+        {/* 5. O ritmo: quando você ouve. */}
+        {faixas.length > 0 && (
+          <section className="space-y-4" data-testid="section-rhythm">
+            <h2 className="font-display text-xl font-bold tracking-tight">Quando você ouve</h2>
+
+            <div className="space-y-2.5 rounded-xl border border-white/5 bg-white/5 p-4">
+              {faixas.map((item) => (
+                <div key={item.faixa} className="flex items-center gap-3">
+                  <span className="w-20 shrink-0 text-xs capitalize text-white/55">{item.faixa}</span>
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+                    {/* A barra é comparativa: a maior faixa ocupa a linha toda e
+                        as outras se medem contra ela. Usar a fração do total
+                        deixava tudo curto e indistinguível. */}
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${Math.max((item.sec / faixas[0].sec) * 100, 4)}%` }}
+                    />
+                  </div>
+                  <span className="w-16 shrink-0 text-right text-[11px] text-white/40">
+                    {formatarDuracao(item.sec)}
+                  </span>
                 </div>
-                <div className="space-y-0.5">
-                  <h3 className="font-bold text-sm">Ver Biblioteca</h3>
-                  <p className="text-xs text-white/40">Acesse seus audiolivros salvos</p>
+              ))}
+            </div>
+
+            {diaMaisForte && (
+              <p className="text-sm leading-relaxed text-white/45">
+                Seu dia mais forte é{" "}
+                <span className="font-medium text-white/80">{NOMES_DOS_DIAS[diaMaisForte.indice]}</span>
+                , com {formatarDuracao(diaMaisForte.sec)} acumuladas.
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* 6. O que você ouve. */}
+        {generos.length > 0 && (
+          <section className="space-y-4" data-testid="section-taste">
+            <h2 className="font-display text-xl font-bold tracking-tight">O que você ouve</h2>
+
+            <div className="space-y-3 rounded-xl border border-white/5 bg-white/5 p-4">
+              {generos.map((item) => (
+                <Link key={item.genero} href={`/category/${slugify(item.genero)}`}>
+                  <div className="group flex items-center gap-3">
+                    <span className="w-28 shrink-0 truncate text-xs text-white/55 group-hover:text-white">
+                      {item.genero}
+                    </span>
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+                      {/* Comparativa, como em "Quando você ouve": o gênero do
+                          topo enche a linha e os outros se medem contra ele. */}
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${Math.max((item.parte / generos[0].parte) * 100, 4)}%` }}
+                      />
+                    </div>
+                    <span className="w-9 shrink-0 text-right text-[11px] text-white/40">
+                      {Math.round(item.parte * 100)}%
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { titulo: "Autor mais ouvido", pessoa: autor },
+                { titulo: "Narrador mais ouvido", pessoa: narrador },
+              ]
+                .filter((item) => item.pessoa)
+                .map((item) => (
+                  <Link key={item.titulo} href={`/person/${slugify(item.pessoa!.nome)}`}>
+                    <div className="h-full rounded-xl border border-white/5 bg-white/[0.03] p-3.5 transition-colors hover:bg-white/[0.06]">
+                      <p className="text-[10px] uppercase tracking-wider text-white/35">
+                        {item.titulo}
+                      </p>
+                      <p className="mt-1.5 font-display text-sm font-bold leading-snug tracking-tight">
+                        {item.pessoa!.nome}
+                      </p>
+                      <p className="mt-1 text-[11px] text-white/40">
+                        {formatarDuracao(item.pessoa!.sec)} · {item.pessoa!.titulos}{" "}
+                        {item.pessoa!.titulos === 1 ? "título" : "títulos"}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+
+            {livroMaisOuvido && (
+              <Link href={`/book/${livroMaisOuvido.livro.id}`}>
+                <div className="flex items-center gap-3.5 rounded-xl border border-white/5 bg-white/[0.03] p-3.5 transition-colors hover:bg-white/[0.06]">
+                  <div className="h-[68px] w-12 shrink-0 overflow-hidden rounded-md border border-white/10">
+                    <img
+                      src={livroMaisOuvido.livro.cover}
+                      alt={livroMaisOuvido.livro.title}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] uppercase tracking-wider text-white/35">
+                      Livro que mais tomou seu tempo
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold">
+                      {livroMaisOuvido.livro.title}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-white/40">
+                      {formatarDuracao(livroMaisOuvido.sec)} ouvidas
+                    </p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-white/25" />
+                </div>
+              </Link>
+            )}
+          </section>
+        )}
+
+        {/* 7. Concluídos, com capa. */}
+        {concluidos.length > 0 && (
+          <section className="space-y-3" data-testid="section-finished">
+            <h2 className="font-display text-xl font-bold tracking-tight">
+              {concluidos.length === 1
+                ? "Você terminou 1 livro"
+                : `Você terminou ${concluidos.length} livros`}
+            </h2>
+            <div className="scrollbar-hide -mx-5 flex snap-x snap-mandatory scroll-pl-5 gap-3 overflow-x-auto px-5 pb-1">
+              {concluidos.map((livro) => (
+                <Link
+                  key={livro.id}
+                  href={`/book/${livro.id}`}
+                  className="min-w-[92px] max-w-[92px] snap-start"
+                >
+                  <div className="aspect-[3/4] overflow-hidden rounded-lg border border-white/10 shadow-lg shadow-black/40">
+                    <img src={livro.cover} alt={livro.title} className="h-full w-full object-cover" />
+                  </div>
+                  <p className="mt-1.5 line-clamp-2 text-[11px] leading-snug">{livro.title}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 8. Conquistas — a grade fica no Perfil; aqui vai o placar. */}
+        <section data-testid="section-achievements">
+          <Link href="/profile">
+            <div className="flex items-center gap-3.5 rounded-xl border border-white/5 bg-white/5 px-4 py-3.5 transition-colors hover:bg-white/[0.08]">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Trophy className="h-[18px] w-[18px] text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">
+                  {unlockedCount} de {achievements.length} conquistas
+                </p>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${(unlockedCount / achievements.length) * 100}%` }}
+                  />
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-white/20" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-white/25" />
             </div>
           </Link>
         </section>
+
+        {/* 9. O rastro na comunidade. */}
+        <section className="space-y-3" data-testid="section-community">
+          <h2 className="font-display text-xl font-bold tracking-tight">Na comunidade</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { valor: comunidade.comentarios, label: "comentários", href: "/community" },
+              {
+                valor: comunidade.recomendacoes,
+                label: "recomendações",
+                href: "/profile/recommendations",
+              },
+              { valor: comunidade.seguindo, label: "seguindo", href: "/community" },
+            ].map((item) => (
+              <Link key={item.label} href={item.href}>
+                <div className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-3.5 text-center transition-colors hover:bg-white/[0.06]">
+                  <p className="font-display text-xl font-bold tracking-tight">{item.valor}</p>
+                  <p className="mt-0.5 text-[10px] leading-tight text-white/40">{item.label}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <Button
+          onClick={compartilhar}
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 text-sm font-bold text-white hover:bg-white/15"
+          data-testid="button-share-stats"
+        >
+          <Share2 className="h-4 w-4" />
+          Copiar meu resumo
+        </Button>
+
+        {resumo.temExemplo && (
+          <p className="text-center text-[11px] leading-relaxed text-white/30">
+            Parte do histórico é de demonstração, para a tela não nascer vazia. O que você ouvir de
+            verdade vai substituindo dia a dia.
+          </p>
+        )}
       </main>
     </div>
   );

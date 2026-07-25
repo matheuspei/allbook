@@ -2,13 +2,22 @@ import { useEffect, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 
+import { formatarDuracao } from "@/lib/listening";
+import type { ResumoDeAudicao } from "@/lib/stats";
+
 /**
- * Painel que abre quando se toca num número do Perfil.
+ * Painel que abre quando se toca num número do Perfil ou das Estatísticas.
  *
  * A ideia é que o número não fique parado: ele sobe contando do zero, e cada
  * métrica traz uma visualização própria — a barra rumo às 100 horas (que é a
  * conquista "Centenário"), os 21 dias da sequência acendendo em cascata, e
  * assim por diante. A animação serve para explicar o número, não para enfeitar.
+ *
+ * **Os números vêm de fora, e são reais.** Até 25/07 cada detalhe daqui tinha
+ * o próprio valor escrito no código (47 horas, 3 semanas, 5 títulos, 2
+ * concluídos) — e eles não batiam nem com o Perfil nem com a Biblioteca. Agora
+ * quem abre o painel passa o `resumo` calculado por `lib/stats.ts`, a mesma
+ * fonte das duas telas.
  */
 
 export type StatKey = "horas" | "titulos" | "sequencia" | "concluidos";
@@ -74,9 +83,11 @@ function BigNumber({ value, suffix, caption }: { value: number; suffix?: string;
 }
 
 /** Horas: barra crescendo rumo às 100h da conquista "Centenário". */
-function HorasDetail() {
+function HorasDetail({ resumo }: { resumo: ResumoDeAudicao }) {
   const goal = 100;
-  const current = 47;
+  const current = Math.round(resumo.segundos / 3600);
+  // Um audiolivro médio tem umas 8 horas — é a régua para traduzir o total.
+  const emLivros = Math.floor(resumo.segundos / (8 * 3600));
 
   return (
     <div className="space-y-8">
@@ -92,21 +103,30 @@ function HorasDetail() {
           <motion.div
             className="h-full rounded-full bg-primary"
             initial={{ width: 0 }}
-            animate={{ width: `${(current / goal) * 100}%` }}
+            animate={{ width: `${Math.min((current / goal) * 100, 100)}%` }}
             transition={{ duration: 1.2, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           />
         </div>
 
         <p className="text-xs text-white/40 leading-relaxed">
-          Faltam <span className="text-white/70 font-medium">{goal - current} horas</span> para
-          destravar a conquista.
+          {current >= goal ? (
+            <>
+              Conquista <span className="text-white/70 font-medium">destravada</span> — você passou
+              das 100 horas.
+            </>
+          ) : (
+            <>
+              Faltam <span className="text-white/70 font-medium">{goal - current} horas</span> para
+              destravar a conquista.
+            </>
+          )}
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         {[
-          { value: "≈ 2 dias", label: "ouvindo sem parar" },
-          { value: "≈ 9", label: "audiolivros inteiros" },
+          { value: `≈ ${(resumo.segundos / 86400).toFixed(1)} dias`, label: "ouvindo sem parar" },
+          { value: `≈ ${emLivros}`, label: "audiolivros de 8h" },
         ].map((item, idx) => (
           <motion.div
             key={item.label}
@@ -125,14 +145,19 @@ function HorasDetail() {
 }
 
 /** Sequência: 21 dias acendendo um a um, em cascata. */
-function SequenciaDetail() {
-  const days = 21;
+function SequenciaDetail({ resumo }: { resumo: ResumoDeAudicao }) {
+  const days = resumo.ultimos21.length;
   // Os dias em que houve audição — o resto fica apagado.
-  const listened = new Set([0, 1, 3, 4, 5, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19, 20]);
+  const listened = new Set(
+    resumo.ultimos21.flatMap((ouviu, indice) => (ouviu ? [indice] : []))
+  );
 
   return (
     <div className="space-y-8">
-      <BigNumber value={3} caption="semanas seguidas sem falhar" />
+      <BigNumber
+        value={resumo.sequenciaDias}
+        caption={resumo.sequenciaDias === 1 ? "dia seguido ouvindo" : "dias seguidos ouvindo"}
+      />
 
       <div className="space-y-3">
         <p className="text-xs text-white/40">Últimos 21 dias</p>
@@ -167,21 +192,31 @@ function SequenciaDetail() {
         transition={{ delay: 1 }}
         className="text-xs text-white/40 leading-relaxed"
       >
-        Ouça <span className="text-white/70 font-medium">15 minutos hoje</span> para manter a
-        sequência viva.
+        {resumo.melhorSequencia > resumo.sequenciaDias ? (
+          <>
+            Seu recorde é de{" "}
+            <span className="text-white/70 font-medium">{resumo.melhorSequencia} dias</span> — dá
+            para bater.
+          </>
+        ) : (
+          <>
+            Ouça <span className="text-white/70 font-medium">alguns minutos hoje</span> para manter
+            a sequência viva.
+          </>
+        )}
       </motion.p>
     </div>
   );
 }
 
 /** Títulos: progresso rumo à meta do ano. */
-function TitulosDetail() {
+function TitulosDetail({ resumo }: { resumo: ResumoDeAudicao }) {
   const goal = 12;
-  const current = 5;
+  const current = Math.min(resumo.titulosComecados, goal);
 
   return (
     <div className="space-y-8">
-      <BigNumber value={current} caption="títulos começados este ano" />
+      <BigNumber value={resumo.titulosComecados} caption="títulos que você começou" />
 
       <div className="space-y-3">
         <div className="flex items-baseline justify-between text-xs">
@@ -202,8 +237,9 @@ function TitulosDetail() {
         </div>
 
         <p className="text-xs text-white/40 leading-relaxed">
-          No ritmo atual você fecha o ano com{" "}
-          <span className="text-white/70 font-medium">cerca de 10 títulos</span>.
+          Você tem <span className="text-white/70 font-medium">{resumo.naLista}</span> na sua lista e
+          já ouviu <span className="text-white/70 font-medium">{formatarDuracao(resumo.segundos)}</span>{" "}
+          no total.
         </p>
       </div>
     </div>
@@ -211,10 +247,10 @@ function TitulosDetail() {
 }
 
 /** Concluídos: anel de progresso desenhando. */
-function ConcluidosDetail() {
-  const started = 5;
-  const finished = 2;
-  const ratio = finished / started;
+function ConcluidosDetail({ resumo }: { resumo: ResumoDeAudicao }) {
+  const started = resumo.titulosComecados;
+  const finished = resumo.concluidos;
+  const ratio = started > 0 ? finished / started : 0;
 
   const size = 132;
   const stroke = 10;
@@ -257,30 +293,44 @@ function ConcluidosDetail() {
       </div>
 
       <p className="text-sm text-white/40 text-center">
-        Você termina{" "}
-        <span className="text-white/70 font-medium">{Math.round(ratio * 100)}%</span> do que começa.
+        {started === 0 ? (
+          "Nenhum livro começado ainda."
+        ) : (
+          <>
+            Você termina{" "}
+            <span className="text-white/70 font-medium">{Math.round(ratio * 100)}%</span> do que
+            começa.
+          </>
+        )}
       </p>
 
-      <p className="text-xs text-white/40 leading-relaxed text-center">
-        Três títulos ficaram pelo caminho. Que tal retomar um deles?
-      </p>
+      {started - finished > 0 && (
+        <p className="text-xs text-white/40 leading-relaxed text-center">
+          {started - finished === 1
+            ? "Um título ficou pelo caminho. Que tal retomar?"
+            : `${started - finished} títulos ficaram pelo caminho. Que tal retomar um deles?`}
+        </p>
+      )}
     </div>
   );
 }
 
-const details: Record<StatKey, { title: string; render: () => ReactNode }> = {
-  horas: { title: "Horas ouvidas", render: () => <HorasDetail /> },
-  titulos: { title: "Títulos", render: () => <TitulosDetail /> },
-  sequencia: { title: "Sequência", render: () => <SequenciaDetail /> },
-  concluidos: { title: "Concluídos", render: () => <ConcluidosDetail /> },
+const details: Record<StatKey, { title: string; render: (resumo: ResumoDeAudicao) => ReactNode }> = {
+  horas: { title: "Horas ouvidas", render: (resumo) => <HorasDetail resumo={resumo} /> },
+  titulos: { title: "Títulos", render: (resumo) => <TitulosDetail resumo={resumo} /> },
+  sequencia: { title: "Sequência", render: (resumo) => <SequenciaDetail resumo={resumo} /> },
+  concluidos: { title: "Concluídos", render: (resumo) => <ConcluidosDetail resumo={resumo} /> },
 };
 
 export default function StatSpotlight({
   stat,
   onClose,
+  resumo,
 }: {
   stat: StatKey | null;
   onClose: () => void;
+  /** Os números reais, calculados por `lib/stats.ts`. */
+  resumo: ResumoDeAudicao;
 }) {
   // Trava a rolagem do fundo enquanto o painel está aberto.
   useEffect(() => {
@@ -339,7 +389,7 @@ export default function StatSpotlight({
               </button>
             </div>
 
-            {detail.render()}
+            {detail.render(resumo)}
           </motion.div>
         </motion.div>
       )}

@@ -19,6 +19,7 @@
  */
 
 import { catalog, type Book } from "@/lib/books";
+import { registrarAudicao } from "@/lib/listening";
 
 const PROGRESS_KEY = "allbook_playback";
 const VISIBLE_KEY = "allbook_miniplayer";
@@ -106,9 +107,19 @@ export function readPlayback(): Playback | null {
 export function savePlayback(playback: Omit<Playback, "updatedAt">): void {
   try {
     const entry: Playback = { ...playback, updatedAt: new Date().toISOString() };
-    const rest = readPlaybackList().filter((item) => item.bookId !== entry.bookId);
+    const lista = readPlaybackList();
+    const anterior = lista.find((item) => item.bookId === entry.bookId);
+    const rest = lista.filter((item) => item.bookId !== entry.bookId);
     localStorage.setItem(PROGRESS_KEY, JSON.stringify([entry, ...rest].slice(0, MAX_ENTRIES)));
     notify();
+
+    /**
+     * O avanço desde a última gravação **é** o tempo ouvido: o player salva a
+     * cada 5 segundos, então creditar a diferença aqui alimenta o diário sem
+     * ninguém precisar chamar nada. Voltar atrás ou pular capítulo dá diferença
+     * negativa ou grande demais, e `registrarAudicao` descarta as duas.
+     */
+    if (anterior) registrarAudicao(entry.bookId, entry.positionSec - anterior.positionSec);
   } catch {
     // localStorage cheio: perder o progresso é chato, mas não é motivo para
     // derrubar o player no meio da audição.

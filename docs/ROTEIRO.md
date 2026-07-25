@@ -991,6 +991,80 @@ transforma um vazio em vitrine.
 
 ---
 
+## 4.14 Estatísticas de verdade: nasceu o diário de audição (25/07)
+
+O Matheus pediu para "melhorar a estatística do usuário, com mais informações e
+mais bem feita, com coisa mais premium" — e pediu **análise antes da mudança**.
+A análise achou o essencial: **de todos os números da tela, um só era real** (a
+contagem de títulos, e ainda contava o que estava *salvo*, não o que fora
+ouvido). "47h", "3 semanas seguidas", "2 concluídos" e os **quatro** conjuntos
+de dados do gráfico (Hoje / Diariamente / Mensalmente / Total) estavam escritos
+no código, com meses de out. a fev. e um "desde 24 de nov. de 2025" envelhecido.
+
+**A raiz, e a decisão que veio dela.** O app **não guardava histórico**: o
+`playback.ts` sabe apenas *em que ponto de cada livro você parou*, nunca *quanto
+tempo você ouviu ontem*. Sem isso nenhuma estatística temporal pode ser real —
+por isso a tela tinha sido preenchida à mão. Nasceu então o `lib/listening.ts`,
+um **diário de audição**. Perguntado se queria só o visual, o Matheus escolheu
+**fundação + tela**: "só a tela deixaria ela bonita e mentirosa".
+
+**O diário se alimenta no player, não na tela.** `savePlayback` compara a posição
+nova com a anterior e credita a diferença. Como o player salva a cada 5
+segundos, o histórico se constrói sozinho — nenhuma tela precisa lembrar de
+registrar nada. **Teto de 120 s por crédito**: avanço maior é a pessoa pulando
+capítulo ou arrastando a barra, e sem esse teto um pulo para o fim do livro
+creditaria horas que ninguém ouviu (avanço negativo, idem).
+
+**Agregar por dia em vez de guardar sessão a sessão.** Cada dia guarda o total,
+a quebra por hora e a quebra por livro. Responde tudo que a tela pergunta
+(série, sequência, horário preferido, livro mais ouvido) e mantém o
+`localStorage` pequeno — uma linha por sessão cresceria sem teto.
+
+**Histórico de demonstração — decisão do Matheus, com as alternativas
+descartadas.** O app nasce sem passado, e uma tela de estatísticas vazia não dá
+para avaliar nem para usar. Foram oferecidas três saídas: começar do zero
+(honesto, mas sem nada para ver por semanas), um botão escondido nas
+Configurações, ou **semear ~10 semanas plausíveis** — a escolhida. A geração é
+**determinística** (semente fixa): com `Math.random` os números dançariam a cada
+abertura. Os dias semeados ficam marcados com `exemplo: true`, a tela avisa no
+rodapé enquanto sobrar algum, e o uso real vai por cima dia a dia.
+
+**Apurado testando, e vale para qualquer semente futura:** a primeira versão
+sorteava entre `catalog.slice(0, 8)` — e o catálogo **começa com uma sequência
+inteira de ficção científica**, então a tela anunciava "Ficção Científica 100%".
+A semente passou a pegar **dois livros de cada gênero**, e a espalhar a audição
+por manhã, tarde e noite em vez de duas faixas.
+
+**"Títulos começados" = diário ∪ progresso.** Contar só o progresso salvo
+deixava a tela incoerente: dava para ver "45h ouvidas" ao lado de "0 títulos
+começados" quando o histórico vinha do diário.
+
+**Barras comparativas, número absoluto.** Em "Quando você ouve" e "O que você
+ouve", a barra do topo ocupa a linha inteira e as outras se medem contra ela; o
+rótulo continua sendo a fração real (18%, 15%…). Desenhar a fração do total
+deixava todas curtas e indistinguíveis. **Seção sem dado some** em vez de exibir
+zero decorativo — foi assim que saíram as linhas "Tarde 0min" e "Negócios 0%".
+
+**O que foi removido:** o cartão da sequência com degradê âmbar, troféu grande e
+🔥 (era número fixo, e é a gamificação chamativa que a 4.9 tirou do resto do
+app); o ícone colorido por seção; o quadradinho em degradê do atalho da
+Biblioteca; e o botão "Compartilhar estatísticas", que **copiava a URL do
+localhost** — hoje copia um resumo em texto com os números reais.
+
+**Perfil e Estatísticas agora contam a mesma história.** Os dois liam listas
+fixas próprias e discordavam; passaram a ler o `lib/stats.ts`, que fica **acima**
+de `listening`/`playback`/`library` de propósito — `playback` já credita o
+diário, e uma dependência de volta fecharia ciclo. O painel de detalhe
+(`StatSpotlight`) também deixou de ter valores próprios e recebe o resumo pronto.
+
+**Ficou de fora, com motivo:** as conquistas continuam com `unlocked` fixo em
+`achievements.ts` (calcular exige regras por conquista, é tarefa própria); e não
+há **retrospectiva por ano** porque o app não registra *quando* um livro foi
+concluído — só que está concluído. Para isso, o diário precisaria marcar o
+evento de conclusão.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
