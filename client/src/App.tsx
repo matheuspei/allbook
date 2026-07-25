@@ -2,6 +2,7 @@ import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import AvisoDeConquista from "@/components/AvisoDeConquista";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
@@ -131,6 +132,9 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
+          {/* Fica aqui, e não numa tela: a medalha pode acender ouvindo,
+              salvando na lista ou curtindo um comentário. */}
+          <AvisoDeConquista />
           <Router />
         </TooltipProvider>
       </QueryClientProvider>

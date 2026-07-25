@@ -1302,6 +1302,58 @@ dela, o que ainda era esconder. Agora aparece sem rolagem.
 
 ---
 
+## 4.19 Troféus com hierarquia: raridade, progresso e memória (25/07)
+
+Perguntado o que ainda destoava do princípio "cara de app caro, feito por uma
+empresa grande", a resposta foi: **os troféus**. O Matheus mandou fazer tudo.
+
+**O diagnóstico, que vale como régua para o app inteiro:** as 16 medalhas tinham
+**o mesmo peso visual**. "Primeira Escuta", que se ganha em cinco minutos, era o
+mesmo círculo laranja de "Milionário de Minutos", que pede 500 horas. **Quando
+tudo vale igual, nada vale** — e uma coleção sem hierarquia vira decoração.
+
+**Raridade em três faixas, sem arco-íris.** Cada medalha ganhou um `tier`:
+**comum** (prata sólida), **rara** (a cor da marca) e **lendária** (dourado com
+um brilho contido, a única que ganha brilho — é ela que precisa parecer rara).
+Uma cor sólida por faixa, nunca degradê por ícone: é a mesma regra da faxina
+premium (4.9). **Apurado ajustando:** a comum começou como branco translúcido
+(`bg-white/[0.14]`) e ficava **quase igual a uma medalha bloqueada** — a
+hierarquia morria logo na primeira faixa. Virou prata sólida.
+
+**A medida virou `atual` / `alvo`, e não mais sim/não.** É essa mudança que
+permite mostrar **o quanto falta** numa medalha ainda bloqueada: o círculo
+apagado agora tem um anel de progresso em volta. Uma grade só de ícones cinzas é
+uma lista de "não"; com progresso, vira caminho — e só é honesto porque os dados
+existem desde o diário de audição (4.14).
+
+**O toque abre um painel, não um toast.** Tocar num troféu disparava o mesmo
+avisinho de rodapé usado para "link copiado", que some antes de a pessoa ler.
+Agora abre o `AchievementSpotlight`: medalha grande, faixa de raridade, a regra,
+o progresso ("39h 42min de 100h · faltam 60h 18min") e a data em que foi ganha.
+
+**O app passou a ter memória e a comemorar.** `allbook_achievements_won` guarda
+**quando** cada medalha acendeu, e o `AvisoDeConquista` (montado no `App`, não
+numa tela, porque a medalha pode acender ouvindo, salvando ou curtindo) anuncia
+as novas. **A primeira sincronização é silenciosa de propósito:** quem abre com
+histórico já formado ganharia cinco avisos de enfiada — isso é ruído, não
+comemoração.
+
+**Agrupadas por categoria.** Audição, Constância, Exploração e Comunidade já
+existiam no código, mas a tela mostrava as 16 embaralhadas, com cara de lista
+aleatória. Cada grupo agora tem título e placar próprio (1/4, 2/4…).
+
+**Removido: a fileira de troféus ao lado do nome, no topo do Perfil.** Eram
+círculos idênticos, no mesmo degradê laranja e sem rótulo — pareciam **botões de
+ação**, não medalhas, e disputavam atenção com a foto e o nome. O placar
+completo, agora com raridade e progresso, vive na seção "Conquistas".
+
+**Anotado e não feito:** o perfil de **outro** leitor (`UserProfile`) ainda
+desenha as medalhas no degradê antigo; e o botão "Copiar meu resumo" das
+Estatísticas continua fraco — a versão premium seria um **cartão de
+retrospectiva** com as capas, para dar print. Os dois ficaram fora desta rodada.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

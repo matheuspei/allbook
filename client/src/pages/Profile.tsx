@@ -39,7 +39,14 @@ import { readRecommendations } from "@/lib/recommendations";
 import { readDownloads, readLibrary } from "@/lib/library";
 import { formatarDuracao } from "@/lib/listening";
 import { lerDadosDeConquista, lerResumo, type ResumoDeAudicao } from "@/lib/stats";
-import { achievements, achievementsFor, type Achievement } from "@/lib/achievements";
+import AchievementSpotlight from "@/components/AchievementSpotlight";
+import {
+  CATEGORIAS,
+  TIERS,
+  achievements,
+  achievementsFor,
+  type Achievement,
+} from "@/lib/achievements";
 import type { Book } from "@/lib/books";
 
 /**
@@ -81,6 +88,70 @@ function numerosDoPerfil(
   ];
 }
 
+/**
+ * Uma medalha na grade do Perfil.
+ *
+ * Ganha: o círculo cheio na cor da faixa (a lendária ainda ganha um brilho
+ * contido). Bloqueada: círculo apagado **com um anel de progresso em volta** —
+ * é ele que transforma a grade de uma lista de "não" num caminho, agora que os
+ * dados existem para medir.
+ */
+function MedalhaDoPerfil({ item, onOpen }: { item: Achievement; onOpen: () => void }) {
+  const tier = TIERS[item.tier];
+  const Icon = item.icon;
+  const raio = 20;
+  const volta = 2 * Math.PI * raio;
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group flex flex-col items-center gap-2"
+      data-testid={`achievement-${item.id}`}
+    >
+      <div className="relative h-11 w-11">
+        {!item.unlocked && item.progresso > 0 && (
+          <svg className="absolute inset-0 -rotate-90" viewBox="0 0 44 44" aria-hidden>
+            <circle cx="22" cy="22" r={raio} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="2" />
+            <circle
+              cx="22"
+              cy="22"
+              r={raio}
+              fill="none"
+              stroke="hsl(var(--primary))"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeDasharray={volta}
+              strokeDashoffset={volta * (1 - item.progresso)}
+            />
+          </svg>
+        )}
+
+        <div
+          className={`flex h-full w-full items-center justify-center rounded-full transition-all ${
+            item.unlocked
+              ? `${tier.fundo} ${tier.brilho} group-hover:scale-105`
+              : "bg-white/[0.05] group-hover:bg-white/[0.08]"
+          }`}
+        >
+          <Icon
+            className={`h-[18px] w-[18px] ${item.unlocked ? tier.icone : "text-white/25"}`}
+            strokeWidth={item.unlocked ? 2 : 1.75}
+          />
+        </div>
+      </div>
+
+      <span
+        className={`text-center text-[10px] leading-tight ${
+          item.unlocked ? "text-white/60" : "text-white/25"
+        }`}
+      >
+        {item.label}
+      </span>
+    </button>
+  );
+}
+
 export default function Profile() {
   const { toast } = useToast();
   const [libraryCount, setLibraryCount] = useState(0);
@@ -91,6 +162,7 @@ export default function Profile() {
   const [session, setSession] = useState<Session | null>(readSession);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [resumo, setResumo] = useState<ResumoDeAudicao | null>(null);
+  const [medalhaAberta, setMedalhaAberta] = useState<Achievement | null>(null);
 
   /**
    * As medalhas agora são **julgadas pelos seus números** (ver
@@ -138,18 +210,12 @@ export default function Profile() {
     });
   }
 
-  /**
-   * Tocar numa medalha mostra o que ela significa. Para as ainda bloqueadas,
-   * vira a dica da meta que falta — é o que puxa a pessoa a voltar e engajar.
+  /*
+   * Tocar numa medalha abria um toast no rodapé — o mesmo componente do "link
+   * copiado", que some antes de a pessoa ler. Virou o painel
+   * `AchievementSpotlight`, com a medalha grande, a raridade, o progresso e a
+   * data em que foi ganha.
    */
-  function showAchievement(item: Achievement) {
-    toast({
-      title: item.unlocked ? `🏆 ${item.label}` : `🔒 ${item.label}`,
-      description: item.unlocked
-        ? item.description
-        : `Ainda não conquistada — ${item.description}`,
-    });
-  }
 
   // Uma lista só, em duas partes: o que é conteúdo e o que é conta.
   // Lista sóbria, no espírito Audible/Apple: um único tom neutro para todos os
@@ -219,26 +285,13 @@ export default function Profile() {
           </p>
         )}
 
-        {/* Troféus estampados — só os conquistados, na cor da marca. */}
-        {conquistadas.length > 0 && (
-          <div className="relative flex items-center gap-1.5 mt-4 flex-wrap" data-testid="profile-trophies">
-            {conquistadas.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={item.id}
-                  title={item.label}
-                  className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shadow-md shadow-primary/40 ring-1 ring-primary/40"
-                >
-                  <Icon className="w-4 h-4 text-white drop-shadow" strokeWidth={2} />
-                </div>
-              );
-            })}
-            <span className="text-[11px] text-white/40 ml-1">
-              {conquistadas.length} troféus
-            </span>
-          </div>
-        )}
+        {/*
+          Aqui ficava uma fileira dos troféus conquistados, ao lado do nome.
+          **Saiu em 25/07:** eram círculos idênticos, todos no mesmo degradê
+          laranja e sem rótulo — pareciam botões de ação, não medalhas, e
+          disputavam atenção com a foto e o nome. O placar completo, agora com
+          raridade e progresso, está na seção "Conquistas" mais abaixo.
+        */}
 
         <Link
           href="/profile/edit"
@@ -270,6 +323,8 @@ export default function Profile() {
       </section>
 
       {resumo && <StatSpotlight stat={openStat} onClose={() => setOpenStat(null)} resumo={resumo} />}
+
+      <AchievementSpotlight item={medalhaAberta} onClose={() => setMedalhaAberta(null)} />
 
       <section className="px-5 py-5 border-b border-white/10" data-testid="section-profile-recommendations">
         <div className="flex items-center justify-between mb-4">
@@ -344,37 +399,37 @@ export default function Profile() {
           </span>
         </div>
 
-        <div className="grid grid-cols-4 gap-x-2 gap-y-4">
-          {medalhas.map((item) => {
-            const Icon = item.icon;
+        {/*
+          Separadas por categoria: as 16 juntas pareciam lista aleatória. E cada
+          uma na cor da sua faixa de raridade — antes todas usavam o mesmo
+          degradê laranja, então a que se ganha em cinco minutos parecia igual à
+          de 500 horas.
+        */}
+        <div className="mt-5 space-y-6">
+          {CATEGORIAS.map((categoria) => {
+            const doGrupo = medalhas.filter((item) => item.category === categoria.key);
+            if (doGrupo.length === 0) return null;
+            const ganhasNoGrupo = doGrupo.filter((item) => item.unlocked).length;
+
             return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => showAchievement(item)}
-                className="flex flex-col items-center gap-2 group"
-                data-testid={`achievement-${item.id}`}
-              >
-                <div
-                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
-                    item.unlocked
-                      ? "bg-gradient-to-br from-primary to-orange-600 shadow-lg shadow-primary/30 ring-1 ring-primary/40 group-hover:shadow-primary/50 group-hover:scale-105"
-                      : "border border-white/10 border-dashed group-hover:border-white/20"
-                  }`}
-                >
-                  <Icon
-                    className={`w-[18px] h-[18px] ${item.unlocked ? "text-white drop-shadow-sm" : "text-white/20"}`}
-                    strokeWidth={item.unlocked ? 2 : 1.75}
-                  />
+              <div key={categoria.key} data-testid={`achievement-group-${categoria.key}`}>
+                <div className="mb-3 flex items-baseline justify-between">
+                  <h3 className="text-[11px] font-medium text-white/50">{categoria.label}</h3>
+                  <span className="text-[10px] text-white/25">
+                    {ganhasNoGrupo}/{doGrupo.length}
+                  </span>
                 </div>
-                <span
-                  className={`text-[10px] text-center leading-tight ${
-                    item.unlocked ? "text-white/60" : "text-white/25"
-                  }`}
-                >
-                  {item.label}
-                </span>
-              </button>
+
+                <div className="grid grid-cols-4 gap-x-2 gap-y-4">
+                  {doGrupo.map((item) => (
+                    <MedalhaDoPerfil
+                      key={item.id}
+                      item={item}
+                      onOpen={() => setMedalhaAberta(item)}
+                    />
+                  ))}
+                </div>
+              </div>
             );
           })}
         </div>

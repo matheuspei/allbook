@@ -22,7 +22,7 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | **ocupada** — troféus com hierarquia (comum/rara/lendária), progresso nas bloqueadas, painel no lugar do toast, data da conquista + aviso ao desbloquear | `lib/achievements.ts` · `components/AchievementSpotlight.tsx` (novo) · `components/AvisoDeConquista.tsx` (novo) · `pages/Profile.tsx` · `App.tsx` (2 linhas: montar o aviso) | não — serviço launchd sempre no ar | 25/07 |
+| A | — livre — (25/07: Estatísticas reais + troféus com raridade, progresso, painel, data e aviso — ver ROTEIRO 4.14, 4.16 e 4.19) | — | não — serviço launchd sempre no ar | 25/07 |
 | B | **ocupada** — implementando a avaliação (ROTEIRO 4.15). **Preciso, quando a C liberar: `pages/BookDetails.tsx` e `lib/books.ts`** (ligar o bloco na ficha e subir `story`/`performance`) | `lib/ratings.ts` (novo) · `components/AvaliarLivro.tsx` (novo) | não — serviço launchd sempre no ar | 25/07 |
 | C | — livre — (25/07: estúdio e vozes, pedido sob demanda em `/request`, e a busca refeita sem Fuse.js — ver ROTEIRO 4.13, 4.17 e 4.18) | — | não — serviço launchd sempre no ar | 25/07 |
 

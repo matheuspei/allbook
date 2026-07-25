@@ -11,15 +11,22 @@
  * `unlocked` era marcado à mão — um conjunto plausível para o perfil de exemplo
  * (47h, 5 títulos, 3 semanas, 2 concluídos) que **não respondia ao uso**: dava
  * para nunca ter aberto um livro e mesmo assim exibir seis troféus. Agora cada
- * conquista traz um `check` que lê os dados reais (`DadosDeConquista`, montado
+ * conquista traz uma `medida` que lê os dados reais (`DadosDeConquista`, montado
  * em `lib/stats.ts` a partir do diário de audição, da lista e da comunidade).
+ *
+ * **A medida devolve `atual` e `alvo`, não um sim/não** — e é isso que permite
+ * mostrar *o quanto falta* numa medalha ainda bloqueada. Uma grade só de ícones
+ * apagados é uma lista de "não"; com progresso, vira caminho.
+ *
+ * **Raridade (25/07).** As 16 medalhas tinham o mesmo peso visual: "Primeira
+ * Escuta", que se ganha em cinco minutos, era idêntica a "Milionário de
+ * Minutos", que pede 500 horas. Quando tudo vale igual, nada vale. Agora cada
+ * uma tem um `tier` — comum, rara ou lendária — com tratamento próprio
+ * (`TIERS`), sóbrio: prata fria, cor da marca, e um dourado contido no topo.
  *
  * Duas metas mudaram porque eram **impossíveis de ganhar**: "Eclético" pedia 10
  * gêneros num catálogo de 8, e "Bem Falado" pedia *receber* 10 curtidas — sem
  * servidor ninguém curte você. Estão anotadas na própria definição.
- *
- * A `description` é a dica do que fazer para ganhar — a tela mostra ela ao tocar
- * na medalha, o que ajuda o engajamento (a pessoa vê a meta que falta).
  */
 
 import {
@@ -42,13 +49,58 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-/** Os quatro grupos, só para organizar (a tela ainda mostra todas juntas). */
+/** Os quatro grupos — a tela do Perfil mostra as medalhas separadas por eles. */
 export type AchievementCategory = "audicao" | "constancia" | "exploracao" | "comunidade";
 
+export const CATEGORIAS: { key: AchievementCategory; label: string }[] = [
+  { key: "audicao", label: "Audição" },
+  { key: "constancia", label: "Constância" },
+  { key: "exploracao", label: "Exploração" },
+  { key: "comunidade", label: "Comunidade" },
+];
+
+/** O quanto a medalha é difícil — define o tratamento visual. */
+export type AchievementTier = "comum" | "rara" | "lendaria";
+
 /**
- * O que uma conquista precisa saber para decidir se está ganha. Vem de
- * `lib/stats.ts`, que junta o diário de audição, a lista e a atividade na
- * comunidade — nenhum destes números é escrito à mão.
+ * O visual de cada faixa. Sem degradê por ícone (o "arco-íris" que dá cara de
+ * template): cada faixa tem **uma** cor sólida, e só a lendária ganha um brilho,
+ * contido, porque é ela que precisa parecer rara.
+ */
+export const TIERS: Record<
+  AchievementTier,
+  { label: string; fundo: string; icone: string; texto: string; brilho: string }
+> = {
+  comum: {
+    // Prata sólida, não um branco translúcido: com opacidade baixa a medalha
+    // comum **ganha** ficava quase igual a uma bloqueada, e a hierarquia toda
+    // perdia o sentido logo na primeira faixa.
+    label: "Comum",
+    fundo: "bg-[#b6bcc6]",
+    icone: "text-black",
+    texto: "text-white/60",
+    brilho: "",
+  },
+  rara: {
+    label: "Rara",
+    fundo: "bg-primary",
+    icone: "text-black",
+    texto: "text-primary",
+    brilho: "",
+  },
+  lendaria: {
+    label: "Lendária",
+    fundo: "bg-[#e3c169]",
+    icone: "text-black",
+    texto: "text-[#e3c169]",
+    brilho: "shadow-[0_0_16px_rgba(227,193,105,0.35)]",
+  },
+};
+
+/**
+ * O que as medalhas precisam saber. Vem de `lib/stats.ts`, que junta o diário
+ * de audição, a lista e a atividade na comunidade — nenhum destes números é
+ * escrito à mão.
  */
 export interface DadosDeConquista {
   /** Segundos ouvidos no total. */
@@ -72,7 +124,10 @@ export interface DadosDeConquista {
   recomendacoes: number;
 }
 
-export interface Achievement {
+/** Como a tela escreve o progresso de cada medalha. */
+export type FormatoDaMedida = "duracao" | "contagem" | "marco";
+
+interface DefinicaoDeConquista {
   /** Identificador curto e estável — usado em `key`/`data-testid`. */
   id: string;
   label: string;
@@ -80,14 +135,26 @@ export interface Achievement {
   description: string;
   icon: LucideIcon;
   category: AchievementCategory;
-  /** A regra da medalha — é ela que decide, a partir dos dados reais. */
-  check: (dados: DadosDeConquista) => boolean;
-  /** Preenchido por `achievementsFor`. */
-  unlocked: boolean;
+  tier: AchievementTier;
+  formato: FormatoDaMedida;
+  /** Onde você está e onde precisa chegar. */
+  medida: (dados: DadosDeConquista) => { atual: number; alvo: number };
 }
 
-/** As definições. `unlocked` aqui é só o valor de partida — quem decide é `check`. */
-const definicoes: Achievement[] = [
+export interface Achievement extends DefinicaoDeConquista {
+  unlocked: boolean;
+  atual: number;
+  alvo: number;
+  /** 0 a 1 — o anel em volta da medalha bloqueada. */
+  progresso: number;
+  /** ISO de quando foi ganha, quando o app já tinha registro. */
+  ganhaEm?: string;
+}
+
+/** Marco: vale 1 quando aconteceu, 0 enquanto não. */
+const marco = (aconteceu: boolean) => ({ atual: aconteceu ? 1 : 0, alvo: 1 });
+
+const definicoes: DefinicaoDeConquista[] = [
   // — Audição: quanto se ouve —
   {
     id: "primeira-escuta",
@@ -95,8 +162,9 @@ const definicoes: Achievement[] = [
     description: "Ouça seu primeiro audiolivro na AllBook.",
     icon: Play,
     category: "audicao",
-    check: (d) => d.segundos > 0,
-    unlocked: false,
+    tier: "comum",
+    formato: "marco",
+    medida: (d) => marco(d.segundos > 0),
   },
   {
     id: "maratonista",
@@ -106,8 +174,9 @@ const definicoes: Achievement[] = [
     description: "Ouça 3 horas em um mesmo dia.",
     icon: BookOpen,
     category: "audicao",
-    check: (d) => d.maiorDiaSec >= 3 * 3600,
-    unlocked: false,
+    tier: "rara",
+    formato: "duracao",
+    medida: (d) => ({ atual: d.maiorDiaSec, alvo: 3 * 3600 }),
   },
   {
     id: "centenario",
@@ -115,8 +184,9 @@ const definicoes: Achievement[] = [
     description: "Alcance 100 horas ouvidas na AllBook.",
     icon: Trophy,
     category: "audicao",
-    check: (d) => d.segundos >= 100 * 3600,
-    unlocked: false,
+    tier: "lendaria",
+    formato: "duracao",
+    medida: (d) => ({ atual: d.segundos, alvo: 100 * 3600 }),
   },
   {
     id: "milionario-de-minutos",
@@ -124,8 +194,9 @@ const definicoes: Achievement[] = [
     description: "Alcance 500 horas ouvidas — meio milhar!",
     icon: Crown,
     category: "audicao",
-    check: (d) => d.segundos >= 500 * 3600,
-    unlocked: false,
+    tier: "lendaria",
+    formato: "duracao",
+    medida: (d) => ({ atual: d.segundos, alvo: 500 * 3600 }),
   },
 
   // — Constância: o hábito de voltar —
@@ -135,8 +206,9 @@ const definicoes: Achievement[] = [
     description: "Ouça ao menos um dia por semana, 3 semanas seguidas.",
     icon: Flame,
     category: "constancia",
-    check: (d) => d.sequenciaSemanas >= 3,
-    unlocked: false,
+    tier: "rara",
+    formato: "contagem",
+    medida: (d) => ({ atual: d.sequenciaSemanas, alvo: 3 }),
   },
   {
     id: "coruja",
@@ -144,8 +216,9 @@ const definicoes: Achievement[] = [
     description: "Ouça depois da meia-noite. A noite é sua.",
     icon: Moon,
     category: "constancia",
-    check: (d) => d.ouviuDeMadrugada,
-    unlocked: false,
+    tier: "comum",
+    formato: "marco",
+    medida: (d) => marco(d.ouviuDeMadrugada),
   },
   {
     id: "madrugador",
@@ -153,8 +226,9 @@ const definicoes: Achievement[] = [
     description: "Ouça antes das 7h da manhã, começando o dia bem.",
     icon: Sunrise,
     category: "constancia",
-    check: (d) => d.ouviuAoAmanhecer,
-    unlocked: false,
+    tier: "comum",
+    formato: "marco",
+    medida: (d) => marco(d.ouviuAoAmanhecer),
   },
   {
     id: "sequencia-de-fogo",
@@ -162,8 +236,9 @@ const definicoes: Achievement[] = [
     description: "Ouça 7 dias seguidos, sem falhar nenhum.",
     icon: Zap,
     category: "constancia",
-    check: (d) => d.melhorSequenciaDias >= 7,
-    unlocked: false,
+    tier: "lendaria",
+    formato: "contagem",
+    medida: (d) => ({ atual: d.melhorSequenciaDias, alvo: 7 }),
   },
 
   // — Exploração: variar e concluir —
@@ -173,8 +248,9 @@ const definicoes: Achievement[] = [
     description: "Ouça livros de 5 gêneros diferentes.",
     icon: Compass,
     category: "exploracao",
-    check: (d) => d.generosOuvidos >= 5,
-    unlocked: false,
+    tier: "rara",
+    formato: "contagem",
+    medida: (d) => ({ atual: d.generosOuvidos, alvo: 5 }),
   },
   {
     id: "concluido",
@@ -182,8 +258,9 @@ const definicoes: Achievement[] = [
     description: "Conclua seu primeiro livro, do começo ao fim.",
     icon: CheckCircle2,
     category: "exploracao",
-    check: (d) => d.concluidos >= 1,
-    unlocked: false,
+    tier: "comum",
+    formato: "marco",
+    medida: (d) => marco(d.concluidos >= 1),
   },
   {
     id: "ecletico",
@@ -193,8 +270,9 @@ const definicoes: Achievement[] = [
     description: "Ouça livros de todos os 8 gêneros do catálogo.",
     icon: Sparkles,
     category: "exploracao",
-    check: (d) => d.generosOuvidos >= 8,
-    unlocked: false,
+    tier: "lendaria",
+    formato: "contagem",
+    medida: (d) => ({ atual: d.generosOuvidos, alvo: 8 }),
   },
   {
     id: "colecionador",
@@ -202,8 +280,9 @@ const definicoes: Achievement[] = [
     description: "Tenha 10 livros na sua lista.",
     icon: Bookmark,
     category: "exploracao",
-    check: (d) => d.naLista >= 10,
-    unlocked: false,
+    tier: "rara",
+    formato: "contagem",
+    medida: (d) => ({ atual: d.naLista, alvo: 10 }),
   },
 
   // — Comunidade: o pulo do gato do engajamento —
@@ -213,8 +292,9 @@ const definicoes: Achievement[] = [
     description: "Deixe seu primeiro comentário em um livro.",
     icon: MessageCircle,
     category: "comunidade",
-    check: (d) => d.comentarios >= 1,
-    unlocked: false,
+    tier: "comum",
+    formato: "marco",
+    medida: (d) => marco(d.comentarios >= 1),
   },
   {
     id: "curtido",
@@ -225,8 +305,9 @@ const definicoes: Achievement[] = [
     description: "Curta 10 comentários da comunidade.",
     icon: Heart,
     category: "comunidade",
-    check: (d) => d.curtidas >= 10,
-    unlocked: false,
+    tier: "rara",
+    formato: "contagem",
+    medida: (d) => ({ atual: d.curtidas, alvo: 10 }),
   },
   {
     id: "formador-de-roda",
@@ -234,8 +315,9 @@ const definicoes: Achievement[] = [
     description: "Siga 5 outros leitores da comunidade.",
     icon: Users,
     category: "comunidade",
-    check: (d) => d.seguindo >= 5,
-    unlocked: false,
+    tier: "rara",
+    formato: "contagem",
+    medida: (d) => ({ atual: d.seguindo, alvo: 5 }),
   },
   {
     id: "recomendador",
@@ -243,36 +325,100 @@ const definicoes: Achievement[] = [
     description: "Recomende um livro para a comunidade.",
     icon: Star,
     category: "comunidade",
-    check: (d) => d.recomendacoes >= 1,
-    unlocked: false,
+    tier: "comum",
+    formato: "marco",
+    medida: (d) => marco(d.recomendacoes >= 1),
   },
 ];
 
-/** Todas as medalhas, ainda sem julgar — para contar o total ("X de 16"). */
-export const achievements: Achievement[] = definicoes;
+/** Quantas medalhas existem — o "de 16" do placar. */
+export const achievements = definicoes;
 
-/** As medalhas com o `unlocked` **decidido pelos seus dados**. */
+/* ------------------------------------------------------------------ *
+ * Quando cada medalha foi ganha
+ * ------------------------------------------------------------------ */
+
+const GANHAS_KEY = "allbook_achievements_won";
+
+/** `{ [id]: ISO }` — a data em que cada medalha acendeu. Nunca quebra. */
+export function readGanhas(): Record<string, string> {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(GANHAS_KEY) || "{}");
+    if (!guardado || typeof guardado !== "object" || Array.isArray(guardado)) return {};
+    return guardado as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+function gravarGanhas(mapa: Record<string, string>): void {
+  try {
+    localStorage.setItem(GANHAS_KEY, JSON.stringify(mapa));
+  } catch {
+    // Sem storage a data se perde, mas a medalha continua acesa.
+  }
+}
+
+/** As medalhas com o `unlocked`, o progresso e a data **decididos pelos dados**. */
 export function achievementsFor(dados: DadosDeConquista): Achievement[] {
-  return definicoes.map((item) => ({ ...item, unlocked: item.check(dados) }));
+  const ganhas = readGanhas();
+
+  return definicoes.map((item) => {
+    const { atual, alvo } = item.medida(dados);
+    const unlocked = atual >= alvo;
+    return {
+      ...item,
+      atual,
+      alvo,
+      unlocked,
+      progresso: alvo > 0 ? Math.min(atual / alvo, 1) : 0,
+      ganhaEm: unlocked ? ganhas[item.id] : undefined,
+    };
+  });
 }
 
 /** Quantas já foram conquistadas — o "X de N" da tela. */
 export function unlockedCountFor(dados: DadosDeConquista): number {
-  return definicoes.reduce((total, item) => total + (item.check(dados) ? 1 : 0), 0);
+  return achievementsFor(dados).filter((item) => item.unlocked).length;
 }
 
-/** Só as conquistadas — usadas para "estampar" os troféus no topo do perfil. */
+/** Só as conquistadas — usadas onde se quer mostrar o que já foi ganho. */
 export function unlockedAchievementsFor(dados: DadosDeConquista): Achievement[] {
   return achievementsFor(dados).filter((item) => item.unlocked);
 }
 
 /**
- * Conquistas a partir de uma lista de ids, na ordem pedida e sem ids órfãos.
- * Usada pelos perfis dos leitores da comunidade, que guardam só os ids.
+ * Carimba a data das medalhas recém-ganhas e devolve **só as novas** — é assim
+ * que o app sabe que tem uma novidade para anunciar.
+ *
+ * **A primeira sincronização é silenciosa de propósito.** Quem já vinha usando
+ * (ou quem abre com o histórico de exemplo semeado) tem várias medalhas ganhas
+ * de uma vez; anunciar todas de enfiada na primeira abertura seria ruído, não
+ * comemoração. Então a primeira passada só registra.
  */
-export function getAchievementsByIds(ids: string[]): Achievement[] {
+export function sincronizarConquistas(dados: DadosDeConquista): Achievement[] {
+  const ganhas = readGanhas();
+  const primeiraVez = Object.keys(ganhas).length === 0;
+  const agora = new Date().toISOString();
+  const novas: Achievement[] = [];
+
+  for (const item of achievementsFor(dados)) {
+    if (!item.unlocked || ganhas[item.id]) continue;
+    ganhas[item.id] = agora;
+    if (!primeiraVez) novas.push({ ...item, ganhaEm: agora });
+  }
+
+  gravarGanhas(ganhas);
+  return novas;
+}
+
+/**
+ * Só as medalhas que aparecem no perfil de **outro** leitor. Ali não há dados
+ * reais para calcular (a comunidade é fictícia), então a lista vem por id.
+ */
+export function getAchievementsByIds(ids: string[]): DefinicaoDeConquista[] {
   return ids.flatMap((id) => {
-    const found = achievements.find((item) => item.id === id);
-    return found ? [found] : [];
+    const item = definicoes.find((achievement) => achievement.id === id);
+    return item ? [item] : [];
   });
 }
