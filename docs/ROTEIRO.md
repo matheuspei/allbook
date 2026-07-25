@@ -1246,12 +1246,59 @@ automaticamente. Vale registrar que **isso já tem um começo funcionando**: o
 `npm run catalogo` faz exatamente a parte de capa e ficha, pela Open Library. O
 gargalo real não é essa parte — é o texto e o áudio.
 
-**Dois pontos em aberto que vão precisar de decisão dele:**
-1. **Direito sobre o texto.** Gerar narração de obra protegida exige acordo com
-   quem detém os direitos; sem isso, o que dá para produzir legalmente é domínio
-   público. É a decisão que define se o "qualquer livro" é literal ou não.
-2. **O prazo de 24 h como promessa pública.** Enquanto o pipeline não existir e
-   for medido, é meta — e prometer prazo em propaganda cobra entrega.
+**Ponto em aberto:** o prazo de 24 h só vira número medido quando o pipeline
+automatizado existir. Até lá é a meta que o produto persegue.
+
+---
+
+## 4.18 A busca escondia o diferencial — e casava o que não existe (25/07)
+
+Duas queixas do Matheus, no mesmo dia em que `/request` nasceu, e elas se
+alimentavam uma à outra.
+
+**Queixa 1 — "só no menu Pesquisa ele está escondido".** Sendo o principal
+diferencial do app, pedir um livro precisava aparecer mais. E estava pior do que
+parecia: a chamada só existia **dentro** da busca e **só quando a busca não
+achava nada**.
+
+**Queixa 2 — a busca casava qualquer coisa.** Ele testou e trouxe os exemplos:
+digitar **"carro"** devolvia *Carrie, a Estranha* e *Leonardo da Vinci*; **"flor"**
+devolvia *Sem Esforço*. Fora o resultado errado em si, o efeito colateral era o
+que interessa: **a busca quase nunca admitia que não achou**, então a porta da
+queixa 1 praticamente nunca abria.
+
+**Medição antes de mexer (no catálogo real, 59 títulos).** O Fuse.js comparava a
+consulta com o campo inteiro, com `threshold: 0.4`. Apertar o limiar **não
+resolvia**:
+
+| termo | Fuse 0.4 (antes) | Fuse 0.2 | Fuse 0.15 |
+|---|---|---|---|
+| "carro" | Carrie (0.40) ❌ | ainda casa ❌ | some ✓ |
+| "flor" | Sem Esforço (0.44) ❌ | some ✓ | some ✓ |
+| "tolkein" (erro real) | acha Tolkien ✓ | **some** ❌ | **some** ❌ |
+
+Ou seja: **acerto e falso positivo caem na mesma faixa de pontuação**. O limiar
+que matava "carro → Carrie" matava junto "tolkein → Tolkien". Não existia número
+certo — o problema era o método.
+
+**Decisão: o fallback deixou de ser o Fuse.js e passou a ser casamento palavra a
+palavra, com distância de edição (Damerau-Levenshtein).** A etapa 1 continua
+igual: substring sem acento no título ou no autor, que é o que faz "en" trazer
+"O Senhor dos Anéis" e "habitos" trazer "Hábitos Atômicos". A etapa 2 exige que
+**toda** palavra da consulta ache uma parecida no livro, com esta escala de
+tolerância: até 3 letras, **zero** erro; 4 a 6, **um**; 7 ou mais, **dois**.
+
+O resultado, medido nos mesmos termos: "carro", "flor", "gato" e "o nome do
+vento" → **nada** (a oferta aparece); "tolkein", "hobit", "sennhor dos aneis",
+"stephan king" → **acham** o livro certo. Tolerar erro continua valendo — o que
+não valia era tolerar semelhança solta. **O Fuse.js saiu da busca** (o pacote
+segue no `package.json`; tirar é item de faxina, não urgência).
+
+**Onde a chamada ficou visível:** componente `RequestBanner`, em dois lugares —
+**na Início, como primeiro conteúdo abaixo do destaque da capa**, e **no topo da
+Busca, antes de digitar qualquer coisa**. Na Início ela nasceu depois da grade
+de categorias e foi **subida**: eram oito categorias em quatro fileiras antes
+dela, o que ainda era esconder. Agora aparece sem rolagem.
 
 ---
 

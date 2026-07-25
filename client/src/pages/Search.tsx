@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 
 import { catalog } from "@/lib/books";
 import SearchResults, { ResultCard } from "@/components/SearchResults";
+import RequestBanner from "@/components/RequestBanner";
 
 /**
  * Tela de Busca — a aba "Buscar" do menu de baixo (`/search`), no modelo da
@@ -30,6 +31,12 @@ function SearchSuggestions() {
 
   return (
     <section className="px-4 py-4 space-y-3" data-testid="search-suggestions">
+      {/* Antes de digitar qualquer coisa, a pessoa já vê que pode pedir um livro
+          que não está aqui. Antes isso só aparecia depois de uma busca sem
+          resultado — e a busca antiga quase nunca ficava sem resultado, então na
+          prática a porta não existia (ROTEIRO 4.18). */}
+      <RequestBanner variante="discreto" />
+
       <h2 className="font-display font-bold text-lg text-white tracking-tight">Em alta</h2>
       <div className="grid grid-cols-3 gap-3">
         {emAlta.map((book) => (

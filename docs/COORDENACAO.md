@@ -22,9 +22,9 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (25/07: Estatísticas com diário real; conquistas calculadas, meta semanal e previsão de término — ver ROTEIRO 4.14 e 4.16) | — | não — serviço launchd sempre no ar | 25/07 |
+| A | **ocupada** — troféus com hierarquia (comum/rara/lendária), progresso nas bloqueadas, painel no lugar do toast, data da conquista + aviso ao desbloquear | `lib/achievements.ts` · `components/AchievementSpotlight.tsx` (novo) · `components/AvisoDeConquista.tsx` (novo) · `pages/Profile.tsx` · `App.tsx` (2 linhas: montar o aviso) | não — serviço launchd sempre no ar | 25/07 |
 | B | **ocupada** — implementando a avaliação (ROTEIRO 4.15). **Preciso, quando a C liberar: `pages/BookDetails.tsx` e `lib/books.ts`** (ligar o bloco na ficha e subir `story`/`performance`) | `lib/ratings.ts` (novo) · `components/AvaliarLivro.tsx` (novo) | não — serviço launchd sempre no ar | 25/07 |
-| C | **ocupada** — pedido de livro sob demanda (o diferencial: pedir narração do que ainda não existe). **`pages/BookDetails.tsx` e `lib/books.ts` estão LIVRES para a B** — meu trabalho neles saiu no commit 12f70ad | `lib/requests.ts` (novo) · `pages/RequestBook.tsx` (novo) · `pages/Search.tsx` · `components/SearchResults.tsx` · `pages/Studio.tsx` · `App.tsx` | não — serviço launchd sempre no ar | 25/07 |
+| C | — livre — (25/07: estúdio e vozes, pedido sob demanda em `/request`, e a busca refeita sem Fuse.js — ver ROTEIRO 4.13, 4.17 e 4.18) | — | não — serviço launchd sempre no ar | 25/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —

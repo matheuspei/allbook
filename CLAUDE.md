@@ -230,7 +230,10 @@ logo acima do BottomNav.
   `BookDetails.tsx` ainda tem dados próprios, herdados de antes. (No futuro, trocar
   tudo por chamadas à API usando TanStack Query.)
 - **Biblioteca do usuário** é guardada no `localStorage` do navegador.
-- **Busca** é feita só no navegador, com Fuse.js, em cima do catálogo fixo.
+- **Busca** é feita só no navegador, em cima do catálogo fixo, em duas etapas:
+  substring sem acento e, se não achar nada, casamento palavra a palavra com
+  distância de edição. **Não usa mais Fuse.js** — ele casava "carro" com "Carrie"
+  e assim escondia a oferta de produzir a narração (ver `docs/ROTEIRO.md` 4.18).
 
 ### Para adicionar uma rota de API (quando chegar a hora)
 Registrar em `server/routes.ts` sob o prefixo `/api`. Adicionar os métodos na

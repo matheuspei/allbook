@@ -8,6 +8,7 @@ import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playb
 import { readProfile } from "@/lib/profile";
 import BookActionsMenu from "@/components/BookActionsMenu";
 import CategoryCard from "@/components/CategoryCard";
+import RequestBanner from "@/components/RequestBanner";
 
 /**
  * Os livros do billboard do topo (a "capa" do app).
@@ -498,6 +499,14 @@ export default function Home() {
       <HeroBillboard />
 
       <div className="relative z-10 -mt-4">
+        {/* O diferencial do app tem de aparecer **sem rolagem**, logo abaixo do
+            destaque da capa (ROTEIRO 4.18). Ficou primeiro depois da grade de
+            categorias e ainda era longe demais: são oito categorias em quatro
+            fileiras antes dele. Aqui é o primeiro conteúdo da tela. */}
+        <div className="px-4 pb-4">
+          <RequestBanner />
+        </div>
+
         <CategoryGrid />
         <ContinueListeningSection />
         {homeRows.map((row) => (
