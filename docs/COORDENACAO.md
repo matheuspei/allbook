@@ -22,7 +22,7 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | Conteúdo da peça de Story (quais números ela mostra) | `client/src/components/CartaoDeResumo.tsx`, `client/src/pages/Statistics.tsx`, `client/src/lib/stats.ts`, `client/src/lib/books.ts` | não — serviço launchd sempre no ar | 25/07 |
+| A | — livre — (26/07: conteúdo da Story — faixa de números, fecho com nomes, página descartada e lema novo; ver ROTEIRO 4.25) | — | não — serviço launchd sempre no ar | 26/07 |
 | B | — livre — (26/07: pedir um livro saiu da Início e virou o botão "Pedir" no centro do menu de baixo; billboard ganhou recorte e o degradê voltou a descer inteiro — ver ROTEIRO 4.18) | — | não — serviço launchd sempre no ar | 26/07 |
 | C | — livre — (25/07: estúdio e vozes, pedido sob demanda, busca refeita, e a varredura de botão morto com a separação frontend × banco — ver ROTEIRO 4.13, 4.17, 4.18 e 4.23) | — | não — serviço launchd sempre no ar | 25/07 |
 
