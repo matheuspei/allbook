@@ -45,7 +45,7 @@ export interface BookRequest {
    * para poder pedir; quem conhece, escolhe. As duas coisas são decisões
    * legítimas, e por isso a ausência tem significado próprio.
    *
-   * **Vale só quando o estúdio grava** (26/07, ver ROTEIRO 4.26). Se o livro já
+   * **Vale só quando o estúdio grava** (26/07, ver ROTEIRO 4.28). Se o livro já
    * tem narração publicada, o AllBook traz a que existe e a voz não se aplica —
    * por isso a tela pergunta "quem narra, **se** o estúdio gravar", em vez de
    * guardar uma escolha que pode nunca valer.

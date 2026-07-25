@@ -24,6 +24,8 @@ import { commentsForBook } from "@/lib/comments";
 import CommentThread from "@/components/CommentThread";
 import CommentComposer from "@/components/CommentComposer";
 import AvaliarLivro from "@/components/AvaliarLivro";
+import SeletorDeNarracao from "@/components/SeletorDeNarracao";
+import { NARRATIONS_EVENT, chosenNarration } from "@/lib/narrations";
 import { notaDaComunidade, MINIMO_PARA_MEDIA, RATINGS_EVENT } from "@/lib/ratings";
 import { readReactions, type Reactions } from "@/lib/reactions";
 import PersonAvatar from "@/components/PersonAvatar";
@@ -336,6 +338,23 @@ export default function BookDetails({ params }: { params: { id: string } }) {
    */
   const book = { ...buildFromCatalog(params.id), ...(bookData[params.id] ?? {}) };
 
+  /**
+   * A narração que vale agora — um livro pode ter mais de uma voz (ROTEIRO 4.30).
+   * Sem escolha guardada, é a do catálogo, então a ficha de quem nunca trocou
+   * nada continua idêntica.
+   */
+  const [narracao, setNarracao] = useState(() =>
+    chosenNarration({ id: Number(params.id), narrator: book.narrator }),
+  );
+
+  useEffect(() => {
+    const sincronizar = () =>
+      setNarracao(chosenNarration({ id: Number(params.id), narrator: book.narrator }));
+    sincronizar();
+    window.addEventListener(NARRATIONS_EVENT, sincronizar);
+    return () => window.removeEventListener(NARRATIONS_EVENT, sincronizar);
+  }, [params.id, book.narrator]);
+
   // Os comentários não moram mais dentro do livro: vêm da lista própria, que é
   // a mesma fonte que o perfil de cada leitor consulta.
   const comentarios = commentsForBook(Number(params.id));
@@ -493,11 +512,17 @@ export default function BookDetails({ params }: { params: { id: string } }) {
       </div>
 
       <main className="px-5 -mt-2 relative z-10 space-y-8">
+        {/*
+          "Narrado por" mostra a narração **escolhida**, não a do catálogo: com
+          duas vozes para a mesma obra, o nome tem de acompanhar a troca (ver
+          ROTEIRO 4.30). O seletor vem logo abaixo e só existe quando há escolha.
+        */}
         <div className="grid gap-2 py-2">
           <PessoaDoLivro papel="Escrito por" nome={book.author} testid="text-author" />
-          <PessoaDoLivro papel="Narrado por" nome={book.narrator} testid="text-narrator" />
+          <PessoaDoLivro papel="Narrado por" nome={narracao.name} testid="text-narrator" />
+          <SeletorDeNarracao book={{ id: book.id, narrator: book.narrator }} />
           <EditoraDoLivro bookId={Number(params.id)} />
-          <EstudioDoLivro narrador={book.narrator} />
+          <EstudioDoLivro narrador={narracao.name} />
         </div>
 
         <div className="flex gap-3">

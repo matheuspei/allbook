@@ -2020,6 +2020,51 @@ ser a nossa**; e num diálogo que é nosso, o ícone é o nosso.
 
 ---
 
+## 4.30 Um livro, várias narrações — e um seletor de voz (26/07)
+
+O Matheus levou o pedido até o caso difícil: chega um pedido de um livro que **já
+está no app**. O AllBook procura outra narração existente; se não achar, o estúdio
+grava. Resultado: a plataforma passa a ter **duas narrações da mesma obra**. Sobem
+dois livros?
+
+> "Nesse caso, não subir os dois livros, a gente meio que colocar um botãozinho
+> dentro do player, onde a pessoa possa trocar quem é a pessoa que está narrando.
+> (…) Não sei se esse botãozinho ficaria só no player, mas também poderia ficar na
+> parte de fora."
+
+**Decisão: um livro, várias narrações.** Dois cartões do mesmo título seria o pior
+dos mundos — a busca devolveria a mesma obra duas vezes, a biblioteca também, e
+**nota e comentário se dividiriam entre dois lugares** quando são da mesma obra. A
+obra é uma; quem varia é a voz. Isso resolve de quebra o que a 4.28 deixou em
+aberto: o pedido de quem não gostou da narração não cria um livro concorrente, cria
+uma alternativa dentro do mesmo.
+
+**Onde fica o botão: nos dois lugares, e eles servem a momentos diferentes.** Na
+ficha, antes de começar — é ali que se escolhe com calma, lendo o timbre de cada
+voz. No player, durante — é lá que a pessoa descobre que não gosta daquela voz, e
+obrigá-la a voltar para a ficha para trocar seria pedir que ela desista.
+
+**O que está construído:** `lib/narrations.ts` (as narrações e a escolha, no
+`localStorage`), o componente `SeletorDeNarracao` e a ligação na **ficha do
+livro** — "Narrado por" passou a mostrar a narração escolhida, e o seletor é a
+linha fina logo abaixo. **Só aparece quando há mais de uma voz**: livro com uma
+narração não mostra nada, nem botão apagado nem "1 narração" (regra da 4.23).
+
+**Detalhes que o desenho carrega de propósito:**
+- Cada opção mostra o **timbre da voz**, a mesma frase do perfil dela. Escolher
+  entre dois nomes desconhecidos não é escolher, é apostar.
+- O selo distingue **"Narração original"** de **"Produzida a pedido"** — sem isso,
+  ninguém entende por que existem duas.
+- Três livros têm narração extra (Duna, Hábitos Atômicos, O Iluminado), **dado de
+  exemplo como o resto do catálogo**. São poucos de propósito: o seletor tem de
+  ser exceção, não enfeite de toda ficha.
+
+**Falta:** o mesmo seletor **dentro do player**, e o áudio de fato mudar de faixa
+— que só existe quando houver áudio de verdade. Hoje a troca muda quem a ficha
+credita; no dia em que houver arquivo, ela muda o que toca, sem mudar a interface.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

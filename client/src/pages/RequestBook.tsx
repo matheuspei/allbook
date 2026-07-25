@@ -36,7 +36,7 @@ import {
  * que isso está em aberto, e tela que inventa número vira promessa que o produto
  * não fez.
  *
- * **A reforma de 26/07 (ver ROTEIRO 4.26): a tela deixou de prometer o que não
+ * **A reforma de 26/07 (ver ROTEIRO 4.28): a tela deixou de prometer o que não
  * pode cumprir.** O formulário exigia "quem narra" logo de saída, e o Matheus viu
  * o furo: muitos livros **já foram narrados**, e nesses casos o AllBook traz a
  * narração que existe — nenhuma voz escolhida vale, e a escolha era promessa
@@ -49,7 +49,7 @@ import {
  *
  * **O que foi tentado e desfeito no mesmo dia:** um par de opções perguntando
  * *"se já existir narração, pode ser ela ou você quer uma do estúdio?"*. Funcionava
- * como interface e era ruim como negócio — ver o motivo no ROTEIRO 4.26. Em uma
+ * como interface e era ruim como negócio — ver o motivo no ROTEIRO 4.28. Em uma
  * frase: trazer uma narração pronta é mais barato para o AllBook do que gravar, e
  * o botão oferecia o caminho caro para quem se contentaria com o barato.
  */
@@ -251,7 +251,7 @@ export default function RequestBook() {
             diferencial do app.
 
             **O rótulo carrega um "se", e é essa palavra que conserta a promessa
-            quebrada** (26/07, ROTEIRO 4.26): quando o livro já tem narração, o
+            quebrada** (26/07, ROTEIRO 4.28): quando o livro já tem narração, o
             AllBook traz a que existe e voz nenhuma se aplica. Dizer "se o estúdio
             gravar" é mais honesto do que esconder o campo — quem quer opinar
             continua podendo, sabendo exatamente quando a opinião vale.
