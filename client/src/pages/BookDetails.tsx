@@ -7,7 +7,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { catalog, findGenreBySlug, getBooksByGenre, slugify, duracaoEstimada } from "@/lib/books";
+import {
+  catalog,
+  findGenreBySlug,
+  getBooksByGenre,
+  slugify,
+  duracaoEstimada,
+  notaHistoria,
+  notaNarracao,
+} from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { publisherOfBook } from "@/lib/publishers";
 import { STUDIO_NAME, narratorKind } from "@/lib/studio";
@@ -15,6 +23,8 @@ import PublisherMark from "@/components/PublisherMark";
 import { commentsForBook } from "@/lib/comments";
 import CommentThread from "@/components/CommentThread";
 import CommentComposer from "@/components/CommentComposer";
+import AvaliarLivro from "@/components/AvaliarLivro";
+import { notaDaComunidade, MINIMO_PARA_MEDIA, RATINGS_EVENT } from "@/lib/ratings";
 import { readReactions, type Reactions } from "@/lib/reactions";
 import PersonAvatar from "@/components/PersonAvatar";
 import { motion } from "framer-motion";
@@ -39,29 +49,21 @@ const bookData: Record<string, any> = {
     duration: "12h 45min",
     reviewsCount: 128,
     summary: "Setenta anos atrás, a mansão Hope foi palco de um crime brutal que chocou a pacata cidade litorânea. Agora, Kit McDeere é contratada como cuidadora de Lenora Hope, a única sobrevivente do massacre, que nunca falou sobre aquela noite. Em uma casa caindo aos pedaços, Kit descobre que os segredos da família Hope são muito mais profundos e perigosos do que qualquer um poderia imaginar.",
-    performance: 4.8,
-    story: 4.3
   },
   "5": {
     duration: "4h 42min",
     reviewsCount: 116,
     summary: "Neste guia prático, Ciara Conlon apresenta técnicas essenciais para retomar o controle de sua vida e carreira. Aprenda a eliminar distrações, priorizar o que realmente importa e criar sistemas de organização que funcionam no longo prazo. Um audiolivro indispensável para quem busca fazer mais em menos tempo sem sacrificar o bem-estar mental.",
-    performance: 4.5,
-    story: 4.1
   },
   "101": {
     duration: "8h 12min",
     reviewsCount: 342,
     summary: "O sucesso financeiro tem menos a ver com a sua inteligência e muito mais com o seu comportamento. Morgan Housel compartilha 19 histórias curtas que exploram as formas estranhas como as pessoas pensam sobre o dinheiro e ensina como ter uma relação melhor com suas finanças, focando na liberdade e na paz de espírito em vez de apenas números.",
-    performance: 4.9,
-    story: 4.7
   },
   "102": {
     duration: "9h 30min",
     reviewsCount: 856,
     summary: "Pequenas mudanças, resultados impressionantes. James Clear revela como transformações minúsculas no seu dia a dia podem levar a resultados gigantescos. Baseado em ciência biológica e psicológica, este audiolivro oferece um método comprovado para quebrar maus hábitos e construir rotinas positivas de forma automática.",
-    performance: 4.9,
-    story: 4.9
   }
 };
 
@@ -249,6 +251,45 @@ function LinkDoGenero({ genero }: { genero: string }) {
   );
 }
 
+/**
+ * A linha que diz **de onde vêm** as duas notas do cartão acima.
+ *
+ * Sem ela o app deixaria a pessoa supor que aquilo é a média dos ouvintes — e
+ * hoje não é: é a nota curada do catálogo. A troca só acontece quando houver
+ * `MINIMO_PARA_MEDIA` avaliações, e aí a contagem aparece junto, porque é o
+ * número de avaliações que permite julgar o peso da média.
+ */
+function OrigemDaNota({ bookId }: { bookId: number }) {
+  const [dados, setDados] = useState(() => notaDaComunidade(bookId));
+
+  useEffect(() => {
+    function atualizar() {
+      setDados(notaDaComunidade(bookId));
+    }
+    atualizar();
+    window.addEventListener(RATINGS_EVENT, atualizar);
+    return () => window.removeEventListener(RATINGS_EVENT, atualizar);
+  }, [bookId]);
+
+  if (dados.suficiente) {
+    return (
+      <p className="-mt-4 text-[11px] text-white/40" data-testid="rating-origin">
+        Nota dos ouvintes:{" "}
+        <span className="font-semibold text-white/70">{dados.media.toFixed(1)}</span> ·{" "}
+        {dados.total} avaliações
+      </p>
+    );
+  }
+
+  return (
+    <p className="-mt-4 text-[11px] text-white/30" data-testid="rating-origin">
+      Notas do catálogo AllBook. A nota dos ouvintes aparece a partir de{" "}
+      {MINIMO_PARA_MEDIA} avaliações
+      {dados.total > 0 && ` — já são ${dados.total}`}.
+    </p>
+  );
+}
+
 function buildFromCatalog(id: string) {
   const entry = catalog.find((b) => String(b.id) === id);
   if (!entry) return { ...defaultBook, id };
@@ -262,6 +303,11 @@ function buildFromCatalog(id: string) {
     cover: entry.cover,
     rating: entry.rating,
     genre: entry.genre,
+    // As duas notas separadas saem do catálogo (fonte única). Livro sem ficha
+    // curada não tem as duas, e os ajudantes caem no `rating` — repetir um
+    // número verdadeiro é melhor do que estampar dois inventados.
+    story: notaHistoria(entry),
+    performance: notaNarracao(entry),
     // A sinopse real vem do `npm run catalogo`. Sem ela, um texto que assume a
     // falta em vez de fingir um resumo.
     summary:
@@ -620,6 +666,19 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               <span className="text-[10px] text-white/40 uppercase tracking-wider">História</span>
             </div>
           </div>
+
+          {/*
+            De onde vêm esses dois números — dito na cara, e não subentendido.
+            Enquanto a comunidade não junta `MINIMO_PARA_MEDIA` avaliações, as
+            notas são as curadas do catálogo, e chamá-las de "nota dos ouvintes"
+            seria promessa falsa (ROTEIRO 4.15). Com uma nota 1 solta contra
+            duas boas, a média mentiria e derrubaria o livro.
+          */}
+          <OrigemDaNota bookId={Number(params.id)} />
+
+          {/* A sua nota: o bloco existe sempre, mas antes dos 20% ouvidos ele é
+              informação, não botão. A regra e o porquê estão no componente. */}
+          <AvaliarLivro bookId={Number(params.id)} />
 
           <div className="space-y-3">
             {/*

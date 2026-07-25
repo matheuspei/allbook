@@ -33,6 +33,24 @@ export interface Book {
   rating: number;
   genre: Genre;
 
+  /**
+   * As duas notas separadas, quando existem: `story` é a obra (o texto) e
+   * `performance` é a leitura **desta edição**.
+   *
+   * **São opcionais de propósito.** Só quem tem ficha curada as tem; o resto do
+   * catálogo fica com `rating` e pronto — inventar dois números para cada livro
+   * seria dado falso, e daqui a um mês ninguém saberia que foi chute. Quem
+   * precisa da nota por dimensão usa `notaHistoria`/`notaNarracao` de
+   * `lib/ratings.ts`, que caem no `rating` quando o campo falta.
+   *
+   * Elas importam porque a herança sai daqui: o autor recebe a média de
+   * `story`; o narrador, a de `performance`. Antes os dois recebiam a nota
+   * geral, e isso era injusto nos dois sentidos — livro fraco com narração
+   * excelente punia o narrador (ver ROTEIRO 4.15).
+   */
+  story?: number;
+  performance?: number;
+
   // Daqui para baixo vem tudo do `npm run catalogo`, que busca na Open Library.
   // É opcional porque um livro recém-acrescentado só ganha esses campos depois
   // que o script rodar de novo.
@@ -42,6 +60,22 @@ export interface Book {
   pages?: number;
   isbn?: string;
   synopsis?: string;
+}
+
+/**
+ * A nota da **obra** e a da **narração**, com queda para o `rating` geral
+ * quando o livro não tem as duas separadas (a maioria).
+ *
+ * Moram aqui, e não em `ratings.ts`, porque são leitura de um campo do livro —
+ * quem só precisa disso não deve arrastar junto o portão de avaliação, o
+ * progresso de audição e os comentários.
+ */
+export function notaHistoria(book: Book): number {
+  return book.story ?? book.rating;
+}
+
+export function notaNarracao(book: Book): number {
+  return book.performance ?? book.rating;
 }
 
 /** O que é digitado à mão. O resto da ficha o script preenche. */
@@ -102,7 +136,7 @@ const catalogoCurado: BookCurado[] = [
   { id: 306, title: "Misery", author: "Stephen King", narrator: "Otávio Marques", cover: coverHorror, rating: 4.7, genre: "Terror" },
 
   // Mistério
-  { id: 1, title: "O massacre da família Hope", author: "Riley Sager", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.5, genre: "Mistério" },
+  { id: 1, title: "O massacre da família Hope", author: "Riley Sager", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.5, genre: "Mistério", story: 4.3, performance: 4.8 },
   { id: 2, title: "A empregada", author: "Freida McFadden", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.8, genre: "Mistério" },
   { id: 3, title: "Garota Exemplar", author: "Gillian Flynn", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.6, genre: "Mistério" },
   { id: 106, title: "A Paciente Silenciosa", author: "Alex Michaelides", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.5, genre: "Mistério" },
@@ -114,7 +148,7 @@ const catalogoCurado: BookCurado[] = [
   { id: 314, title: "Escrito na Água", author: "Paula Hawkins", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.2, genre: "Mistério" },
 
   // Negócios
-  { id: 101, title: "A Psicologia Financeira", author: "Morgan Housel", narrator: "Roberto Rocha", cover: coverBusiness, rating: 4.8, genre: "Negócios" },
+  { id: 101, title: "A Psicologia Financeira", author: "Morgan Housel", narrator: "Roberto Rocha", cover: coverBusiness, rating: 4.8, genre: "Negócios", story: 4.7, performance: 4.9 },
   { id: 108, title: "Pense de Novo", author: "Adam Grant", narrator: "Roberto Rocha", cover: coverBusiness, rating: 4.7, genre: "Negócios" },
   { id: 125, title: "Pai Rico, Pai Pobre", author: "Robert T. Kiyosaki", narrator: "Roberto Rocha", cover: coverBusiness, rating: 4.6, genre: "Negócios" },
   { id: 320, title: "Quadrante do Fluxo de Dinheiro", author: "Robert T. Kiyosaki", narrator: "Roberto Rocha", cover: coverBusiness, rating: 4.4, genre: "Negócios" },
@@ -139,8 +173,8 @@ const catalogoCurado: BookCurado[] = [
   { id: 319, title: "Brida", author: "Paulo Coelho", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.2, genre: "Autoajuda" },
 
   // Produtividade
-  { id: 5, title: "Organize-se", author: "Ciara Conlon", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.3, genre: "Produtividade" },
-  { id: 102, title: "Hábitos Atômicos", author: "James Clear", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.9, genre: "Produtividade" },
+  { id: 5, title: "Organize-se", author: "Ciara Conlon", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.3, genre: "Produtividade", story: 4.1, performance: 4.5 },
+  { id: 102, title: "Hábitos Atômicos", author: "James Clear", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.9, genre: "Produtividade", story: 4.9, performance: 4.9 },
   { id: 107, title: "Essencialismo", author: "Greg McKeown", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.6, genre: "Produtividade" },
   { id: 124, title: "Os 7 Hábitos", author: "Stephen R. Covey", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.8, genre: "Produtividade" },
   { id: 321, title: "Sem Esforço", author: "Greg McKeown", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.5, genre: "Produtividade" },

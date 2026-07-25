@@ -1090,8 +1090,11 @@ evento de conclusão.
 
 Fecha a pergunta que a **4.5** deixou em aberto ("de onde vem a estrelinha").
 Discussão puxada pelo Matheus: *"meu problema é as pessoas avaliarem um livro
-sem nunca ter ouvido — e como gerar nota para o autor?"*. **Nada disto está
-implementado ainda; é o desenho acordado.**
+sem nunca ter ouvido — e como gerar nota para o autor?"*.
+
+> **Construído no mesmo dia** (`lib/ratings.ts`, `components/AvaliarLivro.tsx`,
+> bloco na ficha do livro, herança em `people.ts`). As decisões que só
+> apareceram na hora de implementar estão no fim desta seção.
 
 **1. Só o livro recebe nota. Pessoa e editora, nunca.** Autor, narrador e
 editora continuam com nota **derivada** — é o que o código já faz hoje
@@ -1144,6 +1147,36 @@ duas — exigir as duas afasta quem só tem opinião sobre uma.
 
 **Em aberto, de propósito:** os números 20% e 5 são o ponto de partida, não
 dogma — só dá para calibrar com uso real.
+
+### O que só apareceu na hora de construir (25/07)
+
+**`story` e `performance` são opcionais no catálogo.** Só os 4 livros que já
+tinham ficha curada as têm; quem não tem cai no `rating` geral, pelos ajudantes
+`notaHistoria`/`notaNarracao` de `books.ts`. **Rejeitado: preencher os 59 livros
+com duas notas cada.** Seriam números inventados — o mesmo motivo que barrou a
+ficha institucional de editora (4.11) — e daqui a um mês ninguém saberia que foi
+chute. Repetir uma nota verdadeira é melhor do que estampar duas falsas.
+
+**No perfil de pessoa, a caixa mostra a nota do chapéu principal** (o que ela
+mais faz no catálogo): "Nota da obra" para quem escreve, "Nota da narração" para
+quem narra. O segundo chapéu, quando existe, vira uma linha discreta embaixo —
+**rejeitada a quarta caixa** na grade, que é de três colunas e apertaria no
+celular.
+
+**A linha "de onde vem a nota" é obrigatória, não enfeite.** Sem ela, as duas
+notas do topo passariam por média dos ouvintes. Ela diz "Notas do catálogo
+AllBook" com a contagem atual, e vira "Nota dos ouvintes: X · N avaliações"
+quando passa de 5.
+
+**Apurado, sem virar problema:** hoje **ninguém no catálogo é autor e narrador ao
+mesmo tempo** (48 pessoas, zero com os dois papéis), então a linha do segundo
+chapéu existe no código mas não tem caso real para mostrar — não deu para
+conferir na tela. Vale lembrar quando alguém narrar o próprio livro, que é comum
+em não-ficção.
+
+**Medido no teste:** com 2 comentários com estrela por livro, nenhum título
+chega perto das 5 avaliações — ou seja, **na prática o app segue mostrando a
+nota curada**, que é exatamente o comportamento desenhado para a partida a frio.
 
 ---
 

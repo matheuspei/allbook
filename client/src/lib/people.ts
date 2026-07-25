@@ -1,4 +1,4 @@
-import { catalog, slugify, type Book, type Genre } from "./books";
+import { catalog, notaHistoria, notaNarracao, slugify, type Book, type Genre } from "./books";
 
 // Reexportado por conveniência: quem lida com pessoas costuma precisar do slug,
 // mas a função em si mora em `books.ts` para não criar ciclo entre os módulos.
@@ -48,12 +48,32 @@ export interface Person {
   genres: Genre[];
   /** Quantidade de títulos distintos (escrever e narrar o mesmo livro conta uma vez). */
   titles: number;
-  /** Média das notas desses títulos. */
+  /** Média das notas gerais desses títulos. */
   rating: number;
+  /**
+   * A nota de cada chapéu, **separada de propósito** (ROTEIRO 4.15).
+   *
+   * `ratingAutor` é a média das notas de **história** do que a pessoa escreveu;
+   * `ratingNarrador`, a média das notas de **narração** do que ela narrou. Antes
+   * as duas eram a mesma coisa — a média geral dos livros —, e isso era injusto
+   * nos dois sentidos: livro fraco com narração excelente derrubava o narrador,
+   * e um texto ótimo mal narrado inflava a nota dele.
+   *
+   * Só existe o chapéu que a pessoa tem: quem nunca narrou não tem
+   * `ratingNarrador`.
+   */
+  ratingAutor?: number;
+  ratingNarrador?: number;
 }
 
 function ordenarPorNota(livros: Book[]): Book[] {
   return [...livros].sort((a, b) => b.rating - a.rating);
+}
+
+/** Média de uma lista de notas — `undefined` se a lista está vazia. */
+function media(notas: number[]): number | undefined {
+  if (notas.length === 0) return undefined;
+  return notas.reduce((soma, nota) => soma + nota, 0) / notas.length;
 }
 
 function construirRegistro(): Map<string, Person> {
@@ -108,6 +128,10 @@ function construirRegistro(): Map<string, Person> {
     pessoa.narrated = ordenarPorNota(pessoa.narrated);
     pessoa.titles = livros.length;
     pessoa.rating = livros.reduce((soma, livro) => soma + livro.rating, 0) / livros.length;
+    // Cada chapéu puxa da sua dimensão: quem escreve responde pela história,
+    // quem narra responde pela narração.
+    pessoa.ratingAutor = media(pessoa.wrote.map(notaHistoria));
+    pessoa.ratingNarrador = media(pessoa.narrated.map(notaNarracao));
     pessoa.genres = Array.from(frequenciaPorGenero.entries())
       .sort((a, b) => b[1] - a[1])
       .map(([genero]) => genero);

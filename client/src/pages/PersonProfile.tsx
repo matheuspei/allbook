@@ -44,6 +44,22 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
   const ehAutorENarrador = person.wrote.length > 0 && person.narrated.length > 0;
 
   /**
+   * Qual nota vai na caixa: a do chapéu que a pessoa mais veste no catálogo.
+   * A do outro chapéu, quando existe, vira a linha discreta logo abaixo.
+   */
+  const escreveMais = person.wrote.length >= person.narrated.length;
+  const daObra = { rotulo: "Nota da obra", valor: person.ratingAutor ?? person.rating };
+  const daNarracao = { rotulo: "Nota da narração", valor: person.ratingNarrador ?? person.rating };
+  const notaPrincipal = escreveMais ? daObra : daNarracao;
+  const notaSecundaria = ehAutorENarrador
+    ? {
+        texto: escreveMais
+          ? `Na narração, a média é ${daNarracao.valor.toFixed(1)}.`
+          : `Na obra escrita, a média é ${daObra.valor.toFixed(1)}.`,
+      }
+    : null;
+
+  /**
    * Se este narrador é uma voz do AllBook Studio. É **aqui** — e na tela do
    * estúdio — que se diz que a voz é sintética: uma vez, no lugar onde a pessoa
    * veio saber quem narra. Na ficha de cada livro isso viraria aviso repetido.
@@ -122,12 +138,26 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
               rotulo={person.titles === 1 ? "Título" : "Títulos"}
               valor={String(person.titles)}
             />
-            <Estatistica rotulo="Nota média" valor={person.rating.toFixed(1)} />
+            {/*
+              A nota da caixa é a do chapéu principal — o que a pessoa mais faz
+              no catálogo. Antes era uma "Nota média" só, a média geral dos
+              livros, e ela dizia a coisa errada: quem narra respondia pela
+              qualidade do texto, e quem escreve respondia pela leitura (ver
+              ROTEIRO 4.15). Quem faz os dois ganha a segunda nota logo abaixo,
+              em vez de uma quarta caixa que apertaria a grade no celular.
+            */}
+            <Estatistica rotulo={notaPrincipal.rotulo} valor={notaPrincipal.valor.toFixed(1)} />
             <Estatistica
               rotulo={person.genres.length === 1 ? "Gênero" : "Gêneros"}
               valor={String(person.genres.length)}
             />
           </dl>
+
+          {notaSecundaria && (
+            <p className="mt-2 text-[11px] text-white/40" data-testid="text-second-rating">
+              {notaSecundaria.texto}
+            </p>
+          )}
 
           {person.genres.length > 0 && (
             <div className="mt-4 flex flex-wrap justify-center gap-1.5">
