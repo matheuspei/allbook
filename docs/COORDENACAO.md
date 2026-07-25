@@ -22,7 +22,7 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (26/07: Story com destaques nomeados e acabamento — ver ROTEIRO 4.26) | — | não — serviço launchd sempre no ar | 26/07 |
+| A | — livre — (26/07: Resumo na mesma família visual da Story — ver ROTEIRO 4.26) | — | não — serviço launchd sempre no ar | 26/07 |
 | B | — livre — (26/07: "quem narra, se o estúdio gravar" + aviso de livro que já está no catálogo; opção de pedir produção do estúdio foi rejeitada por custo — ver ROTEIRO 4.26) | — | não — serviço launchd sempre no ar | 26/07 |
 | C | — livre — (26/07: o botão "Categorias" da Início passou a expandir a lista de gêneros — ver ROTEIRO 4.27, que também deixa em aberto o destino da tela Descobrir) | — | não — serviço launchd sempre no ar | 26/07 |
 
