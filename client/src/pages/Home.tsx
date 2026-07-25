@@ -363,7 +363,15 @@ function CategoryGrid() {
         <div
           id="lista-de-generos"
           data-testid="lista-de-generos"
-          className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-1 duration-200"
+          /*
+            A altura máxima é para o dia em que o acervo crescer. Hoje são 8
+            gêneros e a lista nem chega perto do limite; com um catálogo de
+            verdade ("imagina aí, vinte mil audiolivros" — Matheus, 26/07) essa
+            lista vira dezenas de itens, e sem teto ela empurraria a Início
+            inteira para baixo. Com teto, ela rola sozinha e o resto da tela fica
+            onde está.
+          */
+          className="grid max-h-[19rem] grid-cols-2 gap-2 overflow-y-auto pr-1 animate-in fade-in slide-in-from-top-1 duration-200"
         >
           {genres.map(({ label }) => {
             const Icone = genreIcons[label];
