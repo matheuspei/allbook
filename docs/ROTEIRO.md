@@ -1826,11 +1826,36 @@ o ícone deixaria o botão honesto e ainda assim inútil.
   que levam a `/category/:slug`; os cards coloridos logo abaixo são **coleções
   curadas** (Lançamentos, Favoritos…), que levam a `/collection/:slug`. São
   listas diferentes — os dois blocos convivem sem repetir.
-- **Cada gênero mostra quantos livros tem** (Terror 6, Ficção Científica 11…).
-  O número vem do catálogo de verdade: dá para ver que há conteúdo do outro lado
-  **antes** de tocar. É a mesma disciplina da varredura de botão morto (4.23).
-- A barrinha colorida de cada item usa o gradiente do próprio gênero — a mesma
-  cor que reaparece no topo da tela daquele gênero.
+- **Ícone no lugar de cor, e sem contagem** — mudança feita **no mesmo dia**, em
+  resposta à primeira versão (ver abaixo).
+
+### A cor durou uma versão: ícone diz o mesmo sem o arco-íris
+
+A lista nasceu com uma **barrinha no gradiente de cada gênero** e o **número de
+livros** ao lado. O Matheus derrubou as duas coisas no mesmo pedido:
+
+> *"quando você coloca uma coisa colorida, talvez cai um pouco no padrão, e a
+> gente já tava brigando sobre isso… tava pensando em colocar ícones: uma
+> miniatura que remetesse a romance, uma que remetesse a ficção."*
+
+**Sobre a cor:** oito cores diferentes numa lista só é exatamente a "cara de
+template" que já tinha derrubado os cards de gradiente chapado (ver "Estilo:
+evitar a cara de IA"). O ícone monocromático carrega a mesma informação — *que
+assunto é este* — sem o arco-íris. Regra que ficou: **uma cor só, a da marca**;
+os ícones ficam em cinza claro e acendem em laranja no toque.
+
+**Sobre a contagem:** ela tinha sido posta como antídoto contra botão morto —
+mostrar que existe conteúdo do outro lado antes de tocar (a disciplina de 4.23).
+O Matheus julgou que *"não acrescenta muita coisa"*, e ele está certo no caso:
+quem escolhe um gênero quer o **assunto**, não o estoque. A garantia de que o
+botão leva a algo continua existindo — só não precisa ser dita em número.
+
+O mapa gênero → ícone mora em `lib/genreIcons.ts`, separado de `books.ts`
+(que é dado, não aparência), porque a página do gênero e a Descobrir podem
+querer o mesmo mapa. Escolha dos oito: foguete, coração, fantasma, impressão
+digital, maleta, livro-com-pessoa, broto, lista. Ficaram **de fora** de
+propósito a lupa (já é o ícone de busca no menu) e a pessoa sozinha (já é o do
+perfil) — ícone repetido em dois sentidos confunde.
 
 ### Fica em aberto: a tela Descobrir perdeu a aba dela
 
