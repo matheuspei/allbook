@@ -186,12 +186,47 @@ export default function Profile() {
     setResumo(lerResumo());
   }, []);
 
-  /** Aviso para as opções cujas telas ainda não foram construídas. */
-  function comingSoon(label: string) {
-    toast({
-      title: `${label} em breve`,
-      description: "Essa parte do AllBook ainda está sendo construída.",
-    });
+  /**
+   * Convidar alguém para o AllBook — **funciona de verdade, sem servidor**.
+   *
+   * Era um dos dois itens que só mostravam "em breve". Convite não depende de
+   * banco de dados: quem compartilha é o próprio aparelho. Usa a folha de
+   * compartilhamento nativa (WhatsApp, Mensagens, o que a pessoa tiver) e, onde
+   * ela não existe — desktop, navegador antigo —, copia o convite para a área de
+   * transferência. Nos dois caminhos a pessoa sai com algo na mão.
+   *
+   * Quando houver servidor, o que muda é só o link: um endereço de convite com
+   * código de indicação no lugar do endereço do site.
+   */
+  async function convidarAmigos() {
+    const convite =
+      "Estou ouvindo audiolivros em português no AllBook — dá até para pedir um livro que ainda não existe em áudio.";
+    const url = window.location.origin;
+
+    // `navigator.share` só existe em contexto seguro (https ou localhost) e em
+    // navegador que a implemente; o `catch` cobre também quem abre a folha e
+    // desiste, que dispara rejeição e não é erro nenhum.
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title: "AllBook", text: convite, url });
+        return;
+      } catch {
+        return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(`${convite} ${url}`);
+      toast({
+        title: "Convite copiado",
+        description: "Cole onde quiser para chamar alguém.",
+      });
+    } catch {
+      toast({
+        title: "Não deu para copiar",
+        description: "Seu navegador bloqueou a área de transferência.",
+      });
+    }
   }
 
   /**
@@ -227,6 +262,8 @@ export default function Profile() {
     label: string;
     hint?: string;
     href?: string;
+    /** Ação executada aqui mesmo, para o que não é uma tela. */
+    onSelect?: () => void;
   }[][] = [
     [
       { icon: Bookmark, label: "Minha lista", hint: libraryCount > 0 ? String(libraryCount) : undefined, href: "/library" },
@@ -238,8 +275,8 @@ export default function Profile() {
       { icon: CheckCircle2, label: "Meu acesso", href: "/plans" },
       { icon: Bell, label: "Notificações", href: "/notifications" },
       { icon: Settings, label: "Configurações", href: "/settings" },
-      { icon: Share2, label: "Convidar amigos" },
-      { icon: HelpCircle, label: "Ajuda e suporte" },
+      { icon: Share2, label: "Convidar amigos", onSelect: convidarAmigos },
+      { icon: HelpCircle, label: "Ajuda e suporte", href: "/help" },
     ],
   ];
 
@@ -460,6 +497,12 @@ export default function Profile() {
                 "w-full flex items-center gap-4 py-3.5 text-left hover:text-white/70 transition-colors";
               const testId = `profile-item-${item.label.toLowerCase().replace(/ /g, "-")}`;
 
+              /*
+                Todo item leva a algum lugar ou faz alguma coisa — os dois que
+                só mostravam "em breve" saíram (ROTEIRO 4.23). O `onSelect`
+                existe para o que resolve aqui mesmo, como o convite, sem
+                precisar de uma tela própria.
+              */
               return item.href ? (
                 <Link key={item.label} href={item.href} className={className} data-testid={testId}>
                   {content}
@@ -467,7 +510,7 @@ export default function Profile() {
               ) : (
                 <button
                   key={item.label}
-                  onClick={() => comingSoon(item.label)}
+                  onClick={item.onSelect}
                   className={className}
                   data-testid={testId}
                 >

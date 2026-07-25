@@ -3,11 +3,11 @@ import { useLocation } from "wouter";
 import { useMemo } from "react";
 
 import { genres, getBooksByIds, getBooksByGenre, genreSlug, type Genre } from "@/lib/books";
+import { findCollectionBySlug, getBooksForCollection } from "@/lib/collections";
 import CategoryCard from "@/components/CategoryCard";
 
 
 const topWeekIds = [7, 102, 101, 104, 2, 130, 111, 129, 106, 4];
-const newReleasesIds = [140, 144, 109, 108, 142, 137, 132, 107];
 
 function normalize(str: string) {
   return str
@@ -117,15 +117,41 @@ function TopTenRow() {
   );
 }
 
+/**
+ * Fileira "Lançamentos" da Descobrir.
+ *
+ * **Dois defeitos consertados juntos, 25/07 — e o segundo explica o primeiro.**
+ * O "Ver tudo" não tinha ação nenhuma: era um botão que não fazia nada, apesar
+ * de a tela `/collection/:slug` existir e de a Início já usar esse mesmo padrão.
+ * E a fileira montava a lista **à mão**, num array solto no topo do arquivo, em
+ * vez de ler a coleção "lancamentos" de `collections.ts` — as duas listas não
+ * tinham **um único livro em comum**. Ligar o botão sem consertar a fonte teria
+ * levado a pessoa a dez títulos que não eram os que ela acabara de ver.
+ *
+ * A regra do `CLAUDE.md` existe justamente para isso: a tela lê da fonte única,
+ * não recria a lista. Agora a fileira e o destino mostram a mesma coisa, e a
+ * ordem dos livros é a da coleção.
+ */
 function ReleasesRow() {
   const [, setLocation] = useLocation();
-  const books = useMemo(() => getBooksByIds(newReleasesIds), []);
+  const colecao = useMemo(() => findCollectionBySlug("lancamentos"), []);
+  const books = useMemo(() => (colecao ? getBooksForCollection(colecao) : []), [colecao]);
+
+  // Coleção removida de `collections.ts` some da tela em vez de virar uma
+  // fileira vazia com um botão que leva a lugar nenhum.
+  if (!colecao || books.length === 0) return null;
 
   return (
     <section className="py-3 space-y-3" data-testid="discover-releases">
       <div className="flex items-center justify-between px-4">
-        <h2 className="font-display font-bold text-xl text-white tracking-tight">Lançamentos</h2>
-        <button className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors" data-testid="button-releases-see-all">
+        <h2 className="font-display font-bold text-xl text-white tracking-tight">
+          {colecao.label}
+        </h2>
+        <button
+          onClick={() => setLocation(`/collection/${colecao.slug}`)}
+          className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors"
+          data-testid="button-releases-see-all"
+        >
           Ver tudo
           <ChevronRight className="w-3.5 h-3.5" />
         </button>

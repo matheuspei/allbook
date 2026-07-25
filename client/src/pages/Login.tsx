@@ -155,23 +155,15 @@ export default function Login() {
             {tried && passwordError && <p className="text-xs text-red-400">{passwordError}</p>}
           </div>
 
-          {!creating && (
-            <div className="flex justify-end -mt-1">
-              <button
-                type="button"
-                onClick={() =>
-                  toast({
-                    title: "Recuperação de senha em breve",
-                    description: "Ainda não existe servidor para enviar o e-mail.",
-                  })
-                }
-                className="text-xs text-white/40 hover:text-white/70 transition-colors"
-                data-testid="button-forgot-password"
-              >
-                Esqueci minha senha
-              </button>
-            </div>
-          )}
+          {/*
+            "Esqueci minha senha" saiu daqui (ROTEIRO 4.23), e não é um item de
+            lista de espera: **não há senha para recuperar**. `auth.ts` decidiu
+            deliberadamente não guardar senha nenhuma no navegador, então
+            qualquer senha válida entra. Um link de recuperação neste modelo não
+            estaria "por construir" — estaria mentindo sobre como o login
+            funciona. Ele volta junto com o servidor de contas, que é quem
+            passará a ter uma senha de verdade para redefinir.
+          */}
 
           <button
             type="submit"

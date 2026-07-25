@@ -1504,6 +1504,69 @@ app — o que ficar ali não é lido.
 
 ---
 
+## 4.23 Nenhum botão morto: o que dá para fazer agora e o que espera o banco (25/07)
+
+Pedido do Matheus, e vale registrar o enquadramento porque ele **corrigiu o
+meu**. Eu tinha proposto criar um estado de "livro sem narração" na ficha, e ele
+apontou o erro: os livros são fictícios, **nada toca porque nada existe ainda** —
+é maquete de frontend. Não é caso de inventar estado novo. Nas palavras dele:
+*"os botões têm que estar todos validados e funcionando"*.
+
+Ele acrescentou a régua que organiza o trabalho: **separar o que já dá para
+resolver no frontend do que só existe quando houver banco de dados.** A varredura
+achou quatro controles sem destino, e os quatro se dividem exatamente assim.
+
+### Resolvido agora — não dependia de banco nenhum
+
+**1. "Ver tudo" dos Lançamentos (Descobrir) — botão morto de verdade.** Sem ação
+nenhuma, apesar de a tela `/collection/:slug` existir e de a Início já usar esse
+mesmo padrão. **E havia um defeito por baixo que explica o primeiro:** a fileira
+montava a lista à mão, num array no topo do arquivo, em vez de ler a coleção
+`lancamentos` de `collections.ts` — e as duas listas **não tinham um único livro
+em comum**. Ligar o botão sem consertar a fonte teria levado a pessoa a dez
+títulos que ela não acabara de ver. Agora a fileira lê da coleção, e o botão leva
+ao mesmo conteúdo.
+
+**2. "Convidar amigos" (Perfil) — virou ação real.** Convite não precisa de
+servidor: quem compartilha é o aparelho. Usa a folha nativa (`navigator.share`) e,
+onde ela não existe, copia o convite para a área de transferência. Quando houver
+servidor, o que muda é só o link — um endereço com código de indicação.
+
+**3. "Ajuda e suporte" (Perfil) — virou tela (`/help`).** Perguntas frequentes
+são conteúdo, não infraestrutura. **As respostas leem do código**: os 20% para
+liberar a avaliação e o mínimo de notas para a média vêm de `ratings.ts`, o prazo
+do pedido vem de `requests.ts` — se a regra mudar, a ajuda muda junto. Ajuda que
+envelhece é pior que nenhuma. **Sem formulário de contato**, que seria o mesmo
+beco em outro lugar; um e-mail de suporte é uma linha quando ele existir.
+
+### Só com o banco — e um deles não é "falta implementar"
+
+**4. "Esqueci minha senha" (Login) — removido, e o motivo importa.** Não é item
+de lista de espera: **não há senha para recuperar**. O `auth.ts` decidiu
+deliberadamente **não guardar senha nenhuma** no navegador (guardar em texto puro
+é hábito ruim que ninguém desfaz depois), e por isso qualquer senha válida entra.
+Um link de recuperação nesse modelo não estaria "por construir" — estaria
+mentindo sobre como o login funciona. Ele volta junto com o servidor de contas,
+que é quem passará a ter senha de verdade para redefinir.
+
+### O que a varredura NÃO achou (para ninguém refazer)
+
+Cinco controles pareciam sem ação e não são: quatro estão dentro de um `Link`, de
+um `DropdownMenuTrigger` ou do `BookActionsMenu` (o handler está no wrapper), e um
+é um botão **invisível de propósito** no player (`opacity-0 pointer-events-none`),
+que só equilibra o cabeçalho. Nenhum `TODO` ou `onClick` vazio no app.
+
+### O que fica esperando o banco, além da senha
+
+Registro para quando o backend chegar — hoje **tudo isto vive no `localStorage`
+deste aparelho** e some se a pessoa trocar de celular: biblioteca, downloads,
+progresso de audição, avaliações, comentários, respostas, pedidos de livro e
+perfil. Nenhum deles é botão morto (todos funcionam), mas nenhum atravessa
+aparelhos. A tela `/help` diz isso à pessoa em vez de deixar a descoberta para o
+dia da troca de celular.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
