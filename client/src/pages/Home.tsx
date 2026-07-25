@@ -12,7 +12,7 @@ import {
   type Genre,
 } from "@/lib/books";
 import { collections, homeRows, getBooksForCollection } from "@/lib/collections";
-import { genreIcons } from "@/lib/genreIcons";
+import GenreIcon from "@/components/GenreIcon";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
 import { readProfile } from "@/lib/profile";
 import BookActionsMenu from "@/components/BookActionsMenu";
@@ -332,7 +332,9 @@ function HeroBillboard() {
  * no padrão"* (a briga antiga contra a cara de template — ver ROTEIRO 4.27), e a
  * contagem *"não acrescenta muita coisa"* — quem escolhe um gênero quer o
  * assunto, não o estoque. O sinal visual agora é um ícone monocromático por
- * gênero (`lib/genreIcons.ts`), que acende no laranja da marca ao toque.
+ * gênero, que acende no laranja da marca ao toque. Os desenhos são próprios do
+ * AllBook (`components/GenreIcon.tsx`), e não da biblioteca de ícones: o
+ * Matheus escolheu essa linha vendo as três propostas lado a lado.
  */
 function CategoryGrid() {
   const [, setLocation] = useLocation();
@@ -373,27 +375,25 @@ function CategoryGrid() {
           */
           className="grid max-h-[19rem] grid-cols-2 gap-2 overflow-y-auto pr-1 animate-in fade-in slide-in-from-top-1 duration-200"
         >
-          {genres.map(({ label }) => {
-            const Icone = genreIcons[label];
-
-            return (
-              <button
-                key={label}
-                type="button"
-                data-testid={`genero-${genreSlug(label)}`}
-                onClick={() => setLocation(`/category/${genreSlug(label)}`)}
-                className="group flex items-center gap-2.5 rounded-lg bg-white/[0.04] px-3 py-2.5 text-left ring-1 ring-white/10 transition-colors hover:bg-white/[0.08] active:scale-[0.98]"
-              >
-                <Icone
-                  className="h-4 w-4 shrink-0 text-white/45 transition-colors group-hover:text-primary"
-                  strokeWidth={1.6}
-                />
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-white/90">
-                  {label}
-                </span>
-              </button>
-            );
-          })}
+          {genres.map(({ label }) => (
+            <button
+              key={label}
+              type="button"
+              data-testid={`genero-${genreSlug(label)}`}
+              onClick={() => setLocation(`/category/${genreSlug(label)}`)}
+              className="group flex items-center gap-2.5 rounded-lg bg-white/[0.04] px-3 py-2.5 text-left ring-1 ring-white/10 transition-colors hover:bg-white/[0.08] active:scale-[0.98]"
+            >
+              {/* 18px, e não os 16 de um ícone comum: estes têm um elemento
+                  preenchido, e abaixo disso o sólido some no traço. */}
+              <GenreIcon
+                genre={label}
+                className="h-[18px] w-[18px] shrink-0 text-white/45 transition-colors group-hover:text-primary"
+              />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-white/90">
+                {label}
+              </span>
+            </button>
+          ))}
         </div>
       )}
 

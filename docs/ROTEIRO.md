@@ -1860,12 +1860,46 @@ O Matheus julgou que *"não acrescenta muita coisa"*, e ele está certo no caso:
 quem escolhe um gênero quer o **assunto**, não o estoque. A garantia de que o
 botão leva a algo continua existindo — só não precisa ser dita em número.
 
-O mapa gênero → ícone mora em `lib/genreIcons.ts`, separado de `books.ts`
-(que é dado, não aparência), porque a página do gênero e a Descobrir podem
-querer o mesmo mapa. Escolha dos oito: foguete, coração, fantasma, impressão
-digital, maleta, livro-com-pessoa, broto, lista. Ficaram **de fora** de
-propósito a lupa (já é o ícone de busca no menu) e a pessoa sozinha (já é o do
-perfil) — ícone repetido em dois sentidos confunde.
+Ficaram **de fora** de propósito a lupa (já é o ícone de busca no menu) e a
+pessoa sozinha (já é o do perfil) — ícone repetido em dois sentidos confunde.
+
+### E o ícone pronto durou uma versão também: os oito passaram a ser desenhados
+
+Vendo os ícones da `lucide-react` na tela, o Matheus pediu mais: *"a gente podia
+colocar uns ícones mais bonitos, mas bem elaborados, mais sofisticados"* — e
+apontou o de Produtividade (uma lista de tarefas) como o mais genérico.
+
+**Como a decisão foi tomada:** em vez de eu escolher sozinho, montei uma folha
+com **três propostas lado a lado** para os oito gêneros, no mesmo cinza e no
+mesmo fundo do app — (A) o que estava no ar, (B) outro ícone da mesma
+biblioteca, (C) desenho próprio. Ele escolheu **C**. Vale registrar o método: a
+comparação visual resolveu em um minuto o que uma descrição em texto não
+resolveria, porque "sofisticado" só quer dizer alguma coisa quando se vê.
+
+**A regra que define o conjunto** (`components/GenreIcon.tsx`): contorno fino
+**mais um único elemento preenchido** em cada ícone — a cratera do planeta, os
+olhos da caveira, o furo da chave, a barra mais alta do gráfico, a areia da
+ampulheta. Biblioteca pronta é só contorno; é o contraste entre linha e sólido
+que dá o peso de ícone caro, e ele não vem de prateleira. O invólucro (viewBox,
+traço, pontas arredondadas) é o mesmo para todos — é isso que faz os oito
+parecerem uma família em vez de oito desenhos avulsos.
+
+**Dois detalhes que só apareceram testando no tamanho real:**
+- Eles ficaram em **18px, e não nos 16px** de um ícone comum: abaixo disso o
+  elemento sólido some dentro do traço e o desenho vira mancha.
+- O broto da Autoajuda nasceu com a base larga e **parecia uma taça** em tamanho
+  pequeno. Base encurtada e folhas maiores resolveram.
+
+### Preparação para o catálogo crescer
+
+Aviso do Matheus no mesmo dia: *"esse número de categorias vai expandir bastante…
+imagina aí, vinte mil audiolivros"*. A lista ganhou **teto de altura e rolagem
+própria**: hoje, com 8 gêneros, ela nem chega perto do limite; com dezenas de
+categorias ela rola dentro do próprio bloco em vez de empurrar a Início inteira
+para baixo. **Ainda não resolvido** para essa escala: com muitas dezenas de
+categorias, uma lista rolável fica ruim de varrer — aí vai pedir agrupamento
+(gêneros principais e subgêneros) ou um campo de filtro dentro da lista. Fica
+anotado para quando o acervo justificar.
 
 ### Fica em aberto: a tela Descobrir perdeu a aba dela
 
