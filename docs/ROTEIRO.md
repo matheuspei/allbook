@@ -1650,6 +1650,60 @@ honesto do acervo.
 
 ---
 
+## 4.25 A Story só mostra número que é do AllBook — e página não é (26/07)
+
+O Matheus quis trocar o conteúdo da Story: tirar peças fracas e pôr informação
+que valha o espaço. As três linhas com bolinha ("12h 30min de audição", "20 dias
+com audição", "Romance em alta") saíram. Elas gastavam 200px de altura para
+dizer pouco, e o que diziam era **esforço**: hora e dia de uso só significam algo
+para quem já usa o app. No lugar entrou uma **faixa de três números em colunas**,
+com filete acima, e um **fecho com nomes** embaixo das capas.
+
+**Como os números são escolhidos: fila de candidatos, não lista fixa.** Entra o
+primeiro que tem substância — livros ouvidos (quando o herói são os terminados),
+gêneros, vozes, dias seguidos, autores, ritmo ("3 dias por livro"), fila. Assim a
+peça nunca mostra "0 dias seguidos" nem coluna vazia, e quem ouve pouco vê
+números diferentes de quem ouve muito. Duas regras que só apareceram testando:
+**candidato que repete o número gigante é descartado** (com 11 livros de 11
+autores, a peça mostrava "11" duas vezes e parecia erro de cálculo) e **o ritmo
+só entra a partir de três livros** — com dois a conta dá "15 dias por livro", e
+ninguém posta o próprio ritmo quando ele parece lento.
+
+**"Páginas" entrou e saiu no mesmo dia — este é o registro mais importante da
+seção.** A ideia era boa: página é a moeda que qualquer leitor compara, e resolve
+a objeção contra hora. Caiu em duas etapas, as duas por argumento do Matheus:
+
+1. A primeira versão convertia hora em página por uma média (33 páginas/hora).
+   Ele apontou que isso é chute — e é: punha uma estimativa no número mais
+   concreto da peça.
+2. A segunda usava a **página real da ficha** de cada livro, multiplicada pelo
+   progresso. Ele derrubou de novo, com o argumento decisivo: a ficha vem da
+   **Open Library**, dado externo que só existe para os livros importados. Quando
+   o AllBook subir os próprios livros — que é o rumo do projeto — a maioria não
+   terá página nenhuma, e a métrica viraria zero ou invenção.
+
+**A regra que ficou: em peça pública, só número que o próprio app produz.** Livro,
+gênero, autor, voz, ritmo, fila, terminados. Nada de catálogo emprestado. A
+função `paginasEquivalentes` foi apagada para ninguém reusá-la por engano; a
+constante `PAGINAS_POR_HORA` continua em `books.ts`, mas **só no sentido
+páginas → duração**, e com o aviso de que a duração real do áudio vai substituí-la.
+
+**"Vozes" nasceu daí** e é o número mais AllBook da faixa: quantos narradores
+diferentes te acompanharam no mês. Num app de leitura ele não existe.
+
+**O lema mudou.** Era "audiolivros em português", que descreve a **categoria** —
+qualquer concorrente poderia assinar a mesma frase. Virou **"todos os livros, em
+voz alta"**: explica o nome (All = todos) e promete o que o AllBook quer ser, um
+lugar onde qualquer livro existe em voz, não um catálogo fechado.
+
+**Bug antigo achado no caminho (peça Resumo, não Story):** com uma ou duas capas,
+a largura era dividida entre elas e a capa esticava para 608px de altura,
+escrevendo o título **por cima** do rodapé e da assinatura. Só não aparecia
+porque o histórico de demonstração sempre tem três. Agora a capa tem teto: nunca
+maior do que seria com três.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

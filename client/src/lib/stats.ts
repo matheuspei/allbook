@@ -153,6 +153,18 @@ export interface ResumoDoPeriodo {
   terminados: Book[];
   segundos: number;
   diasComAudicao: number;
+  /** Os gêneros da janela, do mais ouvido para o menos. */
+  generos: Genre[];
+  /** Quantos autores diferentes entraram na conta. */
+  autores: number;
+  /**
+   * Quantas vozes diferentes narraram para você na janela. É o número mais
+   * "AllBook" da lista: num app de leitura ele não existe.
+   */
+  narradores: number;
+  /** Quem você mais ouviu na janela — nomes, o que mais rende conversa. */
+  autorTop: string | null;
+  narradorTop: string | null;
 }
 
 /**
@@ -162,6 +174,16 @@ export interface ResumoDoPeriodo {
  * isso: o que se conta para os outros é o que aconteceu *agora*, e em
  * **livros**, não em horas. Por isso esta função responde em livros ouvidos,
  * livros terminados e dias de audição no período.
+ *
+ * **Página foi tentada aqui e rejeitada** (26/07). A ideia era mostrar "1.206
+ * páginas" em vez de horas, porque página é a moeda que qualquer leitor
+ * compara. Duas versões caíram: a primeira convertia hora em página por uma
+ * média (33 páginas/hora), um chute; a segunda usava a página real da ficha,
+ * mas a ficha vem da **Open Library** — dado externo, que só existe para os
+ * livros que por acaso estão lá. Quando o AllBook subir os próprios livros
+ * (o rumo do projeto), a maioria não terá página nenhuma, e a métrica viraria
+ * zero ou invenção. Ficaram só números que são do próprio app: livro, gênero,
+ * autor, voz, ritmo e fila.
  */
 export function lerResumoDoPeriodo(diario: Diario, dias = 30, hoje = new Date()): ResumoDoPeriodo {
   const limite = new Date(hoje);
@@ -222,7 +244,36 @@ export function lerResumoDoPeriodo(diario: Diario, dias = 30, hoje = new Date())
       return book ? [book] : [];
     });
 
-  return { ouvidos, espiados, terminados, segundos, diasComAudicao };
+  /*
+   * Gênero, autor e narrador da janela saem só dos livros que **contam** (os
+   * `ouvidos`): um livro espiado por dois minutos não deve fazer o mês parecer
+   * de terror. Ordenados por tempo, para "o mais ouvido" ser o primeiro.
+   */
+  const porGenero = new Map<Genre, number>();
+  const porAutor = new Map<string, number>();
+  const porNarrador = new Map<string, number>();
+  for (const { book, sec } of ouvidos) {
+    porGenero.set(book.genre, (porGenero.get(book.genre) ?? 0) + sec);
+    porAutor.set(book.author, (porAutor.get(book.author) ?? 0) + sec);
+    porNarrador.set(book.narrator, (porNarrador.get(book.narrator) ?? 0) + sec);
+  }
+  const maisOuvido = (mapa: Map<string, number>): string | null =>
+    Array.from(mapa.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
+  return {
+    ouvidos,
+    espiados,
+    terminados,
+    segundos,
+    diasComAudicao,
+    generos: Array.from(porGenero.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([genero]) => genero),
+    autores: porAutor.size,
+    narradores: porNarrador.size,
+    autorTop: maisOuvido(porAutor),
+    narradorTop: maisOuvido(porNarrador),
+  };
 }
 
 export interface FatiaDeGenero {

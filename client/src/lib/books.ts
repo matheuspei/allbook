@@ -234,6 +234,21 @@ export function genreGradient(genre: Genre): string {
 }
 
 /**
+ * Quantas páginas cabem em uma hora de narração — a média que transforma
+ * páginas em duração.
+ *
+ * **Só vale nesse sentido, e só enquanto não há áudio de verdade.** A peça de
+ * story chegou a mostrar "páginas ouvidas" por este caminho, de volta (horas ×
+ * 33), e a ideia foi descartada: a página vem da ficha da Open Library, então
+ * ela existe para os livros importados e **não** para os que o AllBook subir.
+ * Métrica que morre quando o produto cresce não entra em peça pública — ver
+ * `lerResumoDoPeriodo` em `lib/stats.ts`. Aqui ela fica porque estimar duração
+ * é melhor do que mostrar "5h 00m" fixo em todo livro; quando houver arquivo de
+ * áudio, a duração real toma o lugar.
+ */
+export const PAGINAS_POR_HORA = 33;
+
+/**
  * A mesma estimativa de duração, só que em minutos e em número — é a base de
  * `duracaoEstimada` e o que a Biblioteca soma para dizer o tamanho do acervo
  * ("41h de audição"). Livro sem número de páginas conta zero: somar menos é
@@ -241,7 +256,7 @@ export function genreGradient(genre: Genre): string {
  */
 export function minutosEstimados(pages?: number): number {
   if (!pages) return 0;
-  return Math.round((pages / 33) * 60);
+  return Math.round((pages / PAGINAS_POR_HORA) * 60);
 }
 
 /**

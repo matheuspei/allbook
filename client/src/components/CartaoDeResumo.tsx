@@ -35,6 +35,13 @@ import type { Book } from "@/lib/books";
 
 export type ModoDoCartao = "resumo" | "story";
 
+/** Uma coluna da faixa de números: "412" embaixo de "PÁGINAS". */
+export interface NumeroDaStory {
+  valor: string;
+  /** Curto, em caixa alta — precisa caber em um terço da largura. */
+  rotulo: string;
+}
+
 export interface DadosDaStory {
   /** "NOS ÚLTIMOS 30 DIAS". */
   periodo: string;
@@ -42,12 +49,22 @@ export interface DadosDaStory {
   destaque: string;
   /** "livros ouvidos" / "livro ouvido". */
   destaqueRotulo: string;
-  /** Duas ou três linhas de apoio ("12h 30min ouvidas", "18 dias com audição"). */
-  linhas: string[];
-  /** Até 3 capas, as mais ouvidas do período. */
+  /**
+   * Até três números em colunas.
+   *
+   * Substituíram as linhas com bolinha ("12h 30min de audição", "18 dias com
+   * audição"). Duas razões: aquelas linhas gastavam 200px de altura para dizer
+   * pouco, e o que diziam era **esforço** — hora e dia de uso só significam
+   * algo para quem já usa o app. Em colunas cabem três fatos no lugar de um, e
+   * sobra altura para as capas e o fecho.
+   */
+  numeros: NumeroDaStory[];
+  /** Até 6 capas — as terminadas, se houver; senão as mais ouvidas. */
   capas: Book[];
-  /** Títulos terminados dentro do período. */
-  terminados: string[];
+  /** "O QUE EU TERMINEI" / "O QUE EU OUVI" — quem tem os dados decide. */
+  tituloDasCapas: string;
+  /** Até duas linhas de fecho, embaixo das capas. */
+  fecho: string[];
 }
 
 export interface DadosDoCartao {
@@ -265,8 +282,16 @@ async function desenharResumo(ctx: CanvasRenderingContext2D, dados: DadosDoCarta
 
   if (dados.livros.length > 0) {
     rotulo(ctx, "O QUE MAIS TOMOU SEU TEMPO", 640);
-    const largura = (LARGURA - MARGEM * 2 - 36 * (dados.livros.length - 1)) / dados.livros.length;
-    await desenharCapas(ctx, dados.livros, 690, largura * 1.4);
+    /*
+     * A capa nunca passa da largura que teria se fossem três — que é o que a
+     * altura desta peça aguenta. Sem o teto, quem tem uma ou duas capas via a
+     * imagem quebrada: com duas, a capa esticava para 608px de altura e escrevia
+     * o título **por cima** do rodapé e da assinatura.
+     */
+    const cabe = (LARGURA - MARGEM * 2 - 36 * (dados.livros.length - 1)) / dados.livros.length;
+    const teto = (LARGURA - MARGEM * 2 - 36 * 2) / 3;
+    const largura = Math.min(cabe, teto);
+    await desenharCapas(ctx, dados.livros, 690, largura * 1.4, largura);
   }
 
   const fecho = [dados.generoFavorito, dados.rodape].filter(Boolean).join(" · ");
@@ -282,73 +307,101 @@ async function desenharResumo(ctx: CanvasRenderingContext2D, dados: DadosDoCarta
 }
 
 /**
+ * A faixa de números em colunas, com um filete acima separando do número
+ * gigante. Cada coluna ganha a mesma largura e o texto é cortado para não
+ * invadir a vizinha.
+ */
+function desenharNumeros(
+  ctx: CanvasRenderingContext2D,
+  numeros: NumeroDaStory[],
+  yValor: number,
+  yRotulo: number
+): void {
+  if (numeros.length === 0) return;
+
+  const util = LARGURA - MARGEM * 2;
+  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  ctx.fillRect(MARGEM, yValor - 92, util, 2);
+
+  /*
+   * Passo fixo de um terço, mesmo com uma ou duas colunas. Dividir a largura
+   * pelo número de itens jogaria a segunda coluna para o meio da peça, com um
+   * vão enorme entre as duas; com passo fixo elas ficam agrupadas à esquerda,
+   * como um bloco de dados, e o vazio sobra à direita.
+   */
+  const coluna = util / 3;
+  for (let i = 0; i < numeros.length; i++) {
+    const x = MARGEM + i * coluna;
+    // 24px de respiro para a coluna seguinte, senão os textos se encostam.
+    const cabe = coluna - 24;
+
+    ctx.font = "700 74px Outfit, sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(textoQueCabe(ctx, numeros[i].valor, cabe), x, yValor);
+
+    ctx.font = "600 24px Inter, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.letterSpacing = "4px";
+    ctx.fillText(textoQueCabe(ctx, numeros[i].rotulo, cabe), x, yRotulo);
+    ctx.letterSpacing = "0px";
+  }
+}
+
+/**
  * A peça de rede social, 9:16 — o tamanho exato do story.
  *
  * O herói é o **número de livros** do período, não as horas: "39h ouvidas" diz
- * pouco para quem vê de fora, "4 livros em 30 dias" é o que se conta.
+ * pouco para quem vê de fora, "4 livros em 30 dias" é o que se conta. Abaixo
+ * dele, três números em colunas; depois a parede de capas; e um fecho com
+ * nomes — de livro terminado, de autor, de narrador.
  */
 async function desenharStory(ctx: CanvasRenderingContext2D, dados: DadosDoCartao): Promise<void> {
   const s = dados.story;
   moldura(ctx, ALTURA_STORY);
   marca(ctx, 210, 56);
 
-  rotulo(ctx, s.periodo, 330, 28);
+  rotulo(ctx, s.periodo, 296, 28);
 
   // O número gigante e o rótulo dele.
   ctx.font = "700 260px Outfit, sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(s.destaque, MARGEM, 620);
+  ctx.fillText(s.destaque, MARGEM, 560);
 
   ctx.font = "600 44px Inter, sans-serif";
   ctx.fillStyle = "rgba(255,255,255,0.75)";
-  ctx.fillText(s.destaqueRotulo, MARGEM, 690);
+  ctx.fillText(s.destaqueRotulo, MARGEM, 628);
 
-  // Linhas de apoio, cada uma com um ponto na cor da marca.
-  let y = 800;
-  for (const linha of s.linhas.slice(0, 3)) {
-    ctx.fillStyle = "#FF6A00";
-    ctx.beginPath();
-    ctx.arc(MARGEM + 8, y - 12, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.font = "400 36px Inter, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    ctx.fillText(textoQueCabe(ctx, linha, LARGURA - MARGEM * 2 - 44), MARGEM + 44, y);
-    y += 66;
-  }
+  desenharNumeros(ctx, s.numeros.slice(0, 3), 782, 828);
 
   /*
    * Até três capas, uma fileira grande com o título de cada livro. De quatro a
    * seis, duas fileiras menores e **sem título** — com seis nomes embaixo a
    * peça vira uma lista, e o que convence num story é a parede de capas.
+   *
+   * As alturas daqui para baixo são apertadas de propósito: o topo foi
+   * comprimido (marca, período e número gigante subiram) para a grade de duas
+   * fileiras não encostar no fecho — na primeira versão sobravam 40px entre
+   * uma coisa e outra, e parecia erro de montagem.
    */
   const capas = s.capas.slice(0, 6);
   if (capas.length > 0) {
-    const titulo = s.terminados.length > 0 ? "O QUE EU TERMINEI" : "O QUE EU OUVI";
-    if (capas.length <= 3) {
-      rotulo(ctx, titulo, 1080, 26);
-      await desenharCapas(ctx, capas, 1120, 396, 274, 28);
-    } else {
-      // O rótulo precisa de folga da última linha de apoio (que termina em
-      // ~932): com ele em 960 os dois se encostavam.
-      rotulo(ctx, titulo, 1004, 26);
-      await desenharGrade(ctx, capas, 1044, 188, 264, 3, 22);
-    }
+    rotulo(ctx, s.tituloDasCapas, 906, 26);
+    if (capas.length <= 3) await desenharCapas(ctx, capas, 946, 400, 274, 28);
+    else await desenharGrade(ctx, capas, 946, 184, 258, 3, 20);
   }
 
-  // Os terminados, escritos — é a frase que a pessoa quer que leiam.
-  if (s.terminados.length > 0) {
-    const lista =
-      s.terminados.length === 1
-        ? s.terminados[0]
-        : `${s.terminados.slice(0, 2).join(", ")}${s.terminados.length > 2 ? ` e mais ${s.terminados.length - 2}` : ""}`;
-    ctx.font = "600 34px Inter, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.fillText(
-      textoQueCabe(ctx, `✓ Terminei ${lista}`, LARGURA - MARGEM * 2),
-      MARGEM,
-      1636
-    );
+  /*
+   * O fecho: nomes escritos. Com a grade de 4 a 6 capas os títulos não caberiam
+   * embaixo de cada uma, então é aqui que eles aparecem — e é aqui também que
+   * entram autor e narrador, que capa nenhuma mostra.
+   */
+  const fecho = s.fecho.slice(0, 2);
+  for (let i = 0; i < fecho.length; i++) {
+    // A primeira linha é o fato; a segunda é o gosto. Pesos diferentes para a
+    // leitura ter ordem — as duas em branco forte disputariam a atenção.
+    ctx.font = i === 0 ? "600 34px Inter, sans-serif" : "400 30px Inter, sans-serif";
+    ctx.fillStyle = i === 0 ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.5)";
+    ctx.fillText(textoQueCabe(ctx, fecho[i], LARGURA - MARGEM * 2), MARGEM, 1580 + i * 54);
   }
 
   /*
@@ -359,9 +412,15 @@ async function desenharStory(ctx: CanvasRenderingContext2D, dados: DadosDoCartao
   ctx.font = "700 36px Outfit, sans-serif";
   ctx.fillStyle = "#ffffff";
   ctx.fillText("AllBook", MARGEM, ALTURA_STORY - 180);
+  /*
+   * O lema. Era "audiolivros em português" — que descreve a **categoria**, não
+   * a empresa: qualquer concorrente poderia assinar a mesma frase. Este explica
+   * o nome (All = todos) e promete o que o AllBook quer ser: não um catálogo
+   * fechado, e sim qualquer livro disponível em voz.
+   */
   ctx.font = "400 30px Inter, sans-serif";
   ctx.fillStyle = "rgba(255,255,255,0.45)";
-  ctx.fillText("audiolivros em português", MARGEM, ALTURA_STORY - 134);
+  ctx.fillText("todos os livros, em voz alta", MARGEM, ALTURA_STORY - 134);
 }
 
 async function desenhar(

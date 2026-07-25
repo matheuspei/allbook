@@ -13,7 +13,10 @@ import {
   Trophy,
 } from "lucide-react";
 
-import CartaoDeResumo, { type DadosDoCartao } from "@/components/CartaoDeResumo";
+import CartaoDeResumo, {
+  type DadosDoCartao,
+  type NumeroDaStory,
+} from "@/components/CartaoDeResumo";
 import PageHeader from "@/components/PageHeader";
 import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { Button } from "@/components/ui/button";
@@ -326,9 +329,10 @@ export default function Statistics() {
         periodo: "",
         destaque: "0",
         destaqueRotulo: "livros",
-        linhas: [],
+        numeros: [],
         capas: [],
-        terminados: [],
+        tituloDasCapas: "",
+        fecho: [],
       },
     };
     if (!resumo) return vazio;
@@ -340,6 +344,88 @@ export default function Statistics() {
      */
     const ultimos30 = lerResumoDoPeriodo(resumo.diario, 30);
     const terminouNoPeriodo = ultimos30.terminados.length > 0;
+
+    // O número gigante: terminado vale mais que ouvido, quando existe.
+    const destaqueDaStory = terminouNoPeriodo
+      ? ultimos30.terminados.length
+      : ultimos30.ouvidos.length;
+
+    /*
+     * As capas: as terminadas, se houver, senão as mais ouvidas. Até seis — com
+     * muitos livros no mês, a parede de capas é a prova.
+     */
+    const capas = (
+      terminouNoPeriodo ? ultimos30.terminados : ultimos30.ouvidos.map((item) => item.book)
+    ).slice(0, 6);
+    // Até três capas, o desenho escreve o título de cada uma; de quatro a seis,
+    // não — e aí os nomes precisam aparecer no fecho.
+    const nomesNasCapas = capas.length <= 3;
+
+    /*
+     * Os três números da faixa saem de uma **fila de candidatos**: o primeiro
+     * que tem substância entra. É o que impede a peça de mostrar "0 dias
+     * seguidos" ou uma coluna vazia — quem ouviu pouco vê números diferentes de
+     * quem ouviu muito, e nenhum dos dois vê um número vergonhoso.
+     */
+    const candidatos: (NumeroDaStory | null)[] = [
+      // Se o herói já são os terminados, o total ouvido acrescenta; se não,
+      // seria repetir o número gigante.
+      terminouNoPeriodo && ultimos30.ouvidos.length > 0
+        ? { valor: String(ultimos30.ouvidos.length), rotulo: "LIVROS OUVIDOS" }
+        : null,
+      ultimos30.generos.length >= 2
+        ? { valor: String(ultimos30.generos.length), rotulo: "GÊNEROS" }
+        : null,
+      // Voz é o número que só um app de audiolivro tem — e é dado nosso, não de
+      // catálogo emprestado.
+      ultimos30.narradores >= 2
+        ? { valor: String(ultimos30.narradores), rotulo: "VOZES" }
+        : null,
+      resumo.sequenciaDias >= 2
+        ? { valor: String(resumo.sequenciaDias), rotulo: "DIAS SEGUIDOS" }
+        : null,
+      ultimos30.autores >= 2 ? { valor: String(ultimos30.autores), rotulo: "AUTORES" } : null,
+      /*
+       * Ritmo: o único jeito de dizer "sou rápido" sem falar em hora. Só a
+       * partir de três livros — com dois, a conta dá "15 dias por livro", e
+       * ninguém posta o próprio ritmo quando ele parece lento.
+       */
+      destaqueDaStory >= 3
+        ? { valor: String(Math.max(1, Math.round(30 / destaqueDaStory))), rotulo: "DIAS POR LIVRO" }
+        : null,
+      resumo.naLista >= 2 ? { valor: String(resumo.naLista), rotulo: "NA FILA" } : null,
+    ];
+
+    /*
+     * **Duas ausências de propósito nesta fila.**
+     *
+     * "Dias com audição" era uma das linhas da versão antiga: mede uso do app,
+     * não gosto de quem lê. "Páginas" chegou a entrar e saiu no mesmo dia —
+     * dependia da ficha da Open Library, que não vai existir nos livros que o
+     * próprio AllBook subir (o motivo completo está em `lerResumoDoPeriodo`).
+     * Se a fila secar, a faixa mostra duas colunas: menos é melhor que encher
+     * com número fraco ou emprestado.
+     */
+
+
+    /*
+     * O fecho também é uma fila: nomes, em ordem de força. Livro terminado
+     * ganha de autor, autor ganha de narrador — mas o narrador entra sempre que
+     * sobra linha, porque é a informação que só um app de audiolivro tem.
+     */
+    const lista =
+      ultimos30.terminados.length === 1
+        ? ultimos30.terminados[0].title
+        : `${ultimos30.terminados
+            .slice(0, 2)
+            .map((livro) => livro.title)
+            .join(", ")}${ultimos30.terminados.length > 2 ? ` e mais ${ultimos30.terminados.length - 2}` : ""}`;
+
+    const fecho = [
+      terminouNoPeriodo && !nomesNasCapas ? `✓ Terminei ${lista}` : null,
+      ultimos30.autorTop ? `Mais ouvi ${ultimos30.autorTop}` : null,
+      ultimos30.narradorTop ? `Narrador mais ouvido: ${ultimos30.narradorTop}` : null,
+    ].filter((linha): linha is string => Boolean(linha));
 
     const ativosAgora = diasAtivos(resumo.diario);
     const partes = [
@@ -382,9 +468,7 @@ export default function Statistics() {
         .join(" · "),
       story: {
         periodo: "NOS ÚLTIMOS 30 DIAS",
-        destaque: String(
-          terminouNoPeriodo ? ultimos30.terminados.length : ultimos30.ouvidos.length
-        ),
+        destaque: String(destaqueDaStory),
         destaqueRotulo: terminouNoPeriodo
           ? ultimos30.terminados.length === 1
             ? "livro terminado"
@@ -392,18 +476,18 @@ export default function Statistics() {
           : ultimos30.ouvidos.length === 1
             ? "livro ouvido"
             : "livros ouvidos",
-        linhas: [
-          `${formatarDuracao(ultimos30.segundos)} de audição`,
-          `${ultimos30.diasComAudicao} ${ultimos30.diasComAudicao === 1 ? "dia" : "dias"} com audição`,
-          generos[0] ? `${generos[0].genero} em alta` : "",
-        ].filter(Boolean),
-        // Se terminou algo, são as capas dos terminados que interessam.
-        // Até seis: com muitos livros no mês, a parede de capas é a prova.
-        capas: (terminouNoPeriodo
-          ? ultimos30.terminados
-          : ultimos30.ouvidos.map((item) => item.book)
-        ).slice(0, 6),
-        terminados: ultimos30.terminados.map((livro) => livro.title),
+        numeros: candidatos
+          .filter((numero): numero is NumeroDaStory => numero !== null)
+          /*
+           * Fora quem repete o número gigante. Com 11 livros de 11 autores
+           * diferentes, a peça mostrava "11" duas vezes — e número repetido na
+           * mesma imagem lê como erro de cálculo, não como coincidência.
+           */
+          .filter((numero) => numero.valor !== String(destaqueDaStory))
+          .slice(0, 3),
+        capas,
+        tituloDasCapas: terminouNoPeriodo ? "O QUE EU TERMINEI" : "O QUE EU OUVI",
+        fecho: fecho.slice(0, 2),
       },
     };
   }, [resumo, generos, livrosMaisOuvidos, narrador, faixas]);
