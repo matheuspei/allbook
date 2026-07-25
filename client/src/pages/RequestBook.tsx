@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { AudioLines, Check, Clock, Mic, Trash2 } from "lucide-react";
+import { AudioLines, Check, Clock, Headphones, Mic, Trash2 } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import PersonAvatar from "@/components/PersonAvatar";
@@ -12,6 +12,7 @@ import {
   MAX_REQUEST_TITLE,
   REQUEST_STEPS,
   addRequest,
+  alreadyInCatalog,
   myRequests,
   removeRequest,
   type BookRequest,
@@ -34,6 +35,23 @@ import {
  * **Sobre plano e preço não há uma palavra**, de propósito: o ROTEIRO registra
  * que isso está em aberto, e tela que inventa número vira promessa que o produto
  * não fez.
+ *
+ * **A reforma de 26/07 (ver ROTEIRO 4.26): a tela deixou de prometer o que não
+ * pode cumprir.** O formulário exigia "quem narra" logo de saída, e o Matheus viu
+ * o furo: muitos livros **já foram narrados**, e nesses casos o AllBook traz a
+ * narração que existe — nenhuma voz escolhida vale, e a escolha era promessa
+ * quebrada. Pior: quem pede **não tem como saber** se o livro já tem áudio. Duas
+ * mudanças saíram disso:
+ * 1. a escolha da voz ganhou um "se" no rótulo — *"quem narra, se o estúdio
+ *    gravar"* —, então ela nunca promete o que não pode cumprir;
+ * 2. o app confere **na hora** o que ele conhece de fato — o próprio catálogo —
+ *    e avisa quando o livro já está lá, com o link para ouvir agora.
+ *
+ * **O que foi tentado e desfeito no mesmo dia:** um par de opções perguntando
+ * *"se já existir narração, pode ser ela ou você quer uma do estúdio?"*. Funcionava
+ * como interface e era ruim como negócio — ver o motivo no ROTEIRO 4.26. Em uma
+ * frase: trazer uma narração pronta é mais barato para o AllBook do que gravar, e
+ * o botão oferecia o caminho caro para quem se contentaria com o barato.
  */
 export default function RequestBook() {
   const { toast } = useToast();
@@ -53,6 +71,14 @@ export default function RequestBook() {
   /** `undefined` = deixar o estúdio escolher. É o padrão, não um vazio. */
   const [vozEscolhida, setVozEscolhida] = useState<string | undefined>(undefined);
   const [pedidos, setPedidos] = useState<BookRequest[]>([]);
+
+  /**
+   * O livro já está no AllBook? É a única das três respostas possíveis que o app
+   * dá **na hora** — o catálogo ele conhece. Evita alguém esperar 24 horas por um
+   * livro que já pode ouvir agora, e é aqui que aparece a saída de quem já ouviu
+   * e não gostou: pedir a mesma obra numa voz do estúdio.
+   */
+  const jaTemos = useMemo(() => alreadyInCatalog(titulo), [titulo]);
 
   // `localStorage` só existe no navegador — daí ler depois de montar.
   useEffect(() => {
@@ -122,13 +148,17 @@ export default function RequestBook() {
             Do pedido ao play em um dia
           </span>
 
+          {/* As duas metades da promessa, na ordem em que o pedido acontece: se
+              já existe narração, o app traz; se não existe, o estúdio grava.
+              Antes o texto só falava da segunda, e era ela que fazia a escolha
+              de voz parecer valer sempre (ROTEIRO 4.26). */}
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/60">
-            Diga qual livro você quer ouvir. Se ele nunca ganhou versão em áudio — e a maioria
-            nunca ganhou —, o{" "}
+            Diga qual livro você quer ouvir. Se já existe uma narração dele, o AllBook traz. Se
+            nunca ganhou versão em áudio — e a maioria dos livros nunca ganhou —, o{" "}
             <Link href="/studio" className="font-semibold text-primary hover:underline">
               AllBook Studio
             </Link>{" "}
-            produz a narração inteira, do primeiro ao último capítulo.
+            grava a obra inteira, do primeiro ao último capítulo.
           </p>
         </div>
       </header>
@@ -143,6 +173,45 @@ export default function RequestBook() {
             placeholder="Ex.: O Nome do Vento"
             testid="input-request-title"
           />
+
+          {/*
+            A resposta que o app pode dar na hora, sem servidor: o catálogo ele
+            conhece. Sem este aviso, alguém pedia — e esperava 24 horas por — um
+            livro que já podia ouvir naquele segundo. O aviso **não bloqueia** o
+            botão de pedir: o campo pode ter casado com o livro errado (títulos
+            parecidos existem), e travar o pedido por um palpite do app seria
+            pior do que informar e deixar a pessoa decidir.
+          */}
+          {jaTemos && (
+            <div
+              className="flex gap-3 rounded-lg border border-primary/25 bg-primary/[0.07] p-3"
+              data-testid="notice-already-in-catalog"
+            >
+              <img
+                src={jaTemos.cover}
+                alt=""
+                aria-hidden="true"
+                className="h-16 w-11 shrink-0 rounded object-cover ring-1 ring-white/10"
+              />
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold leading-snug text-white">
+                  Este já está no AllBook
+                </p>
+                <p className="mt-0.5 text-[12px] leading-snug text-white/55">
+                  <span className="text-white/75">{jaTemos.title}</span>, narrado por{" "}
+                  {jaTemos.narrator}. Não precisa pedir — dá para ouvir agora.
+                </p>
+                <Link
+                  href={`/book/${jaTemos.id}`}
+                  className="mt-1.5 inline-flex items-center gap-1.5 text-[12px] font-semibold text-primary hover:underline"
+                  data-testid="link-listen-existing"
+                >
+                  <Headphones className="h-3.5 w-3.5" />
+                  Ouvir agora
+                </Link>
+              </div>
+            </div>
+          )}
 
           <Campo
             rotulo="Autor"
@@ -176,14 +245,20 @@ export default function RequestBook() {
             livro que nem existe ainda quase nunca conhece o elenco — obrigar a
             escolher antes de pedir seria pôr um obstáculo na frente do
             diferencial do app.
+
+            **O rótulo carrega um "se", e é essa palavra que conserta a promessa
+            quebrada** (26/07, ROTEIRO 4.26): quando o livro já tem narração, o
+            AllBook traz a que existe e voz nenhuma se aplica. Dizer "se o estúdio
+            gravar" é mais honesto do que esconder o campo — quem quer opinar
+            continua podendo, sabendo exatamente quando a opinião vale.
           */}
           <div className="space-y-2">
             <label className="block text-[11px] uppercase tracking-widest text-white/40">
-              Quem narra
+              Quem narra, se o estúdio gravar
             </label>
             <p className="text-[12px] leading-snug text-white/40">
-              Cada voz vai melhor num tipo de livro. Se preferir, o estúdio escolhe a que combina
-              com o título.
+              Vale quando o livro ainda não tem narração — o caso da maioria. Se preferir, o estúdio
+              escolhe a voz que combina com o título.
             </p>
 
             <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-hide">
@@ -285,6 +360,10 @@ export default function RequestBook() {
                       "{pedido.note}"
                     </span>
                   )}
+                  {/* A voz vem com "se" na frente pelo mesmo motivo do
+                      formulário: ela só entra em cena caso o estúdio precise
+                      gravar. Sem o "se", o cartão prometia uma voz que pode
+                      nunca ser usada. */}
                   <span className="mt-2 flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] text-primary ring-1 ring-primary/25">
                       <span className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -292,9 +371,10 @@ export default function RequestBook() {
                     </span>
                     <span className="inline-flex items-center gap-1 text-[11px] text-white/40">
                       <Mic className="h-3 w-3" />
+                      Se gravar:{" "}
                       {pedido.voiceSlug
-                        ? (findVoice(pedido.voiceSlug)?.name ?? "Voz do estúdio")
-                        : "Voz escolhida pelo estúdio"}
+                        ? (findVoice(pedido.voiceSlug)?.name ?? "voz do estúdio")
+                        : "voz escolhida pelo estúdio"}
                     </span>
                   </span>
                 </span>

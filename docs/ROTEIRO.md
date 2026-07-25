@@ -1704,6 +1704,69 @@ maior do que seria com três.
 
 ---
 
+## 4.26 Quem narra, se já existe narração? (26/07)
+
+O Matheus achou um furo no pedido de livro, e ele é de lógica, não de tela:
+
+> "Se o livro existe narrado, a pessoa escolher o narrador, ela não vai ter esse
+> poder de escolher o narrador, porque o livro já está narrado. (…) Também a
+> pessoa que tá solicitando **não sabe** se existe ou não esse livro dublado."
+
+Ou seja: o formulário pedia "quem narra" **antes** de alguém saber se alguém já
+narrou. Quando o livro já tem áudio, o AllBook traz a narração que existe — e a
+voz escolhida não vale nada. Era **promessa quebrada**, e feita a quem não tinha
+como responder a pergunta.
+
+**A regra que ficou: nunca perguntar o que só o app pode descobrir — e escrever o
+"se" quando a resposta depende dele.** O rótulo do campo virou **"Quem narra, se
+o estúdio gravar"**. Uma palavra resolve: a escolha continua ali para quem quer
+opinar, e agora diz exatamente quando vale. **Rejeitado esconder o campo** até
+saber se o livro tem narração — sem servidor isso é só sonegar informação, e o
+campo escondido faria a pessoa achar que não pode escolher nunca.
+
+**O que o app confere na hora, de verdade:** o próprio catálogo. Digitando o
+título, se ele já está no AllBook aparece um aviso com capa, narrador e o atalho
+"Ouvir agora" (`alreadyInCatalog`, em `lib/requests.ts`). É a única das três
+respostas possíveis que o frontend pode dar sem servidor — as outras duas ("já
+existe narração publicada lá fora" e "ninguém narrou ainda") dependem de uma base
+de audiolivros que ainda não existe, e por isso a **etapa 2 do caminho do pedido
+virou uma pergunta**: "Já existe narração?".
+
+O aviso **não bloqueia** o botão de pedir: o casamento por título é palpite (há
+títulos parecidos), e travar o pedido por palpite é pior do que informar.
+
+### Rejeitado no mesmo dia: deixar a pessoa pedir "produção do estúdio" no pedido
+
+Antes de chegar ao rótulo com "se", a tela ganhou **um par de opções**: *"se já
+existir narração, pode ser ela"* ou *"quero uma do AllBook Studio"*. Como
+interface funcionava — era a pergunta que qualquer pessoa consegue responder sem
+conhecer o livro. **Como negócio era ruim**, e o argumento do Matheus derrubou:
+
+> "Se o livro já existe, pra gente seria mais fácil, mais barato, mais tranquilo
+> produzir o livro, sendo que a pessoa vai pagar a mesma coisa. Quando você
+> coloca isso, você dá a possibilidade à pessoa pular para uma produção do
+> estúdio. Isso pode acabar encarecendo, mas deixando o processo mais trabalhoso
+> pra gente."
+
+**A regra que fica: não oferecer o caminho caro a quem se contentaria com o
+barato.** Diante de dois botões, muita gente marca o que **parece** melhor, não o
+que precisa — e cada uma dessas marcações troca uma narração pronta por uma
+gravação inteira, pelo mesmo preço. O par de opções foi removido, junto com o
+campo `preference` que guardava a escolha.
+
+### Fica em aberto: onde nasce a saída de quem não gosta da narração existente
+
+A pergunta original do Matheus segue de pé — *"se ela não gostar dessa narração e
+preferir a narração com o Inhá, como fica?"*. A saída **não pode** morar no
+pedido, pelo motivo acima. A proposta registrada, para quando ele decidir: ela
+nasce **na ficha do livro**, para quem já tem aquele livro e já ouviu — pedido
+raro, feito por quem tem motivo real, e não a opção padrão de todo mundo. É
+também o lugar natural para o preço aparecer, se a regravação for paga (preço e
+plano continuam em aberto neste roteiro). **Nada disso foi construído** — está
+aqui como decisão pendente, não como plano aprovado.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

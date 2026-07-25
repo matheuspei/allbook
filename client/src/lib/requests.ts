@@ -18,6 +18,8 @@
  * como trilha — o que vem, não o que já aconteceu.
  */
 
+import { catalog, type Book } from "@/lib/books";
+
 const STORAGE_KEY = "allbook_book_requests";
 
 /**
@@ -42,6 +44,11 @@ export interface BookRequest {
    * esquecido. Quem não conhece as vozes não deve ser obrigado a escolher uma
    * para poder pedir; quem conhece, escolhe. As duas coisas são decisões
    * legítimas, e por isso a ausência tem significado próprio.
+   *
+   * **Vale só quando o estúdio grava** (26/07, ver ROTEIRO 4.26). Se o livro já
+   * tem narração publicada, o AllBook traz a que existe e a voz não se aplica —
+   * por isso a tela pergunta "quem narra, **se** o estúdio gravar", em vez de
+   * guardar uma escolha que pode nunca valer.
    */
   voiceSlug?: string;
   /** ISO completo — ordena do mais novo para o mais velho. */
@@ -52,11 +59,27 @@ export interface BookRequest {
 export const MAX_REQUEST_TITLE = 120;
 export const MAX_REQUEST_NOTE = 300;
 
-/** As etapas na ordem, para a tela desenhar a trilha. */
+/**
+ * As etapas na ordem, para a tela desenhar a trilha.
+ *
+ * A segunda etapa é a que responde a pergunta que a pessoa não tinha como
+ * responder: **já existe narração deste livro?** É ali que o pedido se divide em
+ * "trazer a que existe" ou "gravar do zero" — e é por isso que a etapa está
+ * escrita como pergunta, e não como "procurando o texto" (o nome antigo, que
+ * escondia justamente a bifurcação).
+ */
 export const REQUEST_STEPS: { status: RequestStatus; label: string; hint: string }[] = [
   { status: "recebido", label: "Recebido", hint: "Seu pedido está registrado." },
-  { status: "procurando", label: "Procurando o texto", hint: "O AllBook localiza a obra e a ficha." },
-  { status: "produzindo", label: "Em produção", hint: "Uma voz do estúdio grava o livro inteiro." },
+  {
+    status: "procurando",
+    label: "Já existe narração?",
+    hint: "O AllBook acha a obra e vê se ela já ganhou versão em áudio.",
+  },
+  {
+    status: "produzindo",
+    label: "Trazendo ou gravando",
+    hint: "Se já existe, a narração original é preparada. Se não, uma voz do estúdio grava o livro inteiro.",
+  },
   { status: "pronto", label: "Pronto", hint: "Em até 24 horas a narração entra no catálogo — e é sua." },
 ];
 
@@ -127,6 +150,32 @@ export function addRequest(entrada: {
 
 export function removeRequest(id: string): BookRequest[] {
   return save(readRequests().filter((item) => item.id !== id));
+}
+
+/**
+ * Este livro **já está no AllBook**? Devolve o título do catálogo, ou `null`.
+ *
+ * É a primeira das três respostas possíveis a um pedido, e a única que o app
+ * consegue dar **na hora**, sem servidor: o que está no catálogo, ele conhece.
+ * Serve para não deixar ninguém pedir — e esperar 24 horas por — um livro que já
+ * pode ouvir agora. As outras duas respostas ("já existe narração publicada lá
+ * fora" e "ninguém narrou ainda") dependem de uma base de audiolivros que o
+ * frontend não tem; elas ficam para a etapa `procurando` do pedido.
+ *
+ * Casa por igualdade do título sem acento, ou por pedaço com **5 letras ou
+ * mais** contido no título. O piso de 5 existe para "o", "de" e "um" não
+ * casarem com meio catálogo; e o casamento é só por título, nunca por autor —
+ * pedir "Stephen King" não é pedir *O Iluminado*.
+ */
+export function alreadyInCatalog(title: string): Book | null {
+  const alvo = normalizar(title);
+  if (alvo.length < 3) return null;
+
+  const igual = catalog.find((livro) => normalizar(livro.title) === alvo);
+  if (igual) return igual;
+
+  if (alvo.length < 5) return null;
+  return catalog.find((livro) => normalizar(livro.title).includes(alvo)) ?? null;
 }
 
 /**

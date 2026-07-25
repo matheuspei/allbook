@@ -22,9 +22,9 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (26/07: conteúdo da Story — faixa de números, fecho com nomes, página descartada e lema novo; ver ROTEIRO 4.25) | — | não — serviço launchd sempre no ar | 26/07 |
-| B | — livre — (26/07: pedir um livro saiu da Início e virou o botão "Pedir" no centro do menu de baixo; billboard ganhou recorte e o degradê voltou a descer inteiro — ver ROTEIRO 4.18) | — | não — serviço launchd sempre no ar | 26/07 |
-| C | — livre — (25/07: estúdio e vozes, pedido sob demanda, busca refeita, e a varredura de botão morto com a separação frontend × banco — ver ROTEIRO 4.13, 4.17, 4.18 e 4.23) | — | não — serviço launchd sempre no ar | 25/07 |
+| A | Story: destaques com nome no lugar das contagens + acabamento visual | `client/src/components/CartaoDeResumo.tsx`, `client/src/pages/Statistics.tsx` | não — serviço launchd sempre no ar | 26/07 |
+| B | — livre — (26/07: "quem narra, se o estúdio gravar" + aviso de livro que já está no catálogo; opção de pedir produção do estúdio foi rejeitada por custo — ver ROTEIRO 4.26) | — | não — serviço launchd sempre no ar | 26/07 |
+| C | Início: o botão "Categorias" cumprir a seta (expandir a lista de gêneros) | `client/src/pages/Home.tsx` | não — serviço launchd sempre no ar | 26/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —
