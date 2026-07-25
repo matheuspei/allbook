@@ -540,6 +540,9 @@ refazer a análise:
   e raspar o site fere os termos de uso. Open Library e Google Books servem para
   capa e ficha, **não** para nota — a cobertura de avaliação das duas é fraca.
 
+> **Fechada em 25/07 — ver a seção 4.15**, que decide quem pode dar nota, a
+> partir de quando e como isso aparece na tela.
+
 **Decidido em 24/07 — quem leva estrela e quem não leva.** Estrela é de **obra**
 (o livro) e de **profissional** (autor/narrador, na "Nota média" do
 `PersonProfile`). **Leitor não leva estrela.** A que existia ficava colada no
@@ -1080,6 +1083,67 @@ cada bloco responde a uma pergunta diferente.
 há **retrospectiva por ano** porque o app não registra *quando* um livro foi
 concluído — só que está concluído. Para isso, o diário precisaria marcar o
 evento de conclusão.
+
+---
+
+## 4.15 Como se avalia no AllBook — decidido (25/07)
+
+Fecha a pergunta que a **4.5** deixou em aberto ("de onde vem a estrelinha").
+Discussão puxada pelo Matheus: *"meu problema é as pessoas avaliarem um livro
+sem nunca ter ouvido — e como gerar nota para o autor?"*. **Nada disto está
+implementado ainda; é o desenho acordado.**
+
+**1. Só o livro recebe nota. Pessoa e editora, nunca.** Autor, narrador e
+editora continuam com nota **derivada** — é o que o código já faz hoje
+(`people.ts` e `publishers.ts` tiram a média dos livros). Ninguém "ouve um
+autor": nota em gente vira placar público, a mesma razão que tirou a estrela do
+leitor (4.5) e que deixou a editora sem estrela (4.11).
+
+**2. Duas notas por livro: história e narração.** A narração é avaliada
+**dentro do livro** — é a performance daquela edição, não uma nota solta na
+pessoa. Daí a herança certa: autor ← média das notas de **história**; narrador ←
+média das notas de **narração**; editora ← média dos livros dela. Hoje a nota do
+narrador sai da nota geral do livro, o que é injusto: livro fraco com narração
+excelente puniria o narrador (e vice-versa). Os campos `story` e `performance`
+já existem no `BookDetails`, faltam subir para o catálogo.
+
+**3. Só avalia quem ouviu: 20% do livro.** É a vantagem de ser um tocador — o
+app **sabe** quanto você ouviu, uma livraria não. O dado já existe hoje
+(`lib/playback.ts` guarda o `percent` de cada livro). Consequência aceita: quem
+leu em papel não avalia. É exatamente o que se quer.
+
+**Como isso aparece na tela — a parte que o Matheus perguntou.** O bloco de
+avaliar **existe sempre** na ficha do livro, mas **antes dos 20% é informação, e
+não botão**: uma linha do tipo *"Você ouviu 8% — a partir de 20% você pode
+avaliar"*. Passou dos 20%, a mesma linha vira o convite com as estrelas.
+
+- **Rejeitado: botão de avaliar desabilitado.** É beco sem saída, contra a regra
+  firmada na faxina premium (4.9): nada de controle que existe e não funciona.
+- **Rejeitado: o bloco só nascer aos 20%.** O recurso fica invisível — ninguém
+  descobre que pode avaliar, e o app parece não ter avaliação nenhuma. Pior:
+  aparecer do nada, sem aviso, faz parecer defeito.
+- A diferença entre os dois é o **motivo escrito na tela**: a pessoa sabe que
+  existe, sabe por que ainda não pode, e sabe **quanto falta**.
+- **Momento de ouro:** convidar a avaliar **quando o livro termina**. É quando a
+  pessoa tem opinião formada, e é grátis — o diário de audição (4.14) já sabe
+  quando um livro é concluído.
+
+**4. Comentar é livre; dar nota, não.** Texto é conversa e não distorce nada;
+nota é número, entra em média e ordena o catálogo. Por isso o comentário
+continua aberto a qualquer um (como está desde 9281380) e só a nota tem portão.
+
+**5. Média da comunidade só a partir de 5 avaliações.** Motivo do Matheus, e é
+o certo: *"se duas pessoas gostaram e uma não, uma nota 1 derruba o livro"*.
+Abaixo de 5, mostra-se a nota curada de hoje, **sem** chamá-la de nota da
+comunidade. Acima, mostra a média real com a contagem à vista ("4,6 · 32
+avaliações") — o número de avaliações é o que deixa a pessoa julgar o peso.
+
+**Regras miúdas já acordadas:** uma avaliação por pessoa por livro, **editável**
+(mudar de ideia é normal); dá para avaliar só a história, só a narração ou as
+duas — exigir as duas afasta quem só tem opinião sobre uma.
+
+**Em aberto, de propósito:** os números 20% e 5 são o ponto de partida, não
+dogma — só dá para calibrar com uso real.
 
 ---
 

@@ -22,8 +22,8 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | **ocupada** — mapa de constância tocável (no celular não existe passar o mouse) + rótulos de mês | `pages/Statistics.tsx` | não — serviço launchd sempre no ar | 25/07 |
-| B | — livre — (foto que amplia ao toque, estilo Instagram, 24/07: comentários + perfis — ver ROTEIRO 4.12. **`pages/PersonProfile.tsx` está liberado para a C**) | — | não — serviço launchd sempre no ar | 24/07 22:10 |
+| A | — livre — (Estatísticas 25/07: diário de audição real + tela reconstruída; mapa de quadradinhos removido por ser difícil de entender — ver ROTEIRO 4.14) | — | não — serviço launchd sempre no ar | 25/07 |
+| B | — livre — (25/07: decidido como se avalia no AllBook — só o livro recebe nota, portão de 20% ouvido, média da comunidade a partir de 5 avaliações; ver ROTEIRO 4.15. **Nada implementado ainda**) | — | não — serviço launchd sempre no ar | 25/07 |
 | C | **ocupada** — crédito "Produzido por AllBook Studio" + vozes de IA com perfil próprio (decisão do Matheus 25/07) | `lib/studio.ts` (novo) · `lib/books.ts` (só o campo `narrator` de 10 livros) · `lib/comments.ts` · `pages/Studio.tsx` (novo) · `pages/BookDetails.tsx` · `pages/PersonProfile.tsx` · `App.tsx` | não — serviço launchd sempre no ar | 25/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
