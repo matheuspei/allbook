@@ -1187,6 +1187,74 @@ feita de quase nada seria pior que nenhuma.
 
 ---
 
+## 4.17 O pedido sob demanda ganhou porta — e a promessa das 24 horas (25/07)
+
+O Matheus reforçou a ideia central e apontou o buraco: **"essa página ainda não
+tem onde o cliente iria solicitar isso"**. A visão estava escrita desde 24/07
+(ver "Modelo de negócio"), mas o app seguia sendo vitrine fechada — o que não
+estava no catálogo não existia para quem usa. Agora existe `/request`.
+
+**A propaganda, nas palavras dele: "entregar qualquer livro em 24 horas".** É a
+promessa central do produto e virou o título da tela ("Qualquer livro, narrado
+em 24 horas"). O prazo mora numa constante só (`REQUEST_PROMISE`, em
+`lib/requests.ts`) porque aparece em três telas — no dia em que mudar, muda num
+lugar. **Registro honesto:** é uma **meta declarada**, não um número medido; ela
+depende do pipeline automatizado que ainda não existe.
+
+**Modelo de negócio, atualização da visão:** ele agora fala em **"talvez dois
+planos em algum momento"**, contra o "um plano comum" registrado em 24/07.
+Continua **em aberto** — e por isso a tela **não diz uma palavra sobre preço ou
+cota**. Só o que é verdade hoje: "enquanto o AllBook está em fase aberta, pedir
+não custa nada".
+
+**A porta principal é a busca sem resultado, e isso é decisão de projeto.** Ali
+está o **momento de maior intenção do app inteiro**: a pessoa digitou exatamente
+o que queria ouvir e o catálogo não tinha. Antes aquilo era um beco ("nenhum
+resultado" + botão de limpar); agora oferece produzir, **com o título já
+preenchido** via `?titulo=`. A segunda porta é a tela do estúdio, onde está quem
+produz.
+
+**Escolher a voz — pedido dele.** Os perfis das vozes já existiam (4.13);
+faltava deixar a pessoa dizer qual quer. **"O estúdio escolhe" é a primeira
+opção e o padrão**: quem pede um livro que nem existe raramente conhece o
+elenco, e obrigar a escolher poria um obstáculo na frente do diferencial. Ao
+selecionar uma voz, o **timbre** dela aparece — a escolha é informada, não uma
+fileira de rostos.
+
+**Rejeitado: o ícone de "estrelinha" (`Sparkles`).** Estava no botão da busca,
+no cartão do estúdio e no topo da tela de pedido. O Matheus cortou: *"esse
+símbolozinho de inteligência artificial não fica legal, a gente tem que dar um ar
+mais profissional"*. Ele está certo e é a mesma régua da seção "Estilo: evitar a
+cara de IA" — varinha mágica é o clichê visual do gênero. No lugar, ícones do
+próprio ofício: **microfone** e **fone de ouvido**.
+
+**Rejeitado também: começar o convite com "talvez".** O texto era "Talvez este
+livro nunca tenha ganhado versão em áudio". Põe dúvida justo onde o app precisa
+soar seguro do que entrega. Virou afirmação do que se sabe + oferta: "Este título
+ainda não está no catálogo. O estúdio grava o livro inteiro e entrega em até 24
+horas."
+
+**O que é esqueleto, dito na própria tela:** o pedido fica no `localStorage`
+deste aparelho e **não sai daqui** — não há servidor, fila nem estúdio ligado.
+Por isso todo pedido nasce e permanece em `recebido`; fingir progresso seria
+mentir. A trilha de quatro etapas aparece como **o caminho que ele vai
+percorrer**, não como histórico do que já aconteceu.
+
+**A visão do ecossistema automatizado (dele, para depois):** achar o texto do
+livro, cruzar APIs, gerar a narração, puxar capa e ficha da editora
+automaticamente. Vale registrar que **isso já tem um começo funcionando**: o
+`npm run catalogo` faz exatamente a parte de capa e ficha, pela Open Library. O
+gargalo real não é essa parte — é o texto e o áudio.
+
+**Dois pontos em aberto que vão precisar de decisão dele:**
+1. **Direito sobre o texto.** Gerar narração de obra protegida exige acordo com
+   quem detém os direitos; sem isso, o que dá para produzir legalmente é domínio
+   público. É a decisão que define se o "qualquer livro" é literal ou não.
+2. **O prazo de 24 h como promessa pública.** Enquanto o pipeline não existir e
+   for medido, é meta — e prometer prazo em propaganda cobra entrega.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

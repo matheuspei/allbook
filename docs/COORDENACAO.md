@@ -24,7 +24,7 @@ o quê **agora**.
 |--------|-----------------------------|-----------------------|--------------------------|------------|
 | A | — livre — (25/07: Estatísticas com diário real; conquistas calculadas, meta semanal e previsão de término — ver ROTEIRO 4.14 e 4.16) | — | não — serviço launchd sempre no ar | 25/07 |
 | B | **ocupada** — implementando a avaliação (ROTEIRO 4.15). **Preciso, quando a C liberar: `pages/BookDetails.tsx` e `lib/books.ts`** (ligar o bloco na ficha e subir `story`/`performance`) | `lib/ratings.ts` (novo) · `components/AvaliarLivro.tsx` (novo) | não — serviço launchd sempre no ar | 25/07 |
-| C | **ocupada** — crédito "Produzido por AllBook Studio" + vozes de IA com perfil próprio (decisão do Matheus 25/07) | `lib/studio.ts` (novo) · `lib/books.ts` (só o campo `narrator` de 10 livros) · `lib/comments.ts` · `pages/Studio.tsx` (novo) · `pages/BookDetails.tsx` · `pages/PersonProfile.tsx` · `App.tsx` | não — serviço launchd sempre no ar | 25/07 |
+| C | **ocupada** — pedido de livro sob demanda (o diferencial: pedir narração do que ainda não existe). **`pages/BookDetails.tsx` e `lib/books.ts` estão LIVRES para a B** — meu trabalho neles saiu no commit 12f70ad | `lib/requests.ts` (novo) · `pages/RequestBook.tsx` (novo) · `pages/Search.tsx` · `components/SearchResults.tsx` · `pages/Studio.tsx` · `App.tsx` | não — serviço launchd sempre no ar | 25/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —

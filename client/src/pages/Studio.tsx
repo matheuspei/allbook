@@ -13,6 +13,7 @@ import {
   studioVoices,
 } from "@/lib/studio";
 import { findPerson } from "@/lib/people";
+import { REQUEST_PROMISE } from "@/lib/requests";
 
 /**
  * A casa das narrações — onde o crédito "Produzido por AllBook Studio" leva.
@@ -84,6 +85,27 @@ export default function Studio() {
         <p className="rounded-xl border border-white/5 bg-white/5 p-4 text-[13px] leading-relaxed text-white/60">
           {STUDIO_COMO_FUNCIONA}
         </p>
+      </section>
+
+      {/*
+        A porta do pedido, no lugar mais natural: quem veio ver quem produz as
+        narrações é exatamente quem pode querer encomendar uma. Ver ROTEIRO 4.17.
+      */}
+      <section className="px-4 pt-4" data-testid="section-studio-request">
+        <Link
+          href="/request"
+          className="flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/10 p-4 transition-colors hover:bg-primary/15"
+          data-testid="link-request-from-studio"
+        >
+          <Mic className="h-5 w-5 shrink-0 text-primary" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-white">Falta um livro aqui?</span>
+            <span className="block text-[12px] leading-snug text-white/55">
+              Peça a narração: o estúdio produz o livro inteiro {REQUEST_PROMISE}.
+            </span>
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-white/40" />
+        </Link>
       </section>
 
       <Secao
