@@ -22,8 +22,8 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (Estatísticas 25/07: diário de audição real + tela reconstruída; mapa de quadradinhos removido por ser difícil de entender — ver ROTEIRO 4.14) | — | não — serviço launchd sempre no ar | 25/07 |
-| B | — livre — (25/07: decidido como se avalia no AllBook — só o livro recebe nota, portão de 20% ouvido, média da comunidade a partir de 5 avaliações; ver ROTEIRO 4.15. **Nada implementado ainda**) | — | não — serviço launchd sempre no ar | 25/07 |
+| A | **ocupada** — conquistas calculadas de verdade + meta semanal + previsão de término (Matheus escolheu as 3) | `lib/achievements.ts` · `lib/stats.ts` · `lib/goals.ts` (novo) · `pages/Statistics.tsx` · `pages/Profile.tsx` | não — serviço launchd sempre no ar | 25/07 |
+| B | **ocupada** — implementando a avaliação (ROTEIRO 4.15). **Preciso, quando a C liberar: `pages/BookDetails.tsx` e `lib/books.ts`** (ligar o bloco na ficha e subir `story`/`performance`) | `lib/ratings.ts` (novo) · `components/AvaliarLivro.tsx` (novo) | não — serviço launchd sempre no ar | 25/07 |
 | C | **ocupada** — crédito "Produzido por AllBook Studio" + vozes de IA com perfil próprio (decisão do Matheus 25/07) | `lib/studio.ts` (novo) · `lib/books.ts` (só o campo `narrator` de 10 livros) · `lib/comments.ts` · `pages/Studio.tsx` (novo) · `pages/BookDetails.tsx` · `pages/PersonProfile.tsx` · `App.tsx` | não — serviço launchd sempre no ar | 25/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
