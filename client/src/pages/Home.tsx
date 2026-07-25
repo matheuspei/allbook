@@ -1,8 +1,17 @@
-import { Play, Star, ChevronRight, Info, MoreVertical, X } from "lucide-react";
+import { Play, Star, ChevronRight, ChevronDown, Info, MoreVertical, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 
-import { catalog, getBooksByIds, duracaoEstimada, genres, type Book, type Genre } from "@/lib/books";
+import {
+  catalog,
+  getBooksByIds,
+  getBooksByGenre,
+  genreSlug,
+  duracaoEstimada,
+  genres,
+  type Book,
+  type Genre,
+} from "@/lib/books";
 import { collections, homeRows, getBooksForCollection } from "@/lib/collections";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
 import { readProfile } from "@/lib/profile";
@@ -300,17 +309,77 @@ function HeroBillboard() {
   );
 }
 
+/**
+ * O bloco de categorias da Início: o botão "Categorias" e, abaixo, os cards das
+ * coleções curadas.
+ *
+ * **A seta agora cumpre o que promete (26/07).** O botão tinha uma seta apontando
+ * para baixo — o gesto universal de "isto abre aqui mesmo" — mas o clique
+ * *navegava* para a tela Descobrir. Nas palavras do Matheus: *"ele abre uma
+ * página que é a mesma página do buscar, então ele fica sem sentido"* (a
+ * Descobrir começa com um campo de busca, daí a confusão). Ou a seta some, ou ela
+ * cumpre; escolhemos cumprir, porque a lista de gêneros é conteúdo real e não
+ * existia em lugar nenhum da Início.
+ *
+ * **Gênero ≠ coleção, e por isso os dois blocos convivem.** A lista que abre são
+ * os **gêneros** do catálogo (Terror, Romance…), que levam a `/category/:slug`;
+ * os cards coloridos logo abaixo são **coleções curadas** (Lançamentos…), que
+ * levam a `/collection/:slug`. São listas diferentes — não é repetição.
+ *
+ * **Cada gênero mostra quantos livros tem.** É o antídoto contra botão morto: o
+ * número vem do catálogo de verdade, então dá para ver antes de tocar que existe
+ * conteúdo do outro lado.
+ */
 function CategoryGrid() {
   const [, setLocation] = useLocation();
+  const [listaAberta, setListaAberta] = useState(false);
 
   return (
     <section className="px-4 py-6 space-y-4" data-testid="category-grid">
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
-        <button data-testid="filter-categories" onClick={() => setLocation("/discover")} className="px-4 py-1.5 rounded-full border border-white/30 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 transition-colors flex items-center gap-1">
+      <div className="flex items-center gap-2 pb-2">
+        <button
+          data-testid="filter-categories"
+          aria-expanded={listaAberta}
+          aria-controls="lista-de-generos"
+          onClick={() => setListaAberta((aberta) => !aberta)}
+          className={`px-4 py-1.5 rounded-full border text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+            listaAberta
+              ? "border-primary/60 bg-primary/15 text-white"
+              : "border-white/30 text-white hover:bg-white/10"
+          }`}
+        >
           Categorias
-          <ChevronRight className="w-3 h-3 rotate-90" />
+          <ChevronDown
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${listaAberta ? "rotate-180" : ""}`}
+          />
         </button>
       </div>
+
+      {listaAberta && (
+        <div
+          id="lista-de-generos"
+          data-testid="lista-de-generos"
+          className="grid grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-1 duration-200"
+        >
+          {genres.map(({ label, gradient }) => (
+            <button
+              key={label}
+              type="button"
+              data-testid={`genero-${genreSlug(label)}`}
+              onClick={() => setLocation(`/category/${genreSlug(label)}`)}
+              className="flex items-center gap-2.5 overflow-hidden rounded-lg bg-white/5 py-2 pl-0 pr-3 text-left ring-1 ring-white/10 transition-colors hover:bg-white/10 active:scale-[0.98]"
+            >
+              {/* A barrinha usa o gradiente do próprio gênero — a mesma cor que
+                  reaparece no topo da tela `/category/:slug`. */}
+              <span className={`h-8 w-1 shrink-0 rounded-r bg-gradient-to-b ${gradient}`} />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-white">{label}</span>
+              <span className="shrink-0 text-[11px] tabular-nums text-white/40">
+                {getBooksByGenre(label).length}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3" data-testid="category-cards">
         {collections.map((colecao) => (
