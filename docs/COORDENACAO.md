@@ -22,8 +22,8 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (26/07: Resumo na mesma família visual da Story — ver ROTEIRO 4.26) | — | não — serviço launchd sempre no ar | 26/07 |
-| B | — livre — (26/07: modelo de planos com crédito de pedido virou decisão registrada; texto do pedido perdeu o aparte — ver ROTEIRO "Modelo de negócio", atualização de 26/07, e 4.26) | — | não — serviço launchd sempre no ar | 26/07 |
+| A | — livre — (26/07: marcações e notas de verdade no player + fim do azul da versão antiga — ver ROTEIRO 4.29) | — | não — serviço launchd sempre no ar | 26/07 |
+| B | Um livro, várias narrações: seletor de narrador (base + ficha do livro) | `client/src/lib/narrations.ts` (novo), `client/src/components/SeletorDeNarracao.tsx` (novo), `client/src/pages/BookDetails.tsx`, `docs/ROTEIRO.md` | não — serviço launchd sempre no ar | 26/07 |
 | C | — livre — (26/07: o botão "Categorias" da Início passou a expandir a lista de gêneros — ver ROTEIRO 4.27, que também deixa em aberto o destino da tela Descobrir) | — | não — serviço launchd sempre no ar | 26/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
