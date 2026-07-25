@@ -240,6 +240,13 @@ Registrar em `server/routes.ts` sob o prefixo `/api`. Adicionar os métodos na
 interface `IStorage` e implementar em `MemStorage` (ou numa futura versão ligada
 ao banco de dados).
 
+> **Antes de mexer em banco, backend ou contas, abra `docs/BANCO-DE-DADOS.md`.**
+> É o checklist da migração: o inventário das **20 chaves** que o app guarda hoje
+> no navegador, as armadilhas que quebram **em silêncio** (ids de livro escritos
+> à mão, "sair" que hoje não apaga a biblioteca e se inverte com contas, o
+> "Esqueci minha senha" que precisa **voltar**, a comunidade fictícia que precisa
+> de destino) e o teste de aceite. Marcar os itens conforme fizer.
+
 ## Prioridade atual
 - **FOCO AGORA: terminar o FRONTEND** — construir as telas que faltam, começando por
   **Descobrir** e **Perfil**.
