@@ -14,6 +14,13 @@ import type { Book } from "@/lib/books";
  * um app grande entrega aqui é uma peça pronta, com a marca, os números e as
  * capas — do jeito que Spotify e Strava fazem no fim do ano.
  *
+ * **Duas versões, e a escolha é de quem usa.** O Matheus gostou do cartão e
+ * quis ver "com mais informação", sem perder o que já estava bom. Em vez de
+ * trocar um pelo outro no escuro, o painel tem um alternador: **Simples** (o
+ * original: número grande, três capas, gênero) e **Completo** (acrescenta o
+ * período, quatro números, o gráfico das últimas 12 semanas e um rodapé com
+ * narrador e horário). O padrão continua sendo o Simples.
+ *
  * **Por que desenhar num `<canvas>` em vez de estilizar uma `<div>`:** a
  * imagem precisa existir como arquivo para o `navigator.share` levá-la ao
  * WhatsApp ou ao Instagram. Uma `div` bonita só viraria imagem com uma
@@ -25,10 +32,12 @@ import type { Book } from "@/lib/books";
  * canvas não é "contaminado" e o `toBlob` funciona.
  */
 
+export type ModoDoCartao = "simples" | "completo";
+
 export interface DadosDoCartao {
   /** "39h 42min" — o número grande. */
   total: string;
-  /** "15 títulos · 42 dias ouvindo" — a linha de apoio. */
+  /** "15 títulos · 42 dias ouvindo" — a linha de apoio da versão simples. */
   apoio: string;
   /** "Romance" ou vazio. */
   generoFavorito: string;
@@ -36,10 +45,21 @@ export interface DadosDoCartao {
   livros: Book[];
   /** O mesmo resumo em texto, para quem preferir colar. */
   texto: string;
+
+  // — Só a versão completa usa daqui para baixo —
+  /** "maio a julho de 2026" — desde quando o histórico existe. */
+  periodo: string;
+  /** Quatro números curtos, com rótulo. */
+  numeros: { valor: string; rotulo: string }[];
+  /** Horas por semana nas últimas 12 — o mini gráfico. */
+  serieSemanal: number[];
+  /** "Helena Vasques · mais à noite" — o fecho da versão completa. */
+  rodape: string;
 }
 
 const LARGURA = 1080;
 const ALTURA = 1350;
+const MARGEM = 88;
 
 function carregarImagem(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolver) => {
@@ -60,17 +80,8 @@ function textoQueCabe(ctx: CanvasRenderingContext2D, texto: string, largura: num
   return `${corte.trim()}…`;
 }
 
-async function desenhar(canvas: HTMLCanvasElement, dados: DadosDoCartao): Promise<void> {
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-
-  // Sem esperar as fontes, o primeiro desenho sai na fonte do sistema.
-  try {
-    await document.fonts.ready;
-  } catch {
-    /* navegador sem a API: segue com o fallback */
-  }
-
+/** Fundo, brilho da marca e a assinatura — o que as duas versões dividem. */
+function moldura(ctx: CanvasRenderingContext2D): void {
   ctx.clearRect(0, 0, LARGURA, ALTURA);
   ctx.fillStyle = "#141414";
   ctx.fillRect(0, 0, LARGURA, ALTURA);
@@ -83,92 +94,205 @@ async function desenhar(canvas: HTMLCanvasElement, dados: DadosDoCartao): Promis
   ctx.fillStyle = brilho;
   ctx.fillRect(0, 0, LARGURA, 620);
 
-  const margem = 88;
-
-  // Marca.
   ctx.textBaseline = "alphabetic";
   ctx.font = "700 46px Outfit, sans-serif";
   ctx.fillStyle = "#FF6A00";
-  ctx.fillText("All", margem, 130);
+  ctx.fillText("All", MARGEM, 130);
   const largoAll = ctx.measureText("All").width;
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("Book", margem + largoAll, 130);
+  ctx.fillText("Book", MARGEM + largoAll, 130);
 
-  // Rótulo.
   ctx.font = "600 26px Inter, sans-serif";
   ctx.fillStyle = "rgba(255,255,255,0.45)";
-  ctx.letterSpacing = "6px";
-  ctx.fillText("MINHA AUDIÇÃO", margem, 300);
-  ctx.letterSpacing = "0px";
+  ctx.fillText("feito no AllBook", MARGEM, ALTURA - 60);
+}
 
-  // O número grande.
+/** Rótulo pequeno em caixa alta, com espaçamento — o "título de seção". */
+function rotulo(ctx: CanvasRenderingContext2D, texto: string, y: number, tamanho = 24): void {
+  ctx.font = `600 ${tamanho}px Inter, sans-serif`;
+  ctx.fillStyle = "rgba(255,255,255,0.4)";
+  ctx.letterSpacing = "5px";
+  ctx.fillText(texto, MARGEM, y);
+  ctx.letterSpacing = "0px";
+}
+
+/** As capas lado a lado, com o título embaixo de cada uma. */
+async function desenharCapas(
+  ctx: CanvasRenderingContext2D,
+  livros: Book[],
+  topo: number,
+  altura: number,
+  /** Quando dado, as capas ficam nesta largura e o conjunto vai para o centro. */
+  larguraForcada?: number
+): Promise<void> {
+  if (livros.length === 0) return;
+
+  const vao = 36;
+  const largura =
+    larguraForcada ?? (LARGURA - MARGEM * 2 - vao * (livros.length - 1)) / livros.length;
+  const conjunto = largura * livros.length + vao * (livros.length - 1);
+  const inicio = (LARGURA - conjunto) / 2;
+
+  for (let i = 0; i < livros.length; i++) {
+    const livro = livros[i];
+    const x = inicio + i * (largura + vao);
+    const imagem = await carregarImagem(livro.cover);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x, topo, largura, altura, 16);
+    ctx.clip();
+    if (imagem) {
+      // Preenche mantendo a proporção (o mesmo efeito do `object-cover`).
+      const escala = Math.max(largura / imagem.width, altura / imagem.height);
+      const largoFinal = imagem.width * escala;
+      const altoFinal = imagem.height * escala;
+      ctx.drawImage(
+        imagem,
+        x - (largoFinal - largura) / 2,
+        topo - (altoFinal - altura) / 2,
+        largoFinal,
+        altoFinal
+      );
+    } else {
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillRect(x, topo, largura, altura);
+    }
+    ctx.restore();
+
+    ctx.font = "600 26px Inter, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fillText(textoQueCabe(ctx, livro.title, largura), x, topo + altura + 42);
+  }
+}
+
+/** A versão original: um número grande, três capas e o gênero. */
+async function desenharSimples(ctx: CanvasRenderingContext2D, dados: DadosDoCartao): Promise<void> {
+  moldura(ctx);
+
+  rotulo(ctx, "MINHA AUDIÇÃO", 300, 26);
+
   ctx.font = "700 132px Outfit, sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(dados.total, margem, 430);
+  ctx.fillText(dados.total, MARGEM, 430);
 
-  // Linha de apoio.
   ctx.font = "400 34px Inter, sans-serif";
   ctx.fillStyle = "rgba(255,255,255,0.55)";
-  ctx.fillText(textoQueCabe(ctx, dados.apoio, LARGURA - margem * 2), margem, 490);
+  ctx.fillText(textoQueCabe(ctx, dados.apoio, LARGURA - MARGEM * 2), MARGEM, 490);
 
-  // As capas do que mais tomou seu tempo.
-  const livros = dados.livros.slice(0, 3);
-  if (livros.length > 0) {
-    ctx.font = "600 24px Inter, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.4)";
-    ctx.letterSpacing = "4px";
-    ctx.fillText("O QUE MAIS TOMOU SEU TEMPO", margem, 640);
-    ctx.letterSpacing = "0px";
-
-    const vao = 36;
-    const largura = (LARGURA - margem * 2 - vao * (livros.length - 1)) / livros.length;
-    const altura = largura * 1.4;
-    const topo = 690;
-
-    for (let i = 0; i < livros.length; i++) {
-      const livro = livros[i];
-      const x = margem + i * (largura + vao);
-      const imagem = await carregarImagem(livro.cover);
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(x, topo, largura, altura, 16);
-      ctx.clip();
-      if (imagem) {
-        // Preenche mantendo a proporção (o mesmo efeito do `object-cover`).
-        const escala = Math.max(largura / imagem.width, altura / imagem.height);
-        const largoFinal = imagem.width * escala;
-        const altoFinal = imagem.height * escala;
-        ctx.drawImage(
-          imagem,
-          x - (largoFinal - largura) / 2,
-          topo - (altoFinal - altura) / 2,
-          largoFinal,
-          altoFinal
-        );
-      } else {
-        ctx.fillStyle = "rgba(255,255,255,0.08)";
-        ctx.fillRect(x, topo, largura, altura);
-      }
-      ctx.restore();
-
-      ctx.font = "600 26px Inter, sans-serif";
-      ctx.fillStyle = "rgba(255,255,255,0.85)";
-      ctx.fillText(textoQueCabe(ctx, livro.title, largura), x, topo + altura + 44);
-    }
+  if (dados.livros.length > 0) {
+    rotulo(ctx, "O QUE MAIS TOMOU SEU TEMPO", 640);
+    const largura = (LARGURA - MARGEM * 2 - 36 * (dados.livros.length - 1)) / dados.livros.length;
+    await desenharCapas(ctx, dados.livros, 690, largura * 1.4);
   }
 
-  // Rodapé: gênero favorito de um lado, assinatura do outro.
   if (dados.generoFavorito) {
     ctx.font = "400 30px Inter, sans-serif";
     ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.fillText(`Gênero favorito: ${dados.generoFavorito}`, margem, ALTURA - 110);
+    ctx.fillText(`Gênero favorito: ${dados.generoFavorito}`, MARGEM, ALTURA - 110);
+  }
+}
+
+/**
+ * A versão cheia: período, quatro números, o gráfico das 12 semanas, as capas e
+ * um rodapé com gênero, narrador e horário. Cabe tudo porque o número grande
+ * encolhe e as capas ficam mais baixas — nada aqui foi espremido sem conta.
+ */
+async function desenharCompleto(ctx: CanvasRenderingContext2D, dados: DadosDoCartao): Promise<void> {
+  moldura(ctx);
+
+  if (dados.periodo) {
+    ctx.font = "400 28px Inter, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.fillText(dados.periodo, MARGEM, 190);
   }
 
-  ctx.font = "600 26px Inter, sans-serif";
-  ctx.fillStyle = "rgba(255,255,255,0.45)";
-  ctx.fillText("feito no AllBook", margem, ALTURA - 60);
+  rotulo(ctx, "MINHA AUDIÇÃO", 288, 26);
+
+  ctx.font = "700 112px Outfit, sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(dados.total, MARGEM, 392);
+
+  // Quatro números em colunas, com um risco fino separando do topo.
+  const numeros = dados.numeros.slice(0, 4);
+  if (numeros.length > 0) {
+    ctx.fillStyle = "rgba(255,255,255,0.09)";
+    ctx.fillRect(MARGEM, 440, LARGURA - MARGEM * 2, 2);
+
+    const largura = (LARGURA - MARGEM * 2) / numeros.length;
+    numeros.forEach((item, i) => {
+      const x = MARGEM + i * largura;
+      ctx.font = "700 44px Outfit, sans-serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(textoQueCabe(ctx, item.valor, largura - 12), x, 512);
+
+      ctx.font = "400 24px Inter, sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.4)";
+      ctx.fillText(textoQueCabe(ctx, item.rotulo, largura - 12), x, 548);
+    });
+  }
+
+  // O gráfico das últimas 12 semanas.
+  const serie = dados.serieSemanal.slice(-12);
+  if (serie.length > 0) {
+    rotulo(ctx, "ÚLTIMAS 12 SEMANAS", 624);
+
+    const topo = 652;
+    const altura = 108;
+    const vao = 10;
+    const largura = (LARGURA - MARGEM * 2 - vao * (serie.length - 1)) / serie.length;
+    const maior = Math.max(...serie, 1);
+
+    serie.forEach((valor, i) => {
+      const x = MARGEM + i * (largura + vao);
+      // Barra vazia continua sendo um risco, para a semana existir no desenho.
+      const alto = Math.max((valor / maior) * altura, 4);
+      ctx.fillStyle = valor > 0 ? "rgba(255,106,0,0.85)" : "rgba(255,255,255,0.10)";
+      ctx.beginPath();
+      ctx.roundRect(x, topo + altura - alto, largura, alto, 6);
+      ctx.fill();
+    });
+  }
+
+  if (dados.livros.length > 0) {
+    rotulo(ctx, "O QUE MAIS TOMOU SEU TEMPO", 836);
+    // Capas mais estreitas e centralizadas: com a largura cheia da versão
+    // simples elas ficariam **mais largas que altas** (a arte cortada) e o
+    // título de cada uma bateria no rodapé.
+    await desenharCapas(ctx, dados.livros, 858, 276, 207);
+  }
+
+  const fecho = [dados.generoFavorito, dados.rodape].filter(Boolean).join(" · ");
+  if (fecho) {
+    ctx.font = "400 28px Inter, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.fillText(textoQueCabe(ctx, fecho, LARGURA - MARGEM * 2), MARGEM, ALTURA - 110);
+  }
 }
+
+async function desenhar(
+  canvas: HTMLCanvasElement,
+  dados: DadosDoCartao,
+  modo: ModoDoCartao
+): Promise<void> {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  // Sem esperar as fontes, o primeiro desenho sai na fonte do sistema.
+  try {
+    await document.fonts.ready;
+  } catch {
+    /* navegador sem a API: segue com o fallback */
+  }
+
+  if (modo === "completo") await desenharCompleto(ctx, dados);
+  else await desenharSimples(ctx, dados);
+}
+
+const MODOS: { key: ModoDoCartao; label: string }[] = [
+  { key: "simples", label: "Simples" },
+  { key: "completo", label: "Completo" },
+];
 
 export default function CartaoDeResumo({
   aberto,
@@ -182,18 +306,19 @@ export default function CartaoDeResumo({
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pronto, setPronto] = useState(false);
+  const [modo, setModo] = useState<ModoDoCartao>("simples");
 
   useEffect(() => {
     if (!aberto || !canvasRef.current) return;
     setPronto(false);
     let vivo = true;
-    desenhar(canvasRef.current, dados).then(() => {
+    desenhar(canvasRef.current, dados, modo).then(() => {
       if (vivo) setPronto(true);
     });
     return () => {
       vivo = false;
     };
-  }, [aberto, dados]);
+  }, [aberto, dados, modo]);
 
   useEffect(() => {
     if (!aberto) return;
@@ -262,14 +387,33 @@ export default function CartaoDeResumo({
       <div className="animate-in slide-in-from-bottom fade-in relative w-full max-w-md rounded-t-2xl border-t border-white/10 bg-[#1c1c1c] px-5 pb-8 pt-4 duration-300">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-base font-bold tracking-tight">Seu cartão</h2>
-          <button
-            onClick={onClose}
-            className="-mr-1.5 p-1.5 text-white/40 transition-colors hover:text-white"
-            aria-label="Fechar"
-            data-testid="button-close-card"
-          >
-            <X className="h-5 w-5" />
-          </button>
+
+          <div className="flex items-center gap-2">
+            {/* Duas versões, para comparar sem apostar em uma só. */}
+            <div className="flex rounded-lg bg-white/[0.07] p-0.5">
+              {MODOS.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => setModo(item.key)}
+                  className={`rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors ${
+                    modo === item.key ? "bg-white/15 text-white" : "text-white/45 hover:text-white/70"
+                  }`}
+                  data-testid={`card-mode-${item.key}`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={onClose}
+              className="-mr-1.5 p-1.5 text-white/40 transition-colors hover:text-white"
+              aria-label="Fechar"
+              data-testid="button-close-card"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/*

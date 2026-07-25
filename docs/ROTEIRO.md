@@ -1425,6 +1425,33 @@ conforme a tela, ela deixa de significar alguma coisa.
 
 ---
 
+## 4.21 O cartão ganhou uma segunda versão, e a escolha ficou com quem usa (25/07)
+
+O Matheus aprovou o cartão ("ficou bonito, ficou interessante") e, no mesmo
+fôlego, pediu para ver "com mais informação" — deixando claro que, se não
+ficasse melhor, era para **voltar ao que estava**.
+
+**A decisão foi não escolher por ele.** Em vez de trocar um layout pelo outro no
+escuro, o painel ganhou um alternador de duas opções — **Simples** e
+**Completo** —, com o Simples continuando padrão. Comparar leva um toque, e
+"voltar ao normal" deixou de ser um pedido de trabalho: é outro toque.
+
+**O que a versão Completo acrescenta:** o período que o histórico cobre ("maio a
+julho de 2026"), uma faixa com quatro números (títulos, concluídos, sequência,
+dias ouvindo), o **gráfico das últimas 12 semanas** e um rodapé com gênero
+favorito, narrador mais ouvido e horário preferido. Para caber, o número grande
+encolhe de 132 para 112 e as capas ficam menores.
+
+**Dois defeitos que só apareceram desenhando:**
+- Na primeira montagem, o título de cada capa **bateu em cima do rodapé** — o
+  espaço entre o gráfico e o fim do cartão não fora contado. As alturas foram
+  refeitas com folga explícita.
+- Reaproveitar a largura das capas da versão simples deixava-as **mais largas
+  que altas**, cortando a arte. No Completo elas têm largura própria e o
+  conjunto vai para o centro.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

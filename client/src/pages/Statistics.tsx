@@ -313,9 +313,18 @@ export default function Statistics() {
    * ele redesenhar sem parar.
    */
   const dadosDoCartao = useMemo<DadosDoCartao>(() => {
-    if (!resumo) {
-      return { total: "", apoio: "", generoFavorito: "", livros: [], texto: "" };
-    }
+    const vazio: DadosDoCartao = {
+      total: "",
+      apoio: "",
+      generoFavorito: "",
+      livros: [],
+      texto: "",
+      periodo: "",
+      numeros: [],
+      serieSemanal: [],
+      rodape: "",
+    };
+    if (!resumo) return vazio;
 
     const ativosAgora = diasAtivos(resumo.diario);
     const partes = [
@@ -334,14 +343,40 @@ export default function Statistics() {
       .filter(Boolean)
       .join("\n");
 
+    // "maio a julho de 2026" — desde o primeiro dia com audição registrada.
+    const diasDoDiario = Object.keys(resumo.diario).sort();
+    let periodo = "";
+    if (diasDoDiario.length > 0) {
+      const inicio = new Date(`${diasDoDiario[0]}T12:00:00`);
+      const hoje = new Date();
+      periodo =
+        inicio.getMonth() === hoje.getMonth() && inicio.getFullYear() === hoje.getFullYear()
+          ? `${MESES_LONGOS[hoje.getMonth()]} de ${hoje.getFullYear()}`
+          : `${MESES_LONGOS[inicio.getMonth()]} a ${MESES_LONGOS[hoje.getMonth()]} de ${hoje.getFullYear()}`;
+    }
+
     return {
       total: formatarDuracao(resumo.segundos),
       apoio: partes.join(" · "),
       generoFavorito: generos[0]?.genero ?? "",
       livros: livrosMaisOuvidos.map((item) => item.livro),
       texto,
+      periodo,
+      numeros: [
+        { valor: String(resumo.titulosComecados), rotulo: "títulos" },
+        { valor: String(resumo.concluidos), rotulo: "concluídos" },
+        {
+          valor: resumo.sequenciaDias > 0 ? `${resumo.sequenciaDias} d` : "—",
+          rotulo: "sequência",
+        },
+        { valor: String(ativosAgora), rotulo: "dias ouvindo" },
+      ],
+      serieSemanal: serieSemanal(resumo.diario, 12).map((ponto) => ponto.horas),
+      rodape: [narrador ? `Narrador: ${narrador.nome}` : null, faixas[0] ? `mais à ${faixas[0].faixa}` : null]
+        .filter(Boolean)
+        .join(" · "),
     };
-  }, [resumo, generos, livrosMaisOuvidos]);
+  }, [resumo, generos, livrosMaisOuvidos, narrador, faixas]);
 
   // Primeiro quadro: o diário ainda não foi lido (só existe no navegador).
   if (!resumo) {

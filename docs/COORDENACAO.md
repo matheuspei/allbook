@@ -22,7 +22,7 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | **ocupada** — segunda versão do cartão ("Completo", com mais informação) + alternador para comparar com a atual | `components/CartaoDeResumo.tsx` · `pages/Statistics.tsx` | não — serviço launchd sempre no ar | 25/07 |
+| A | — livre — (25/07: Estatísticas reais, troféus com raridade, cartão de retrospectiva em duas versões — ver ROTEIRO 4.14, 4.16, 4.19, 4.20 e 4.21) | — | não — serviço launchd sempre no ar | 25/07 |
 | B | — livre — (25/07: avaliação de livro no ar — portão de 20% ouvido, notas de história e narração, herança certa para autor/narrador; ver ROTEIRO 4.15) | — | não — serviço launchd sempre no ar | 25/07 |
 | C | — livre — (25/07: estúdio e vozes, pedido sob demanda em `/request`, e a busca refeita sem Fuse.js — ver ROTEIRO 4.13, 4.17 e 4.18) | — | não — serviço launchd sempre no ar | 25/07 |
 
