@@ -1460,6 +1460,50 @@ encolhe de 132 para 112 e as capas ficam menores.
 
 ---
 
+## 4.22 A segunda peça virou Story — e o herói deixou de ser a hora (25/07)
+
+O Matheus gostou do alternador, mas mandou reformular três coisas: os **nomes**
+("Simples" e "Completo" não dizem nada"), o **conteúdo** da segunda peça e o
+**destino** dela — "pensando numa coisa que o usuário vai colocar nas redes
+sociais… nos stories".
+
+**Os nomes agora dizem para onde a peça vai:** **Resumo** (4:5, o retrato geral,
+serve em qualquer lugar) e **Story** (9:16, o tamanho exato do story do
+Instagram). Antes o par descrevia a *quantidade de coisas na imagem*, o que não
+ajuda ninguém a escolher.
+
+**A decisão de conteúdo, que é a mais importante: em rede social o herói é
+livro, não hora.** "39h 42min ouvidas" impressiona pouco quem vê de fora; "12
+livros nos últimos 30 dias" é o que as pessoas contam. A Story abre com o número
+de **livros do período**, e se houver algum **terminado** naquele mês é ele que
+vira o destaque ("3 livros terminados"), com as capas dos terminados e a frase
+"✓ Terminei X" — que é a frase que a pessoa quer que leiam.
+
+**Precisou nascer um dado novo: a data de conclusão.** O app sabia que um livro
+*está* concluído (basta olhar a posição salva), mas não *quando* — e sem isso
+não existe "terminei 3 livros em julho". O `savePlayback` passou a carimbar
+`allbook_finished` quando o progresso cruza a linha. **Livros terminados antes
+desta mudança não têm data** e por isso não contam no período; é o preço de não
+ter registrado desde o começo, e some sozinho com o uso.
+
+**O recorte é de 30 dias corridos, não do mês do calendário.** No dia 2 do mês,
+"julho" mostraria quase nada — e a peça que não tem o que mostrar não é postada.
+
+**Sobre publicar direto no Instagram — o limite é real e vale registrar.** Não
+existe, na web, como jogar uma imagem no story sem passar pela folha nativa: o
+esquema `instagram-stories://` só aceita conteúdo vindo de um **app nativo**
+(SDK do Facebook), e a API do Instagram não publica story de terceiro pela web.
+O caminho que **funciona** é o que está lá: `navigator.share` com o arquivo abre
+a folha do sistema no celular, e o Instagram aparece como destino. No
+computador, cai para download. A tela diz isso em uma linha, para ninguém
+procurar um botão que não pode existir.
+
+**Layout do story pensado para a moldura do Instagram:** a assinatura para a
+~180px do fim, porque a faixa de baixo fica coberta pela caixa de resposta do
+app — o que ficar ali não é lido.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

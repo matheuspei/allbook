@@ -22,9 +22,9 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (25/07: Estatísticas reais, troféus com raridade, cartão de retrospectiva em duas versões — ver ROTEIRO 4.14, 4.16, 4.19, 4.20 e 4.21) | — | não — serviço launchd sempre no ar | 25/07 |
+| A | — livre — (25/07: Estatísticas reais, troféus com raridade, e as peças compartilháveis Resumo 4:5 + Story 9:16 — ver ROTEIRO 4.14, 4.16, 4.19 a 4.22) | — | não — serviço launchd sempre no ar | 25/07 |
 | B | — livre — (25/07: avaliação de livro no ar — portão de 20% ouvido, notas de história e narração, herança certa para autor/narrador; ver ROTEIRO 4.15) | — | não — serviço launchd sempre no ar | 25/07 |
-| C | — livre — (25/07: estúdio e vozes, pedido sob demanda em `/request`, e a busca refeita sem Fuse.js — ver ROTEIRO 4.13, 4.17 e 4.18) | — | não — serviço launchd sempre no ar | 25/07 |
+| C | **ocupada** — varredura de botão morto: nenhum controle sem destino no app (pedido do Matheus: "os botões têm que estar todos validados e funcionando") | `pages/Discover.tsx` · `pages/Profile.tsx` · `pages/Login.tsx` | não — serviço launchd sempre no ar | 25/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —

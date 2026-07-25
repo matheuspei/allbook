@@ -1,65 +1,82 @@
 import { useEffect, useRef, useState } from "react";
-import { Copy, Download, X } from "lucide-react";
+import { Copy, Download, Share2 } from "lucide-react";
+import { X } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import type { Book } from "@/lib/books";
 
 /**
- * O cartão de retrospectiva — uma **imagem** com os seus números, para dar
- * print ou compartilhar.
+ * As peças compartilháveis das Estatísticas — imagens geradas na hora.
  *
- * **O que ele substituiu.** Havia um botão "Copiar meu resumo" que jogava
- * texto cru na área de transferência ("• 39h 42min ouvidas…"). Funcionava, mas
- * era a coisa menos premium da tela: ninguém posta uma lista de tópicos. O que
- * um app grande entrega aqui é uma peça pronta, com a marca, os números e as
- * capas — do jeito que Spotify e Strava fazem no fim do ano.
+ * **De onde veio.** Havia um botão "Copiar meu resumo" que jogava texto cru na
+ * área de transferência ("• 39h 42min ouvidas…"). Ninguém posta uma lista de
+ * tópicos: o que um app grande entrega aqui é uma peça pronta, com a marca, os
+ * números e as capas — como Spotify e Strava fazem no fim do ano.
  *
- * **Duas versões, e a escolha é de quem usa.** O Matheus gostou do cartão e
- * quis ver "com mais informação", sem perder o que já estava bom. Em vez de
- * trocar um pelo outro no escuro, o painel tem um alternador: **Simples** (o
- * original: número grande, três capas, gênero) e **Completo** (acrescenta o
- * período, quatro números, o gráfico das últimas 12 semanas e um rodapé com
- * narrador e horário). O padrão continua sendo o Simples.
+ * **Duas peças, com propósitos diferentes — e é isso que os nomes dizem.**
+ * Antes elas se chamavam "Simples" e "Completo", que descreviam a *quantidade*
+ * de coisas na imagem e não ajudavam ninguém a escolher. Agora são:
+ *
+ * - **Resumo** (4:5) — o retrato geral: horas desde sempre, capas, gênero.
+ *   Serve para qualquer lugar, inclusive fora de rede social.
+ * - **Story** (9:16) — feito para o story do Instagram, no tamanho exato. O
+ *   herói aqui **não é hora, é livro**: "4 livros nos últimos 30 dias", com as
+ *   capas grandes e os terminados marcados. Foi decisão do Matheus: o que as
+ *   pessoas postam é "li tantos livros", não "ouvi tantas horas".
  *
  * **Por que desenhar num `<canvas>` em vez de estilizar uma `<div>`:** a
  * imagem precisa existir como arquivo para o `navigator.share` levá-la ao
- * WhatsApp ou ao Instagram. Uma `div` bonita só viraria imagem com uma
- * biblioteca de captura (html2canvas e afins), que é peso novo no projeto para
- * um resultado pior. Desenhando direto, o que se vê na tela **é** o arquivo:
- * não existe divergência entre a prévia e o que sai.
+ * Instagram. Capturar HTML exigiria uma biblioteca nova por um resultado pior.
+ * Desenhando direto, o que se vê na tela **é** o arquivo.
  *
- * As capas vêm do próprio site (o Vite serve tudo da mesma origem), então o
- * canvas não é "contaminado" e o `toBlob` funciona.
+ * As capas vêm do próprio site (mesma origem), então o canvas não é
+ * "contaminado" e o `toBlob` funciona.
  */
 
-export type ModoDoCartao = "simples" | "completo";
+export type ModoDoCartao = "resumo" | "story";
+
+export interface DadosDaStory {
+  /** "NOS ÚLTIMOS 30 DIAS". */
+  periodo: string;
+  /** O número gigante — em livros, não em horas. */
+  destaque: string;
+  /** "livros ouvidos" / "livro ouvido". */
+  destaqueRotulo: string;
+  /** Duas ou três linhas de apoio ("12h 30min ouvidas", "18 dias com audição"). */
+  linhas: string[];
+  /** Até 3 capas, as mais ouvidas do período. */
+  capas: Book[];
+  /** Títulos terminados dentro do período. */
+  terminados: string[];
+}
 
 export interface DadosDoCartao {
-  /** "39h 42min" — o número grande. */
+  /** "39h 42min" — o número grande do Resumo. */
   total: string;
-  /** "15 títulos · 42 dias ouvindo" — a linha de apoio da versão simples. */
+  /** "15 títulos · 42 dias ouvindo" — a linha de apoio do Resumo. */
   apoio: string;
   /** "Romance" ou vazio. */
   generoFavorito: string;
-  /** Até 3 livros, os mais ouvidos. */
+  /** Até 3 livros, os mais ouvidos de sempre. */
   livros: Book[];
-  /** O mesmo resumo em texto, para quem preferir colar. */
+  /** O resumo em texto, para quem preferir colar. */
   texto: string;
-
-  // — Só a versão completa usa daqui para baixo —
-  /** "maio a julho de 2026" — desde quando o histórico existe. */
+  /** "maio a julho de 2026" — o período que o histórico cobre. */
   periodo: string;
-  /** Quatro números curtos, com rótulo. */
-  numeros: { valor: string; rotulo: string }[];
-  /** Horas por semana nas últimas 12 — o mini gráfico. */
-  serieSemanal: number[];
-  /** "Helena Vasques · mais à noite" — o fecho da versão completa. */
+  /** "Helena Vasques · mais à noite" — o fecho do Resumo. */
   rodape: string;
+  /** Tudo que só a Story usa. */
+  story: DadosDaStory;
 }
 
 const LARGURA = 1080;
-const ALTURA = 1350;
+const ALTURA_RESUMO = 1350;
+const ALTURA_STORY = 1920;
 const MARGEM = 88;
+
+function alturaDe(modo: ModoDoCartao): number {
+  return modo === "story" ? ALTURA_STORY : ALTURA_RESUMO;
+}
 
 function carregarImagem(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolver) => {
@@ -80,31 +97,33 @@ function textoQueCabe(ctx: CanvasRenderingContext2D, texto: string, largura: num
   return `${corte.trim()}…`;
 }
 
-/** Fundo, brilho da marca e a assinatura — o que as duas versões dividem. */
-function moldura(ctx: CanvasRenderingContext2D): void {
-  ctx.clearRect(0, 0, LARGURA, ALTURA);
+/** Fundo, brilho da marca e a assinatura — o que as duas peças dividem. */
+function moldura(ctx: CanvasRenderingContext2D, altura: number): void {
+  ctx.clearRect(0, 0, LARGURA, altura);
   ctx.fillStyle = "#141414";
-  ctx.fillRect(0, 0, LARGURA, ALTURA);
+  ctx.fillRect(0, 0, LARGURA, altura);
 
   // O mesmo brilho da marca que abre as telas do app — contido: na primeira
   // versão ele tomava metade do cartão e deixava o topo todo amarronzado.
-  const brilho = ctx.createRadialGradient(LARGURA / 2, 0, 0, LARGURA / 2, 0, 620);
+  const alcance = altura * 0.46;
+  const brilho = ctx.createRadialGradient(LARGURA / 2, 0, 0, LARGURA / 2, 0, alcance);
   brilho.addColorStop(0, "rgba(255,106,0,0.22)");
   brilho.addColorStop(1, "rgba(255,106,0,0)");
   ctx.fillStyle = brilho;
-  ctx.fillRect(0, 0, LARGURA, 620);
+  ctx.fillRect(0, 0, LARGURA, alcance);
 
   ctx.textBaseline = "alphabetic";
-  ctx.font = "700 46px Outfit, sans-serif";
+  ctx.textAlign = "left";
+}
+
+/** A marca, no tamanho pedido. */
+function marca(ctx: CanvasRenderingContext2D, y: number, tamanho: number): void {
+  ctx.font = `700 ${tamanho}px Outfit, sans-serif`;
   ctx.fillStyle = "#FF6A00";
-  ctx.fillText("All", MARGEM, 130);
+  ctx.fillText("All", MARGEM, y);
   const largoAll = ctx.measureText("All").width;
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("Book", MARGEM + largoAll, 130);
-
-  ctx.font = "600 26px Inter, sans-serif";
-  ctx.fillStyle = "rgba(255,255,255,0.45)";
-  ctx.fillText("feito no AllBook", MARGEM, ALTURA - 60);
+  ctx.fillText("Book", MARGEM + largoAll, y);
 }
 
 /** Rótulo pequeno em caixa alta, com espaçamento — o "título de seção". */
@@ -122,8 +141,9 @@ async function desenharCapas(
   livros: Book[],
   topo: number,
   altura: number,
-  /** Quando dado, as capas ficam nesta largura e o conjunto vai para o centro. */
-  larguraForcada?: number
+  /** Quando dada, as capas ficam nesta largura e o conjunto vai para o centro. */
+  larguraForcada?: number,
+  tamanhoDoTitulo = 26
 ): Promise<void> {
   if (livros.length === 0) return;
 
@@ -160,15 +180,22 @@ async function desenharCapas(
     }
     ctx.restore();
 
-    ctx.font = "600 26px Inter, sans-serif";
+    ctx.font = `600 ${tamanhoDoTitulo}px Inter, sans-serif`;
     ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.fillText(textoQueCabe(ctx, livro.title, largura), x, topo + altura + 42);
+    ctx.fillText(textoQueCabe(ctx, livro.title, largura), x, topo + altura + tamanhoDoTitulo + 16);
   }
 }
 
-/** A versão original: um número grande, três capas e o gênero. */
-async function desenharSimples(ctx: CanvasRenderingContext2D, dados: DadosDoCartao): Promise<void> {
-  moldura(ctx);
+/** O retrato geral, 4:5. */
+async function desenharResumo(ctx: CanvasRenderingContext2D, dados: DadosDoCartao): Promise<void> {
+  moldura(ctx, ALTURA_RESUMO);
+  marca(ctx, 130, 46);
+
+  if (dados.periodo) {
+    ctx.font = "400 28px Inter, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.fillText(dados.periodo, MARGEM, 190);
+  }
 
   rotulo(ctx, "MINHA AUDIÇÃO", 300, 26);
 
@@ -186,88 +213,85 @@ async function desenharSimples(ctx: CanvasRenderingContext2D, dados: DadosDoCart
     await desenharCapas(ctx, dados.livros, 690, largura * 1.4);
   }
 
-  if (dados.generoFavorito) {
-    ctx.font = "400 30px Inter, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.fillText(`Gênero favorito: ${dados.generoFavorito}`, MARGEM, ALTURA - 110);
-  }
-}
-
-/**
- * A versão cheia: período, quatro números, o gráfico das 12 semanas, as capas e
- * um rodapé com gênero, narrador e horário. Cabe tudo porque o número grande
- * encolhe e as capas ficam mais baixas — nada aqui foi espremido sem conta.
- */
-async function desenharCompleto(ctx: CanvasRenderingContext2D, dados: DadosDoCartao): Promise<void> {
-  moldura(ctx);
-
-  if (dados.periodo) {
-    ctx.font = "400 28px Inter, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.4)";
-    ctx.fillText(dados.periodo, MARGEM, 190);
-  }
-
-  rotulo(ctx, "MINHA AUDIÇÃO", 288, 26);
-
-  ctx.font = "700 112px Outfit, sans-serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText(dados.total, MARGEM, 392);
-
-  // Quatro números em colunas, com um risco fino separando do topo.
-  const numeros = dados.numeros.slice(0, 4);
-  if (numeros.length > 0) {
-    ctx.fillStyle = "rgba(255,255,255,0.09)";
-    ctx.fillRect(MARGEM, 440, LARGURA - MARGEM * 2, 2);
-
-    const largura = (LARGURA - MARGEM * 2) / numeros.length;
-    numeros.forEach((item, i) => {
-      const x = MARGEM + i * largura;
-      ctx.font = "700 44px Outfit, sans-serif";
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(textoQueCabe(ctx, item.valor, largura - 12), x, 512);
-
-      ctx.font = "400 24px Inter, sans-serif";
-      ctx.fillStyle = "rgba(255,255,255,0.4)";
-      ctx.fillText(textoQueCabe(ctx, item.rotulo, largura - 12), x, 548);
-    });
-  }
-
-  // O gráfico das últimas 12 semanas.
-  const serie = dados.serieSemanal.slice(-12);
-  if (serie.length > 0) {
-    rotulo(ctx, "ÚLTIMAS 12 SEMANAS", 624);
-
-    const topo = 652;
-    const altura = 108;
-    const vao = 10;
-    const largura = (LARGURA - MARGEM * 2 - vao * (serie.length - 1)) / serie.length;
-    const maior = Math.max(...serie, 1);
-
-    serie.forEach((valor, i) => {
-      const x = MARGEM + i * (largura + vao);
-      // Barra vazia continua sendo um risco, para a semana existir no desenho.
-      const alto = Math.max((valor / maior) * altura, 4);
-      ctx.fillStyle = valor > 0 ? "rgba(255,106,0,0.85)" : "rgba(255,255,255,0.10)";
-      ctx.beginPath();
-      ctx.roundRect(x, topo + altura - alto, largura, alto, 6);
-      ctx.fill();
-    });
-  }
-
-  if (dados.livros.length > 0) {
-    rotulo(ctx, "O QUE MAIS TOMOU SEU TEMPO", 836);
-    // Capas mais estreitas e centralizadas: com a largura cheia da versão
-    // simples elas ficariam **mais largas que altas** (a arte cortada) e o
-    // título de cada uma bateria no rodapé.
-    await desenharCapas(ctx, dados.livros, 858, 276, 207);
-  }
-
   const fecho = [dados.generoFavorito, dados.rodape].filter(Boolean).join(" · ");
   if (fecho) {
     ctx.font = "400 28px Inter, sans-serif";
     ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.fillText(textoQueCabe(ctx, fecho, LARGURA - MARGEM * 2), MARGEM, ALTURA - 110);
+    ctx.fillText(textoQueCabe(ctx, fecho, LARGURA - MARGEM * 2), MARGEM, ALTURA_RESUMO - 110);
   }
+
+  ctx.font = "600 26px Inter, sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.45)";
+  ctx.fillText("feito no AllBook", MARGEM, ALTURA_RESUMO - 60);
+}
+
+/**
+ * A peça de rede social, 9:16 — o tamanho exato do story.
+ *
+ * O herói é o **número de livros** do período, não as horas: "39h ouvidas" diz
+ * pouco para quem vê de fora, "4 livros em 30 dias" é o que se conta.
+ */
+async function desenharStory(ctx: CanvasRenderingContext2D, dados: DadosDoCartao): Promise<void> {
+  const s = dados.story;
+  moldura(ctx, ALTURA_STORY);
+  marca(ctx, 210, 56);
+
+  rotulo(ctx, s.periodo, 330, 28);
+
+  // O número gigante e o rótulo dele.
+  ctx.font = "700 260px Outfit, sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(s.destaque, MARGEM, 620);
+
+  ctx.font = "600 44px Inter, sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.75)";
+  ctx.fillText(s.destaqueRotulo, MARGEM, 690);
+
+  // Linhas de apoio, cada uma com um ponto na cor da marca.
+  let y = 800;
+  for (const linha of s.linhas.slice(0, 3)) {
+    ctx.fillStyle = "#FF6A00";
+    ctx.beginPath();
+    ctx.arc(MARGEM + 8, y - 12, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.font = "400 36px Inter, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.fillText(textoQueCabe(ctx, linha, LARGURA - MARGEM * 2 - 44), MARGEM + 44, y);
+    y += 66;
+  }
+
+  if (s.capas.length > 0) {
+    rotulo(ctx, s.terminados.length > 0 ? "O QUE EU TERMINEI" : "O QUE EU OUVI", 1080, 26);
+    await desenharCapas(ctx, s.capas.slice(0, 3), 1120, 396, 274, 28);
+  }
+
+  // Os terminados, escritos — é a frase que a pessoa quer que leiam.
+  if (s.terminados.length > 0) {
+    const lista =
+      s.terminados.length === 1
+        ? s.terminados[0]
+        : `${s.terminados.slice(0, 2).join(", ")}${s.terminados.length > 2 ? ` e mais ${s.terminados.length - 2}` : ""}`;
+    ctx.font = "600 34px Inter, sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fillText(
+      textoQueCabe(ctx, `✓ Terminei ${lista}`, LARGURA - MARGEM * 2),
+      MARGEM,
+      1636
+    );
+  }
+
+  /*
+   * Assinatura com chamada — é um story, alguém vai perguntar onde é. Ela para
+   * a ~180px do fim de propósito: **o Instagram cobre a faixa de baixo** com a
+   * caixa de resposta, e o que ficar ali não é lido.
+   */
+  ctx.font = "700 36px Outfit, sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("AllBook", MARGEM, ALTURA_STORY - 180);
+  ctx.font = "400 30px Inter, sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.45)";
+  ctx.fillText("audiolivros em português", MARGEM, ALTURA_STORY - 134);
 }
 
 async function desenhar(
@@ -285,13 +309,13 @@ async function desenhar(
     /* navegador sem a API: segue com o fallback */
   }
 
-  if (modo === "completo") await desenharCompleto(ctx, dados);
-  else await desenharSimples(ctx, dados);
+  if (modo === "story") await desenharStory(ctx, dados);
+  else await desenharResumo(ctx, dados);
 }
 
 const MODOS: { key: ModoDoCartao; label: string }[] = [
-  { key: "simples", label: "Simples" },
-  { key: "completo", label: "Completo" },
+  { key: "resumo", label: "Resumo" },
+  { key: "story", label: "Story" },
 ];
 
 export default function CartaoDeResumo({
@@ -306,7 +330,7 @@ export default function CartaoDeResumo({
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pronto, setPronto] = useState(false);
-  const [modo, setModo] = useState<ModoDoCartao>("simples");
+  const [modo, setModo] = useState<ModoDoCartao>("resumo");
 
   useEffect(() => {
     if (!aberto || !canvasRef.current) return;
@@ -331,27 +355,38 @@ export default function CartaoDeResumo({
 
   if (!aberto) return null;
 
-  /**
-   * No celular abre a folha nativa de compartilhar com a imagem; no computador
-   * (e onde o navegador não aceita compartilhar arquivo) baixa o PNG.
-   */
-  async function salvar() {
+  async function gerarArquivo(): Promise<File | null> {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
+    if (!canvas) return null;
     const blob = await new Promise<Blob | null>((resolver) =>
       canvas.toBlob((resultado) => resolver(resultado), "image/png")
     );
-    if (!blob) {
+    if (!blob) return null;
+    return new File([blob], modo === "story" ? "allbook-story.png" : "allbook.png", {
+      type: "image/png",
+    });
+  }
+
+  /**
+   * A folha nativa do celular é o caminho para o Instagram: ela lista os apps
+   * instalados, e a imagem entra no story por lá. **Não existe, na web, como
+   * publicar direto no story sem passar por ela** — o `instagram-stories://`
+   * só aceita imagem vinda de um app nativo. No computador, baixa o PNG.
+   */
+  async function compartilhar() {
+    const arquivo = await gerarArquivo();
+    if (!arquivo) {
       toast({ title: "Não deu para gerar a imagem", description: "Tente de novo." });
       return;
     }
 
-    const arquivo = new File([blob], "allbook.png", { type: "image/png" });
-
     if (navigator.canShare?.({ files: [arquivo] })) {
       try {
-        await navigator.share({ files: [arquivo], title: "Minhas estatísticas no AllBook" });
+        await navigator.share({
+          files: [arquivo],
+          title: "Minhas estatísticas no AllBook",
+          text: dados.texto,
+        });
         return;
       } catch {
         // A pessoa fechou a folha nativa: não é erro, não avisa nada.
@@ -359,19 +394,36 @@ export default function CartaoDeResumo({
       }
     }
 
-    const url = URL.createObjectURL(blob);
+    baixar(arquivo);
+    toast({
+      title: "Imagem salva",
+      description: "Compartilhar direto só no celular — no computador o arquivo é baixado.",
+    });
+  }
+
+  async function salvar() {
+    const arquivo = await gerarArquivo();
+    if (!arquivo) {
+      toast({ title: "Não deu para gerar a imagem", description: "Tente de novo." });
+      return;
+    }
+    baixar(arquivo);
+    toast({ title: "Imagem salva", description: `Baixada como ${arquivo.name}.` });
+  }
+
+  function baixar(arquivo: File) {
+    const url = URL.createObjectURL(arquivo);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "allbook.png";
+    link.download = arquivo.name;
     link.click();
     URL.revokeObjectURL(url);
-    toast({ title: "Imagem salva", description: "O cartão foi baixado como allbook.png." });
   }
 
   async function copiarTexto() {
     try {
-      await navigator.clipboard.writeText(dados.texto);
-      toast({ title: "Resumo copiado", description: "Agora é só colar onde você quiser." });
+      await navigator.clipboard.writeText(`${dados.texto}\n${window.location.origin}`);
+      toast({ title: "Resumo copiado", description: "O texto já vai com o link do AllBook." });
     } catch {
       toast({
         title: "Não deu para copiar",
@@ -384,12 +436,12 @@ export default function CartaoDeResumo({
     <div className="fixed inset-0 z-[60] flex items-end justify-center" data-testid="summary-card">
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="animate-in slide-in-from-bottom fade-in relative w-full max-w-md rounded-t-2xl border-t border-white/10 bg-[#1c1c1c] px-5 pb-8 pt-4 duration-300">
+      <div className="animate-in slide-in-from-bottom fade-in relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border-t border-white/10 bg-[#1c1c1c] px-5 pb-8 pt-4 duration-300">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-base font-bold tracking-tight">Seu cartão</h2>
+          <h2 className="font-display text-base font-bold tracking-tight">Compartilhar</h2>
 
           <div className="flex items-center gap-2">
-            {/* Duas versões, para comparar sem apostar em uma só. */}
+            {/* Duas peças com propósitos diferentes — o nome diz onde cada uma vai. */}
             <div className="flex rounded-lg bg-white/[0.07] p-0.5">
               {MODOS.map((item) => (
                 <button
@@ -420,40 +472,55 @@ export default function CartaoDeResumo({
           O desenho leva um instante (fontes da marca + capas). Sem este aviso
           ficava um retângulo invisível no lugar, com cara de tela quebrada.
         */}
-        <div className="relative">
+        <div className="relative mx-auto" style={{ maxWidth: modo === "story" ? "62%" : "100%" }}>
           <canvas
             ref={canvasRef}
             width={LARGURA}
-            height={ALTURA}
+            height={alturaDe(modo)}
             className={`w-full rounded-xl border border-white/10 transition-opacity duration-300 ${
               pronto ? "opacity-100" : "opacity-0"
             }`}
           />
           {!pronto && (
             <div className="absolute inset-0 flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.03]">
-              <p className="text-xs text-white/40">Montando seu cartão…</p>
+              <p className="text-xs text-white/40">Montando sua imagem…</p>
             </div>
           )}
         </div>
 
         <div className="mt-4 flex gap-2">
           <button
-            onClick={salvar}
+            onClick={compartilhar}
             className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-white text-sm font-bold text-black transition-colors hover:bg-white/90"
+            data-testid="button-share-card"
+          >
+            <Share2 className="h-4 w-4" />
+            Compartilhar
+          </button>
+          <button
+            onClick={salvar}
+            className="flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/10 px-3.5 text-white transition-colors hover:bg-white/15"
+            aria-label="Salvar imagem"
             data-testid="button-save-card"
           >
             <Download className="h-4 w-4" />
-            Salvar imagem
           </button>
           <button
             onClick={copiarTexto}
-            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 text-sm font-semibold text-white transition-colors hover:bg-white/15"
+            className="flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/10 px-3.5 text-white transition-colors hover:bg-white/15"
+            aria-label="Copiar texto"
             data-testid="button-copy-text"
           >
             <Copy className="h-4 w-4" />
-            Texto
           </button>
         </div>
+
+        {modo === "story" && (
+          <p className="mt-3 text-center text-[11px] leading-relaxed text-white/35">
+            No celular, "Compartilhar" abre a folha do sistema — é por ela que a imagem entra no
+            story do Instagram.
+          </p>
+        )}
       </div>
     </div>
   );

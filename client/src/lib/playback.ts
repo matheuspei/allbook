@@ -23,6 +23,40 @@ import { registrarAudicao } from "@/lib/listening";
 
 const PROGRESS_KEY = "allbook_playback";
 const VISIBLE_KEY = "allbook_miniplayer";
+const CONCLUIDOS_KEY = "allbook_finished";
+
+/** Acima disto o livro conta como concluído — os últimos minutos são créditos. */
+export const CONCLUIDO_PERCENT = 98;
+
+/**
+ * **Quando** cada livro foi terminado (`{ [id]: ISO }`).
+ *
+ * O app sabia que um livro *está* concluído (basta olhar a posição), mas não
+ * *quando* isso aconteceu — e sem a data não dá para dizer "você terminou 3
+ * livros em julho", que é justamente o tipo de coisa que se posta. O carimbo é
+ * dado no `savePlayback`, quando o progresso cruza a linha; livros terminados
+ * antes desta mudança não têm data, e a tela trata isso.
+ */
+export function readConcluidos(): Record<string, string> {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(CONCLUIDOS_KEY) || "{}");
+    if (!guardado || typeof guardado !== "object" || Array.isArray(guardado)) return {};
+    return guardado as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+function registrarConclusao(bookId: number): void {
+  try {
+    const atual = readConcluidos();
+    if (atual[bookId]) return;
+    atual[bookId] = new Date().toISOString();
+    localStorage.setItem(CONCLUIDOS_KEY, JSON.stringify(atual));
+  } catch {
+    /* sem storage a data se perde; o livro segue concluído */
+  }
+}
 
 /** Avisa o `MiniPlayer` que algo mudou — ele não recarrega a página sozinho. */
 export const PLAYBACK_EVENT = "allbook:playback";
@@ -120,6 +154,9 @@ export function savePlayback(playback: Omit<Playback, "updatedAt">): void {
      * negativa ou grande demais, e `registrarAudicao` descarta as duas.
      */
     if (anterior) registrarAudicao(entry.bookId, entry.positionSec - anterior.positionSec);
+
+    // Cruzou a linha de chegada agora: carimba a data.
+    if (playbackPercent(entry) >= CONCLUIDO_PERCENT) registrarConclusao(entry.bookId);
   } catch {
     // localStorage cheio: perder o progresso é chato, mas não é motivo para
     // derrubar o player no meio da audição.

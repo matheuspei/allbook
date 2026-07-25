@@ -14,7 +14,7 @@
  */
 
 import type { DadosDeConquista } from "@/lib/achievements";
-import { catalog, type Genre } from "@/lib/books";
+import { catalog, type Book, type Genre } from "@/lib/books";
 import { readFollowing } from "@/lib/following";
 import { readLibrary } from "@/lib/library";
 import { readMyComments } from "@/lib/myComments";
@@ -32,10 +32,15 @@ import {
   totalSegundos,
   type Diario,
 } from "@/lib/listening";
-import { playbackPercent, readPlaybackList } from "@/lib/playback";
+import {
+  CONCLUIDO_PERCENT,
+  playbackPercent,
+  readConcluidos,
+  readPlaybackList,
+} from "@/lib/playback";
 
-/** Acima disto o livro conta como concluído — os últimos minutos são créditos. */
-export const CONCLUIDO_PERCENT = 98;
+/** A régua de "concluído" mora em `playback.ts`, junto de quem a aplica. */
+export { CONCLUIDO_PERCENT } from "@/lib/playback";
 
 export interface ResumoDeAudicao {
   diario: Diario;
@@ -133,6 +138,61 @@ export function lerDadosDeConquista(resumo: ResumoDeAudicao): DadosDeConquista {
     seguindo: readFollowing().length,
     recomendacoes: readRecommendationIds().length,
   };
+}
+
+export interface ResumoDoPeriodo {
+  /** Livros com audição na janela, do mais ouvido para o menos. */
+  ouvidos: { book: Book; sec: number }[];
+  /** Terminados **dentro** da janela — só os que têm data carimbada. */
+  terminados: Book[];
+  segundos: number;
+  diasComAudicao: number;
+}
+
+/**
+ * O recorte dos últimos N dias — a matéria-prima do cartão de story.
+ *
+ * O total de sempre ("39h ouvidas") é bom para o perfil, mas ninguém posta
+ * isso: o que se conta para os outros é o que aconteceu *agora*, e em
+ * **livros**, não em horas. Por isso esta função responde em livros ouvidos,
+ * livros terminados e dias de audição no período.
+ */
+export function lerResumoDoPeriodo(diario: Diario, dias = 30, hoje = new Date()): ResumoDoPeriodo {
+  const limite = new Date(hoje);
+  limite.setDate(limite.getDate() - (dias - 1));
+  const chaveLimite = diaISO(limite);
+
+  const porLivroSec = new Map<number, number>();
+  let segundos = 0;
+  let diasComAudicao = 0;
+
+  for (const [dia, valor] of Object.entries(diario)) {
+    // As chaves são "AAAA-MM-DD": comparar como texto já ordena por data.
+    if (dia < chaveLimite) continue;
+    segundos += valor.sec;
+    if (valor.sec > 0) diasComAudicao++;
+    for (const [id, sec] of Object.entries(valor.livros)) {
+      const bookId = Number(id);
+      porLivroSec.set(bookId, (porLivroSec.get(bookId) ?? 0) + sec);
+    }
+  }
+
+  const ouvidos = Array.from(porLivroSec.entries())
+    .sort((a, b) => b[1] - a[1])
+    .flatMap(([bookId, sec]) => {
+      const book = catalog.find((item) => item.id === bookId);
+      return book ? [{ book, sec }] : [];
+    });
+
+  const inicioISO = limite.toISOString().slice(0, 10);
+  const terminados = Object.entries(readConcluidos())
+    .filter(([, quando]) => quando.slice(0, 10) >= inicioISO)
+    .flatMap(([id]) => {
+      const book = catalog.find((item) => item.id === Number(id));
+      return book ? [book] : [];
+    });
+
+  return { ouvidos, terminados, segundos, diasComAudicao };
 }
 
 export interface FatiaDeGenero {

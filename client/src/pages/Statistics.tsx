@@ -62,6 +62,7 @@ import {
   generosMaisOuvidos,
   lerDadosDeConquista,
   lerResumo,
+  lerResumoDoPeriodo,
   pessoaMaisOuvida,
   type ResumoDeAudicao,
 } from "@/lib/stats";
@@ -320,11 +321,25 @@ export default function Statistics() {
       livros: [],
       texto: "",
       periodo: "",
-      numeros: [],
-      serieSemanal: [],
       rodape: "",
+      story: {
+        periodo: "",
+        destaque: "0",
+        destaqueRotulo: "livros",
+        linhas: [],
+        capas: [],
+        terminados: [],
+      },
     };
     if (!resumo) return vazio;
+
+    /**
+     * A story fala do **mês corrido**, não de sempre: é o recorte que as
+     * pessoas postam ("li 4 livros esse mês"), e ele muda toda semana — o que
+     * dá motivo para voltar e compartilhar de novo.
+     */
+    const ultimos30 = lerResumoDoPeriodo(resumo.diario, 30);
+    const terminouNoPeriodo = ultimos30.terminados.length > 0;
 
     const ativosAgora = diasAtivos(resumo.diario);
     const partes = [
@@ -362,19 +377,33 @@ export default function Statistics() {
       livros: livrosMaisOuvidos.map((item) => item.livro),
       texto,
       periodo,
-      numeros: [
-        { valor: String(resumo.titulosComecados), rotulo: "títulos" },
-        { valor: String(resumo.concluidos), rotulo: "concluídos" },
-        {
-          valor: resumo.sequenciaDias > 0 ? `${resumo.sequenciaDias} d` : "—",
-          rotulo: "sequência",
-        },
-        { valor: String(ativosAgora), rotulo: "dias ouvindo" },
-      ],
-      serieSemanal: serieSemanal(resumo.diario, 12).map((ponto) => ponto.horas),
       rodape: [narrador ? `Narrador: ${narrador.nome}` : null, faixas[0] ? `mais à ${faixas[0].faixa}` : null]
         .filter(Boolean)
         .join(" · "),
+      story: {
+        periodo: "NOS ÚLTIMOS 30 DIAS",
+        destaque: String(
+          terminouNoPeriodo ? ultimos30.terminados.length : ultimos30.ouvidos.length
+        ),
+        destaqueRotulo: terminouNoPeriodo
+          ? ultimos30.terminados.length === 1
+            ? "livro terminado"
+            : "livros terminados"
+          : ultimos30.ouvidos.length === 1
+            ? "livro ouvido"
+            : "livros ouvidos",
+        linhas: [
+          `${formatarDuracao(ultimos30.segundos)} de audição`,
+          `${ultimos30.diasComAudicao} ${ultimos30.diasComAudicao === 1 ? "dia" : "dias"} com audição`,
+          generos[0] ? `${generos[0].genero} em alta` : "",
+        ].filter(Boolean),
+        // Se terminou algo, são as capas dos terminados que interessam.
+        capas: (terminouNoPeriodo
+          ? ultimos30.terminados
+          : ultimos30.ouvidos.map((item) => item.book)
+        ).slice(0, 3),
+        terminados: ultimos30.terminados.map((livro) => livro.title),
+      },
     };
   }, [resumo, generos, livrosMaisOuvidos, narrador, faixas]);
 
