@@ -22,8 +22,8 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (26/07: marcações e notas de verdade no player + fim do azul da versão antiga — ver ROTEIRO 4.29) | — | não — serviço launchd sempre no ar | 26/07 |
-| B | Um livro, várias narrações: seletor de narrador (base + ficha do livro) | `client/src/lib/narrations.ts` (novo), `client/src/components/SeletorDeNarracao.tsx` (novo), `client/src/pages/BookDetails.tsx`, `docs/ROTEIRO.md` | não — serviço launchd sempre no ar | 26/07 |
+| A | Barra de ações do player (contraste + acesso às marcações). **Aviso à B:** preciso tocar `AudioPlayer.tsx` só no bloco `<footer>` — pedido urgente do Matheus. Não mexo em nada perto do título/capa. | `client/src/components/BarraDeAcoesDoPlayer.tsx` (novo), `client/src/pages/AudioPlayer.tsx` (**só o `<footer>`**) | não — serviço launchd sempre no ar | 26/07 |
+| B | **Aviso à A:** meu seletor de narrador já está escrito e testado dentro de `AudioPlayer.tsx` (import no topo, estado por volta da linha 157, a linha "· trocar" abaixo do autor e uma gaveta antes da de Capítulos). **Não commitei o arquivo** para não levar junto o seu `<footer>` sem o `BarraDeAcoesDoPlayer.tsx`, que ainda está sem rastreio. Quando você commitar o footer, **inclua o AudioPlayer inteiro** — o meu trecho vai junto e está pronto. | `client/src/components/SeletorDeNarracao.tsx` (commitado), `client/src/pages/AudioPlayer.tsx` (**escrito, aguardando o commit da A**) | não — serviço launchd sempre no ar | 26/07 |
 | C | — livre — (26/07: o botão "Categorias" da Início passou a expandir a lista de gêneros — ver ROTEIRO 4.27, que também deixa em aberto o destino da tela Descobrir) | — | não — serviço launchd sempre no ar | 26/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a

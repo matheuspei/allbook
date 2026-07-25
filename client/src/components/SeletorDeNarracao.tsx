@@ -50,11 +50,6 @@ export default function SeletorDeNarracao({ book }: { book: LivroComNarrador }) 
 
   if (opcoes.length < 2) return null;
 
-  function escolher(narracao: Narration) {
-    chooseNarration(book.id, narracao.id);
-    setAberto(false);
-  }
-
   return (
     <div className="rounded-xl bg-white/[0.03] ring-1 ring-white/5" data-testid="narration-picker">
       <button
@@ -77,17 +72,56 @@ export default function SeletorDeNarracao({ book }: { book: LivroComNarrador }) 
       </button>
 
       {aberto && (
-        <div className="space-y-1 border-t border-white/5 p-2" role="radiogroup">
-          {opcoes.map((narracao) => (
-            <OpcaoDeNarracao
-              key={narracao.id}
-              narracao={narracao}
-              selecionada={narracao.id === atual.id}
-              aoEscolher={() => escolher(narracao)}
-            />
-          ))}
+        <div className="border-t border-white/5 p-2">
+          <ListaDeNarracoes book={book} aoEscolher={() => setAberto(false)} />
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Só a lista de vozes, sem a linha que abre e fecha.
+ *
+ * Existe separada porque o player mostra as mesmas opções **dentro de uma
+ * gaveta** — ali quem já abriu não precisa de um segundo botão de expandir. As
+ * duas telas compartilham a lista para não haver duas versões do mesmo cartão de
+ * voz no app.
+ */
+export function ListaDeNarracoes({
+  book,
+  aoEscolher,
+}: {
+  book: LivroComNarrador;
+  aoEscolher?: () => void;
+}) {
+  const opcoes = narrationsOf(book);
+  const [atual, setAtual] = useState(() => chosenNarration(book));
+
+  useEffect(() => {
+    const sincronizar = () => setAtual(chosenNarration(book));
+    sincronizar();
+    window.addEventListener(NARRATIONS_EVENT, sincronizar);
+    window.addEventListener("storage", sincronizar);
+    return () => {
+      window.removeEventListener(NARRATIONS_EVENT, sincronizar);
+      window.removeEventListener("storage", sincronizar);
+    };
+  }, [book]);
+
+  return (
+    <div className="space-y-1" role="radiogroup">
+      {opcoes.map((narracao) => (
+        <OpcaoDeNarracao
+          key={narracao.id}
+          narracao={narracao}
+          selecionada={narracao.id === atual.id}
+          aoEscolher={() => {
+            chooseNarration(book.id, narracao.id);
+            aoEscolher?.();
+          }}
+        />
+      ))}
     </div>
   );
 }

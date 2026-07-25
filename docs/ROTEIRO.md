@@ -2045,9 +2045,13 @@ voz. No player, durante — é lá que a pessoa descobre que não gosta daquela 
 obrigá-la a voltar para a ficha para trocar seria pedir que ela desista.
 
 **O que está construído:** `lib/narrations.ts` (as narrações e a escolha, no
-`localStorage`), o componente `SeletorDeNarracao` e a ligação na **ficha do
-livro** — "Narrado por" passou a mostrar a narração escolhida, e o seletor é a
-linha fina logo abaixo. **Só aparece quando há mais de uma voz**: livro com uma
+`localStorage`), o componente `SeletorDeNarracao` e a ligação nos **dois**
+lugares. Na **ficha**, "Narrado por" passou a mostrar a narração escolhida e o
+seletor é a linha fina logo abaixo. No **player**, uma linha discreta sob o autor
+("Narrado por Fulano · trocar") abre uma gaveta com as vozes — a mesma casca da
+lista de capítulos, para o player não ter dois jeitos de mostrar uma escolha, e a
+mesma lista de opções da ficha (`ListaDeNarracoes`), para não existirem duas
+versões do cartão de voz. **Só aparece quando há mais de uma voz**: livro com uma
 narração não mostra nada, nem botão apagado nem "1 narração" (regra da 4.23).
 
 **Detalhes que o desenho carrega de propósito:**
@@ -2059,9 +2063,9 @@ narração não mostra nada, nem botão apagado nem "1 narração" (regra da 4.2
   exemplo como o resto do catálogo**. São poucos de propósito: o seletor tem de
   ser exceção, não enfeite de toda ficha.
 
-**Falta:** o mesmo seletor **dentro do player**, e o áudio de fato mudar de faixa
-— que só existe quando houver áudio de verdade. Hoje a troca muda quem a ficha
-credita; no dia em que houver arquivo, ela muda o que toca, sem mudar a interface.
+**Falta:** o áudio de fato mudar de faixa — que só existe quando houver áudio de
+verdade. Hoje a troca muda quem o app credita; no dia em que houver arquivo, ela
+muda o que toca, **sem mudar a interface**.
 
 ---
 
