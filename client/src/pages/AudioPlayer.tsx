@@ -10,7 +10,10 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { useState, useEffect, useRef } from "react";
+import BarraDeAcoesDoPlayer from "@/components/BarraDeAcoesDoPlayer";
 import MarcacoesDoLivro from "@/components/MarcacoesDoLivro";
+import { ListaDeNarracoes } from "@/components/SeletorDeNarracao";
+import { NARRATIONS_EVENT, chosenNarration, hasChoiceOfNarration } from "@/lib/narrations";
 import { catalog } from "@/lib/books";
 import { addBookmark, BOOKMARK_EVENT, bookmarkCount } from "@/lib/bookmarks";
 import { readSettings } from "@/lib/settings";
@@ -155,6 +158,21 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [showChapters, setShowChapters] = useState(false);
   const [showMarcacoes, setShowMarcacoes] = useState(false);
   /*
+   * A gaveta de trocar de voz. É aqui, e não só na ficha, porque **é ouvindo que
+   * a pessoa descobre que não gosta da narração** (ideia do Matheus, ROTEIRO
+   * 4.30) — mandá-la voltar à ficha para trocar seria pedir que desistisse.
+   */
+  const [showNarracoes, setShowNarracoes] = useState(false);
+  const [narracao, setNarracao] = useState(() => chosenNarration(book));
+  const podeTrocarDeVoz = hasChoiceOfNarration(book);
+
+  useEffect(() => {
+    const sincronizar = () => setNarracao(chosenNarration(book));
+    sincronizar();
+    window.addEventListener(NARRATIONS_EVENT, sincronizar);
+    return () => window.removeEventListener(NARRATIONS_EVENT, sincronizar);
+  }, [book]);
+  /*
    * Quantas marcações este livro tem. Fica no estado (e não numa leitura direta
    * a cada desenho) para o número na barra de baixo mudar na hora que a pessoa
    * salva ou apaga — o evento avisa, como no resto da casa.
@@ -246,14 +264,16 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * sair da tela. Agora ela grava de verdade (`lib/bookmarks.ts`) e o aviso
    * oferece o caminho para ver a lista, que é onde a pessoa escreve a nota.
    */
-  function salvarMarcacao() {
+  function salvarMarcacao(): boolean {
     const { jaExistia } = addBookmark(book.id, currentTime, currentChapter);
     toast({
       title: jaExistia ? "Este ponto já estava marcado" : "Marcação salva",
       description: jaExistia
         ? `Você já tinha guardado ${formatTime(currentTime)} deste título.`
-        : `Guardamos ${formatTime(currentTime)}. Abra "Marcações e notas" para escrever uma nota.`,
+        : `Guardamos ${formatTime(currentTime)}. Toque em "Minhas" para escrever uma nota.`,
     });
+    // Quem chama usa isto para animar o ícone só quando a marcação é nova.
+    return !jaExistia;
   }
 
   const adjustSpeed = (delta: number) => {
@@ -417,6 +437,25 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             <span className="text-sm text-white/60 transition-colors group-hover:text-white/80">{book.author}</span>
           </button>
 
+          {/*
+            Trocar de voz sem sair do player. Fica fora do botão de cima (que
+            navega para a ficha) porque são gestos diferentes, e some quando o
+            livro tem uma narração só — botão que não leva a lugar nenhum é o que
+            o ROTEIRO 4.23 mandou varrer. Linha fina, não pastilha: a voz certa
+            já está tocando para quase todo mundo.
+          */}
+          {podeTrocarDeVoz && (
+            <button
+              onClick={() => setShowNarracoes(true)}
+              className="-mt-1 flex shrink-0 items-center gap-1.5 text-[12px] text-white/45 transition-colors hover:text-white/70"
+              data-testid="button-change-narration"
+            >
+              <ListMusic className="h-3 w-3 text-primary" />
+              Narrado por {narracao.name}
+              <span className="font-semibold text-primary">· trocar</span>
+            </button>
+          )}
+
           {/* Capítulo — abre a lista de todos os capítulos para pular direto. */}
           <button
             onClick={() => setShowChapters(true)}
@@ -500,59 +539,22 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
         </div>
       </main>
 
-      {/* Bottom Actions */}
-      <footer className="px-4 py-4 flex items-center justify-between shrink-0 mb-4">
-        <button 
-          onClick={() => setShowSpeedMenu(true)}
-          className="flex flex-col items-center gap-1 min-w-[70px] group"
-        >
-          <span className="text-xs font-bold group-hover:text-amber-500 transition-colors">{speed.toFixed(2).replace('.', ',')}x</span>
-          <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">Velocidade</span>
-        </button>
-        
-        <button 
-          onClick={handleCarModeClick}
-          className="flex flex-col items-center gap-1 min-w-[70px] group"
-        >
-          <Car className="w-5 h-5 text-white/50 group-hover:text-amber-500 transition-colors" />
-          <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">Modo Carro</span>
-        </button>
-
-        <button 
-          onClick={() => setShowTimerMenu(true)}
-          className="flex flex-col items-center gap-1 min-w-[70px] group"
-        >
-          <Timer className={`w-5 h-5 ${selectedTimer !== "Desligado" ? "text-amber-500" : "text-white/50"} group-hover:text-amber-500 transition-colors`} />
-          <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">Temporizador</span>
-        </button>
-
-        {/*
-          Toque salva o ponto; toque longo (ou o número, quando há marcações)
-          abre a lista. O ícone fica **cheio** quando o livro já tem marcação —
-          é o único jeito de a barra dizer "tem coisa guardada aqui" sem
-          precisar de um segundo botão.
-        */}
-        <button
-          onClick={salvarMarcacao}
-          onContextMenu={(evento) => {
-            evento.preventDefault();
-            setShowMarcacoes(true);
-          }}
-          className="flex flex-col items-center gap-1 min-w-[70px] group relative"
-          data-testid="button-add-bookmark"
-        >
-          <Bookmark
-            className={`w-5 h-5 transition-colors ${
-              totalDeMarcacoes > 0
-                ? "fill-primary text-primary"
-                : "text-white/50 group-hover:text-amber-500"
-            }`}
-          />
-          <span className="text-[9px] font-bold uppercase text-white/40 group-hover:text-white/70 transition-colors tracking-tight">
-            + Marcação
-          </span>
-        </button>
-      </footer>
+      {/*
+        A barra de ações mora em `BarraDeAcoesDoPlayer` desde 26/07. O que
+        estava aqui tinha contraste baixo demais (rótulos de 9px a 40% de
+        branco), alvos pequenos, e escondia a lista de marcações atrás de um
+        toque longo — ver o cabeçalho do componente.
+      */}
+      <BarraDeAcoesDoPlayer
+        velocidade={speed}
+        temporizadorLigado={selectedTimer !== "Desligado"}
+        totalDeMarcacoes={totalDeMarcacoes}
+        onVelocidade={() => setShowSpeedMenu(true)}
+        onModoCarro={handleCarModeClick}
+        onTemporizador={() => setShowTimerMenu(true)}
+        onMarcar={salvarMarcacao}
+        onVerMarcacoes={() => setShowMarcacoes(true)}
+      />
 
       {/* O painel que o menu de "…" promete há tempo — agora existe. */}
       <MarcacoesDoLivro
@@ -572,6 +574,22 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       />
 
       {/* Lista de todos os capítulos — abre pelo botão "Capítulo N". */}
+      {/* Gaveta das vozes — mesma casca da lista de capítulos, para o player não
+          ter dois jeitos diferentes de mostrar uma escolha. */}
+      <Drawer open={showNarracoes} onOpenChange={setShowNarracoes}>
+        <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="font-display tracking-tight text-white">Quem narra</DrawerTitle>
+            <DrawerDescription className="text-white/50">
+              {book.title} tem mais de uma narração. Escolha a voz que preferir.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-8">
+            <ListaDeNarracoes book={book} aoEscolher={() => setShowNarracoes(false)} />
+          </div>
+        </DrawerContent>
+      </Drawer>
+
       <Drawer open={showChapters} onOpenChange={setShowChapters}>
         <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
           <DrawerHeader className="text-left">

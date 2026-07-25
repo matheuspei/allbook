@@ -2018,6 +2018,37 @@ Tudo passou para a escala da casa: `#1a1a1a`/`#1c1c1c` com borda branca a 10%, e
 o laranja da marca onde havia azul. **O ícone já diz que é Bluetooth — a cor pode
 ser a nossa**; e num diálogo que é nosso, o ícone é o nosso.
 
+### O degradê que comia a barra de ações (a causa raiz, achada em 26/07)
+
+O Matheus voltou dizendo que o botão de marcação estava "escondido" e "não
+funcional". Ele estava certo, e o defeito era maior e mais antigo do que o
+relato: **a barra de ações inteira era pintada por baixo de um degradê**.
+
+O player desenha um degradê sobre a capa de fundo — `absolute inset-0`,
+terminando em `#141414` **opaco** — e esse elemento cobre a tela toda. Pela ordem
+de pintura do CSS, um elemento **posicionado** vai por cima de todo conteúdo não
+posicionado, **mesmo do que vem depois no HTML**. A `<footer>` era conteúdo
+comum: ícones e rótulos ficavam debaixo do degradê.
+
+**A pista estava à vista e passou despercebida:** das quatro ações, só "+
+Marcação" aparecia — e era justamente a única que tinha ganhado um `relative`
+solto na mudança anterior, por acaso. Velocidade, Modo Carro e Temporizador
+estavam invisíveis havia muito mais tempo.
+
+O conserto é uma camada própria para a barra (`relative z-10`), não um `relative`
+espalhado em cada pedacinho. **Lição para o projeto:** neste player, qualquer
+coisa nova fora do `<main>` precisa de camada própria, senão o degradê a engole
+— e o sintoma é silencioso, porque o elemento continua no DOM, clicável e com
+tamanho certo. `getBoundingClientRect` e `elementFromPoint` **não** acusam o
+problema (o degradê tem `pointer-events: none`); só uma captura de tela mostra.
+
+**Na mesma passada, a barra foi refeita** (`BarraDeAcoesDoPlayer.tsx`): alvos de
+toque de verdade em vez de ícones de 20px soltos, rótulo de 10px a 60% de branco
+no lugar de 9px a 40%, e — o principal — **"Minhas" ganhou lugar fixo na barra**,
+com o número de marcações num selo. Antes a lista só abria pelo menu de "…" ou
+por um **toque longo** que ninguém adivinha. O botão só aparece quando existe a
+primeira marcação: o acesso nasce junto com o conteúdo.
+
 ---
 
 ## 4.30 Um livro, várias narrações — e um seletor de voz (26/07)
