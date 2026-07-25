@@ -1,4 +1,4 @@
-import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, Quote, User, Check, Plus, Clock, Headphones } from "lucide-react";
+import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, Quote, User, Check, Plus, Clock, Headphones, AudioLines } from "lucide-react";
 import BookActionsMenu from "@/components/BookActionsMenu";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { catalog, findGenreBySlug, getBooksByGenre, slugify, duracaoEstimada } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { publisherOfBook } from "@/lib/publishers";
+import { STUDIO_NAME, narratorKind } from "@/lib/studio";
 import PublisherMark from "@/components/PublisherMark";
 import { commentsForBook } from "@/lib/comments";
 import CommentThread from "@/components/CommentThread";
@@ -132,6 +133,50 @@ function PessoaDoLivro({
       data-testid={`link-person-${pessoa.slug}`}
     >
       {conteudo}
+      <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
+    </button>
+  );
+}
+
+/**
+ * Quem produziu a narração — o quarto crédito da ficha.
+ *
+ * **Por que ele existe (decisão do Matheus, 25/07).** A editora publicou o
+ * *livro*; ela não gravou o *áudio*. E na maioria dos títulos o audiolivro não
+ * existia em lugar nenhum antes: foi o AllBook que o produziu. Sem esta linha, a
+ * ficha creditava a produção a quem não a fez.
+ *
+ * **Não diz "IA" aqui, de propósito.** Que as vozes são sintéticas está dito no
+ * `/studio` e no perfil de cada voz — uma vez, onde a pessoa foi procurar.
+ * Carimbado em cada um dos 59 livros viraria advertência de bula.
+ *
+ * Some quando a narração for humana de verdade (`narratorKind === "human"`):
+ * nesse caso o AllBook não produziu nada, e dizer que produziu seria falso.
+ */
+function EstudioDoLivro({ narrador }: { narrador: string }) {
+  const [, navegar] = useLocation();
+
+  if (narratorKind(narrador) !== "studio") return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => navegar("/studio")}
+      aria-label={`Conhecer o ${STUDIO_NAME}`}
+      className="flex items-center gap-3 rounded-xl bg-white/5 p-3 text-left ring-1 ring-white/5 transition-colors hover:bg-white/10 active:bg-white/15"
+      data-testid="link-studio"
+    >
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/15 ring-1 ring-primary/25">
+        <AudioLines className="h-5 w-5 text-primary" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[10px] uppercase tracking-widest text-white/40">
+          Produzido por
+        </span>
+        <span className="block truncate text-sm font-semibold text-white" data-testid="text-studio">
+          {STUDIO_NAME}
+        </span>
+      </span>
       <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
     </button>
   );
@@ -406,6 +451,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           <PessoaDoLivro papel="Escrito por" nome={book.author} testid="text-author" />
           <PessoaDoLivro papel="Narrado por" nome={book.narrator} testid="text-narrator" />
           <EditoraDoLivro bookId={Number(params.id)} />
+          <EstudioDoLivro narrador={book.narrator} />
         </div>
 
         <div className="flex gap-3">

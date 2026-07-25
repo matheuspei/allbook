@@ -22,9 +22,9 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (Biblioteca reformada 24/07: filtros reais com contagem, lista/grade + ordenação, cabeçalho sem avatar duplicado — ver ROTEIRO 4.10) | — | não — serviço launchd sempre no ar | 24/07 21:25 |
+| A | **ocupada** — Estatísticas de verdade: diário de audição (fundação) + tela reconstruída | `lib/listening.ts` (novo) · `lib/playback.ts` · `pages/Statistics.tsx` · `components/StatSpotlight.tsx` · `pages/Profile.tsx` (só a fileira de números) | não — serviço launchd sempre no ar | 25/07 |
 | B | — livre — (foto que amplia ao toque, estilo Instagram, 24/07: comentários + perfis — ver ROTEIRO 4.12. **`pages/PersonProfile.tsx` está liberado para a C**) | — | não — serviço launchd sempre no ar | 24/07 22:10 |
-| C | — livre — (perfil de editora 24/07 + caixa de comentar nos perfis de autor/narrador 25/07 — ver ROTEIRO 4.11) | — | não — serviço launchd sempre no ar | 25/07 |
+| C | **ocupada** — crédito "Produzido por AllBook Studio" + vozes de IA com perfil próprio (decisão do Matheus 25/07) | `lib/studio.ts` (novo) · `lib/books.ts` (só o campo `narrator` de 10 livros) · `lib/comments.ts` · `pages/Studio.tsx` (novo) · `pages/BookDetails.tsx` · `pages/PersonProfile.tsx` · `App.tsx` | não — serviço launchd sempre no ar | 25/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —

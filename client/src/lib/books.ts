@@ -102,14 +102,14 @@ const catalogoCurado: BookCurado[] = [
   { id: 306, title: "Misery", author: "Stephen King", narrator: "Otávio Marques", cover: coverHorror, rating: 4.7, genre: "Terror" },
 
   // Mistério
-  { id: 1, title: "O massacre da família Hope", author: "Riley Sager", narrator: "Cid Moreira", cover: coverMystery, rating: 4.5, genre: "Mistério" },
+  { id: 1, title: "O massacre da família Hope", author: "Riley Sager", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.5, genre: "Mistério" },
   { id: 2, title: "A empregada", author: "Freida McFadden", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.8, genre: "Mistério" },
   { id: 3, title: "Garota Exemplar", author: "Gillian Flynn", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.6, genre: "Mistério" },
-  { id: 106, title: "A Paciente Silenciosa", author: "Alex Michaelides", narrator: "Cid Moreira", cover: coverMystery, rating: 4.5, genre: "Mistério" },
-  { id: 119, title: "O Código Da Vinci", author: "Dan Brown", narrator: "Cid Moreira", cover: coverMystery, rating: 4.4, genre: "Mistério" },
+  { id: 106, title: "A Paciente Silenciosa", author: "Alex Michaelides", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.5, genre: "Mistério" },
+  { id: 119, title: "O Código Da Vinci", author: "Dan Brown", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.4, genre: "Mistério" },
   { id: 120, title: "A Garota no Trem", author: "Paula Hawkins", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.6, genre: "Mistério" },
-  { id: 311, title: "Anjos e Demônios", author: "Dan Brown", narrator: "Cid Moreira", cover: coverMystery, rating: 4.5, genre: "Mistério" },
-  { id: 312, title: "Inferno", author: "Dan Brown", narrator: "Cid Moreira", cover: coverMystery, rating: 4.3, genre: "Mistério" },
+  { id: 311, title: "Anjos e Demônios", author: "Dan Brown", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.5, genre: "Mistério" },
+  { id: 312, title: "Inferno", author: "Dan Brown", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.3, genre: "Mistério" },
   { id: 313, title: "Objetos Cortantes", author: "Gillian Flynn", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.4, genre: "Mistério" },
   { id: 314, title: "Escrito na Água", author: "Paula Hawkins", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.2, genre: "Mistério" },
 
@@ -132,11 +132,11 @@ const catalogoCurado: BookCurado[] = [
   { id: 317, title: "A Luz Que Há em Nós", author: "Michelle Obama", narrator: "Lívia Bonfim", cover: coverBiography, rating: 4.6, genre: "Biografia" },
 
   // Autoajuda
-  { id: 4, title: "O clube das 5 da manhã", author: "Robin Sharma", narrator: "Tiago Abravanel", cover: coverSelfhelp, rating: 4.7, genre: "Autoajuda" },
-  { id: 201, title: "A Sutil Arte de Ligar o F*da-se", author: "Mark Manson", narrator: "Tiago Abravanel", cover: coverSelfhelp, rating: 4.5, genre: "Autoajuda" },
-  { id: 203, title: "O Alquimista", author: "Paulo Coelho", narrator: "Tiago Abravanel", cover: coverSelfhelp, rating: 4.7, genre: "Autoajuda" },
-  { id: 318, title: "Tudo é F*da", author: "Mark Manson", narrator: "Tiago Abravanel", cover: coverSelfhelp, rating: 4.3, genre: "Autoajuda" },
-  { id: 319, title: "Brida", author: "Paulo Coelho", narrator: "Tiago Abravanel", cover: coverSelfhelp, rating: 4.2, genre: "Autoajuda" },
+  { id: 4, title: "O clube das 5 da manhã", author: "Robin Sharma", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.7, genre: "Autoajuda" },
+  { id: 201, title: "A Sutil Arte de Ligar o F*da-se", author: "Mark Manson", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.5, genre: "Autoajuda" },
+  { id: 203, title: "O Alquimista", author: "Paulo Coelho", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.7, genre: "Autoajuda" },
+  { id: 318, title: "Tudo é F*da", author: "Mark Manson", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.3, genre: "Autoajuda" },
+  { id: 319, title: "Brida", author: "Paulo Coelho", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.2, genre: "Autoajuda" },
 
   // Produtividade
   { id: 5, title: "Organize-se", author: "Ciara Conlon", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.3, genre: "Produtividade" },

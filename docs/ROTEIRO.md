@@ -940,6 +940,57 @@ depois do Esc, e ele só volta se o fechamento tiver rodado).
 
 ---
 
+## 4.13 Quem produz a narração: o AllBook Studio e as vozes com nome (25/07)
+
+Conversa com o Matheus a partir de uma dúvida dele: **se a narração vai ser
+gerada por IA, o que a ficha do livro deve dizer?** Ele mesmo formulou o
+incômodo: "se eu coloco a informação de IA ali, a informação fica pobre".
+
+**O nó:** a ficha misturava dois créditos. A editora publicou o **livro**; ela
+não gravou o **áudio**. E na ideia central do app (ver "Modelo de negócio") o
+audiolivro muitas vezes **não existe em lugar nenhum** — o argumento do Matheus,
+que fechou a decisão: *"aquele audiolivro não vai existir ainda, não vai ter
+ninguém que produziu aquilo. Então aquele livro é um livro único."*
+
+**Decisão 1 — a editora fica.** Palavras dele: até a pessoa saber qual é a
+editora e qual é o formato daquele livro, o perfil da editora importa. É
+informação verdadeira e útil, principalmente pela **tradução**, que em audiolivro
+se ouve.
+
+**Decisão 2 — entra o quarto crédito, "Produzido por AllBook Studio"**, com tela
+própria em `/studio`. Ele **some** quando a narração for humana de verdade
+(`narratorKind === "human"`), porque aí o AllBook não produziu nada.
+
+**Decisão 3 — a voz é elenco, não aviso legal.** É a resposta ao "fica pobre", e
+vale registrar o que foi **rejeitado**: carimbar *"narrado por IA"* na ficha de
+cada livro. Repetido 59 vezes, deixa de ser informação e vira advertência de
+bula — exatamente a "cara de IA" que a seção de estilo já mandava evitar. No
+lugar: cada voz tem **nome próprio, timbre descrito e perfil** como qualquer
+narrador, e que ela é **sintética** se diz **uma vez** — na tela do estúdio e no
+perfil da voz, onde a pessoa foi justamente saber quem narra. É o caminho da
+Apple nos audiolivros de narração digital: a ficha diz o nome da voz.
+
+**Decisão 4 — nome de pessoa real só quando a pessoa narrou de verdade.** O
+catálogo usava **"Cid Moreira"** e **"Tiago Abravanel"** como narradores — duas
+pessoas reais. Enquanto era maquete sem áudio, inofensivo; com áudio gerado
+saindo com o nome delas, viraria **voz falsificada de gente de verdade**. Viraram
+**Aurélio Prado** e **Bruno Sampaio**, vozes do estúdio. Regra do Matheus, nas
+palavras dele: se existir mesmo um livro narrado pelo Cid Moreira, credita-se o
+Cid Moreira; se não existir, é voz do estúdio com nome próprio. O tipo
+`NarratorKind` em `lib/studio.ts` existe só para isso.
+
+**Onde ficou cada coisa:** `lib/studio.ts` (as 11 vozes, com timbre, e quem
+produziu o quê), `pages/Studio.tsx` (`/studio`), quarto cartão em `BookDetails` e
+o selo + timbre no `PersonProfile`. Nenhum dado de narração foi para `books.ts`
+além do nome do narrador — mesma razão da editora (ver 4.11).
+
+**Próximo passo combinado, ainda não feito:** o **livro sem narração**. Hoje ele
+mostra "Reproduzir" e não toca nada. Esse é o melhor lugar do app para a função
+central aparecer — um estado do tipo "gerar narração" / "em produção" —, e
+transforma um vazio em vitrine.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

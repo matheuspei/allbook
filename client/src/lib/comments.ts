@@ -179,7 +179,7 @@ export const comments: Comment[] = [
   { id: "e9", authorSlug: "ana-paula", publisherSlug: "intrinseca", likes: 28, dislikes: 3, date: "2026-07-18", text: "Sabem exatamente onde cortar o capítulo para eu não conseguir parar. Isso é decisão de edição, não sorte do autor." },
   { id: "e10", authorSlug: "juliana-s", publisherSlug: "intrinseca", likes: 9, dislikes: 7, date: "2026-06-30", text: "Metade do catálogo parece o mesmo livro com a capa trocada. Quando acerta, acerta muito." },
   { id: "e11", authorSlug: "felipe-g", publisherSlug: "arqueiro", likes: 24, dislikes: 6, date: "2026-07-11", text: "Não fingem ser o que não são: é entretenimento bem feito, com narração limpa e ritmo que não deixa a atenção cair no trânsito." },
-  { id: "e12", authorSlug: "carla-lima", publisherSlug: "arqueiro", likes: 11, dislikes: 8, date: "2026-06-24", text: "O Cid Moreira nos três do Dan Brown é acerto. O resto do catálogo eu ouço e esqueço na mesma semana." },
+  { id: "e12", authorSlug: "carla-lima", publisherSlug: "arqueiro", likes: 11, dislikes: 8, date: "2026-06-24", text: "O Aurélio Prado nos três do Dan Brown é acerto. O resto do catálogo eu ouço e esqueço na mesma semana." },
   { id: "e13", authorSlug: "beto", publisherSlug: "harpercollins-brasil", likes: 30, dislikes: 4, date: "2026-07-09", text: "Ter o Tolkien inteiro no mesmo lugar, com os nomes traduzidos do mesmo jeito em todos os livros, resolve uma confusão de trinta anos." },
   { id: "e14", authorSlug: "luciana", publisherSlug: "objetiva", likes: 19, dislikes: 1, date: "2026-07-05", text: "Escolhem bem quem narra memória. A Lívia Bonfim lendo a Michelle Obama não parece atriz fazendo voz, parece alguém contando." },
 ];

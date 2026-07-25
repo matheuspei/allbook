@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { PenLine, Mic, Compass } from "lucide-react";
+import { Link } from "wouter";
+import { PenLine, Mic, Compass, AudioLines } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import PersonAvatar, { hueDoNome } from "@/components/PersonAvatar";
 import BookGrid from "@/components/BookGrid";
@@ -7,6 +8,7 @@ import ProfileComments from "@/components/ProfileComments";
 import { findPerson, roleLabels } from "@/lib/people";
 import { getBooksByGenre } from "@/lib/books";
 import { commentsForPerson } from "@/lib/comments";
+import { STUDIO_NAME, findVoice } from "@/lib/studio";
 
 /**
  * Perfil de uma pessoa do catálogo — autor, narrador, ou os dois.
@@ -40,6 +42,13 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
   const papeis = roleLabels(person);
   const primeiroNome = person.name.split(" ")[0];
   const ehAutorENarrador = person.wrote.length > 0 && person.narrated.length > 0;
+
+  /**
+   * Se este narrador é uma voz do AllBook Studio. É **aqui** — e na tela do
+   * estúdio — que se diz que a voz é sintética: uma vez, no lugar onde a pessoa
+   * veio saber quem narra. Na ficha de cada livro isso viraria aviso repetido.
+   */
+  const voz = findVoice(person.slug);
 
   // Sugestão de descoberta: outros títulos do gênero principal da pessoa. Sem
   // isto, o perfil de quem tem um livro só ficaria com meia tela vazia.
@@ -93,6 +102,20 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
               </span>
             ))}
           </div>
+
+          {voz && (
+            <div className="mt-3 flex flex-col items-center gap-2">
+              <Link
+                href="/studio"
+                className="flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1 text-[11px] text-white/60 ring-1 ring-white/10 transition-colors hover:bg-white/10 hover:text-white/80"
+                data-testid="link-studio-voice"
+              >
+                <AudioLines className="h-3 w-3 text-primary" />
+                Voz sintética do {STUDIO_NAME}
+              </Link>
+              <p className="max-w-sm text-[13px] leading-relaxed text-white/55">{voz.timbre}</p>
+            </div>
+          )}
 
           <dl className="mt-6 grid w-full grid-cols-3 gap-2">
             <Estatistica
