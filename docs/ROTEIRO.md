@@ -1057,6 +1057,24 @@ de `listening`/`playback`/`library` de propósito — `playback` já credita o
 diário, e uma dependência de volta fecharia ciclo. O painel de detalhe
 (`StatSpotlight`) também deixou de ter valores próprios e recebe o resumo pronto.
 
+**O mapa de constância nasceu e morreu no mesmo dia — e a lição vale para o app
+inteiro.** A primeira versão trazia um mapa de 12×7 quadradinhos, estilo GitHub,
+com quatro níveis de intensidade. Era o bloco mais bonito da tela, e o Matheus
+travou nele: *"não é uma coisa fácil de entender… isso aqui não pode ser algo
+que você demora para entender"*. **Numa tela de números, o desenho tem de se
+explicar no primeiro olhar** — vistosidade não paga o preço de exigir legenda.
+Saiu inteiro. No lugar entrou "Sua semana": a frase "Você ouviu em 4 dos últimos
+7 dias" e sete círculos com a inicial do dia, cheios quando houve audição, com o
+tempo embaixo e um anel no dia de hoje. Tocar num círculo mostra a data por
+extenso, a duração e o livro.
+
+Duas coisas apuradas junto: (1) o mapa dependia de **passar o mouse** para dizer
+qualquer coisa — no celular não existe passar o mouse, então ele era, na prática,
+mudo no aparelho; qualquer visualização nova precisa responder ao **toque**;
+(2) a fileira dos 7 dias desenhava a **mesma informação** do gráfico logo acima,
+que abria em "7 dias" — por isso o gráfico passou a abrir em "12 semanas", e
+cada bloco responde a uma pergunta diferente.
+
 **Ficou de fora, com motivo:** as conquistas continuam com `unlocked` fixo em
 `achievements.ts` (calcular exige regras por conquista, é tarefa própria); e não
 há **retrospectiva por ano** porque o app não registra *quando* um livro foi

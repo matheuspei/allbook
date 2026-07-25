@@ -75,22 +75,25 @@ const JANELAS: { key: JanelaKey; label: string; titulo: string }[] = [
   { key: "12m", label: "12 meses", titulo: "Últimos 12 meses" },
 ];
 
-/** Semanas desenhadas no mapa de constância. */
-const SEMANAS_NO_MAPA = 12;
-
-/** Faixas de intensidade do mapa, em minutos por dia. */
-const NIVEIS = [0, 20, 45, 75];
-
-function classeDoNivel(sec: number): string {
-  const minutos = sec / 60;
-  if (minutos <= NIVEIS[0]) return "bg-white/[0.05]";
-  if (minutos < NIVEIS[1]) return "bg-primary/25";
-  if (minutos < NIVEIS[2]) return "bg-primary/50";
-  if (minutos < NIVEIS[3]) return "bg-primary/75";
-  return "bg-primary";
-}
-
 const NOMES_DOS_DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+
+/** A inicial de cada dia, para a fileira da semana. */
+const LETRAS_DOS_DIAS = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+const MESES_LONGOS = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
 
 function somarDias(data: Date, dias: number): Date {
   const copia = new Date(data);
@@ -101,7 +104,15 @@ function somarDias(data: Date, dias: number): Date {
 export default function Statistics() {
   const { toast } = useToast();
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
-  const [janela, setJanela] = useState<JanelaKey>("7d");
+  /**
+   * O gráfico abre em "12 semanas", não em "7 dias": a seção "Sua semana" logo
+   * abaixo já conta os últimos 7 dias, e as duas juntas desenhavam a **mesma
+   * informação duas vezes**, uma embaixo da outra. Assim cada uma responde a
+   * uma pergunta — o gráfico, "como foi ao longo do tempo"; a fileira de
+   * círculos, "e nesta semana?".
+   */
+  const [janela, setJanela] = useState<JanelaKey>("12s");
+  const [diaTocado, setDiaTocado] = useState<string | null>(null);
   const [resumo, setResumo] = useState<ResumoDeAudicao | null>(null);
 
   /** Relê quando o player credita audição ou quando o progresso muda. */
@@ -123,21 +134,56 @@ export default function Statistics() {
     return serieMensal(resumo.diario, 12);
   }, [resumo, janela]);
 
-  /** Os 12×7 quadradinhos, alinhados por dia da semana como um calendário. */
-  const mapa = useMemo(() => {
+  /**
+   * Os últimos 7 dias, um círculo cada.
+   *
+   * **Aqui morou um mapa de 12×7 quadradinhos, estilo GitHub, e ele saiu.** Era
+   * bonito e denso, mas o Matheus travou nele: "não é uma coisa fácil de
+   * entender, e isso aqui não pode ser algo que você demora para entender".
+   * Numa tela de estatísticas o desenho tem de se explicar no primeiro olhar —
+   * sete círculos com a inicial do dia fazem isso; 84 quadradinhos sem legenda
+   * exigem que alguém explique.
+   */
+  const semana = useMemo(() => {
     if (!resumo) return [];
     const hoje = new Date();
-    const sabadoDaSemana = somarDias(hoje, 6 - hoje.getDay());
-    const total = SEMANAS_NO_MAPA * 7;
-    const celulas: { chave: string; sec: number; futuro: boolean }[] = [];
+    const dias: { chave: string; letra: string; sec: number; hoje: boolean }[] = [];
 
-    for (let i = total - 1; i >= 0; i--) {
-      const data = somarDias(sabadoDaSemana, -i);
+    for (let atras = 6; atras >= 0; atras--) {
+      const data = somarDias(hoje, -atras);
       const chave = diaISO(data);
-      celulas.push({ chave, sec: resumo.diario[chave]?.sec ?? 0, futuro: data > hoje });
+      dias.push({
+        chave,
+        letra: LETRAS_DOS_DIAS[data.getDay()],
+        sec: resumo.diario[chave]?.sec ?? 0,
+        hoje: atras === 0,
+      });
     }
-    return celulas;
+    return dias;
   }, [resumo]);
+
+  /** O dia que a pessoa tocou — no celular não existe passar o mouse. */
+  const detalheDoDia = useMemo(() => {
+    if (!resumo || !diaTocado) return null;
+    const dia = resumo.diario[diaTocado];
+    const data = new Date(`${diaTocado}T12:00:00`);
+    const titulo = `${NOMES_DOS_DIAS[data.getDay()]}, ${data.getDate()} de ${MESES_LONGOS[data.getMonth()]}`;
+
+    if (!dia || dia.sec === 0) return { titulo, texto: "sem audição" };
+
+    const livros = Object.entries(dia.livros)
+      .sort((a, b) => b[1] - a[1])
+      .flatMap(([id]) => {
+        const livro = catalog.find((item) => item.id === Number(id));
+        return livro ? [livro.title] : [];
+      })
+      .slice(0, 2);
+
+    return {
+      titulo,
+      texto: `${formatarDuracao(dia.sec)}${livros.length ? ` · ${livros.join(", ")}` : ""}`,
+    };
+  }, [resumo, diaTocado]);
 
   const generos = useMemo(
     () =>
@@ -357,7 +403,10 @@ export default function Statistics() {
                     tickLine={false}
                     tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }}
                     dy={8}
-                    interval={0}
+                    /* Doze rótulos de data ("19/07") não cabem lado a lado no
+                       celular — grudavam num borrão. Nessa janela mostramos um
+                       sim, um não; nos dias e meses o rótulo é curto e cabe. */
+                    interval={janela === "12s" ? 1 : 0}
                   />
                   <YAxis
                     axisLine={false}
@@ -391,7 +440,7 @@ export default function Statistics() {
         {/* 4. Constância: um quadradinho por dia, 12 semanas. */}
         <section className="space-y-4" data-testid="section-consistency">
           <div className="flex items-baseline justify-between gap-3">
-            <h2 className="font-display text-xl font-bold tracking-tight">Constância</h2>
+            <h2 className="font-display text-xl font-bold tracking-tight">Sua semana</h2>
             <span className="shrink-0 text-xs text-white/40">
               {resumo.sequenciaDias === 0
                 ? "sequência parada"
@@ -402,31 +451,54 @@ export default function Statistics() {
           </div>
 
           <div className="rounded-xl border border-white/5 bg-white/5 p-4">
-            <div className="grid grid-flow-col grid-rows-7 gap-1">
-              {mapa.map((celula) => (
-                <div
-                  key={celula.chave}
-                  title={`${celula.chave}: ${formatarDuracao(celula.sec)}`}
-                  className={`aspect-square rounded-[3px] ${
-                    celula.futuro ? "bg-white/[0.02]" : classeDoNivel(celula.sec)
-                  }`}
-                />
-              ))}
+            <p className="text-center text-sm text-white/55">
+              Você ouviu em{" "}
+              <span className="font-semibold text-white">
+                {semana.filter((dia) => dia.sec > 0).length} dos últimos 7 dias
+              </span>
+            </p>
+
+            {/* Cada círculo é um dia, com a inicial dele. Preenchido = ouviu. */}
+            <div className="mt-4 flex items-start justify-between gap-1.5">
+              {semana.map((dia) => {
+                const ouviu = dia.sec > 0;
+                return (
+                  <button
+                    key={dia.chave}
+                    type="button"
+                    onClick={() => setDiaTocado(dia.chave === diaTocado ? null : dia.chave)}
+                    className="flex flex-1 flex-col items-center gap-1.5"
+                    aria-label={`${dia.chave}: ${formatarDuracao(dia.sec)}`}
+                    data-testid={`day-${dia.chave}`}
+                  >
+                    <span
+                      className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-transform ${
+                        ouviu ? "bg-primary text-black" : "bg-white/[0.07] text-white/35"
+                      } ${dia.hoje ? "ring-1 ring-white/60 ring-offset-2 ring-offset-[#1a1a1a]" : ""} ${
+                        dia.chave === diaTocado ? "scale-110" : ""
+                      }`}
+                    >
+                      {dia.letra}
+                    </span>
+                    <span className="text-[10px] leading-none text-white/30">
+                      {ouviu ? formatarDuracao(dia.sec).replace("min", "m").replace("h ", "h") : "—"}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="mt-3 flex items-center justify-between text-[10px] text-white/30">
-              <span>12 semanas atrás</span>
-              <span className="flex items-center gap-1">
-                menos
-                <span className="h-2.5 w-2.5 rounded-[2px] bg-white/[0.05]" />
-                <span className="h-2.5 w-2.5 rounded-[2px] bg-primary/25" />
-                <span className="h-2.5 w-2.5 rounded-[2px] bg-primary/50" />
-                <span className="h-2.5 w-2.5 rounded-[2px] bg-primary/75" />
-                <span className="h-2.5 w-2.5 rounded-[2px] bg-primary" />
-                mais
-              </span>
-              <span>hoje</span>
-            </div>
+            {detalheDoDia && (
+              <div
+                className="mt-4 border-t border-white/5 pt-3 text-center text-xs"
+                data-testid="day-detail"
+              >
+                <p className="leading-relaxed">
+                  <span className="font-medium text-white/80">{detalheDoDia.titulo}</span>
+                  <span className="text-white/45"> — {detalheDoDia.texto}</span>
+                </p>
+              </div>
+            )}
           </div>
 
           {ativos > 0 && (
