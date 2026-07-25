@@ -35,11 +35,12 @@ import type { Book } from "@/lib/books";
 
 export type ModoDoCartao = "resumo" | "story";
 
-/** Uma coluna da faixa de números: "412" embaixo de "PÁGINAS". */
-export interface NumeroDaStory {
-  valor: string;
-  /** Curto, em caixa alta — precisa caber em um terço da largura. */
+/** Um destaque com nome: "GÊNERO DO MÊS" em cima, "Mistério" embaixo. */
+export interface DestaqueDaStory {
+  /** Curto, em caixa alta — vira o rótulo na cor da marca. */
   rotulo: string;
+  /** O nome (gênero, autor, voz) ou a frase curta ("3 dias por livro"). */
+  valor: string;
 }
 
 export interface DadosDaStory {
@@ -50,15 +51,17 @@ export interface DadosDaStory {
   /** "livros ouvidos" / "livro ouvido". */
   destaqueRotulo: string;
   /**
-   * Até três números em colunas.
+   * Até quatro destaques **com nome**, em duas colunas.
    *
-   * Substituíram as linhas com bolinha ("12h 30min de audição", "18 dias com
-   * audição"). Duas razões: aquelas linhas gastavam 200px de altura para dizer
-   * pouco, e o que diziam era **esforço** — hora e dia de uso só significam
-   * algo para quem já usa o app. Em colunas cabem três fatos no lugar de um, e
-   * sobra altura para as capas e o fecho.
+   * Terceira forma deste bloco, e cada troca teve motivo. As linhas com
+   * bolinha diziam esforço (hora, dia de uso). As colunas de contagem que
+   * vieram depois ("8 GÊNEROS · 9 VOZES") eram honestas, mas contagem é
+   * telemetria — "8 gêneros" não conta história nenhuma. O que se posta é
+   * **nome**: "Mistério", "Stephen King", a voz que narrou. É o mesmo motivo
+   * de o Wrapped do Spotify dizer *qual* foi a sua banda do ano, e não
+   * *quantas* bandas você ouviu.
    */
-  numeros: NumeroDaStory[];
+  destaques: DestaqueDaStory[];
   /** Até 6 capas — as terminadas, se houver; senão as mais ouvidas. */
   capas: Book[];
   /** "O QUE EU TERMINEI" / "O QUE EU OUVI" — quem tem os dados decide. */
@@ -129,6 +132,21 @@ function moldura(ctx: CanvasRenderingContext2D, altura: number): void {
   ctx.fillStyle = brilho;
   ctx.fillRect(0, 0, LARGURA, alcance);
 
+  // Um calor quase invisível subindo do canto de baixo. Ele responde pelo
+  // brilho do topo — sem isso a metade de baixo ficava chapada, cor de nada.
+  const calor = ctx.createRadialGradient(
+    LARGURA * 0.92,
+    altura * 1.04,
+    0,
+    LARGURA * 0.92,
+    altura * 1.04,
+    altura * 0.5
+  );
+  calor.addColorStop(0, "rgba(255,106,0,0.08)");
+  calor.addColorStop(1, "rgba(255,106,0,0)");
+  ctx.fillStyle = calor;
+  ctx.fillRect(0, altura * 0.5, LARGURA, altura * 0.5);
+
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";
 }
@@ -161,6 +179,21 @@ function pintarCapa(
   largura: number,
   altura: number
 ): void {
+  /*
+   * A sombra vem antes do recorte, num retângulo próprio: dentro do `clip` ela
+   * não aparece (fica recortada junto). É ela que descola a capa do fundo
+   * escuro — sem sombra, capa escura sobre fundo escuro virava uma mancha.
+   */
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowBlur = 26;
+  ctx.shadowOffsetY = 12;
+  ctx.fillStyle = "#1b1b1b";
+  ctx.beginPath();
+  ctx.roundRect(x, y, largura, altura, 14);
+  ctx.fill();
+  ctx.restore();
+
   ctx.save();
   ctx.beginPath();
   ctx.roundRect(x, y, largura, altura, 14);
@@ -229,29 +262,9 @@ async function desenharCapas(
   for (let i = 0; i < livros.length; i++) {
     const livro = livros[i];
     const x = inicio + i * (largura + vao);
-    const imagem = await carregarImagem(livro.cover);
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(x, topo, largura, altura, 16);
-    ctx.clip();
-    if (imagem) {
-      // Preenche mantendo a proporção (o mesmo efeito do `object-cover`).
-      const escala = Math.max(largura / imagem.width, altura / imagem.height);
-      const largoFinal = imagem.width * escala;
-      const altoFinal = imagem.height * escala;
-      ctx.drawImage(
-        imagem,
-        x - (largoFinal - largura) / 2,
-        topo - (altoFinal - altura) / 2,
-        largoFinal,
-        altoFinal
-      );
-    } else {
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
-      ctx.fillRect(x, topo, largura, altura);
-    }
-    ctx.restore();
+    // O desenho em si é o mesmo da grade — `pintarCapa` cuida do recorte, do
+    // `object-cover` e da sombra. Esta função só acrescenta o título embaixo.
+    pintarCapa(ctx, await carregarImagem(livro.cover), x, topo, largura, altura);
 
     ctx.font = `600 ${tamanhoDoTitulo}px Inter, sans-serif`;
     ctx.fillStyle = "rgba(255,255,255,0.85)";
@@ -307,43 +320,40 @@ async function desenharResumo(ctx: CanvasRenderingContext2D, dados: DadosDoCarta
 }
 
 /**
- * A faixa de números em colunas, com um filete acima separando do número
- * gigante. Cada coluna ganha a mesma largura e o texto é cortado para não
- * invadir a vizinha.
+ * Os destaques em duas colunas: rótulo pequeno na cor da marca, nome grande em
+ * branco. Acima deles, um filete que **começa laranja e termina cinza** — é o
+ * único adorno da peça, e existe para amarrar o bloco à marca sem precisar de
+ * ícone ou cartão (a regra da casa: nada com cara de enfeite de IA).
  */
-function desenharNumeros(
+function desenharDestaques(
   ctx: CanvasRenderingContext2D,
-  numeros: NumeroDaStory[],
-  yValor: number,
-  yRotulo: number
+  destaques: DestaqueDaStory[],
+  topo: number
 ): void {
-  if (numeros.length === 0) return;
+  if (destaques.length === 0) return;
 
   const util = LARGURA - MARGEM * 2;
-  ctx.fillStyle = "rgba(255,255,255,0.1)";
-  ctx.fillRect(MARGEM, yValor - 92, util, 2);
+  ctx.fillStyle = "#FF6A00";
+  ctx.fillRect(MARGEM, topo, 88, 3);
+  ctx.fillStyle = "rgba(255,255,255,0.09)";
+  ctx.fillRect(MARGEM + 88, topo + 1, util - 88, 1);
 
-  /*
-   * Passo fixo de um terço, mesmo com uma ou duas colunas. Dividir a largura
-   * pelo número de itens jogaria a segunda coluna para o meio da peça, com um
-   * vão enorme entre as duas; com passo fixo elas ficam agrupadas à esquerda,
-   * como um bloco de dados, e o vazio sobra à direita.
-   */
-  const coluna = util / 3;
-  for (let i = 0; i < numeros.length; i++) {
-    const x = MARGEM + i * coluna;
-    // 24px de respiro para a coluna seguinte, senão os textos se encostam.
-    const cabe = coluna - 24;
+  const coluna = util / 2;
+  for (let i = 0; i < destaques.length && i < 4; i++) {
+    const x = MARGEM + (i % 2) * coluna;
+    const yRotulo = topo + 72 + Math.floor(i / 2) * 132;
+    // 32px de respiro para a coluna vizinha, senão os nomes se encostam.
+    const cabe = coluna - 32;
 
-    ctx.font = "700 74px Outfit, sans-serif";
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(textoQueCabe(ctx, numeros[i].valor, cabe), x, yValor);
-
-    ctx.font = "600 24px Inter, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.font = "600 23px Inter, sans-serif";
+    ctx.fillStyle = "rgba(255,106,0,0.85)";
     ctx.letterSpacing = "4px";
-    ctx.fillText(textoQueCabe(ctx, numeros[i].rotulo, cabe), x, yRotulo);
+    ctx.fillText(textoQueCabe(ctx, destaques[i].rotulo, cabe), x, yRotulo);
     ctx.letterSpacing = "0px";
+
+    ctx.font = "600 40px Outfit, sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(textoQueCabe(ctx, destaques[i].valor, cabe), x, yRotulo + 50);
   }
 }
 
@@ -352,8 +362,8 @@ function desenharNumeros(
  *
  * O herói é o **número de livros** do período, não as horas: "39h ouvidas" diz
  * pouco para quem vê de fora, "4 livros em 30 dias" é o que se conta. Abaixo
- * dele, três números em colunas; depois a parede de capas; e um fecho com
- * nomes — de livro terminado, de autor, de narrador.
+ * dele, os destaques com nome (gênero, autor, voz, ritmo); depois a parede de
+ * capas; e, quando a grade não mostra títulos, a frase dos terminados.
  */
 async function desenharStory(ctx: CanvasRenderingContext2D, dados: DadosDoCartao): Promise<void> {
   const s = dados.story;
@@ -371,37 +381,48 @@ async function desenharStory(ctx: CanvasRenderingContext2D, dados: DadosDoCartao
   ctx.fillStyle = "rgba(255,255,255,0.75)";
   ctx.fillText(s.destaqueRotulo, MARGEM, 628);
 
-  desenharNumeros(ctx, s.numeros.slice(0, 3), 782, 828);
+  const destaques = s.destaques.slice(0, 4);
+  const fileirasDeDestaque = Math.ceil(destaques.length / 2);
+  desenharDestaques(ctx, destaques, 700);
+
+  /*
+   * Daqui para baixo o layout é **empilhado, não fixo**: cada bloco começa
+   * onde o anterior terminou. Com posições fixas, quem tinha uma fileira de
+   * destaques em vez de duas via um buraco de 130px no meio da peça — e
+   * buraco no meio lê como defeito, não como respiro.
+   */
+  let cursor = destaques.length === 0 ? 720 : 700 + 122 + (fileirasDeDestaque - 1) * 132 + 82;
 
   /*
    * Até três capas, uma fileira grande com o título de cada livro. De quatro a
    * seis, duas fileiras menores e **sem título** — com seis nomes embaixo a
    * peça vira uma lista, e o que convence num story é a parede de capas.
-   *
-   * As alturas daqui para baixo são apertadas de propósito: o topo foi
-   * comprimido (marca, período e número gigante subiram) para a grade de duas
-   * fileiras não encostar no fecho — na primeira versão sobravam 40px entre
-   * uma coisa e outra, e parecia erro de montagem.
    */
   const capas = s.capas.slice(0, 6);
   if (capas.length > 0) {
-    rotulo(ctx, s.tituloDasCapas, 906, 26);
-    if (capas.length <= 3) await desenharCapas(ctx, capas, 946, 400, 274, 28);
-    else await desenharGrade(ctx, capas, 946, 184, 258, 3, 20);
+    rotulo(ctx, s.tituloDasCapas, cursor, 26);
+    const topoDasCapas = cursor + 40;
+    if (capas.length <= 3) {
+      await desenharCapas(ctx, capas, topoDasCapas, 400, 274, 28);
+      cursor = topoDasCapas + 400 + 60;
+    } else {
+      const fileiras = Math.ceil(capas.length / 3);
+      await desenharGrade(ctx, capas, topoDasCapas, 176, 246, 3, 20);
+      cursor = topoDasCapas + fileiras * 246 + (fileiras - 1) * 20;
+    }
   }
 
   /*
-   * O fecho: nomes escritos. Com a grade de 4 a 6 capas os títulos não caberiam
-   * embaixo de cada uma, então é aqui que eles aparecem — e é aqui também que
-   * entram autor e narrador, que capa nenhuma mostra.
+   * O fecho: a frase dos terminados, quando a grade não mostra os títulos.
+   * Autor e voz não moram mais aqui — subiram para os destaques, com rótulo.
+   * O teto em 1650 impede a frase de invadir a assinatura.
    */
   const fecho = s.fecho.slice(0, 2);
+  const yDoFecho = Math.min(cursor + 76, 1650);
   for (let i = 0; i < fecho.length; i++) {
-    // A primeira linha é o fato; a segunda é o gosto. Pesos diferentes para a
-    // leitura ter ordem — as duas em branco forte disputariam a atenção.
     ctx.font = i === 0 ? "600 34px Inter, sans-serif" : "400 30px Inter, sans-serif";
     ctx.fillStyle = i === 0 ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.5)";
-    ctx.fillText(textoQueCabe(ctx, fecho[i], LARGURA - MARGEM * 2), MARGEM, 1580 + i * 54);
+    ctx.fillText(textoQueCabe(ctx, fecho[i], LARGURA - MARGEM * 2), MARGEM, yDoFecho + i * 54);
   }
 
   /*

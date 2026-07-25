@@ -1704,6 +1704,35 @@ maior do que seria com três.
 
 ---
 
+## 4.26 Na Story, nome vale mais que contagem (26/07)
+
+A faixa de contagens da 4.25 ("8 GÊNEROS · 9 VOZES · 3 DIAS POR LIVRO") durou um
+dia. O Matheus olhou e mandou reformular: mais bonita, mais bem apresentada, e
+as contagens fora. O diagnóstico que orientou a troca: **contagem é telemetria**
+— "8 gêneros" não conta história nenhuma, e ninguém comenta um story por causa
+de uma quantidade. O que rende conversa é **nome**. É o mesmo motivo de o
+Wrapped do Spotify dizer *qual* foi a sua banda do ano, não *quantas* bandas
+você ouviu.
+
+**O que a peça mostra agora:** até quatro destaques em duas colunas, cada um com
+rótulo pequeno na cor da marca e o nome grande embaixo — GÊNERO DO MÊS, AUTOR DO
+MÊS, VOZ DO MÊS e uma quarta vaga em fila: RITMO ("3 dias por livro", só a
+partir de três livros), senão SEQUÊNCIA, senão NA FILA. Autor e narrador
+**subiram** do fecho para cá; o fecho ficou só com o "✓ Terminei …", e só quando
+a grade de capas não mostra os títulos.
+
+**O acabamento que acompanhou** (o pedido era "bonita", não só "outros dados"):
+sombra sob cada capa (capa escura sobre fundo escuro virava mancha); um filete
+que começa laranja e termina cinza sobre os destaques — o único adorno da peça,
+de propósito; um calor quase invisível subindo do canto de baixo do fundo; e o
+**layout empilhado**: cada bloco começa onde o anterior terminou, porque com
+posições fixas quem tinha uma fileira de destaques via um buraco de 130px no
+meio da peça. De quebra, `desenharCapas` deixou de duplicar o desenho de
+`pintarCapa` — era o mesmo código duas vezes, e a sombra teria que ser colada
+nos dois lugares.
+
+---
+
 ## 4.26 Quem narra, se já existe narração? (26/07)
 
 O Matheus achou um furo no pedido de livro, e ele é de lógica, não de tela:
@@ -1764,6 +1793,55 @@ raro, feito por quem tem motivo real, e não a opção padrão de todo mundo. É
 também o lugar natural para o preço aparecer, se a regravação for paga (preço e
 plano continuam em aberto neste roteiro). **Nada disso foi construído** — está
 aqui como decisão pendente, não como plano aprovado.
+
+---
+
+## 4.27 O botão que apontava para baixo e não abria nada (26/07)
+
+**O que o Matheus viu:** na Início, o botão "Categorias" tinha uma seta apontando
+para baixo — *"teoricamente ele iria expandir uma lista, porque é isso que deixa
+a entender"* — mas o clique **navegava** para a tela Descobrir. E a Descobrir
+começa com um campo de busca, então a sensação era de cair na tela Buscar:
+*"ele fica sem sentido. Ele está ali porque ele não tem uma função."*
+
+Ele mesmo delimitou as saídas: **ou expande, ou abre outra coisa, ou não existe.**
+
+### A escolha: fazer a seta cumprir o que promete
+
+Expandir a lista ali mesmo, na própria Início. Os oito gêneros do catálogo em
+duas colunas; tocar num deles leva a `/category/:slug`, tela que já existia.
+
+**Por que não simplesmente apagar o botão** (a saída mais barata): a lista de
+gêneros é conteúdo real e **não existia em lugar nenhum da Início**. Apagar o
+botão resolveria a mentira da seta e tiraria junto o único atalho para navegar
+por gênero da tela principal — trocaria um defeito por uma ausência.
+
+**Por que não trocar a seta por uma que aponta para o lado** (manter a
+navegação): o destino é justamente o que o Matheus achou sem sentido. Consertar
+o ícone deixaria o botão honesto e ainda assim inútil.
+
+### O que o botão passou a mostrar, e por quê
+
+- **Gênero ≠ coleção.** A lista que abre são os **gêneros** (Terror, Romance…),
+  que levam a `/category/:slug`; os cards coloridos logo abaixo são **coleções
+  curadas** (Lançamentos, Favoritos…), que levam a `/collection/:slug`. São
+  listas diferentes — os dois blocos convivem sem repetir.
+- **Cada gênero mostra quantos livros tem** (Terror 6, Ficção Científica 11…).
+  O número vem do catálogo de verdade: dá para ver que há conteúdo do outro lado
+  **antes** de tocar. É a mesma disciplina da varredura de botão morto (4.23).
+- A barrinha colorida de cada item usa o gradiente do próprio gênero — a mesma
+  cor que reaparece no topo da tela daquele gênero.
+
+### Fica em aberto: a tela Descobrir perdeu a aba dela
+
+Levantado aqui porque a queixa encostou nisso, mas **não decidido nem mexido**.
+Quando "Buscar" e "Pedir" entraram no menu de baixo, **Descobrir saiu** — hoje
+ela só é alcançada por links soltos (estados vazios da Biblioteca e dos
+Downloads, ficha do livro, player). Ela também abre com um campo de busca falso
+que leva para `/search`, o que a faz parecer a tela Buscar — foi exatamente a
+confusão que o Matheus relatou. As saídas plausíveis: fundir Descobrir com
+Buscar (a Apple TV faz assim), devolver uma aba a ela, ou aposentá-la
+distribuindo suas fileiras entre Início e Buscar. **Decisão do Matheus.**
 
 ---
 

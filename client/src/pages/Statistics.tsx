@@ -15,7 +15,7 @@ import {
 
 import CartaoDeResumo, {
   type DadosDoCartao,
-  type NumeroDaStory,
+  type DestaqueDaStory,
 } from "@/components/CartaoDeResumo";
 import PageHeader from "@/components/PageHeader";
 import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
@@ -329,7 +329,7 @@ export default function Statistics() {
         periodo: "",
         destaque: "0",
         destaqueRotulo: "livros",
-        numeros: [],
+        destaques: [],
         capas: [],
         tituloDasCapas: "",
         fecho: [],
@@ -362,57 +362,32 @@ export default function Statistics() {
     const nomesNasCapas = capas.length <= 3;
 
     /*
-     * Os três números da faixa saem de uma **fila de candidatos**: o primeiro
-     * que tem substância entra. É o que impede a peça de mostrar "0 dias
-     * seguidos" ou uma coluna vazia — quem ouviu pouco vê números diferentes de
-     * quem ouviu muito, e nenhum dos dois vê um número vergonhoso.
+     * Os destaques têm **nome**, não contagem. A faixa anterior dizia
+     * "8 GÊNEROS · 9 VOZES", e o Matheus mandou trocar: contagem é telemetria,
+     * não conta história — o que se mostra é *qual* gênero, *qual* autor,
+     * *qual* voz. Continuam fora, de propósito: hora e "dias com audição"
+     * (esforço, não gosto) e "páginas" (dado emprestado da Open Library — ver
+     * a nota em `lerResumoDoPeriodo`).
      */
-    const candidatos: (NumeroDaStory | null)[] = [
-      // Se o herói já são os terminados, o total ouvido acrescenta; se não,
-      // seria repetir o número gigante.
-      terminouNoPeriodo && ultimos30.ouvidos.length > 0
-        ? { valor: String(ultimos30.ouvidos.length), rotulo: "LIVROS OUVIDOS" }
-        : null,
-      ultimos30.generos.length >= 2
-        ? { valor: String(ultimos30.generos.length), rotulo: "GÊNEROS" }
-        : null,
-      // Voz é o número que só um app de audiolivro tem — e é dado nosso, não de
-      // catálogo emprestado.
-      ultimos30.narradores >= 2
-        ? { valor: String(ultimos30.narradores), rotulo: "VOZES" }
-        : null,
-      resumo.sequenciaDias >= 2
-        ? { valor: String(resumo.sequenciaDias), rotulo: "DIAS SEGUIDOS" }
-        : null,
-      ultimos30.autores >= 2 ? { valor: String(ultimos30.autores), rotulo: "AUTORES" } : null,
-      /*
-       * Ritmo: o único jeito de dizer "sou rápido" sem falar em hora. Só a
-       * partir de três livros — com dois, a conta dá "15 dias por livro", e
-       * ninguém posta o próprio ritmo quando ele parece lento.
-       */
+    const ritmo = Math.max(1, Math.round(30 / Math.max(1, destaqueDaStory)));
+    // A quarta vaga é uma fila. O ritmo só entra a partir de três livros —
+    // com dois, "15 dias por livro" parece lento, e ninguém posta isso.
+    const quartaVaga: DestaqueDaStory | null =
       destaqueDaStory >= 3
-        ? { valor: String(Math.max(1, Math.round(30 / destaqueDaStory))), rotulo: "DIAS POR LIVRO" }
-        : null,
-      resumo.naLista >= 2 ? { valor: String(resumo.naLista), rotulo: "NA FILA" } : null,
-    ];
+        ? { rotulo: "RITMO", valor: ritmo === 1 ? "1 dia por livro" : `${ritmo} dias por livro` }
+        : resumo.sequenciaDias >= 2
+          ? { rotulo: "SEQUÊNCIA", valor: `${resumo.sequenciaDias} dias seguidos` }
+          : resumo.naLista >= 2
+            ? { rotulo: "NA FILA", valor: `${resumo.naLista} livros` }
+            : null;
 
-    /*
-     * **Duas ausências de propósito nesta fila.**
-     *
-     * "Dias com audição" era uma das linhas da versão antiga: mede uso do app,
-     * não gosto de quem lê. "Páginas" chegou a entrar e saiu no mesmo dia —
-     * dependia da ficha da Open Library, que não vai existir nos livros que o
-     * próprio AllBook subir (o motivo completo está em `lerResumoDoPeriodo`).
-     * Se a fila secar, a faixa mostra duas colunas: menos é melhor que encher
-     * com número fraco ou emprestado.
-     */
+    const destaquesDaStory = [
+      ultimos30.generos[0] ? { rotulo: "GÊNERO DO MÊS", valor: ultimos30.generos[0] } : null,
+      ultimos30.autorTop ? { rotulo: "AUTOR DO MÊS", valor: ultimos30.autorTop } : null,
+      ultimos30.narradorTop ? { rotulo: "VOZ DO MÊS", valor: ultimos30.narradorTop } : null,
+      quartaVaga,
+    ].filter((destaque): destaque is DestaqueDaStory => destaque !== null);
 
-
-    /*
-     * O fecho também é uma fila: nomes, em ordem de força. Livro terminado
-     * ganha de autor, autor ganha de narrador — mas o narrador entra sempre que
-     * sobra linha, porque é a informação que só um app de audiolivro tem.
-     */
     const lista =
       ultimos30.terminados.length === 1
         ? ultimos30.terminados[0].title
@@ -421,11 +396,11 @@ export default function Statistics() {
             .map((livro) => livro.title)
             .join(", ")}${ultimos30.terminados.length > 2 ? ` e mais ${ultimos30.terminados.length - 2}` : ""}`;
 
-    const fecho = [
-      terminouNoPeriodo && !nomesNasCapas ? `✓ Terminei ${lista}` : null,
-      ultimos30.autorTop ? `Mais ouvi ${ultimos30.autorTop}` : null,
-      ultimos30.narradorTop ? `Narrador mais ouvido: ${ultimos30.narradorTop}` : null,
-    ].filter((linha): linha is string => Boolean(linha));
+    // Autor e voz subiram para os destaques; o fecho ficou só com a frase que
+    // a pessoa quer que leiam — e só quando a grade não mostra os títulos.
+    const fecho = [terminouNoPeriodo && !nomesNasCapas ? `✓ Terminei ${lista}` : null].filter(
+      (linha): linha is string => Boolean(linha)
+    );
 
     const ativosAgora = diasAtivos(resumo.diario);
     const partes = [
@@ -476,15 +451,7 @@ export default function Statistics() {
           : ultimos30.ouvidos.length === 1
             ? "livro ouvido"
             : "livros ouvidos",
-        numeros: candidatos
-          .filter((numero): numero is NumeroDaStory => numero !== null)
-          /*
-           * Fora quem repete o número gigante. Com 11 livros de 11 autores
-           * diferentes, a peça mostrava "11" duas vezes — e número repetido na
-           * mesma imagem lê como erro de cálculo, não como coincidência.
-           */
-          .filter((numero) => numero.valor !== String(destaqueDaStory))
-          .slice(0, 3),
+        destaques: destaquesDaStory.slice(0, 4),
         capas,
         tituloDasCapas: terminouNoPeriodo ? "O QUE EU TERMINEI" : "O QUE EU OUVI",
         fecho: fecho.slice(0, 2),
