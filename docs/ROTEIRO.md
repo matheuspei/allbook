@@ -1178,6 +1178,14 @@ em não-ficção.
 chega perto das 5 avaliações — ou seja, **na prática o app segue mostrando a
 nota curada**, que é exatamente o comportamento desenhado para a partida a frio.
 
+**Como chegar aos 20% para ver o bloco liberado (enquanto o áudio é simulado).**
+O player anda 1 segundo por segundo: esperar ouvindo levaria ~2h30 num livro de
+12h. O caminho é **pular capítulo** no player — a barra arrasta só dentro do
+capítulo atual, de propósito. Em "O massacre da família Hope" (11 capítulos),
+três toques em "Próximo capítulo" levam a 25,8% e liberam a avaliação. Isso é
+limitação do áudio de mentira, não do portão: com áudio real, ouvir 20% é ouvir
+20%.
+
 ---
 
 ## 4.16 As medalhas passaram a ser ganhas; meta e previsão (25/07)
