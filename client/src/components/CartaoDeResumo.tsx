@@ -135,6 +135,62 @@ function rotulo(ctx: CanvasRenderingContext2D, texto: string, y: number, tamanho
   ctx.letterSpacing = "0px";
 }
 
+/** Pinta uma capa recortada em cantos arredondados, no estilo `object-cover`. */
+function pintarCapa(
+  ctx: CanvasRenderingContext2D,
+  imagem: HTMLImageElement | null,
+  x: number,
+  y: number,
+  largura: number,
+  altura: number
+): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x, y, largura, altura, 14);
+  ctx.clip();
+  if (imagem) {
+    const escala = Math.max(largura / imagem.width, altura / imagem.height);
+    const largoFinal = imagem.width * escala;
+    const altoFinal = imagem.height * escala;
+    ctx.drawImage(
+      imagem,
+      x - (largoFinal - largura) / 2,
+      y - (altoFinal - altura) / 2,
+      largoFinal,
+      altoFinal
+    );
+  } else {
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    ctx.fillRect(x, y, largura, altura);
+  }
+  ctx.restore();
+}
+
+/**
+ * Uma grade de capas, com cada linha centralizada — é o que permite mostrar
+ * **até seis** livros na Story sem deixar a última fileira torta quando ela vem
+ * incompleta (5 capas = 3 + 2).
+ */
+async function desenharGrade(
+  ctx: CanvasRenderingContext2D,
+  livros: Book[],
+  topo: number,
+  largura: number,
+  altura: number,
+  colunas: number,
+  vao = 24
+): Promise<void> {
+  for (let i = 0; i < livros.length; i++) {
+    const linha = Math.floor(i / colunas);
+    const coluna = i % colunas;
+    const nestaLinha = Math.min(colunas, livros.length - linha * colunas);
+    const conjunto = nestaLinha * largura + (nestaLinha - 1) * vao;
+    const x = (LARGURA - conjunto) / 2 + coluna * (largura + vao);
+    const y = topo + linha * (altura + vao);
+    pintarCapa(ctx, await carregarImagem(livros[i].cover), x, y, largura, altura);
+  }
+}
+
 /** As capas lado a lado, com o título embaixo de cada uma. */
 async function desenharCapas(
   ctx: CanvasRenderingContext2D,
@@ -261,9 +317,23 @@ async function desenharStory(ctx: CanvasRenderingContext2D, dados: DadosDoCartao
     y += 66;
   }
 
-  if (s.capas.length > 0) {
-    rotulo(ctx, s.terminados.length > 0 ? "O QUE EU TERMINEI" : "O QUE EU OUVI", 1080, 26);
-    await desenharCapas(ctx, s.capas.slice(0, 3), 1120, 396, 274, 28);
+  /*
+   * Até três capas, uma fileira grande com o título de cada livro. De quatro a
+   * seis, duas fileiras menores e **sem título** — com seis nomes embaixo a
+   * peça vira uma lista, e o que convence num story é a parede de capas.
+   */
+  const capas = s.capas.slice(0, 6);
+  if (capas.length > 0) {
+    const titulo = s.terminados.length > 0 ? "O QUE EU TERMINEI" : "O QUE EU OUVI";
+    if (capas.length <= 3) {
+      rotulo(ctx, titulo, 1080, 26);
+      await desenharCapas(ctx, capas, 1120, 396, 274, 28);
+    } else {
+      // O rótulo precisa de folga da última linha de apoio (que termina em
+      // ~932): com ele em 960 os dois se encostavam.
+      rotulo(ctx, titulo, 1004, 26);
+      await desenharGrade(ctx, capas, 1044, 188, 264, 3, 22);
+    }
   }
 
   // Os terminados, escritos — é a frase que a pessoa quer que leiam.

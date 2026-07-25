@@ -14,7 +14,7 @@
  */
 
 import type { DadosDeConquista } from "@/lib/achievements";
-import { catalog, type Book, type Genre } from "@/lib/books";
+import { catalog, minutosEstimados, type Book, type Genre } from "@/lib/books";
 import { readFollowing } from "@/lib/following";
 import { readLibrary } from "@/lib/library";
 import { readMyComments } from "@/lib/myComments";
@@ -34,6 +34,7 @@ import {
 } from "@/lib/listening";
 import {
   CONCLUIDO_PERCENT,
+  MINIMO_PARA_CONTAR_PERCENT,
   playbackPercent,
   readConcluidos,
   readPlaybackList,
@@ -141,8 +142,13 @@ export function lerDadosDeConquista(resumo: ResumoDeAudicao): DadosDeConquista {
 }
 
 export interface ResumoDoPeriodo {
-  /** Livros com audição na janela, do mais ouvido para o menos. */
-  ouvidos: { book: Book; sec: number }[];
+  /**
+   * Livros com audição na janela **e** progresso acima do piso, do mais ouvido
+   * para o menos. Quem só espiou não entra.
+   */
+  ouvidos: { book: Book; sec: number; percent: number }[];
+  /** Quantos livros ficaram de fora por terem sido só espiados. */
+  espiados: number;
   /** Terminados **dentro** da janela — só os que têm data carimbada. */
   terminados: Book[];
   segundos: number;
@@ -177,12 +183,36 @@ export function lerResumoDoPeriodo(diario: Diario, dias = 30, hoje = new Date())
     }
   }
 
-  const ouvidos = Array.from(porLivroSec.entries())
+  /**
+   * O quanto do livro já foi ouvido — a régua que decide se ele "conta".
+   *
+   * São **duas evidências, e vale a maior**: a posição salva no `playback`
+   * (quem retomou perto do fim ouviu pouco no mês, mas o livro está adiantado)
+   * e o total acumulado no diário sobre a duração estimada (quem ouviu 5h de um
+   * livro de 6h está quase no fim, mesmo sem posição salva — é o caso de todo o
+   * histórico de demonstração, que alimenta o diário e não o player).
+   */
+  const posicaoSalva = new Map(
+    readPlaybackList().map((item) => [item.bookId, playbackPercent(item)])
+  );
+  const totalPorLivro = new Map(porLivro(diario).map((item) => [item.bookId, item.sec]));
+
+  const candidatos = Array.from(porLivroSec.entries())
     .sort((a, b) => b[1] - a[1])
     .flatMap(([bookId, sec]) => {
       const book = catalog.find((item) => item.id === bookId);
-      return book ? [{ book, sec }] : [];
+      if (!book) return [];
+
+      // 5h quando o livro não tem número de páginas — a mesma reserva da ficha.
+      const duracaoSec = (minutosEstimados(book.pages) || 300) * 60;
+      const acumulado = ((totalPorLivro.get(bookId) ?? 0) / duracaoSec) * 100;
+      const percent = Math.min(100, Math.max(posicaoSalva.get(bookId) ?? 0, acumulado));
+
+      return [{ book, sec, percent }];
     });
+
+  const ouvidos = candidatos.filter((item) => item.percent >= MINIMO_PARA_CONTAR_PERCENT);
+  const espiados = candidatos.length - ouvidos.length;
 
   const inicioISO = limite.toISOString().slice(0, 10);
   const terminados = Object.entries(readConcluidos())
@@ -192,7 +222,7 @@ export function lerResumoDoPeriodo(diario: Diario, dias = 30, hoje = new Date())
       return book ? [book] : [];
     });
 
-  return { ouvidos, terminados, segundos, diasComAudicao };
+  return { ouvidos, espiados, terminados, segundos, diasComAudicao };
 }
 
 export interface FatiaDeGenero {

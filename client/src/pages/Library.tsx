@@ -31,6 +31,7 @@ import {
 } from "@/lib/books";
 import { LIBRARY_EVENT, libraryBooks, readDownloads, removeDownload } from "@/lib/library";
 import {
+  CONCLUIDO_PERCENT,
   PLAYBACK_EVENT,
   playbackEntries,
   remainingLabel,
@@ -70,8 +71,12 @@ import {
  * degradê, contra a sobriedade que o resto do app seguiu.
  */
 
-/** Acima disto o livro conta como concluído — os últimos minutos são créditos. */
-const CONCLUIDO = 98;
+/**
+ * A régua de "concluído" é uma só no app inteiro (`lib/playback.ts`) — quando
+ * ela morava aqui também, baixar o limite num lugar deixava as duas telas
+ * discordando sobre o mesmo livro.
+ */
+const CONCLUIDO = CONCLUIDO_PERCENT;
 
 type FiltroKey = "tudo" | "ouvindo" | "lista" | "baixados" | "concluidos";
 type OrdemKey = "recentes" | "titulo" | "autor" | "progresso";

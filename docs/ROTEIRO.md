@@ -1580,6 +1580,47 @@ dia da troca de celular.
 
 ---
 
+## 4.24 As duas réguas do que "conta" como livro lido (25/07)
+
+O Matheus perguntou como o app decide que um livro está concluído e levantou a
+dúvida certa: "se a pessoa escuta só 10% ou 20%, ela não pode vir para cá".
+
+**A régua de concluído era 98%, e baixou para 95%.** Audiolivro termina em
+créditos, agradecimentos e trecho do próximo título; quase ninguém ouve até o
+último segundo, e exigir 98% deixava livro terminado de fato marcado como "em
+andamento" para sempre. **A constante mora em `lib/playback.ts` e agora é uma
+só** — a Biblioteca tinha uma cópia própria, e baixar o limite num lugar deixaria
+as duas telas discordando sobre o mesmo livro.
+
+**Nasceu uma segunda régua, que faltava: o piso para *contar* como livro.** A
+Story dizia "12 livros ouvidos" contando **qualquer** livro com qualquer
+audição no período — abrir doze livros por dois minutos cada daria doze. Número
+bonito e falso, exatamente o que o Matheus temia. Agora só entra quem passou de
+**10%** (`MINIMO_PARA_CONTAR_PERCENT`); abaixo disso a pessoa espiou, não leu.
+Com os dados de exemplo o número caiu de 12 para 11 na hora.
+
+**Como o progresso é medido — duas evidências, vale a maior.** A posição salva
+no player (quem retomou perto do fim ouviu pouco no mês, mas o livro está
+adiantado) **e** o total acumulado no diário sobre a duração estimada (quem
+ouviu 5h de um livro de 6h está quase no fim, mesmo sem posição salva). A
+segunda foi indispensável: o histórico de demonstração alimenta o diário e
+**não** o player, então só a primeira zeraria a Story inteira.
+
+**Até seis capas na Story.** Até três, uma fileira grande com o título de cada
+livro; de quatro a seis, duas fileiras menores e **sem título** — com seis nomes
+embaixo a peça vira lista, e o que convence num story é a parede de capas. Cada
+fileira é centralizada, para a última não ficar torta quando vem incompleta
+(5 capas = 3 + 2).
+
+**Sobre "tempo de audição" ser ou não uma boa métrica** — a dúvida do Matheus
+tem resposta diferente para cada peça, e é assim que ficou: **hora não é o herói
+em lugar nenhum que seja público**. Na Story o número grande é livro; a hora
+sobrou como linha de apoio, onde ela funciona (dá tamanho ao esforço). No
+Resumo, que é uso pessoal, a hora continua no topo porque ali ela é o dado mais
+honesto do acervo.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

@@ -25,8 +25,23 @@ const PROGRESS_KEY = "allbook_playback";
 const VISIBLE_KEY = "allbook_miniplayer";
 const CONCLUIDOS_KEY = "allbook_finished";
 
-/** Acima disto o livro conta como concluído — os últimos minutos são créditos. */
-export const CONCLUIDO_PERCENT = 98;
+/**
+ * Acima disto o livro conta como **concluído**.
+ *
+ * Era 98%, e baixou para 95% em 25/07: audiolivro termina em créditos,
+ * agradecimentos e trecho do próximo título, e quase ninguém ouve até o último
+ * segundo — exigir 98% deixava livro terminado de fato marcado como "em
+ * andamento" para sempre. 95% é o ponto em que a história já acabou.
+ */
+export const CONCLUIDO_PERCENT = 95;
+
+/**
+ * Piso para um livro **contar** numa contagem de livros (a Story, por exemplo).
+ *
+ * Sem isso, abrir doze livros por dois minutos cada virava "12 livros ouvidos"
+ * — número bonito e falso. Abaixo de 10% a pessoa espiou, não leu.
+ */
+export const MINIMO_PARA_CONTAR_PERCENT = 10;
 
 /**
  * **Quando** cada livro foi terminado (`{ [id]: ISO }`).

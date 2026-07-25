@@ -398,10 +398,11 @@ export default function Statistics() {
           generos[0] ? `${generos[0].genero} em alta` : "",
         ].filter(Boolean),
         // Se terminou algo, são as capas dos terminados que interessam.
+        // Até seis: com muitos livros no mês, a parede de capas é a prova.
         capas: (terminouNoPeriodo
           ? ultimos30.terminados
           : ultimos30.ouvidos.map((item) => item.book)
-        ).slice(0, 3),
+        ).slice(0, 6),
         terminados: ultimos30.terminados.map((livro) => livro.title),
       },
     };

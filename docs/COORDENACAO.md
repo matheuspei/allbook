@@ -22,7 +22,7 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | **ocupada** — régua de "concluído" (98%→95%) + piso para um livro contar na Story (nada de 2 minutos virar "livro ouvido") + até 6 capas | `lib/playback.ts` · `lib/stats.ts` · `components/CartaoDeResumo.tsx` · `pages/Statistics.tsx` · `pages/Library.tsx` (só a constante) | não — serviço launchd sempre no ar | 25/07 |
+| A | — livre — (25/07: Estatísticas reais, troféus, peças Resumo/Story e as réguas de "livro lido" — ver ROTEIRO 4.14, 4.16, 4.19 a 4.22 e 4.24) | — | não — serviço launchd sempre no ar | 25/07 |
 | B | — livre — (25/07 noite: faixa de pedido deixou de brigar com a capa do billboard — corpo opaco + respiro; ver ROTEIRO 4.18) | — | não — serviço launchd sempre no ar | 25/07 |
 | C | — livre — (25/07: estúdio e vozes, pedido sob demanda, busca refeita, e a varredura de botão morto com a separação frontend × banco — ver ROTEIRO 4.13, 4.17, 4.18 e 4.23) | — | não — serviço launchd sempre no ar | 25/07 |
 
