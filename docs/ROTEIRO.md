@@ -1354,6 +1354,44 @@ retrospectiva** com as capas, para dar print. Os dois ficaram fora desta rodada.
 
 ---
 
+## 4.20 Cartão de retrospectiva, e as medalhas iguais em todo lugar (25/07)
+
+Duas pontas que a rodada anterior deixou anotadas — o Matheus mandou fechar as
+duas.
+
+**O "Copiar meu resumo" virou um cartão de verdade.** O botão jogava uma lista
+de tópicos na área de transferência ("• 39h 42min ouvidas…"). Funcionava, e era
+a coisa menos premium da tela: **ninguém posta tópicos**. Agora "Criar meu
+cartão" abre uma imagem 1080×1350 com o brilho da marca, o número grande, a
+linha de títulos e dias, as **três capas** do que mais tomou seu tempo e o
+gênero favorito — do jeito que Spotify e Strava entregam no fim do ano. O texto
+não sumiu: virou um botão secundário dentro do próprio cartão.
+
+**Decisão técnica: desenhar num `<canvas>`, não fotografar uma `<div>`.** Para o
+`navigator.share` levar a peça ao WhatsApp ou ao Instagram, ela precisa existir
+como **arquivo**. Estilizar uma `div` e capturá-la exigiria uma biblioteca nova
+(html2canvas e afins) — peso a mais por um resultado pior. Desenhando direto, o
+que se vê na tela **é** o arquivo: não existe divergência entre prévia e saída.
+As capas vêm da mesma origem (o Vite serve tudo), então o canvas não fica
+"contaminado" e o `toBlob` funciona. No computador, sem compartilhamento de
+arquivo, o cartão baixa como PNG.
+
+**Três coisas apuradas desenhando, todas invisíveis no código:**
+- O brilho da marca tomava metade do cartão e deixava o topo amarronzado —
+  raio e opacidade caíram bastante.
+- A assinatura "feito no AllBook" a 30% de opacidade **sumia** no fundo escuro.
+- O desenho leva perto de um segundo (fontes da marca + três capas), e nesse
+  intervalo ficava um retângulo invisível com cara de tela quebrada. Entrou um
+  "Montando seu cartão…" por cima.
+
+**As medalhas ficaram iguais em todo lugar.** O perfil de **outro** leitor ainda
+desenhava os troféus no degradê laranja antigo, de antes da raridade (4.19).
+Agora usa o mesmo `TIERS` do seu perfil — prata, cor da marca, dourado. **O
+motivo importa mais que o ajuste:** se a mesma medalha muda de aparência
+conforme a tela, ela deixa de significar alguma coisa.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

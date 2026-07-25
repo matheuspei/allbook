@@ -9,7 +9,7 @@ import { relativeDate } from "@/lib/activity";
 import { commentsByAuthor, bookOf } from "@/lib/comments";
 import { findMember, recommendationsOf } from "@/lib/community";
 import { isFollowing, toggleFollow } from "@/lib/following";
-import { getAchievementsByIds } from "@/lib/achievements";
+import { TIERS, getAchievementsByIds } from "@/lib/achievements";
 
 /**
  * Perfil público de outro leitor (`/user/:slug`).
@@ -100,17 +100,24 @@ export default function UserProfile() {
           </span>
         </div>
 
+        {/*
+          Os troféus da pessoa, **na mesma linguagem do seu perfil**: cada um na
+          cor da sua raridade (prata, cor da marca, dourado), e não mais todos no
+          mesmo degradê laranja. Se as medalhas mudam de aparência conforme a
+          tela, deixam de significar alguma coisa.
+        */}
         {member.achievementIds.length > 0 && (
           <div className="flex items-center gap-1.5 mt-4 flex-wrap" data-testid="user-trophies">
             {getAchievementsByIds(member.achievementIds).map((item) => {
               const Icon = item.icon;
+              const tier = TIERS[item.tier];
               return (
                 <div
                   key={item.id}
-                  title={item.label}
-                  className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shadow-md shadow-primary/40 ring-1 ring-primary/40"
+                  title={`${item.label} · ${tier.label}`}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center ${tier.fundo} ${tier.brilho}`}
                 >
-                  <Icon className="w-4 h-4 text-white drop-shadow" strokeWidth={2} />
+                  <Icon className={`w-4 h-4 ${tier.icone}`} strokeWidth={2} />
                 </div>
               );
             })}

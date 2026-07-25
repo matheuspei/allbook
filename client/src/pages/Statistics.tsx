@@ -13,6 +13,7 @@ import {
   Trophy,
 } from "lucide-react";
 
+import CartaoDeResumo, { type DadosDoCartao } from "@/components/CartaoDeResumo";
 import PageHeader from "@/components/PageHeader";
 import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { Button } from "@/components/ui/button";
@@ -136,6 +137,7 @@ export default function Statistics() {
   const [janela, setJanela] = useState<JanelaKey>("12s");
   const [diaTocado, setDiaTocado] = useState<string | null>(null);
   const [meta, setMeta] = useState(readMetaSemanal);
+  const [cartaoAberto, setCartaoAberto] = useState(false);
   const [resumo, setResumo] = useState<ResumoDeAudicao | null>(null);
 
   /** Relê quando o player credita audição ou quando o progresso muda. */
@@ -293,13 +295,53 @@ export default function Statistics() {
     [resumo]
   );
 
-  const livroMaisOuvido = useMemo(() => {
-    if (!resumo) return null;
-    const topo = porLivro(resumo.diario)[0];
-    if (!topo) return null;
-    const livro = catalog.find((item) => item.id === topo.bookId);
-    return livro ? { livro, sec: topo.sec } : null;
+  const livrosMaisOuvidos = useMemo(() => {
+    if (!resumo) return [];
+    return porLivro(resumo.diario)
+      .flatMap(({ bookId, sec }) => {
+        const livro = catalog.find((item) => item.id === bookId);
+        return livro ? [{ livro, sec }] : [];
+      })
+      .slice(0, 3);
   }, [resumo]);
+
+  const livroMaisOuvido = livrosMaisOuvidos[0] ?? null;
+
+  /**
+   * O que vai no cartão de retrospectiva. Memoizado de propósito: o cartão
+   * redesenha quando estes dados mudam, e um objeto novo a cada quadro faria
+   * ele redesenhar sem parar.
+   */
+  const dadosDoCartao = useMemo<DadosDoCartao>(() => {
+    if (!resumo) {
+      return { total: "", apoio: "", generoFavorito: "", livros: [], texto: "" };
+    }
+
+    const ativosAgora = diasAtivos(resumo.diario);
+    const partes = [
+      `${resumo.titulosComecados} ${resumo.titulosComecados === 1 ? "título" : "títulos"}`,
+      `${ativosAgora} ${ativosAgora === 1 ? "dia ouvindo" : "dias ouvindo"}`,
+    ];
+    if (resumo.concluidos > 0) partes.push(`${resumo.concluidos} concluídos`);
+
+    const texto = [
+      "Minhas estatísticas no AllBook:",
+      `• ${formatarDuracao(resumo.segundos)} ouvidas`,
+      `• ${resumo.titulosComecados} títulos começados, ${resumo.concluidos} concluídos`,
+      resumo.sequenciaDias > 0 ? `• sequência de ${resumo.sequenciaDias} dias` : null,
+      generos[0] ? `• gênero favorito: ${generos[0].genero}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    return {
+      total: formatarDuracao(resumo.segundos),
+      apoio: partes.join(" · "),
+      generoFavorito: generos[0]?.genero ?? "",
+      livros: livrosMaisOuvidos.map((item) => item.livro),
+      texto,
+    };
+  }, [resumo, generos, livrosMaisOuvidos]);
 
   // Primeiro quadro: o diário ainda não foi lido (só existe no navegador).
   if (!resumo) {
@@ -355,31 +397,12 @@ export default function Statistics() {
     },
   ];
 
-  /**
-   * Copia um resumo em texto — o botão antigo copiava a URL do localhost.
-   * É função de seta atribuída a `const` de propósito: uma `function` seria
-   * içada para antes do `if (!resumo)` acima, e o TypeScript deixaria de saber
-   * que `resumo` já não é nulo aqui dentro.
+  /*
+   * O antigo "Copiar meu resumo" ficava aqui: copiava uma lista de tópicos em
+   * texto. Virou o `CartaoDeResumo` — uma imagem com a marca, os números e as
+   * capas, que dá para postar. O texto continua existindo, como opção dentro
+   * do próprio cartão.
    */
-  const compartilhar = async () => {
-    const linhas = [
-      "Minhas estatísticas no AllBook:",
-      `• ${formatarDuracao(resumo.segundos)} ouvidas`,
-      `• ${resumo.titulosComecados} títulos começados, ${resumo.concluidos} concluídos`,
-      resumo.sequenciaDias > 0 ? `• sequência de ${resumo.sequenciaDias} dias` : null,
-      generos[0] ? `• gênero favorito: ${generos[0].genero}` : null,
-    ].filter(Boolean);
-
-    try {
-      await navigator.clipboard.writeText(linhas.join("\n"));
-      toast({ title: "Resumo copiado", description: "Agora é só colar onde você quiser." });
-    } catch {
-      toast({
-        title: "Não deu para copiar",
-        description: "O navegador bloqueou o acesso à área de transferência.",
-      });
-    }
-  }
 
   return (
     <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="statistics-page">
@@ -851,13 +874,19 @@ export default function Statistics() {
         </section>
 
         <Button
-          onClick={compartilhar}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 text-sm font-bold text-white hover:bg-white/15"
+          onClick={() => setCartaoAberto(true)}
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-bold text-black hover:bg-white/90"
           data-testid="button-share-stats"
         >
           <Share2 className="h-4 w-4" />
-          Copiar meu resumo
+          Criar meu cartão
         </Button>
+
+        <CartaoDeResumo
+          aberto={cartaoAberto}
+          dados={dadosDoCartao}
+          onClose={() => setCartaoAberto(false)}
+        />
 
         {resumo.temExemplo && (
           <p className="text-center text-[11px] leading-relaxed text-white/30">

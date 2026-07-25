@@ -22,8 +22,8 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (25/07: Estatísticas reais + troféus com raridade, progresso, painel, data e aviso — ver ROTEIRO 4.14, 4.16 e 4.19) | — | não — serviço launchd sempre no ar | 25/07 |
-| B | **ocupada** — implementando a avaliação (ROTEIRO 4.15). **Preciso, quando a C liberar: `pages/BookDetails.tsx` e `lib/books.ts`** (ligar o bloco na ficha e subir `story`/`performance`) | `lib/ratings.ts` (novo) · `components/AvaliarLivro.tsx` (novo) | não — serviço launchd sempre no ar | 25/07 |
+| A | — livre — (25/07: Estatísticas reais, troféus com raridade/progresso/aviso, cartão de retrospectiva — ver ROTEIRO 4.14, 4.16, 4.19 e 4.20) | — | não — serviço launchd sempre no ar | 25/07 |
+| B | **ocupada** — fechando a avaliação (ROTEIRO 4.15): bloco na ficha do livro, notas de história/narração no catálogo, herança certa para autor e narrador | `pages/BookDetails.tsx` · `lib/books.ts` · `lib/people.ts` · `lib/publishers.ts` · `lib/ratings.ts` · `components/AvaliarLivro.tsx` | não — serviço launchd sempre no ar | 25/07 |
 | C | — livre — (25/07: estúdio e vozes, pedido sob demanda em `/request`, e a busca refeita sem Fuse.js — ver ROTEIRO 4.13, 4.17 e 4.18) | — | não — serviço launchd sempre no ar | 25/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
