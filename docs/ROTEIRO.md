@@ -878,11 +878,15 @@ de nome do avatar, então cada editora tem sempre a mesma cor.
 `Comment.rating`: nota de quem trabalha vira placar público, e a nota que ajuda
 a escolher (a da narração) pertence ao par livro+narrador.
 
-**Ficou de fora, por coordenação e não por decisão:** a caixa de comentar **no
-perfil de autor/narrador**. `pages/PersonProfile.tsx` estava declarado por outra
-janela no quadro de `COORDENACAO.md` na hora. O componente compartilhado
-(`ProfileComments`) já existe e está em uso no perfil de editora — plugar lá é
-trocar o bloco `ComentariosDaPessoa` por `<ProfileComments alvo={{ personSlug }} />`.
+**Fechado no dia seguinte (25/07): o perfil de autor/narrador também recebe
+comentário.** Ficou pendente algumas horas por coordenação, não por decisão —
+`pages/PersonProfile.tsx` estava declarado por outra janela no quadro de
+`COORDENACAO.md`. Assim que ela liberou, o bloco `ComentariosDaPessoa` (que só
+exibia) deu lugar ao `ProfileComments` compartilhado, e ~130 linhas de lista,
+curtida e botão de reação duplicados saíram da tela — eram cópia do que o
+componente já fazia. O selo "sobre a obra" / "sobre a narração" continua
+aparecendo **só em quem escreve e narra**, agora pela prop `etiqueta`. Os três
+perfis do app — livro, pessoa e editora — usam a mesma caixa.
 
 ---
 

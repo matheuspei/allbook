@@ -24,13 +24,7 @@ o quê **agora**.
 |--------|-----------------------------|-----------------------|--------------------------|------------|
 | A | — livre — (Biblioteca reformada 24/07: filtros reais com contagem, lista/grade + ordenação, cabeçalho sem avatar duplicado — ver ROTEIRO 4.10) | — | não — serviço launchd sempre no ar | 24/07 21:25 |
 | B | — livre — (foto que amplia ao toque, estilo Instagram, 24/07: comentários + perfis — ver ROTEIRO 4.12. **`pages/PersonProfile.tsx` está liberado para a C**) | — | não — serviço launchd sempre no ar | 24/07 22:10 |
-| C | **em espera** — perfil de EDITORA entregue e commitado (4c1d654, ver ROTEIRO 4.11). Falta só plugar a caixa de comentar no perfil de autor/narrador — depende da B | — nenhum agora; aguardando `pages/PersonProfile.tsx` — | não — serviço launchd sempre no ar | 24/07 21:45 |
-
-> **C precisa de `pages/PersonProfile.tsx` (hoje com a Janela B).** A caixa de
-> comentar precisa entrar também no perfil de autor/narrador — hoje aquela tela só
-> *mostra* comentários, não deixa escrever. **B: ao terminar o avatar ampliável,
-> avise/limpe a linha** que C pluga o componente `ProfileComments` lá (é trocar o
-> bloco `ComentariosDaPessoa` por `<ProfileComments alvo={{ personSlug }} />`).
+| C | — livre — (perfil de editora 24/07 + caixa de comentar nos perfis de autor/narrador 25/07 — ver ROTEIRO 4.11) | — | não — serviço launchd sempre no ar | 25/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
 > linha "C". A hora ("Atualizado") ajuda a saber se uma linha ficou esquecida —
