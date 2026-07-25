@@ -1731,6 +1731,16 @@ meio da peça. De quebra, `desenharCapas` deixou de duplicar o desenho de
 `pintarCapa` — era o mesmo código duas vezes, e a sombra teria que ser colada
 nos dois lugares.
 
+**O Resumo entrou na mesma família (26/07, na sequência).** A pedido do
+Matheus, a peça 4:5 ganhou a mesma gramática: a linha corrida do rodapé
+("Romance · Narrador: Helena Vasques · mais à noite" — três informações num fio
+de 28px que ninguém lia) virou dois destaques nomeados, GÊNERO FAVORITO e VOZ
+MAIS OUVIDA, com o recorte "desde sempre" (na Story o recorte é o mês). O
+horário subiu para a linha de apoio do número grande, agora com a preposição
+certa por faixa — o rodapé dizia "mais à manhã", crase errada que ninguém tinha
+notado. E as duas peças **assinam igual**: "AllBook · todos os livros, em voz
+alta" — quem vê uma depois da outra reconhece a família.
+
 ---
 
 ## 4.26 Quem narra, se já existe narração? (26/07)

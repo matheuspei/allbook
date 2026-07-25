@@ -73,18 +73,21 @@ export interface DadosDaStory {
 export interface DadosDoCartao {
   /** "39h 42min" — o número grande do Resumo. */
   total: string;
-  /** "15 títulos · 42 dias ouvindo" — a linha de apoio do Resumo. */
+  /** "15 títulos · 42 dias ouvindo · mais à noite" — a linha de apoio do Resumo. */
   apoio: string;
-  /** "Romance" ou vazio. */
-  generoFavorito: string;
   /** Até 3 livros, os mais ouvidos de sempre. */
   livros: Book[];
   /** O resumo em texto, para quem preferir colar. */
   texto: string;
   /** "maio a julho de 2026" — o período que o histórico cobre. */
   periodo: string;
-  /** "Helena Vasques · mais à noite" — o fecho do Resumo. */
-  rodape: string;
+  /**
+   * Os destaques nomeados do Resumo (gênero favorito, voz mais ouvida) — a
+   * mesma gramática visual da Story, no lugar da antiga linha corrida do
+   * rodapé ("Romance · Narrador: Helena Vasques · mais à noite"), que
+   * espremia três informações num fio de texto que ninguém lia.
+   */
+  destaques: DestaqueDaStory[];
   /** Tudo que só a Story usa. */
   story: DadosDaStory;
 }
@@ -293,30 +296,35 @@ async function desenharResumo(ctx: CanvasRenderingContext2D, dados: DadosDoCarta
   ctx.fillStyle = "rgba(255,255,255,0.55)";
   ctx.fillText(textoQueCabe(ctx, dados.apoio, LARGURA - MARGEM * 2), MARGEM, 490);
 
+  // Os mesmos destaques nomeados da Story — aqui cabem dois, lado a lado.
+  // Substituíram a linha corrida do rodapé, que espremia gênero, narrador e
+  // horário num fio de 28px que ninguém lia.
+  const destaques = dados.destaques.slice(0, 2);
+  desenharDestaques(ctx, destaques, 550);
+
   if (dados.livros.length > 0) {
-    rotulo(ctx, "O QUE MAIS TOMOU SEU TEMPO", 640);
+    // Layout empilhado, como na Story: sem destaques, as capas sobem.
+    const topoDoRotulo = destaques.length > 0 ? 744 : 640;
+    rotulo(ctx, "O QUE MAIS TOMOU SEU TEMPO", topoDoRotulo);
     /*
      * A capa nunca passa da largura que teria se fossem três — que é o que a
      * altura desta peça aguenta. Sem o teto, quem tem uma ou duas capas via a
      * imagem quebrada: com duas, a capa esticava para 608px de altura e escrevia
-     * o título **por cima** do rodapé e da assinatura.
+     * o título **por cima** da assinatura.
      */
     const cabe = (LARGURA - MARGEM * 2 - 36 * (dados.livros.length - 1)) / dados.livros.length;
-    const teto = (LARGURA - MARGEM * 2 - 36 * 2) / 3;
-    const largura = Math.min(cabe, teto);
-    await desenharCapas(ctx, dados.livros, 690, largura * 1.4, largura);
+    const largura = Math.min(cabe, 236);
+    await desenharCapas(ctx, dados.livros, topoDoRotulo + 40, 330, largura);
   }
 
-  const fecho = [dados.generoFavorito, dados.rodape].filter(Boolean).join(" · ");
-  if (fecho) {
-    ctx.font = "400 28px Inter, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.fillText(textoQueCabe(ctx, fecho, LARGURA - MARGEM * 2), MARGEM, ALTURA_RESUMO - 110);
-  }
-
-  ctx.font = "600 26px Inter, sans-serif";
+  // A assinatura é a mesma da Story — as duas peças assinam igual, de
+  // propósito: quem vê uma depois da outra reconhece a família.
+  ctx.font = "700 32px Outfit, sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("AllBook", MARGEM, ALTURA_RESUMO - 104);
+  ctx.font = "400 26px Inter, sans-serif";
   ctx.fillStyle = "rgba(255,255,255,0.45)";
-  ctx.fillText("feito no AllBook", MARGEM, ALTURA_RESUMO - 60);
+  ctx.fillText("todos os livros, em voz alta", MARGEM, ALTURA_RESUMO - 62);
 }
 
 /**

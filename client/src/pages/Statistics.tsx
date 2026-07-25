@@ -320,11 +320,10 @@ export default function Statistics() {
     const vazio: DadosDoCartao = {
       total: "",
       apoio: "",
-      generoFavorito: "",
       livros: [],
       texto: "",
       periodo: "",
-      rodape: "",
+      destaques: [],
       story: {
         periodo: "",
         destaque: "0",
@@ -408,6 +407,25 @@ export default function Statistics() {
       `${ativosAgora} ${ativosAgora === 1 ? "dia ouvindo" : "dias ouvindo"}`,
     ];
     if (resumo.concluidos > 0) partes.push(`${resumo.concluidos} concluídos`);
+    /*
+     * O horário morava no rodapé como "mais à noite" — inclusive para a manhã,
+     * onde a crase está errada. Subiu para a linha de apoio, com a preposição
+     * de cada faixa, e o rodapé deixou de existir.
+     */
+    const PREPOSICOES: Record<string, string> = {
+      madrugada: "de madrugada",
+      manhã: "de manhã",
+      tarde: "à tarde",
+      noite: "à noite",
+    };
+    if (faixas[0]) partes.push(`mais ${PREPOSICOES[faixas[0].faixa] ?? faixas[0].faixa}`);
+
+    // Os destaques do Resumo: os mesmos blocos nomeados da Story, mas com o
+    // recorte "desde sempre" — favorito de todos os tempos, não do mês.
+    const destaquesDoResumo = [
+      generos[0] ? { rotulo: "GÊNERO FAVORITO", valor: generos[0].genero } : null,
+      narrador ? { rotulo: "VOZ MAIS OUVIDA", valor: narrador.nome } : null,
+    ].filter((destaque): destaque is DestaqueDaStory => destaque !== null);
 
     const texto = [
       "Minhas estatísticas no AllBook:",
@@ -434,13 +452,10 @@ export default function Statistics() {
     return {
       total: formatarDuracao(resumo.segundos),
       apoio: partes.join(" · "),
-      generoFavorito: generos[0]?.genero ?? "",
       livros: livrosMaisOuvidos.map((item) => item.livro),
       texto,
       periodo,
-      rodape: [narrador ? `Narrador: ${narrador.nome}` : null, faixas[0] ? `mais à ${faixas[0].faixa}` : null]
-        .filter(Boolean)
-        .join(" · "),
+      destaques: destaquesDoResumo.slice(0, 2),
       story: {
         periodo: "NOS ÚLTIMOS 30 DIAS",
         destaque: String(destaqueDaStory),
