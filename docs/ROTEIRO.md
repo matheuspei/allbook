@@ -1341,6 +1341,19 @@ Busca, antes de digitar qualquer coisa**. Na Início ela nasceu depois da grade
 de categorias e foi **subida**: eram oito categorias em quatro fileiras antes
 dela, o que ainda era esconder. Agora aparece sem rolagem.
 
+**Correção de 25/07 (noite): translúcido encostado no billboard não funciona.**
+A faixa usava `bg-primary/10` — laranja com 10% de opacidade — e ficava **colada
+no destaque**, chegando a invadir 14px da imagem. Como a capa do billboard troca
+sozinha, a vizinhança muda de cor o tempo todo: com uma capa terrosa (Duna) o
+laranja sumia; com uma esverdeada (Anne Frank) brigava. O Matheus: *"as cores
+vão se misturando de acordo com as capas que vão passando"*. **Regra que fica:
+cor translúcida só sobre fundo estável.** A faixa passou a ter corpo **opaco**
+(`#1e1e1e`, o cinza dos cartões do app), com o laranja da marca só no ícone e na
+seta, e ganhou respiro do billboard (`pt-5`) para pertencer ao corpo da página,
+não ao destaque. **Rejeitado descer a faixa para depois das categorias** — seria
+desfazer o que esta mesma seção acabou de decidir; o defeito era de pele e de
+respiro, não de posição.
+
 ---
 
 ## 4.19 Troféus com hierarquia: raridade, progresso e memória (25/07)

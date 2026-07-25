@@ -503,7 +503,10 @@ export default function Home() {
             destaque da capa (ROTEIRO 4.18). Ficou primeiro depois da grade de
             categorias e ainda era longe demais: são oito categorias em quatro
             fileiras antes dele. Aqui é o primeiro conteúdo da tela. */}
-        <div className="px-4 pb-4">
+        {/* `pt-5` para a faixa **não encostar** no billboard. Colada (ela chegava
+            a invadir 14px da imagem) parecia parte do destaque e brigava com a
+            capa; separada, lê-se como o primeiro item do corpo da página. */}
+        <div className="px-4 pb-4 pt-5">
           <RequestBanner />
         </div>
 

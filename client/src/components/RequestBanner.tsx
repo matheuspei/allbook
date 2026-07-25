@@ -18,6 +18,15 @@ import { REQUEST_PROMISE } from "@/lib/requests";
  *
  * **Sem estrelinha nem varinha:** o ícone é um microfone. Ver ROTEIRO 4.17 e a
  * seção "Estilo: evitar a cara de IA".
+ *
+ * **Fundo sólido, e isso é conserto de um defeito real (25/07).** A primeira
+ * versão usava `bg-primary/10` — laranja translúcido. Na Início a faixa fica
+ * logo abaixo do billboard, cuja cor **muda a cada capa que passa**: com uma
+ * capa terrosa o laranja sumia, com uma esverdeada brigava. Nas palavras do
+ * Matheus: *"as cores vão se misturando de acordo com as capas que vão
+ * passando"*. Cor translúcida encostada em fundo que muda nunca fica boa —
+ * agora o corpo é o mesmo cinza dos cartões do app, opaco, e o laranja da marca
+ * fica só no ícone e na seta, onde chama atenção sem competir.
  */
 export default function RequestBanner({
   /** `destaque` na Início (bloco maior); `discreto` no topo da Busca. */
@@ -32,7 +41,7 @@ export default function RequestBanner({
   return (
     <Link
       href="/request"
-      className={`flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/10 transition-colors hover:bg-primary/15 active:bg-primary/20 ${
+      className={`flex items-center gap-3 rounded-xl border border-white/10 bg-[#1e1e1e] transition-colors hover:bg-[#242424] active:bg-[#2a2a2a] ${
         ehDestaque ? "p-4" : "p-3"
       } ${className}`}
       data-testid="banner-request"
