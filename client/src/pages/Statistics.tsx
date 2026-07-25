@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Bar, BarChart, Cell, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import {
   BookOpen,
+  Check,
   CheckCircle2,
   ChevronRight,
   Clock,
@@ -15,10 +16,23 @@ import {
 import PageHeader from "@/components/PageHeader";
 import StatSpotlight, { type StatKey } from "@/components/StatSpotlight";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { achievements, unlockedCount } from "@/lib/achievements";
+import { achievements, unlockedCountFor } from "@/lib/achievements";
 import { catalog, slugify } from "@/lib/books";
 import { readFollowing } from "@/lib/following";
+import {
+  GOAL_EVENT,
+  METAS_DISPONIVEIS,
+  readMetaSemanal,
+  rotuloDaMeta,
+  setMetaSemanal,
+} from "@/lib/goals";
 import {
   LISTENING_EVENT,
   diaISO,
@@ -27,17 +41,25 @@ import {
   porDiaDaSemana,
   porFaixaDoDia,
   porLivro,
+  segundosNaJanela,
   serieDiaria,
   serieMensal,
   serieSemanal,
   type PontoDaSerie,
 } from "@/lib/listening";
 import { readMyComments } from "@/lib/myComments";
-import { PLAYBACK_EVENT, playbackPercent, readPlaybackList } from "@/lib/playback";
+import {
+  PLAYBACK_EVENT,
+  playbackEntries,
+  playbackPercent,
+  readPlaybackList,
+  remainingLabel,
+} from "@/lib/playback";
 import { readRecommendationIds } from "@/lib/recommendations";
 import {
   CONCLUIDO_PERCENT,
   generosMaisOuvidos,
+  lerDadosDeConquista,
   lerResumo,
   pessoaMaisOuvida,
   type ResumoDeAudicao,
@@ -113,19 +135,50 @@ export default function Statistics() {
    */
   const [janela, setJanela] = useState<JanelaKey>("12s");
   const [diaTocado, setDiaTocado] = useState<string | null>(null);
+  const [meta, setMeta] = useState(readMetaSemanal);
   const [resumo, setResumo] = useState<ResumoDeAudicao | null>(null);
 
   /** Relê quando o player credita audição ou quando o progresso muda. */
   useEffect(() => {
     const sincronizar = () => setResumo(lerResumo());
+    const sincronizarMeta = () => setMeta(readMetaSemanal());
     sincronizar();
     window.addEventListener(LISTENING_EVENT, sincronizar);
     window.addEventListener(PLAYBACK_EVENT, sincronizar);
+    window.addEventListener(GOAL_EVENT, sincronizarMeta);
     return () => {
       window.removeEventListener(LISTENING_EVENT, sincronizar);
       window.removeEventListener(PLAYBACK_EVENT, sincronizar);
+      window.removeEventListener(GOAL_EVENT, sincronizarMeta);
     };
   }, []);
+
+  /**
+   * "No seu ritmo, você termina X em N dias" — o livro em andamento mais
+   * recente, o quanto falta dele e a sua média diária das últimas 2 semanas.
+   * Sem ritmo (média zero) a conta não existe, e a seção some.
+   */
+  const previsao = useMemo(() => {
+    if (!resumo) return null;
+
+    const emAndamento = playbackEntries()
+      .filter((item) => item.percent > 0 && item.percent < CONCLUIDO_PERCENT)
+      .sort((a, b) => b.playback.updatedAt.localeCompare(a.playback.updatedAt))[0];
+    if (!emAndamento) return null;
+
+    const mediaDiaria = segundosNaJanela(resumo.diario, 13, 0) / 14;
+    if (mediaDiaria < 60) return null;
+
+    const restanteSec = Math.max(
+      0,
+      emAndamento.playback.durationSec - emAndamento.playback.positionSec
+    );
+    return {
+      entrada: emAndamento,
+      mediaDiaria,
+      dias: Math.max(1, Math.ceil(restanteSec / mediaDiaria)),
+    };
+  }, [resumo]);
 
   const serie = useMemo<PontoDaSerie[]>(() => {
     if (!resumo) return [];
@@ -260,6 +313,14 @@ export default function Statistics() {
   const ativos = diasAtivos(resumo.diario);
   const mediaPorDiaAtivo = ativos > 0 ? resumo.segundos / ativos : 0;
   const totalDaJanela = serie.reduce((soma, ponto) => soma + ponto.sec, 0);
+
+  // As medalhas agora saem dos seus números — ver `lib/achievements.ts`.
+  const dadosDeConquista = lerDadosDeConquista(resumo);
+  const conquistadas = unlockedCountFor(dadosDeConquista);
+
+  const metaSec = meta * 60;
+  const progressoDaMeta = Math.min(resumo.estaSemana / metaSec, 1);
+  const faltaParaMeta = Math.max(0, metaSec - resumo.estaSemana);
 
   /** A frase de contexto do número grande — comparação honesta, sem enfeite. */
   const comparacao = (() => {
@@ -450,6 +511,60 @@ export default function Statistics() {
             </span>
           </div>
 
+          {/* A meta: o total diz de onde você veio, a meta diz o que perseguir. */}
+          <div className="rounded-xl border border-white/5 bg-white/5 p-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-sm font-semibold">Meta da semana</p>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="rounded-lg px-2 py-1 text-[12px] text-white/55 transition-colors hover:bg-white/5 hover:text-white/80"
+                    data-testid="button-goal"
+                  >
+                    {rotuloDaMeta(meta)} ▾
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="border-white/10 bg-[#1f1f1f] text-white">
+                  {METAS_DISPONIVEIS.map((opcao) => (
+                    <DropdownMenuItem
+                      key={opcao}
+                      onClick={() => {
+                        setMeta(opcao);
+                        setMetaSemanal(opcao);
+                      }}
+                      className="gap-2 text-[13px] focus:bg-white/10 focus:text-white"
+                      data-testid={`goal-${opcao}`}
+                    >
+                      <Check className={`h-3.5 w-3.5 ${meta === opcao ? "opacity-100" : "opacity-0"}`} />
+                      {rotuloDaMeta(opcao)}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/[0.07]">
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-500"
+                style={{ width: `${progressoDaMeta * 100}%` }}
+                data-testid="goal-progress"
+              />
+            </div>
+
+            <p className="mt-2 text-xs text-white/45">
+              {faltaParaMeta === 0 ? (
+                <span className="text-primary">
+                  Meta batida — {formatarDuracao(resumo.estaSemana)} nos últimos 7 dias.
+                </span>
+              ) : (
+                <>
+                  {formatarDuracao(resumo.estaSemana)} nos últimos 7 dias · faltam{" "}
+                  <span className="text-white/70">{formatarDuracao(faltaParaMeta)}</span>
+                </>
+              )}
+            </p>
+          </div>
+
           <div className="rounded-xl border border-white/5 bg-white/5 p-4">
             <p className="text-center text-sm text-white/55">
               Você ouviu em{" "}
@@ -519,6 +634,35 @@ export default function Statistics() {
             </div>
           )}
         </section>
+
+        {/* 4b. A previsão — a única linha da tela que olha para a frente. */}
+        {previsao && (
+          <section data-testid="section-forecast">
+            <Link href={`/book/${previsao.entrada.book.id}`}>
+              <div className="flex items-center gap-3.5 rounded-xl border border-white/5 bg-white/5 p-4 transition-colors hover:bg-white/[0.08]">
+                <div className="h-[68px] w-12 shrink-0 overflow-hidden rounded-md border border-white/10">
+                  <img
+                    src={previsao.entrada.book.cover}
+                    alt={previsao.entrada.book.title}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] uppercase tracking-wider text-white/35">No seu ritmo</p>
+                  <p className="mt-1 text-sm font-semibold leading-snug">
+                    Você termina {previsao.entrada.book.title} em{" "}
+                    {previsao.dias === 1 ? "1 dia" : `${previsao.dias} dias`}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-white/40">
+                    {remainingLabel(previsao.entrada.playback)} · média de{" "}
+                    {formatarDuracao(previsao.mediaDiaria)} por dia
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-white/25" />
+              </div>
+            </Link>
+          </section>
+        )}
 
         {/* 5. O ritmo: quando você ouve. */}
         {faixas.length > 0 && (
@@ -669,12 +813,12 @@ export default function Statistics() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold">
-                  {unlockedCount} de {achievements.length} conquistas
+                  {conquistadas} de {achievements.length} conquistas
                 </p>
                 <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                   <div
                     className="h-full rounded-full bg-primary"
-                    style={{ width: `${(unlockedCount / achievements.length) * 100}%` }}
+                    style={{ width: `${(conquistadas / achievements.length) * 100}%` }}
                   />
                 </div>
               </div>

@@ -13,8 +13,13 @@
  * dependência de volta fecharia um ciclo.
  */
 
+import type { DadosDeConquista } from "@/lib/achievements";
 import { catalog, type Genre } from "@/lib/books";
+import { readFollowing } from "@/lib/following";
 import { readLibrary } from "@/lib/library";
+import { readMyComments } from "@/lib/myComments";
+import { readReactions } from "@/lib/reactions";
+import { readRecommendationIds } from "@/lib/recommendations";
 import {
   diaISO,
   garantirDiario,
@@ -88,6 +93,45 @@ export function lerResumo(): ResumoDeAudicao {
     estaSemana: segundosNaJanela(diario, 6, 0),
     semanaPassada: segundosNaJanela(diario, 13, 7),
     temExemplo: temExemplo(diario),
+  };
+}
+
+/**
+ * O que as medalhas precisam saber. Junta o diário de audição com a lista e a
+ * atividade na comunidade — é o que substituiu o `unlocked` escrito à mão em
+ * `achievements.ts`.
+ */
+export function lerDadosDeConquista(resumo: ResumoDeAudicao): DadosDeConquista {
+  const dias = Object.values(resumo.diario);
+  const maiorDiaSec = dias.reduce((maior, dia) => Math.max(maior, dia.sec), 0);
+
+  let ouviuDeMadrugada = false;
+  let ouviuAoAmanhecer = false;
+  for (const dia of dias) {
+    for (const [hora, sec] of Object.entries(dia.horas)) {
+      if (sec <= 0) continue;
+      const h = Number(hora);
+      if (h < 4) ouviuDeMadrugada = true;
+      else if (h < 7) ouviuAoAmanhecer = true;
+    }
+  }
+
+  const curtidas = Object.values(readReactions()).filter((r) => r === "like").length;
+
+  return {
+    segundos: resumo.segundos,
+    maiorDiaSec,
+    sequenciaSemanas: resumo.sequenciaSemanas,
+    melhorSequenciaDias: resumo.melhorSequencia,
+    ouviuDeMadrugada,
+    ouviuAoAmanhecer,
+    generosOuvidos: generosMaisOuvidos(resumo.diario).length,
+    concluidos: resumo.concluidos,
+    naLista: resumo.naLista,
+    comentarios: readMyComments().length,
+    curtidas,
+    seguindo: readFollowing().length,
+    recomendacoes: readRecommendationIds().length,
   };
 }
 

@@ -38,8 +38,8 @@ import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profi
 import { readRecommendations } from "@/lib/recommendations";
 import { readDownloads, readLibrary } from "@/lib/library";
 import { formatarDuracao } from "@/lib/listening";
-import { lerResumo, type ResumoDeAudicao } from "@/lib/stats";
-import { achievements, unlockedCount, unlockedAchievements, type Achievement } from "@/lib/achievements";
+import { lerDadosDeConquista, lerResumo, type ResumoDeAudicao } from "@/lib/stats";
+import { achievements, achievementsFor, type Achievement } from "@/lib/achievements";
 import type { Book } from "@/lib/books";
 
 /**
@@ -53,9 +53,9 @@ import type { Book } from "@/lib/books";
  * desbloqueadas na cor da marca — o Matheus quis troféus de verdade, para
  * engajar (ver ROTEIRO). Tocar numa medalha mostra a dica da meta.
  *
- * Os números de audição são os mesmos de `Statistics.tsx` — ainda fixos no
- * código, porque não existe backend. Quando a API existir, os dois lugares
- * passam a ler da mesma fonte.
+ * Os números de audição e as medalhas são os mesmos de `Statistics.tsx` porque
+ * saem da mesma fonte (`lib/stats.ts`), calculada do uso real — antes cada tela
+ * trazia a própria lista fixa, e as duas discordavam.
  */
 
 /**
@@ -91,6 +91,14 @@ export default function Profile() {
   const [session, setSession] = useState<Session | null>(readSession);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [resumo, setResumo] = useState<ResumoDeAudicao | null>(null);
+
+  /**
+   * As medalhas agora são **julgadas pelos seus números** (ver
+   * `lib/achievements.ts`): antes o `unlocked` vinha marcado à mão e o perfil
+   * exibia seis troféus mesmo para quem nunca tinha aberto um livro.
+   */
+  const medalhas = resumo ? achievementsFor(lerDadosDeConquista(resumo)) : [];
+  const conquistadas = medalhas.filter((item) => item.unlocked);
 
   useEffect(() => {
     // Relê ao voltar das telas de edição.
@@ -212,9 +220,9 @@ export default function Profile() {
         )}
 
         {/* Troféus estampados — só os conquistados, na cor da marca. */}
-        {unlockedAchievements.length > 0 && (
+        {conquistadas.length > 0 && (
           <div className="relative flex items-center gap-1.5 mt-4 flex-wrap" data-testid="profile-trophies">
-            {unlockedAchievements.map((item) => {
+            {conquistadas.map((item) => {
               const Icon = item.icon;
               return (
                 <div
@@ -227,7 +235,7 @@ export default function Profile() {
               );
             })}
             <span className="text-[11px] text-white/40 ml-1">
-              {unlockedAchievements.length} troféus
+              {conquistadas.length} troféus
             </span>
           </div>
         )}
@@ -332,12 +340,12 @@ export default function Profile() {
             Conquistas
           </h2>
           <span className="text-[11px] text-white/30">
-            {unlockedCount} de {achievements.length}
+            {conquistadas.length} de {achievements.length}
           </span>
         </div>
 
         <div className="grid grid-cols-4 gap-x-2 gap-y-4">
-          {achievements.map((item) => {
+          {medalhas.map((item) => {
             const Icon = item.icon;
             return (
               <button

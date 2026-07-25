@@ -22,7 +22,7 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | **ocupada** — conquistas calculadas de verdade + meta semanal + previsão de término (Matheus escolheu as 3) | `lib/achievements.ts` · `lib/stats.ts` · `lib/goals.ts` (novo) · `pages/Statistics.tsx` · `pages/Profile.tsx` | não — serviço launchd sempre no ar | 25/07 |
+| A | — livre — (25/07: Estatísticas com diário real; conquistas calculadas, meta semanal e previsão de término — ver ROTEIRO 4.14 e 4.16) | — | não — serviço launchd sempre no ar | 25/07 |
 | B | **ocupada** — implementando a avaliação (ROTEIRO 4.15). **Preciso, quando a C liberar: `pages/BookDetails.tsx` e `lib/books.ts`** (ligar o bloco na ficha e subir `story`/`performance`) | `lib/ratings.ts` (novo) · `components/AvaliarLivro.tsx` (novo) | não — serviço launchd sempre no ar | 25/07 |
 | C | **ocupada** — crédito "Produzido por AllBook Studio" + vozes de IA com perfil próprio (decisão do Matheus 25/07) | `lib/studio.ts` (novo) · `lib/books.ts` (só o campo `narrator` de 10 livros) · `lib/comments.ts` · `pages/Studio.tsx` (novo) · `pages/BookDetails.tsx` · `pages/PersonProfile.tsx` · `App.tsx` | não — serviço launchd sempre no ar | 25/07 |
 

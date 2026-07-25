@@ -1147,6 +1147,46 @@ dogma — só dá para calibrar com uso real.
 
 ---
 
+## 4.16 As medalhas passaram a ser ganhas; meta e previsão (25/07)
+
+Perguntado o que mais valia mexer nas Estatísticas, o Matheus escolheu três das
+cinco propostas: **conquistas calculadas**, **previsão de término** e **meta
+semanal**. (Ficou de fora, por ora, tocar na barra do gráfico para ver o valor.)
+
+**As conquistas eram a última ficção do app.** As 16 medalhas tinham `unlocked`
+marcado à mão em `achievements.ts` — dava para nunca ter aberto um livro e ainda
+assim exibir seis troféus no Perfil. Agora **cada medalha carrega a própria
+regra** (`check`), que lê um `DadosDeConquista` montado em `lib/stats.ts` a
+partir do diário, da lista e da comunidade. Com o histórico de exemplo o placar
+caiu de 6 para **5 de 16** — e as 5 são as que os dados sustentam.
+
+**Duas medalhas eram impossíveis de ganhar, e isso só apareceu ao escrever a
+regra:**
+- **"Eclético"** pedia livros de **10 gêneros** — o catálogo tem **8**. Virou
+  "todos os 8 gêneros", que é o teto real do acervo.
+- **"Bem Falado"** pedia **receber** 10 curtidas nos seus comentários. Sem
+  servidor ninguém curte você: a medalha nunca acenderia. Virou **"Bom
+  Público"** — curtir 10 comentários da comunidade, que é o gesto que existe.
+- Ajuste menor: **"Maratonista"** falava em "3 horas seguidas, sem parar"; o
+  diário guarda o total do dia, não a sessão, então a régua passou a ser
+  **3 horas num mesmo dia** — mensurável, e igualmente difícil.
+
+**Meta semanal (`lib/goals.ts`).** Um total ("39h ouvidas") conta de onde você
+veio, mas não dá o que perseguir. A meta é escolhida na própria tela (1h a 10h
+por semana, padrão 3h) e vira a régua de uma barra medida sobre os **últimos 7
+dias** — a mesma janela dos círculos logo abaixo, para as duas não discordarem.
+**Por que ela não foi para `settings.ts`:** aquele arquivo é dos ajustes do app,
+lido por várias telas; a meta é número de uso pessoal, mexido de dentro das
+Estatísticas. Chave própria evita um ajuste esbarrar no outro.
+
+**Previsão de término — a única linha da tela que olha para a frente.** "No seu
+ritmo, você termina *A Psicologia Financeira* em 14 dias", com o que falta do
+livro e a média diária das últimas 2 semanas. Regras para não mentir: sem livro
+em andamento, ou com média abaixo de 1 min/dia, **a seção some** — uma previsão
+feita de quase nada seria pior que nenhuma.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
