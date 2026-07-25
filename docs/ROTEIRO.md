@@ -103,6 +103,59 @@ limitada. Enquanto isso não fecha, a tela de Planos deve refletir a fase real
 (**app gratuito agora**) e, no máximo, antecipar a função como "o que vem" — sem
 preço inventado.
 
+#### Atualização de 26/07: planos com **crédito de pedido** — a estrutura, com números
+
+O Matheus fechou a forma do modelo (os números ainda são "por exemplo", palavra
+dele): **um plano de acesso, e planos mais caros que incluem crédito para pedir
+livro.** Cada crédito = um livro pedido. As faixas que ele citou: **R$ 19,99** só
+acesso; **R$ 50** com um crédito; um terceiro com **dois**; um quarto com **três**.
+Isto deixou de ser "visão em aberto" e passou a ser **a forma decidida do
+modelo** — o que falta são os números finais e os detalhes listados no fim desta
+subseção.
+
+**Confirmado por ele na mesma conversa — "era exatamente assim que eu pretendia
+fazer":** os planos **não se somam**. O plano com crédito **já inclui** o acesso;
+ninguém compra crédito sem ter o app. Somar criaria dois pagamentos para a mesma
+pessoa e faria o plano de cima parecer punição. A escada, com **desconto por
+volume** para o plano maior valer a pena (os valores seguem sendo exemplo):
+
+| Plano | Créditos/mês | Preço sugerido | Preço por crédito |
+|---|---|---|---|
+| Acesso | — | R$ 19,90 | — |
+| Acesso + 1 pedido | 1 | R$ 49,90 | R$ 30 |
+| Acesso + 2 pedidos | 2 | R$ 69,90 | R$ 25 |
+| Acesso + 3 pedidos | 3 | R$ 89,90 | R$ 23 |
+
+**A sacada que fecha o problema da seção 4.26:** o crédito resolve sozinho o
+receio de custo que derrubou o par de opções no pedido. A regra recomendada é
+distinguir as duas metades do pedido pelo que elas custam ao AllBook:
+
+- **Trazer um livro que já tem áudio → não gasta crédito.** É barato, e o
+  resultado entra no catálogo **para todos os assinantes** — é investimento de
+  acervo, não produção sob medida.
+- **Gravar (o estúdio narra) → gasta 1 crédito.** É caro e é produção nova.
+
+Com isso o incentivo se alinha **sem precisar de botão nenhum**: ninguém pede
+gravação por capricho, porque gravação custa crédito; e quem ouviu a narração
+existente e **não gostou dela** (a pergunta em aberto da 4.26) tem uma saída
+legítima — pedir a versão do estúdio, gastando um crédito seu. O plano de acesso
+pode pedir "trazer" livremente e **não** pode pedir gravação: é isso que vende o
+plano de cima.
+
+**Ainda em aberto, e são decisões do Matheus:**
+1. **Crédito acumula ou expira no fim do mês?** Recomendação: acumula enquanto a
+   assinatura estiver ativa, com **teto** (ex.: 3 guardados). Crédito que vira pó
+   gera raiva por algo que não custou nada ao AllBook; acúmulo infinito cria
+   passivo de produção que pode chegar todo de uma vez.
+2. **Quantos "trazer" por mês?** Se for ilimitado, dá para alguém pedir 200
+   títulos numa tarde. Recomendação: um teto generoso e invisível na prática.
+3. Nomes dos planos, teste grátis, e se a fase gratuita (200–500 usuários) vem
+   antes de tudo isso.
+
+**Nada disso está no código.** A tela `/plans` continua sem falar de preço, como
+decidido em 24/07 — os números acima só saem do papel quando o Matheus mandar
+construir a tela de Planos.
+
 ### Estilo: evitar a "cara de IA"
 A primeira versão do Perfil foi rejeitada por parecer gerada automaticamente. Os
 três culpados: **ícone com gradiente colorido diferente por linha**, **cada opção
@@ -1803,6 +1856,14 @@ raro, feito por quem tem motivo real, e não a opção padrão de todo mundo. É
 também o lugar natural para o preço aparecer, se a regravação for paga (preço e
 plano continuam em aberto neste roteiro). **Nada disso foi construído** — está
 aqui como decisão pendente, não como plano aprovado.
+
+**Atualização de 26/07 — o mecanismo apareceu:** os planos com **crédito de
+pedido** (ver "Modelo de negócio", atualização de 26/07) resolvem isto sem
+nenhum botão novo. Trazer um livro que já tem áudio **não gasta crédito**; pedir
+que o estúdio grave **gasta 1**. Assim ninguém pula para o caminho caro por
+capricho — ele custa um crédito seu —, e quem realmente não suporta a narração
+existente tem a saída pela qual pagou. Falta só o aval do Matheus e a tela de
+Planos.
 
 ---
 

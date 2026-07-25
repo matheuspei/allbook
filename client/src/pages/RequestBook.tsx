@@ -148,13 +148,17 @@ export default function RequestBook() {
             Do pedido ao play em um dia
           </span>
 
-          {/* As duas metades da promessa, na ordem em que o pedido acontece: se
-              já existe narração, o app traz; se não existe, o estúdio grava.
-              Antes o texto só falava da segunda, e era ela que fazia a escolha
-              de voz parecer valer sempre (ROTEIRO 4.26). */}
+          {/*
+            As duas metades da promessa, uma frase para cada, na ordem em que o
+            pedido acontece. **Cortado o aparte entre travessões** ("e a maioria
+            dos livros nunca ganhou", 26/07): o Matheus achou que ele não fazia
+            sentido ali — é estatística sobre o mercado, não sobre o que vai
+            acontecer com o pedido dele, e enfraquecia justo a frase que precisa
+            ser forte. O que fica é o que o app faz: traz, ou grava.
+          */}
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/60">
-            Diga qual livro você quer ouvir. Se já existe uma narração dele, o AllBook traz. Se
-            nunca ganhou versão em áudio — e a maioria dos livros nunca ganhou —, o{" "}
+            Diga qual livro você quer ouvir. Se ele já existe em áudio, o AllBook traz para dentro
+            do app. Se ainda não existe, o{" "}
             <Link href="/studio" className="font-semibold text-primary hover:underline">
               AllBook Studio
             </Link>{" "}
