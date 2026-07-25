@@ -383,11 +383,15 @@ function CategoryGrid() {
               onClick={() => setLocation(`/category/${genreSlug(label)}`)}
               className="group flex items-center gap-2.5 rounded-lg bg-white/[0.04] px-3 py-2.5 text-left ring-1 ring-white/10 transition-colors hover:bg-white/[0.08] active:scale-[0.98]"
             >
-              {/* 18px, e não os 16 de um ícone comum: estes têm um elemento
-                  preenchido, e abaixo disso o sólido some no traço. */}
+              {/* 20px, e não os 16 de um ícone comum: estes têm um elemento
+                  preenchido, e miúdos demais o sólido some dentro do traço.
+                  20px é o teto que **não** mexe na altura da pastilha — é a
+                  mesma altura da linha do texto ao lado, então o desenho cresce
+                  e a lista fica idêntica (pedido do Matheus: "só os ícones, a
+                  barra pode se manter"). */}
               <GenreIcon
                 genre={label}
-                className="h-[18px] w-[18px] shrink-0 text-white/45 transition-colors group-hover:text-primary"
+                className="h-5 w-5 shrink-0 text-white/45 transition-colors group-hover:text-primary"
               />
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-white/90">
                 {label}
