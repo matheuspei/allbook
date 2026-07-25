@@ -13,20 +13,24 @@ import { REQUEST_PROMISE } from "@/lib/requests";
  * do Matheus: "sendo o principal diferencial do aplicativo, isso deveria ficar
  * mais visível do que está hoje".
  *
- * É um componente, e não código repetido em cada tela, porque aparece em mais de
- * um lugar (Início e Busca) e a mensagem tem de ser a mesma nos dois.
+ * **Onde ela aparece hoje: só no topo da Busca.** Ela também morou na Início,
+ * logo abaixo do billboard, e de lá saiu em 26/07 (ver ROTEIRO 4.18): naquele
+ * ponto ela cortava o degradê do destaque, e o fundo atrás dela **muda a cada
+ * capa que passa**. A porta principal do pedido virou o botão "Pedir" do menu
+ * de baixo, que aparece em toda tela. Esta faixa continua na Busca porque ali
+ * ela chega no momento certo — a pessoa está justamente procurando um título.
  *
  * **Sem estrelinha nem varinha:** o ícone é um microfone. Ver ROTEIRO 4.17 e a
  * seção "Estilo: evitar a cara de IA".
  *
  * **Fundo sólido, e isso é conserto de um defeito real (25/07).** A primeira
- * versão usava `bg-primary/10` — laranja translúcido. Na Início a faixa fica
- * logo abaixo do billboard, cuja cor **muda a cada capa que passa**: com uma
- * capa terrosa o laranja sumia, com uma esverdeada brigava. Nas palavras do
- * Matheus: *"as cores vão se misturando de acordo com as capas que vão
- * passando"*. Cor translúcida encostada em fundo que muda nunca fica boa —
- * agora o corpo é o mesmo cinza dos cartões do app, opaco, e o laranja da marca
- * fica só no ícone e na seta, onde chama atenção sem competir.
+ * versão usava `bg-primary/10` — laranja translúcido, que sumia sobre capa
+ * terrosa e brigava com capa esverdeada. Nas palavras do Matheus: *"as cores
+ * vão se misturando de acordo com as capas que vão passando"*. Cor translúcida
+ * encostada em fundo que muda nunca fica boa — agora o corpo é o mesmo cinza
+ * dos cartões do app, opaco, e o laranja da marca fica só no ícone e na seta.
+ * A variante `destaque` (bloco maior) ficou sem uso quando a faixa saiu da
+ * Início; está de pé para a próxima tela que precisar do formato grande.
  */
 export default function RequestBanner({
   /** `destaque` na Início (bloco maior); `discreto` no topo da Busca. */

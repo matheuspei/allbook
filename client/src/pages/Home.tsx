@@ -8,7 +8,6 @@ import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playb
 import { readProfile } from "@/lib/profile";
 import BookActionsMenu from "@/components/BookActionsMenu";
 import CategoryCard from "@/components/CategoryCard";
-import RequestBanner from "@/components/RequestBanner";
 
 /**
  * Os livros do billboard do topo (a "capa" do app).
@@ -172,7 +171,16 @@ function HeroBillboard() {
   return (
     <section
       data-testid="hero-billboard"
-      className="relative w-full select-none cursor-pointer"
+      /*
+        `overflow-hidden` conserta um vazamento antigo (26/07). O fundo de cada
+        slide é a capa **ampliada em 10% e borrada**; sem recorte, esses 10% e o
+        halo do borrão escapavam para fora do billboard e pintavam de cor a
+        primeira faixa do conteúdo abaixo — com uma linha de corte seca onde o
+        borrão acabava. Era isso que deixava a emenda "bagunçada" e diferente a
+        cada capa que passa. Recortado, o degradê do slide desce inteiro até o
+        `#141414` e a emenda some.
+      */
+      className="relative w-full select-none cursor-pointer overflow-hidden"
       style={{ height: "75vh", minHeight: "480px" }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
@@ -498,18 +506,17 @@ export default function Home() {
     <div className="min-h-screen pb-24 bg-[#141414]" data-testid="page-home">
       <HeroBillboard />
 
+      {/*
+        Nada de faixa entre o billboard e o corpo da página (26/07, ROTEIRO 4.18).
+        A chamada de "peça um livro" morou aqui por um tempo, para o diferencial
+        do app aparecer sem rolagem — mas o lugar era ruim por natureza: o
+        billboard termina num degradê que se dissolve no fundo, e qualquer
+        retângulo encostado ali corta esse degradê no meio. Nas palavras do
+        Matheus: *"como estava antigamente, no único degradê, ficava mais
+        bonito"*. A porta do pedido foi para o **menu de baixo**, onde aparece em
+        toda tela do app em vez de só nesta.
+      */}
       <div className="relative z-10 -mt-4">
-        {/* O diferencial do app tem de aparecer **sem rolagem**, logo abaixo do
-            destaque da capa (ROTEIRO 4.18). Ficou primeiro depois da grade de
-            categorias e ainda era longe demais: são oito categorias em quatro
-            fileiras antes dele. Aqui é o primeiro conteúdo da tela. */}
-        {/* `pt-5` para a faixa **não encostar** no billboard. Colada (ela chegava
-            a invadir 14px da imagem) parecia parte do destaque e brigava com a
-            capa; separada, lê-se como o primeiro item do corpo da página. */}
-        <div className="px-4 pb-4 pt-5">
-          <RequestBanner />
-        </div>
-
         <CategoryGrid />
         <ContinueListeningSection />
         {homeRows.map((row) => (

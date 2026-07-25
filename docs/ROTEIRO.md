@@ -1354,6 +1354,35 @@ não ao destaque. **Rejeitado descer a faixa para depois das categorias** — se
 desfazer o que esta mesma seção acabou de decidir; o defeito era de pele e de
 respiro, não de posição.
 
+### Correção de 26/07: o lugar era o problema, sim — o pedido foi para o menu
+
+A correção da véspera não bastou. Com a faixa opaca e afastada, o Matheus voltou
+com duas coisas: o botão *"está no lugar muito errado"*, e o degradê do destaque
+*"como estava antigamente, no único degradê, ficava mais bonito"*. **A conclusão
+que a noite anterior errou:** aquele ponto da tela é ruim **por natureza**. O
+billboard termina se dissolvendo no fundo; qualquer retângulo encostado ali corta
+o degradê no meio, seja ele translúcido ou opaco. Não havia cor que resolvesse.
+
+**Onde a porta foi parar: o menu de baixo, como quinto item — "Pedir", no
+centro.** Pastilha laranja sólida com um microfone, entre Biblioteca e Buscar. A
+troca de natureza é o ponto: as quatro abas são **lugares onde você fica**, e
+pedir um livro é **uma coisa que você faz** — por isso não ganha o realce de "aba
+atual" e fica sempre aceso, o gesto do botão de criar do Instagram e do TikTok.
+Ganhos: aparece em **toda tela do app**, não só na Início; fica no ponto que o
+polegar alcança melhor no celular; e nunca mais encosta numa imagem.
+
+**Descoberto ao conferir, e é a causa raiz da queixa da cor:** o fundo de cada
+slide do billboard é a capa **ampliada em 10% e borrada**, e a `section` não
+tinha `overflow-hidden`. Esses 10% mais o halo do borrão **vazavam para fora do
+destaque** e pintavam a primeira faixa do conteúdo de baixo — com uma linha de
+corte seca onde o borrão acabava, e mudando de cor a cada capa. A faixa de pedido
+apanhou por um defeito que não era dela. Com o recorte, o degradê desce inteiro
+até o `#141414` e a emenda some.
+
+**O `RequestBanner` continua vivo, só na Busca.** Ali ele chega no momento certo
+— a pessoa está justamente procurando um título. A variante `destaque` (bloco
+grande) ficou sem uso; está de pé para a próxima tela que precisar dela.
+
 ---
 
 ## 4.19 Troféus com hierarquia: raridade, progresso e memória (25/07)
