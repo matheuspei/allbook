@@ -148,19 +148,30 @@ Não é dado do usuário — é **código**, e alguém precisa decidir o que aco
 - [ ] `allbook_playback` guarda a posição **em segundos**. Quando o áudio real
       entrar, as durações mudam e toda posição salva fica deslocada.
 
-**⚠️ Decidir o formato ANTES de gravar o primeiro arquivo — aqui mora o
-retrabalho caro.** A proteção do áudio contra cópia (ver ROTEIRO 4.34) não é uma
-camada que se aparafusa depois: ela depende de como o arquivo nasce. Áudio
-gravado como um MP3 inteiro num bucket vira, mais tarde, reprocessar o acervo
-todo. Se já nascer **fatiado em segmentos (HLS/DASH)**, servido por **URL
-assinada de vida curta**, a proteção vem quase de graça.
+**⚠️ O áudio nasce em MP3 (confirmado pelo Matheus, 26/07) — e isso está certo,
+desde que o mestre seja guardado.** A proteção contra cópia (ver ROTEIRO 4.34)
+não muda o que o estúdio entrega: o MP3 é o **arquivo-mestre**, fica guardado e
+**nunca é servido**; na ingestão, o `ffmpeg` corta o mesmo áudio nos segmentos
+que o app toca.
 
-- [ ] Áudio segmentado (HLS/DASH), nunca um arquivo inteiro exposto.
+- [ ] **Guardar sempre o MP3 mestre.** É a única regra irreversível daqui: com o
+      original em mãos, o corte pode ser refeito a qualquer momento. O caro é
+      perder o mestre, ou construir o player para tocar o MP3 direto — aí o
+      formato de entrega vira o de produção.
+- [ ] Áudio segmentado (HLS/DASH) gerado na ingestão, nunca um arquivo inteiro
+      exposto.
 - [ ] URL assinada por sessão, com expiração de minutos.
 - [ ] **Limite de taxa por conta** — é a defesa contra raspagem em escala (o
       concorrente baixando o acervo), e é a mais barata das três. Precisa de
       conta de verdade, então nasce junto com o login no servidor.
-- [ ] Marca d'água por usuário: opcional, rastreia a origem de um vazamento.
+- [ ] **Vinheta do AllBook** no começo e no fim de cada livro (decisão do
+      Matheus, 26/07) — barata, e contra o concorrente ela vale mais do que
+      parece: ou ele corta 10 mil arquivos, ou distribui o acervo carimbado com o
+      nome do AllBook. Reforço opcional: vinhetas curtas também no meio, em
+      posições variáveis.
+- [ ] Marca d'água por usuário: opcional e para depois. Ela resolve outra coisa
+      que a vinheta não resolve — **qual conta** vazou, não qual empresa. Ver a
+      comparação no ROTEIRO 4.34.
 - [ ] Download offline **só no app**, não no navegador (no navegador o arquivo
       fica no disco da pessoa). Hoje `allbook_downloads` é só uma marca, e
       **nenhum byte é gravado** — não há nada exposto ainda.

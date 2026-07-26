@@ -2556,6 +2556,65 @@ muda é onde o arquivo fica:**
 **Proposta:** manter o botão; quando o áudio existir, **liberar download offline
 só no app, não no navegador**.
 
+### O MP3 do estúdio não muda nada — desde que o mestre seja guardado
+
+Informação do Matheus, no mesmo dia: **o áudio nasce em MP3.** Isso não conflita
+com nada acima, e vale afinar o alerta do "decidir antes de gravar":
+
+O MP3 é o **arquivo-mestre** — fica guardado e **nunca é entregue a ninguém**. Na
+ingestão, o servidor roda `ffmpeg` e corta o mesmo áudio nos segmentos que o app
+toca. O estúdio continua entregando MP3 como sempre; o fatiamento é automático.
+
+**A regra que realmente importa, e é uma só: guardar sempre o mestre.** Com os
+MP3 originais em mãos, o corte pode ser refeito quando se quiser, com outro
+formato ou outra proteção. O caro é (a) perder o original, ou (b) construir o app
+para tocar o MP3 direto — aí o formato de entrega vira o formato de produção, e
+mudar significa reprocessar tudo.
+
+### A vinheta: eu subestimei, e o argumento do Matheus corrigiu
+
+Ideia do Matheus: uma **vinheta** (áudio de identificação do AllBook) no começo
+do primeiro capítulo e no fim do último.
+
+**Minha primeira reação foi tratá-la como só branding, e estava errada.** O
+argumento dele, que fica registrado porque é o ponto: *"uma vez que você vai
+subir 10 mil livros, você vai ter que cortar 10 mil áudios (…) e se você não
+corta, você tem uma marca ali"*. Contra o cenário que mais preocupa — **o
+concorrente que sobe o acervo inteiro** — ela funciona por dois caminhos:
+
+1. **Custo em escala.** Cortar 1 arquivo é trivial; cortar 10 mil exige montar
+   automação. Isso já filtra quem baixa e revende sem estrutura.
+2. **Prova de origem, e constrangimento.** Quem *não* cortar passa a distribuir
+   um catálogo inteiro **carimbado com o nome do concorrente**. Isso é prova de
+   procedência e é publicamente ruim para quem faz.
+
+**A distinção que continua valendo** é mais estreita do que eu disse: a vinheta
+identifica **de qual empresa** o áudio saiu; ela não identifica **qual conta**
+vazou. Para o caso do concorrente, saber a empresa é exatamente o que interessa —
+a marca d'água por usuário só ganha importância quando o problema for vazamento
+individual.
+
+**Reforço barato, se um dia interessar:** vinhetas curtas também **no meio** do
+livro (a cada N capítulos, em posições variáveis). Cortar começo e fim é um
+recorte fixo; cortar dezenas de pontos que mudam de livro para livro é outro
+nível de trabalho.
+
+A tabela abaixo fica para separar os dois papéis — não para dizer que um vale
+mais que o outro:
+
+| | Vinheta | Marca d'água forense |
+|---|---|---|
+| É audível? | Sim, é o ponto | Não, é inaudível |
+| Onde fica | Começo e fim | Espalhada no áudio inteiro |
+| É igual para todos? | Sim | **Não — uma por usuário** |
+| Some com | Cortar 10s num editor grátis | Só destruindo o áudio |
+| Serve para | Identidade + **prova de origem e custo de remoção em escala** | **Dizer de qual conta vazou** |
+
+As duas convivem, e a vinheta vem primeiro por ser muito mais barata. **Detalhe
+de custo:** a vinheta, sendo igual para todos, mantém o arquivo único e cacheável
+na CDN; marca d'água por usuário torna cada entrega diferente — é por isso que
+ela costuma ficar para depois, quando houver acervo e escala que a justifiquem.
+
 ### O que dá tempo: hoje não existe arquivo nenhum
 
 O "baixado" do AllBook é só uma marca — uma lista de ids em `allbook_downloads`
