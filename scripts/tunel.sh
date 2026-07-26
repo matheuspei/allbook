@@ -22,10 +22,22 @@
 #     caminho é publicar o site (Vercel/Netlify/Cloudflare Pages) — outra
 #     conversa, e exige conta sua.
 #
-# ARMADILHA JÁ VIVIDA (26/07): em rede que filtra DNS — a desta máquina é uma
-# delas —, o PRÓPRIO dono do link não consegue abri-lo, porque o nome
-# `trycloudflare.com` não é resolvido ali dentro. Isso NÃO quer dizer que está
-# quebrado: quem está fora dessa rede abre normalmente. Para conferir com os
+# DUAS ARMADILHAS JÁ VIVIDAS (26/07), as duas custaram tempo:
+#
+# 1. "Blocked request. This host is not allowed" — 403 em TODO acesso pelo
+#    túnel. É o Vite recusando um nome de host que não conhece (proteção contra
+#    DNS rebinding), e a explicação vem só no corpo da resposta, que ninguém lê
+#    no celular. Resolvido de vez: `.trycloudflare.com` está liberado no
+#    `vite.config.ts` E repassado em `server/vite.ts` — os dois, porque o
+#    segundo SUBSTITUI o bloco `server` do primeiro em vez de fundir.
+#
+# 2. O túnel caindo a cada ~50s ("timeout: no recent network activity"): rede
+#    que estrangula UDP derruba o QUIC, que é o protocolo padrão. Por isso o
+#    comando abaixo força `--protocol http2`, que é TCP e atravessa.
+#
+# E uma observação sobre esta máquina: a rede daqui NÃO resolve
+# `trycloudflare.com` no DNS interno, então o dono do link pode não conseguir
+# abri-lo aqui dentro — quem está fora abre normalmente. Para conferir com os
 # próprios olhos, use o celular em dados móveis (4G/5G, Wi-Fi desligado).
 
 set -uo pipefail
@@ -48,4 +60,4 @@ echo "Criando o endereço público… (pode levar alguns segundos)"
 echo "Para encerrar, aperte Ctrl+C nesta janela."
 echo
 
-exec cloudflared tunnel --url "http://localhost:$PORTA" --no-autoupdate
+exec cloudflared tunnel --url "http://localhost:$PORTA" --protocol http2 --no-autoupdate

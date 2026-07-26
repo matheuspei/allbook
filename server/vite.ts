@@ -9,10 +9,18 @@ import { randomUUID } from "node:crypto";
 const viteLogger = createLogger();
 
 export async function setupVite(server: Server, app: Express) {
+  /*
+   * `server: serverOptions` **substitui inteiro** o bloco `server` do
+   * `vite.config.ts` — não funde. Por isso a lista de hosts precisa ser lida de
+   * lá e repassada aqui; escrevê-la de novo (era o caso até 26/07) criava uma
+   * segunda fonte da verdade que ninguém lembra de atualizar. Foi exatamente o
+   * que aconteceu: liberar `.trycloudflare.com` no `vite.config.ts` não teve
+   * efeito nenhum, porque esta linha continuava mandando.
+   */
   const serverOptions = {
     middlewareMode: true,
     hmr: { server, path: "/vite-hmr" },
-    allowedHosts: ["localhost", "127.0.0.1"],
+    allowedHosts: viteConfig.server?.allowedHosts ?? ["localhost", "127.0.0.1"],
   };
 
   const vite = await createViteServer({
