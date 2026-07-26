@@ -2049,6 +2049,31 @@ com o número de marcações num selo. Antes a lista só abria pelo menu de "…
 por um **toque longo** que ninguém adivinha. O botão só aparece quando existe a
 primeira marcação: o acesso nasce junto com o conteúdo.
 
+### As marcações saíram do player (26/07, na sequência)
+
+Com a barra consertada, o Matheus fez a pergunta que faltava: *"essas marcações
+estão indo para onde? Como é que o usuário pode enxergar?"*. A resposta medida no
+código era ruim: **só quatro arquivos liam as marcações, todos do fluxo do
+tocador**. Quem marcasse trechos em cinco livros precisava abrir cinco players
+para lembrar do que guardou, e a **ficha do livro** — onde se decide retomar —
+não dizia nada. Guardar sem poder rever de fora é quase guardar no lixo.
+
+**Três lugares novos**, todos sobre a mesma consulta (`bookmarksByBook`):
+
+1. **`/bookmarks` — "Minhas marcações"**: tudo agrupado por livro, do mexido mais
+   recente para o mais antigo, com a nota embaixo de cada trecho. Dá para ouvir,
+   editar a nota e apagar sem sair da tela.
+2. **Ficha do livro**: um cartão logo abaixo do progresso ("2 marcações suas · 1
+   com nota escrita") que abre **o mesmo painel do player** — reuso, não uma
+   segunda lista escrita de novo.
+3. **Perfil**: entrada ao lado de "Minha lista", com o total. É a mesma natureza
+   das duas — coisa **sua** guardada no app.
+
+**O player passou a aceitar `?t=SEGUNDOS`** ao lado de `?chapter=N`, e `t` ganha
+quando os dois vêm juntos, por ser o mais específico. Sem isso, tocar numa
+marcação levaria ao **começo do capítulo** — perdendo justamente o que ela
+guarda, que é o instante.
+
 ---
 
 ## 4.30 Um livro, várias narrações — e um seletor de voz (26/07)

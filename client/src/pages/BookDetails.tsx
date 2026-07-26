@@ -1,5 +1,7 @@
-import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, Quote, User, Check, Plus, Clock, Headphones, AudioLines } from "lucide-react";
+import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, BookMarked, Quote, User, Check, Plus, Clock, Headphones, AudioLines } from "lucide-react";
 import BookActionsMenu from "@/components/BookActionsMenu";
+import MarcacoesDoLivro from "@/components/MarcacoesDoLivro";
+import { BOOKMARK_EVENT, bookmarksFor, type Bookmark } from "@/lib/bookmarks";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -386,11 +388,34 @@ export default function BookDetails({ params }: { params: { id: string } }) {
   // progresso no topo e o destaque do capítulo atual na lista.
   const [progresso, setProgresso] = useState<Playback | null>(null);
   const [showAllChapters, setShowAllChapters] = useState(false);
+  const [marcacoes, setMarcacoes] = useState<Bookmark[]>([]);
+  const [verMarcacoes, setVerMarcacoes] = useState(false);
 
   useEffect(() => {
     const encontrado = readPlaybackList().find((p) => p.bookId === Number(params.id));
     setProgresso(encontrado ?? null);
   }, [params.id]);
+
+  // As marcações deste livro. Relê a cada escrita para o painel e o cartão
+  // concordarem quando a pessoa apaga uma nota sem sair da ficha.
+  useEffect(() => {
+    const atualizar = () => setMarcacoes(bookmarksFor(Number(params.id)));
+    atualizar();
+    window.addEventListener(BOOKMARK_EVENT, atualizar);
+    return () => window.removeEventListener(BOOKMARK_EVENT, atualizar);
+  }, [params.id]);
+
+  const marcacoesComNota = marcacoes.filter((item) => item.note.trim().length > 0).length;
+
+  /** "1:12:40" — o relógio do ponto marcado, no mesmo formato do tocador. */
+  const formatarPonto = (segundos: number) => {
+    const total = Math.floor(Math.abs(segundos));
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
 
   const addToLibrary = () => {
@@ -587,6 +612,35 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           </motion.div>
         )}
 
+        {/*
+          Os trechos que a pessoa guardou deste livro, logo abaixo do progresso.
+          É o lugar certo: a ficha é onde se decide retomar, e até 26/07 as
+          marcações só existiam dentro do player — quem quisesse rever uma nota
+          tinha de abrir o tocador e caçar no menu. Só aparece se houver alguma.
+        */}
+        {marcacoes.length > 0 && (
+          <button
+            onClick={() => setVerMarcacoes(true)}
+            className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 text-left transition-colors hover:bg-white/[0.08]"
+            data-testid="button-book-bookmarks"
+          >
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+              <BookMarked className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">
+                {marcacoes.length} {marcacoes.length === 1 ? "marcação sua" : "marcações suas"}
+              </span>
+              <span className="block truncate text-xs text-white/50">
+                {marcacoesComNota > 0
+                  ? `${marcacoesComNota} com nota escrita`
+                  : "Toque para rever os trechos guardados"}
+              </span>
+            </div>
+            <ChevronRight className="h-5 w-5 shrink-0 text-white/30" />
+          </button>
+        )}
+
         <div className="space-y-3">
           <h2 className="text-lg font-bold font-display" data-testid="heading-summary">Resumo</h2>
           <p className="text-white/70 leading-relaxed text-sm" data-testid="text-summary">
@@ -748,6 +802,23 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           </div>
         </section>
       </main>
+
+      {/*
+        O mesmo painel do tocador, reusado aqui — não uma segunda lista escrita
+        de novo. Tocar numa marcação abre o player **no segundo exato** (`?t=`),
+        que é o que a marcação guarda.
+      */}
+      <MarcacoesDoLivro
+        aberto={verMarcacoes}
+        onClose={() => setVerMarcacoes(false)}
+        bookId={Number(params.id)}
+        titulo={book.title}
+        tituloDoCapitulo={(capitulo) =>
+          chapters.find((ch) => ch.id === capitulo)?.title ?? `Capítulo ${capitulo}`
+        }
+        formatarTempo={formatarPonto}
+        onIr={(positionSec) => setLocation(`/player/${params.id}?t=${positionSec}`)}
+      />
     </div>
   );
 }

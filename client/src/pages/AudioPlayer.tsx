@@ -80,17 +80,27 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const chapters = getChapters(book.id);
   const durationSeconds = chaptersTotalSec(book.id);
 
-  // Abrir "/player/:id?chapter=N" começa naquele capítulo. Sem o parâmetro,
-  // retoma de onde a pessoa parou (ou do começo).
+  /*
+   * Abrir "/player/:id?chapter=N" começa naquele capítulo, e "?t=SEGUNDOS" num
+   * ponto exato. O `t` nasceu com a tela "Minhas marcações" (26/07): mandar para
+   * o começo do capítulo perderia justamente o que a marcação guarda — o
+   * instante. `t` ganha do `chapter` quando os dois vêm juntos, por ser o mais
+   * específico. Sem parâmetro, retoma de onde a pessoa parou.
+   */
   const search = useSearch();
+  const parametros = new URLSearchParams(search);
   const chapterParam = (() => {
-    const n = Number(new URLSearchParams(search).get("chapter"));
+    const n = Number(parametros.get("chapter"));
     return Number.isInteger(n) && n >= 1 && n <= chapters.length ? n : null;
   })();
+  const timeParam = (() => {
+    const n = Number(parametros.get("t"));
+    return Number.isFinite(n) && n >= 0 ? Math.min(n, durationSeconds) : null;
+  })();
 
-  const initialPosition = chapterParam
-    ? chapterStartSec(book.id, chapterParam)
-    : savedForThisBook?.positionSec ?? 0;
+  const initialPosition =
+    timeParam ??
+    (chapterParam ? chapterStartSec(book.id, chapterParam) : savedForThisBook?.positionSec ?? 0);
 
   const [currentTime, setCurrentTime] = useState(initialPosition);
 

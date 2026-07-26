@@ -20,6 +20,7 @@ import SettingsPage from "@/pages/Settings";
 import Plans from "@/pages/Plans";
 import Community from "@/pages/Community";
 import UserProfile from "@/pages/UserProfile";
+import Bookmarks from "@/pages/Bookmarks";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
@@ -108,6 +109,7 @@ function Router() {
             <Route path="/community" component={Community} />
             <Route path="/user/:slug" component={UserProfile} />
             <Route path="/downloads" component={Downloads} />
+            <Route path="/bookmarks" component={Bookmarks} />
             <Route path="/notifications" component={Notifications} />
             <Route path="/book/:id" component={BookDetails} />
             <Route path="/person/:slug" component={PersonProfile} />

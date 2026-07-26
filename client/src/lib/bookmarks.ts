@@ -13,6 +13,8 @@
  * toda escrita avisa a tela por um evento de `window`.
  */
 
+import { catalog, type Book } from "@/lib/books";
+
 const KEY = "allbook_bookmarks";
 
 /**
@@ -129,4 +131,57 @@ export function setBookmarkNote(id: string, note: string): void {
 
 export function removeBookmark(id: string): void {
   writeBookmarks(readBookmarks().filter((item) => item.id !== id));
+}
+
+export interface LivroComMarcacoes {
+  book: Book;
+  marcacoes: Bookmark[];
+  /** Quantas dessas marcações têm nota escrita. */
+  comNota: number;
+  /** ISO da marcação mais recente — é por ela que a lista se ordena. */
+  ultima: string;
+}
+
+/**
+ * Tudo que foi marcado, **agrupado por livro** e do mexido mais recentemente
+ * para o mais antigo.
+ *
+ * Existe porque guardar sem poder rever de fora é quase guardar no lixo: até
+ * 26/07 as marcações só apareciam dentro do player **daquele** livro, então quem
+ * marcasse trechos em cinco livros precisava abrir cinco players para lembrar do
+ * que tinha guardado. Esta é a consulta que a tela "Minhas marcações" usa.
+ *
+ * Livro que saiu do catálogo é descartado em silêncio, como em `libraryBooks`.
+ */
+export function bookmarksByBook(): LivroComMarcacoes[] {
+  const porLivro = new Map<number, Bookmark[]>();
+  for (const marcacao of readBookmarks()) {
+    const lista = porLivro.get(marcacao.bookId);
+    if (lista) lista.push(marcacao);
+    else porLivro.set(marcacao.bookId, [marcacao]);
+  }
+
+  return Array.from(porLivro.entries())
+    .flatMap(([bookId, marcacoes]) => {
+      const book = catalog.find((item) => item.id === bookId);
+      if (!book) return [];
+      const ordenadas = marcacoes.slice().sort((a, b) => a.positionSec - b.positionSec);
+      return [
+        {
+          book,
+          marcacoes: ordenadas,
+          comNota: ordenadas.filter((item) => item.note.trim().length > 0).length,
+          ultima: ordenadas.reduce(
+            (maior, item) => (item.createdAt > maior ? item.createdAt : maior),
+            ordenadas[0].createdAt
+          ),
+        },
+      ];
+    })
+    .sort((a, b) => b.ultima.localeCompare(a.ultima));
+}
+
+/** Quantas marcações existem no total, de todos os livros. */
+export function totalBookmarks(): number {
+  return readBookmarks().length;
 }
