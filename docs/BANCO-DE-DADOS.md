@@ -26,14 +26,14 @@ depois*. Cada item abaixo diz **como está hoje** e **o que precisa acontecer**.
 | Métodos de armazenamento | **3** (`getUser`, `getUserByUsername`, `createUser`) |
 | Rotas de API | **zero** — `server/routes.ts` está vazio |
 | Armazenamento em uso | `MemStorage` — uma lista na memória que **some quando o servidor desliga** |
-| Onde o app guarda tudo | **20 chaves no `localStorage` do navegador** (lista abaixo) |
+| Onde o app guarda tudo | **21 chaves no `localStorage` do navegador** (lista abaixo) |
 | Áudio | **não existe** — nenhum arquivo, nenhum player real |
 
 Ou seja: o backend está montado mas **vazio**. Todo o app funciona no navegador.
 
 ---
 
-## 1. As 20 chaves do navegador — o que vira tabela
+## 1. As 21 chaves do navegador — o que vira tabela
 
 Cada linha é um dado que hoje vive só no aparelho da pessoa e **some se ela
 trocar de celular**. A coluna "cuidado" é o que morde na migração.
@@ -58,6 +58,11 @@ trocar de celular**. A coluna "cuidado" é o que morde na migração.
 - [ ] `allbook_miniplayer` — se o mini player está visível (`lib/playback.ts`).
       Provavelmente **não** vai para o banco: é estado de tela.
 - [ ] `allbook_finished` — concluídos (`lib/playback.ts`).
+- [ ] `allbook_bookmarks` — marcações e notas do tocador (`lib/bookmarks.ts`,
+      criada em 26/07). ⚠️ **É a única chave com texto escrito pela pessoa** —
+      perder uma nota é perder trabalho dela, não uma preferência que se refaz em
+      um toque. Deve ser das **primeiras** a sincronizar, e a que mais merece
+      exportação antes da migração.
 - [ ] `allbook_listening` — diário de audição, base das Estatísticas
       (`lib/listening.ts`).
 - [ ] `allbook_listening_seeded` — marca que o diário já foi **semeado com dados
