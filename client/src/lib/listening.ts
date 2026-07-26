@@ -420,19 +420,6 @@ export interface HistoricoDeUmLivro {
   dias: DiaDoLivro[];
   /** Só de demonstração? Serve para a tela avisar em vez de fingir. */
   soExemplo: boolean;
-  /**
-   * Segundos por **dia corrido**, contando do primeiro dia de escuta até hoje —
-   * inclusive os dias em que a pessoa não tocou no livro.
-   *
-   * **É de propósito que os dias parados entrem na conta.** Quem ouve 1h a cada
-   * três dias não termina o livro no ritmo de 1h por dia; a frequência faz parte
-   * do ritmo. Dividir só pelos dias ativos daria uma previsão sempre otimista —
-   * o mesmo viés que a previsão das Estatísticas tem por usar a média de **todos**
-   * os livros juntos (ver ROTEIRO 4.36).
-   *
-   * `null` quando não há base: um único dia de escuta não é ritmo, é uma amostra.
-   */
-  secPorDiaCorrido: number | null;
 }
 
 /**
@@ -459,27 +446,106 @@ export function historicoDoLivro(
 
   dias.sort((a, b) => (a.dia < b.dia ? 1 : -1));
 
-  /*
-   * Do primeiro dia de escuta até hoje. Dois dias na lista já dão um intervalo,
-   * e é o mínimo que eu aceito chamar de ritmo — com um dia só, qualquer conta
-   * seria adivinhação apresentada como número.
-   */
-  let secPorDiaCorrido: number | null = null;
-  if (dias.length >= 2) {
-    const primeiro = new Date(`${dias[dias.length - 1].dia}T12:00:00`);
-    const agora = new Date(`${diaISO(hoje)}T12:00:00`);
-    const diasCorridos = Math.max(
-      1,
-      Math.round((agora.getTime() - primeiro.getTime()) / 86_400_000) + 1
-    );
-    secPorDiaCorrido = totalSec / diasCorridos;
-  }
-
   return {
     totalSec,
     dias,
     soExemplo: dias.length > 0 && dias.every((d) => d.exemplo),
-    secPorDiaCorrido,
+  };
+}
+
+/**
+ * Três semanas sem tocar num livro não é "ouvir devagar" — é ter saído dele.
+ * Quando a pessoa volta depois disso, ela **retomou**, e o tempo parado não
+ * pode entrar no ritmo.
+ */
+const LIMITE_DE_HIATO_DIAS = 21;
+
+function diferencaEmDias(deISO: string, ateISO: string): number {
+  // Meio-dia dos dois lados: evita que o horário de verão coma ou invente um dia.
+  const de = new Date(`${deISO}T12:00:00`).getTime();
+  const ate = new Date(`${ateISO}T12:00:00`).getTime();
+  return Math.round((ate - de) / 86_400_000);
+}
+
+/**
+ * "3 dias", "3 meses", "1 ano" — a unidade acompanha o tamanho da previsão.
+ *
+ * **Por que não deixar em dias sempre:** o primeiro teste devolveu *"219 dias"*,
+ * que é a conta certa e a comunicação errada — ninguém processa 219 dias, e o
+ * número ainda soa a cobrança. Em meses a mesma verdade fica legível. Fica aqui,
+ * e não na tela, porque as **duas** telas que mostram previsão têm de falar
+ * igual (ROTEIRO 4.36).
+ */
+export function prazoLegivel(dias: number): string {
+  if (dias === 1) return "1 dia";
+  if (dias <= 45) return `${dias} dias`;
+  const meses = Math.round(dias / 30);
+  if (meses < 12) return `${meses} meses`;
+  const anos = Math.round(dias / 365);
+  return anos === 1 ? "1 ano" : `${anos} anos`;
+}
+
+export interface PrevisaoDeTermino {
+  /** Dias corridos estimados até o fim, no ritmo atual. */
+  dias: number;
+  /** Segundos por dia corrido — o ritmo em si. */
+  secPorDia: number;
+  /** Primeiro dia do trecho atual, quando houve retomada depois de um hiato. */
+  retomadoEm: string | null;
+}
+
+/**
+ * **A previsão de término do AllBook — fonte única.** Player e Estatísticas
+ * chamam esta função; antes cada tela fazia a sua conta e o app se contradizia
+ * (ROTEIRO 4.36).
+ *
+ * O ritmo é o **daquele livro**, e só do **trecho atual de leitura**:
+ *
+ * - **Dias parados contam** dentro do trecho. Quem ouve 1h a cada três dias não
+ *   termina no ritmo de 1h por dia — a frequência faz parte do ritmo.
+ * - **Um hiato acima de 21 dias corta o trecho.** Os dois furos que o Matheus
+ *   apontou em 26/07 morrem aqui: (a) os 30 segundos de curiosidade em maio não
+ *   viram mais o marco zero de quem só começou de verdade em julho; (b) quem
+ *   passou quatro meses fora não carrega esses meses na média ao voltar.
+ * - **Parou de vez → sem previsão.** Se a última escuta foi há mais de 21 dias,
+ *   a pessoa não está lendo este livro *agora*, e "no seu ritmo" seria invenção.
+ * - **Um dia só de escuta → sem previsão.** Amostra não é ritmo.
+ */
+export function previsaoDeTermino(
+  diario: Diario,
+  bookId: number,
+  restanteSec: number,
+  hoje = new Date()
+): PrevisaoDeTermino | null {
+  if (restanteSec <= 0) return null;
+
+  const { dias } = historicoDoLivro(diario, bookId); // do mais recente ao mais antigo
+  if (dias.length < 2) return null;
+
+  const hojeISO = diaISO(hoje);
+  if (diferencaEmDias(dias[0].dia, hojeISO) > LIMITE_DE_HIATO_DIAS) return null;
+
+  // Anda para trás enquanto os dias estiverem encostados; para no primeiro buraco.
+  let inicio = 0;
+  while (
+    inicio + 1 < dias.length &&
+    diferencaEmDias(dias[inicio + 1].dia, dias[inicio].dia) <= LIMITE_DE_HIATO_DIAS
+  ) {
+    inicio += 1;
+  }
+
+  const trecho = dias.slice(0, inicio + 1);
+  if (trecho.length < 2) return null;
+
+  const secDoTrecho = trecho.reduce((soma, d) => soma + d.sec, 0);
+  const diasCorridos = Math.max(1, diferencaEmDias(trecho[trecho.length - 1].dia, hojeISO) + 1);
+  const secPorDia = secDoTrecho / diasCorridos;
+  if (secPorDia < 60) return null;
+
+  return {
+    dias: Math.max(1, Math.ceil(restanteSec / secPorDia)),
+    secPorDia,
+    retomadoEm: inicio + 1 < dias.length ? trecho[trecho.length - 1].dia : null,
   };
 }
 

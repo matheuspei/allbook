@@ -14,6 +14,8 @@ import {
   formatarDuracao,
   garantirDiario,
   historicoDoLivro,
+  prazoLegivel,
+  previsaoDeTermino,
   type HistoricoDeUmLivro,
 } from "@/lib/listening";
 
@@ -30,22 +32,6 @@ import {
  * olhado por essa fatia — é a única coisa que faltava para o item cumprir o
  * nome. Nenhuma outra tela do app responde "quanto eu já ouvi *deste* livro".
  */
-
-/**
- * "3 dias", "cerca de 2 meses" — a unidade acompanha o tamanho da previsão.
- *
- * **Por que não deixar em dias sempre:** o primeiro teste devolveu *"219 dias"*,
- * que é a conta certa e a comunicação errada — ninguém processa 219 dias, e o
- * número soa a julgamento. Em meses a mesma verdade fica legível.
- */
-function prazoLegivel(dias: number): string {
-  if (dias === 1) return "1 dia";
-  if (dias <= 45) return `${dias} dias`;
-  const meses = Math.round(dias / 30);
-  if (meses < 12) return `${meses} meses`;
-  const anos = Math.round(dias / 365);
-  return anos === 1 ? "1 ano" : `${anos} anos`;
-}
 
 /** "hoje", "ontem", "25 de julho" — data curta, sem soletrar ano à toa. */
 function rotuloDoDia(diaChave: string, hoje: Date): string {
@@ -103,14 +89,14 @@ export default function HistoricoDoLivro({
   const vazio = !historico || historico.dias.length === 0;
 
   /*
-   * "Nesse ritmo, ~N dias" — usa o ritmo **deste** livro, não a média geral de
-   * audição. Some quando falta pouco (menos de 5 min é reta final, previsão ali
-   * é ruído) ou quando não há base para chamar de ritmo.
+   * A previsão vem da fonte única (`previsaoDeTermino`), a mesma que as
+   * Estatísticas usam — o app não pode dar duas respostas para "quando eu
+   * termino". Some na reta final: abaixo de 5 min, previsão é ruído.
    */
-  const diasParaTerminar = useMemo(() => {
-    if (!historico?.secPorDiaCorrido || restanteSec < 300) return null;
-    return Math.max(1, Math.ceil(restanteSec / historico.secPorDiaCorrido));
-  }, [historico, restanteSec]);
+  const previsao = useMemo(() => {
+    if (!aberto || restanteSec < 300) return null;
+    return previsaoDeTermino(garantirDiario(), bookId, restanteSec);
+  }, [aberto, bookId, restanteSec, historico]);
 
   return (
     <Drawer open={aberto} onOpenChange={(estado) => !estado && onClose()}>
@@ -164,12 +150,14 @@ export default function HistoricoDoLivro({
               <p className="mt-3 text-sm leading-relaxed text-white/60">
                 Faltam{" "}
                 <span className="font-semibold text-white">{formatarDuracao(restanteSec)}</span>
-                {diasParaTerminar !== null && (
+                {previsao && (
                   <>
-                    {" — no seu ritmo neste livro, cerca de "}
-                    <span className="font-semibold text-white">
-                      {prazoLegivel(diasParaTerminar)}
-                    </span>
+                    {" — no seu ritmo "}
+                    {previsao.retomadoEm
+                      ? `desde que você retomou, em ${rotuloDoDia(previsao.retomadoEm, hoje)}, `
+                      : "neste livro, "}
+                    {"cerca de "}
+                    <span className="font-semibold text-white">{prazoLegivel(previsao.dias)}</span>
                     {" para terminar."}
                   </>
                 )}

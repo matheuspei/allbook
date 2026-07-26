@@ -46,6 +46,8 @@ import {
   porFaixaDoDia,
   porLivro,
   segundosNaJanela,
+  prazoLegivel,
+  previsaoDeTermino,
   serieDiaria,
   serieMensal,
   serieSemanal,
@@ -160,9 +162,9 @@ export default function Statistics() {
   }, []);
 
   /**
-   * "No seu ritmo, você termina X em N dias" — o livro em andamento mais
-   * recente, o quanto falta dele e a sua média diária das últimas 2 semanas.
-   * Sem ritmo (média zero) a conta não existe, e a seção some.
+   * "No seu ritmo, você termina X em N" — o livro em andamento mais recente e
+   * quanto falta dele. A conta é a **fonte única** `previsaoDeTermino`, a mesma
+   * do painel do tocador. Sem base para chamar de ritmo, a seção some.
    */
   const previsao = useMemo(() => {
     if (!resumo) return null;
@@ -172,18 +174,22 @@ export default function Statistics() {
       .sort((a, b) => b.playback.updatedAt.localeCompare(a.playback.updatedAt))[0];
     if (!emAndamento) return null;
 
-    const mediaDiaria = segundosNaJanela(resumo.diario, 13, 0) / 14;
-    if (mediaDiaria < 60) return null;
-
     const restanteSec = Math.max(
       0,
       emAndamento.playback.durationSec - emAndamento.playback.positionSec
     );
-    return {
-      entrada: emAndamento,
-      mediaDiaria,
-      dias: Math.max(1, Math.ceil(restanteSec / mediaDiaria)),
-    };
+
+    /*
+     * A conta mora em `lib/listening.ts` e é a mesma que o painel "Meu ritmo
+     * neste livro" do tocador usa (ROTEIRO 4.36). Aqui havia uma conta própria
+     * — média de **todos** os livros dos últimos 14 dias — e o app respondia
+     * "quando eu termino este livro" de dois jeitos diferentes conforme a tela.
+     * Pedido do Matheus: *"não faz sentido ter dois tipos de cálculo"*.
+     */
+    const conta = previsaoDeTermino(resumo.diario, emAndamento.book.id, restanteSec);
+    if (!conta) return null;
+
+    return { entrada: emAndamento, mediaDiaria: conta.secPorDia, dias: conta.dias };
   }, [resumo]);
 
   const serie = useMemo<PontoDaSerie[]>(() => {
@@ -804,12 +810,16 @@ export default function Statistics() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] uppercase tracking-wider text-white/35">No seu ritmo</p>
                   <p className="mt-1 text-sm font-semibold leading-snug">
+                    {/* `prazoLegivel` mora em lib/listening: o tocador diz o
+                        mesmo prazo com as mesmas palavras. Antes esta linha
+                        falava em dias sempre, e "75 dias" aqui virava "3 meses"
+                        lá — mesmo número, duas leituras. */}
                     Você termina {previsao.entrada.book.title} em{" "}
-                    {previsao.dias === 1 ? "1 dia" : `${previsao.dias} dias`}
+                    {prazoLegivel(previsao.dias)}
                   </p>
                   <p className="mt-0.5 text-[11px] text-white/40">
                     {remainingLabel(previsao.entrada.playback)} · média de{" "}
-                    {formatarDuracao(previsao.mediaDiaria)} por dia
+                    {formatarDuracao(previsao.mediaDiaria)} por dia neste livro
                   </p>
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-white/25" />
