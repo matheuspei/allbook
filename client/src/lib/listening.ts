@@ -460,6 +460,17 @@ export function historicoDoLivro(
  */
 const LIMITE_DE_HIATO_DIAS = 21;
 
+/**
+ * Abaixo disto o dia **não abre nem sustenta** um trecho de leitura: é a espiada
+ * de quem abriu o livro só para ouvir como é a voz do narrador.
+ *
+ * Caso do Matheus, 26/07: *"a pessoa abriu o livro, ouviu 30 segundos e foi ali
+ * ver como era a voz"*. Sem este piso, aquela curiosidade viraria o marco zero
+ * do ritmo — e a conta inteira nasceria torta. O tempo desses dias **continua
+ * somando** no total ouvido; ele só não serve de âncora para o ritmo.
+ */
+const MINIMO_DE_SESSAO_SEC = 300;
+
 function diferencaEmDias(deISO: string, ateISO: string): number {
   // Meio-dia dos dois lados: evita que o horário de verão coma ou invente um dia.
   const de = new Date(`${deISO}T12:00:00`).getTime();
@@ -520,32 +531,46 @@ export function previsaoDeTermino(
   if (restanteSec <= 0) return null;
 
   const { dias } = historicoDoLivro(diario, bookId); // do mais recente ao mais antigo
-  if (dias.length < 2) return null;
+
+  // Só as sessões de verdade desenham o trecho; as espiadas ficam de fora.
+  const sessoes = dias.filter((d) => d.sec >= MINIMO_DE_SESSAO_SEC);
+  if (sessoes.length < 2) return null;
 
   const hojeISO = diaISO(hoje);
-  if (diferencaEmDias(dias[0].dia, hojeISO) > LIMITE_DE_HIATO_DIAS) return null;
+  if (diferencaEmDias(sessoes[0].dia, hojeISO) > LIMITE_DE_HIATO_DIAS) return null;
 
-  // Anda para trás enquanto os dias estiverem encostados; para no primeiro buraco.
-  let inicio = 0;
+  // Anda para trás enquanto as sessões estiverem encostadas; para no 1º buraco.
+  let fim = 0;
   while (
-    inicio + 1 < dias.length &&
-    diferencaEmDias(dias[inicio + 1].dia, dias[inicio].dia) <= LIMITE_DE_HIATO_DIAS
+    fim + 1 < sessoes.length &&
+    diferencaEmDias(sessoes[fim + 1].dia, sessoes[fim].dia) <= LIMITE_DE_HIATO_DIAS
   ) {
-    inicio += 1;
+    fim += 1;
   }
 
-  const trecho = dias.slice(0, inicio + 1);
+  const trecho = sessoes.slice(0, fim + 1);
   if (trecho.length < 2) return null;
 
-  const secDoTrecho = trecho.reduce((soma, d) => soma + d.sec, 0);
-  const diasCorridos = Math.max(1, diferencaEmDias(trecho[trecho.length - 1].dia, hojeISO) + 1);
+  const comecoDoTrecho = trecho[trecho.length - 1].dia;
+
+  /*
+   * O tempo somado usa **todos** os dias dentro do trecho, inclusive os curtos:
+   * os 3 minutos de uma terça também foram ouvidos. O piso vale para escolher
+   * onde o trecho começa, não para descartar audição.
+   */
+  const secDoTrecho = dias
+    .filter((d) => d.dia >= comecoDoTrecho)
+    .reduce((soma, d) => soma + d.sec, 0);
+
+  const diasCorridos = Math.max(1, diferencaEmDias(comecoDoTrecho, hojeISO) + 1);
   const secPorDia = secDoTrecho / diasCorridos;
   if (secPorDia < 60) return null;
 
   return {
     dias: Math.max(1, Math.ceil(restanteSec / secPorDia)),
     secPorDia,
-    retomadoEm: inicio + 1 < dias.length ? trecho[trecho.length - 1].dia : null,
+    // Houve corte se sobrou sessão antes do trecho — a tela diz "desde que retomou".
+    retomadoEm: fim + 1 < sessoes.length ? comecoDoTrecho : null,
   };
 }
 
