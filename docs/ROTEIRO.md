@@ -2382,6 +2382,123 @@ apontando para `/search`. O item do menu do player mudou junto: era "Títulos
 recomendados" com ícone de estante, virou **"Explorar o catálogo" com a lupa** —
 o nome e o ícone do lugar onde ele leva. `npm run check` limpo.
 
+### Apurado e descartado no mesmo dia: seta de voltar nas abas
+
+Levantando os links da Biblioteca na sequência (são 3: a aba do menu, o botão
+"Ir para a Biblioteca" do estado vazio de `/bookmarks`, e a palavra "Biblioteca"
+na resposta da Ajuda), o Matheus notou um beco: **um link dentro de um texto
+leva a uma aba, e aba não tem seta de voltar** — as 5 abas são pontos de
+partida, não telas empilhadas, e isso está certo. Quem entra na Biblioteca pela
+Ajuda não tem botão nenhum para voltar à Ajuda.
+
+**Testado no app, não deduzido:** Ajuda → clique no link → Biblioteca →
+`history.back()` → **volta para a Ajuda**. O `history.length` subiu de 22 para
+23 no clique. O AllBook usa o histórico real do navegador (wouter empurra cada
+tela), então o **botão voltar do Android e o gesto de borda do Safari no iPhone
+já resolvem** — são o mesmo comando.
+
+O único caso que quebra é o app **instalado na tela de início do iPhone** (modo
+standalone): o iOS não oferece nem botão nem gesto ali. No Android instalado o
+botão continua existindo.
+
+**Decisão do Matheus: não fazer nada.** *"A gente já tá inventando demais (…)
+não há necessidade disso."* E é o julgamento certo: o cenário que quebra não
+existe hoje e pode nunca existir, o navegador cobre o uso real, e uma seta
+condicional dentro das abas seria código para manter para sempre por causa de um
+caso hipotético. **Fica aqui só para ninguém refazer esta investigação achando
+que é ideia nova.** Se um dia o AllBook virar app de iPhone instalado, é aqui
+que está o problema e as duas saídas que existiam: (a) seta na aba quando
+alcançada por link; (b) a Ajuda deixar de teletransportar e passar a ensinar o
+caminho ("na aba Biblioteca, no menu de baixo").
+
+---
+
+## 4.33 O Bluetooth do modo carro: copiamos a caixinha e jogamos fora a razão (26/07)
+
+> **DESFECHO (26/07, mesmo dia): tudo removido, modo carro fica.** Decisão do
+> Matheus — *"vamos remover tudo, essas permissões, essas coisas, tudo. A gente
+> até mantém o modo carro (…) inclusive (…) conectado ao carro, a gente também
+> remove"*. Saíram os **três diálogos** (nota de segurança, "conectar por
+> Bluetooth?", imitação da permissão do Android), o **selo "Conectado ao Carro"**
+> do topo da tela e — achado durante a limpeza — o item **"Conectar dispositivo
+> Bluetooth"** do menu dos três pontinhos, que abria a mesma caixa falsa. O botão
+> Carro agora entra **direto** na tela grande, em 1 toque. **O aviso de segurança
+> não sumiu:** continua no rodapé da própria tela ("Mantenha os olhos na
+> estrada") — escolha feita na hora de executar, para o recado não se perder
+> junto com a cerimônia. `npm run check` limpo e conferido no navegador.
+>
+> Ele registrou também a dúvida de fundo, que fica anotada: *"nem sei se faz
+> tanto sentido assim (…) estava até um pouco inclinado a remover ele"*. A tela
+> segue no app; se voltar a incomodar, o histórico está aqui.
+
+**Pesquisa apurada, que levou à decisão.** Ele olhou o modo carro e
+perguntou o que ninguém tinha perguntado: *"por que existe conectar por
+Bluetooth? Teoricamente o telefone não está conectado já pelo Bluetooth (…) por
+que que isso é importante?"*.
+
+**O que o Audible faz, conferido na documentação oficial deles**
+([Listen in the car](https://help.audible.com/s/article/listen-in-the-car?language=en_US)):
+o app **não conecta nada**. Quem pareia e transmite o som é o sistema do
+celular. A frase é *"Car Mode will launch in your player whenever your phone
+connects to your car via Bluetooth"* — o app só quer **ser avisado** de que o
+telefone se conectou ao carro, para **abrir o modo carro sozinho**. A permissão
+"dispositivos por perto" existe porque o Android 12+ a exige para um app saber
+quais dispositivos estão conectados. **Lá o Bluetooth serve para a pessoa não
+precisar tocar no telefone** — e por isso mora nas **configurações**, como
+opção, não no caminho de entrada.
+
+**Detalhe que o Matheus perguntou e vale fixar — o app NÃO se abre sozinho.**
+Nenhum celular deixa um aplicativo pular na tela por causa de uma conexão
+Bluetooth. A ajuda da Audible é precisa: *"Audible will automatically launch the
+Car Mode player screen **when you open the app**"*. Ou seja: o telefone conecta,
+o app fica sabendo, e **quando você abrir o app** ele já vem na tela do modo
+carro em vez do player comum. Não é janela nova nem notificação — é a mesma tela
+do player trocando de cara. (O que às vezes **parece** o app abrindo sozinho é o
+carro/CarPlay mandando "retomar a última mídia", decisão do carro e não do
+aplicativo.) Lá isso é um interruptor em **Perfil → engrenagem → Player →
+"Automatic Car Mode"**: liga uma vez e esquece.
+
+**O que o AllBook faz hoje:** o oposto. O Bluetooth virou **pedágio** — nota de
+segurança, pergunta de conexão e uma imitação do diálogo de permissão do
+Android, **três telas e quatro toques antes** de a tela grande abrir, e tudo se
+repete a cada uso (`showCarModeEntry` e companhia são `useState`, sem memória).
+A função que no original **poupa** toques, na cópia **cobra** toques. Pior: o
+AllBook roda no navegador, que **não tem como saber** que o telefone se conectou
+ao som do carro — é promessa que não há como cumprir hoje.
+
+**"Modo carro de qual livro? E se a pessoa não tiver nada começado?"** — outra
+pergunta do Matheus, no mesmo dia. Do **último livro em andamento**: o player do
+Audible nunca está vazio, sempre tem o título mais recente carregado. O AllBook
+já guarda isso — `lib/playback.ts`, chave `allbook_playback`, uma lista dos
+livros começados do mais recente ao mais antigo (a mesma do "Continuar
+ouvindo"); o candidato é o primeiro item. **Para quem não começou nada, a ajuda
+da Audible não diz** — e a recomendação registrada é: **sem livro em andamento
+não existe modo carro**, o app abre normal. O modo carro é **capa de um player
+que já existe, não fonte de conteúdo**. Rejeitada a alternativa de o app
+escolher um título e começar a tocar sozinho ao entrar no carro: é o app
+decidindo o que a pessoa vai ouvir, e errando diante de alguém que está dirigindo
+e não pode consertar. Hoje a questão é teórica — o modo carro do AllBook é uma
+tela **dentro** de `/player/:id`, então já nasce com um livro na mão.
+
+**Dois defeitos que vêm junto:**
+- **Beco sem saída** (a regra da 4.23 de novo): *Cancelar* no Bluetooth ou *Não
+  permitir* na permissão **fecham tudo e o modo carro não abre**. Quem vai ouvir
+  de fone, ou já tem o carro pareado há meses, não chega na tela grande.
+- **Permissão falsa ensina a apertar "Permitir" sem ler** — o diálogo é um
+  desenho nosso imitando o do sistema.
+
+**Proposta registrada (não construída):** o botão Carro entra **direto** na tela
+grande; a nota de segurança aparece **na estreia e nunca mais**; o Bluetooth sai
+do caminho e a ideia certa fica guardada para quando o AllBook for app de
+celular, aí como **opção nas Configurações**: *"abrir o modo carro sozinho
+quando eu conectar no carro"*.
+
+**Corrigido no mesmo dia, para ninguém "consertar" o que não está quebrado:** a
+falta do **avançar 30s** no modo carro **não é defeito** — o Audible também só
+tem voltar 30s (os quatro botões dele: Alexa, play/pause, voltar 30s, marcador).
+Em audiolivro o gesto comum é "perdi o fio, volta". O que **falta de verdade** é
+trocar de capítulo.
+
 ---
 
 ## 5. Backlog de faxina técnica (não urgente)

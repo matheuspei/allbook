@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Share2, Bluetooth, MoreVertical, ListMusic, RotateCcw, RotateCw, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Search as SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, RotateCcw, RotateCw, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Search as SearchIcon } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -168,9 +168,6 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [customHours, setCustomHours] = useState("0");
   const [customMinutes, setCustomMinutes] = useState("0");
-  const [showCarModeEntry, setShowCarModeEntry] = useState(false);
-  const [showBluetoothPermission, setShowBluetoothPermission] = useState(false);
-  const [showSystemPermission, setShowSystemPermission] = useState(false);
   const [isCarModeActive, setIsCarModeActive] = useState(false);
   const [showChapters, setShowChapters] = useState(false);
   const [showMarcacoes, setShowMarcacoes] = useState(false);
@@ -323,22 +320,20 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     setSpeed(prev => Math.max(0.5, Math.min(3.0, parseFloat((prev + delta).toFixed(2)))));
   };
 
+  /*
+   * **Um toque, e pronto** (26/07). Antes daqui até a tela grande havia três
+   * caixas — nota de segurança, "conectar por Bluetooth?" e uma imitação do
+   * diálogo de permissão do Android —, quatro toques repetidos a cada uso.
+   *
+   * Saíram todas, por decisão do Matheus. O motivo está no ROTEIRO 4.33: no
+   * Audible o Bluetooth **não conecta nada** (quem conecta é o sistema do
+   * celular); ele serve para o app **saber** que você entrou no carro e abrir o
+   * modo carro sozinho — ou seja, existe para a pessoa **não** precisar tocar no
+   * telefone. Aqui a cópia tinha invertido isso em pedágio, e o navegador não
+   * tem nem como detectar essa conexão. O recado de segurança continua, na
+   * frase do rodapé da própria tela.
+   */
   const handleCarModeClick = () => {
-    setShowCarModeEntry(true);
-  };
-
-  const proceedToBluetooth = () => {
-    setShowCarModeEntry(false);
-    setShowBluetoothPermission(true);
-  };
-
-  const proceedToSystemPermission = () => {
-    setShowBluetoothPermission(false);
-    setShowSystemPermission(true);
-  };
-
-  const activateCarMode = () => {
-    setShowSystemPermission(false);
     setIsCarModeActive(true);
   };
 
@@ -353,16 +348,12 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   if (isCarModeActive) {
     return (
       <div className="fixed inset-0 z-[200] bg-linear-to-b from-[#241a12] via-[#141414] to-[#141414] text-white flex flex-col p-6 animate-in fade-in duration-500">
-        <header className="flex justify-between items-center mb-12">
-          <button onClick={() => setIsCarModeActive(false)} className="p-2">
+        {/* O selo "Conectado ao Carro" com o ícone do Bluetooth saiu em 26/07:
+            ele afirmava uma conexão que o app não faz nem consegue verificar
+            (ROTEIRO 4.33). Ficou só a saída. */}
+        <header className="flex items-center mb-12">
+          <button onClick={() => setIsCarModeActive(false)} className="p-2" aria-label="Sair do modo carro">
             <ChevronDown className="w-10 h-10" />
-          </button>
-          <div className="bg-white/10 rounded-full px-4 py-1 flex items-center gap-2">
-            <Bluetooth className="w-4 h-4 text-primary" />
-            <span className="text-xs font-bold uppercase tracking-wider">Conectado ao Carro</span>
-          </div>
-          <button className="p-2 opacity-0 pointer-events-none">
-            <MoreVertical className="w-8 h-8" />
           </button>
         </header>
 
@@ -808,16 +799,9 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 </button>
               </Link>
 
-              {/* O Bluetooth voltou para cá, dentro do menu "Mais", em vez de um
-                  botão solto no topo. */}
-              <button
-                onClick={() => { setShowMoreMenu(false); setShowBluetoothPermission(true); }}
-                className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
-              >
-                <Bluetooth className="w-5 h-5 text-white/50 group-hover:text-white" />
-                <span className="text-sm font-medium">Conectar dispositivo Bluetooth</span>
-              </button>
-
+              {/* "Conectar dispositivo Bluetooth" também saiu em 26/07: era o
+                  mesmo teatro dos diálogos do modo carro — o app não conecta
+                  nada, quem conecta é o sistema do celular (ROTEIRO 4.33). */}
               <button
                 onClick={() => {
                   setShowMoreMenu(false);
@@ -1008,109 +992,6 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   Ok
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Car Mode Safety Note Modal */}
-      {showCarModeEntry && (
-        <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative">
-            <button onClick={() => setShowCarModeEntry(false)} className="absolute right-6 top-6 text-white/50" aria-label="Fechar">
-              <ChevronDown className="w-6 h-6 rotate-180" />
-            </button>
-            <div className="text-center space-y-4 pt-4">
-              <h3 className="text-xl font-bold font-display">Nota de segurança</h3>
-              <p className="text-sm text-white/70 leading-relaxed">
-                Não interaja com este aplicativo enquanto dirige. Use este aplicativo somente quando permitido por lei e pelas regras de trânsito aplicáveis e quando for seguro fazê-lo.
-              </p>
-              <p className="text-sm text-white/70 leading-relaxed font-semibold italic">
-                Usar o aplicativo AllBook durante a condução é perigoso e pode resultar em ferimentos graves, morte ou danos à propriedade.
-              </p>
-              <Button 
-                onClick={proceedToBluetooth}
-                className="w-full bg-white text-black hover:bg-white/90 font-bold py-6 rounded-full mt-4"
-              >
-                Ouça em seu carro
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bluetooth Connection Modal */}
-      {showBluetoothPermission && (
-        <div className="fixed inset-0 z-[130] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] p-8 space-y-6 shadow-2xl border border-white/10 relative text-center">
-            <button onClick={() => setShowBluetoothPermission(false)} className="absolute right-6 top-6 text-white/50" aria-label="Fechar">
-              <ChevronDown className="w-6 h-6 rotate-180" />
-            </button>
-            
-            {/* O selo do Bluetooth era azul (a cor do logotipo do padrão), e
-                puxava a tela toda para fora da identidade. O ícone já diz que é
-                Bluetooth; a cor pode ser a da casa. */}
-            <div className="flex justify-center pt-4">
-              <div className="w-16 h-16 bg-primary/15 rounded-full flex items-center justify-center border border-primary/40">
-                <Bluetooth className="w-8 h-8 text-primary" />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold leading-tight">
-                Conectar por Bluetooth?
-              </h3>
-              <p className="text-sm text-white/50">
-                Isso permite que o AllBook se conecte automaticamente a dispositivos Bluetooth próximos.
-              </p>
-              <div className="space-y-3 pt-4">
-                <Button 
-                  onClick={proceedToSystemPermission}
-                  variant="outline"
-                  className="w-full border-primary/50 text-primary hover:bg-primary/10 rounded-full py-6 font-bold"
-                >
-                  Conexão automática
-                </Button>
-                <button 
-                  onClick={() => setShowBluetoothPermission(false)}
-                  className="text-sm font-bold text-white/70 hover:text-white pt-2 block w-full"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* System Permission Modal (Android/iOS Style) */}
-      {showSystemPermission && (
-        <div className="fixed inset-0 z-[140] bg-black/40 flex items-center justify-center p-8 animate-in zoom-in duration-200">
-          <div className="w-full max-w-[280px] bg-[#2a2a2a] rounded-[28px] overflow-hidden shadow-2xl animate-in fade-in">
-            <div className="p-6 text-center space-y-4">
-              {/* Este quadro imita o diálogo de permissão do sistema. O
-                  losango azul que ficava aqui era uma imitação do ícone do
-                  Android; num diálogo que é nosso, o ícone é o nosso. */}
-              <div className="w-10 h-10 bg-primary/15 rounded-lg flex items-center justify-center mx-auto border border-primary/30">
-                <Bluetooth className="w-5 h-5 text-primary" />
-              </div>
-              <p className="text-sm font-medium leading-snug">
-                Permitir que <span className="font-bold">AllBook</span> encontre, conecte-se e determine a posição relativa de dispositivos por perto?
-              </p>
-            </div>
-            <div className="flex flex-col border-t border-white/10">
-              <button 
-                onClick={activateCarMode}
-                className="py-4 font-bold text-primary hover:bg-white/5 active:bg-white/10 transition-colors"
-              >
-                Permitir
-              </button>
-              <button 
-                onClick={() => setShowSystemPermission(false)}
-                className="py-4 font-bold text-white/70 hover:bg-white/5 active:bg-white/10 border-t border-white/10 transition-colors"
-              >
-                Não permitir
-              </button>
             </div>
           </div>
         </div>
