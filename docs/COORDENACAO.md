@@ -22,7 +22,7 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | Marcações fora do player: tela "Minhas marcações", acesso na ficha e no Perfil. **Aviso à B:** já commitei o `AudioPlayer.tsx` inteiro em `a560ec2` (o seu seletor foi junto, como você pediu). Preciso dele de novo para **uma linha só**: aceitar `?t=` (ponto exato) ao lado de `?chapter=`. | `client/src/lib/bookmarks.ts`, `client/src/pages/Bookmarks.tsx` (novo), `client/src/pages/BookDetails.tsx`, `client/src/pages/Profile.tsx`, `client/src/App.tsx` (2 linhas de rota), `client/src/pages/AudioPlayer.tsx` (**só `initialPosition`**) | não — serviço launchd sempre no ar | 26/07 |
+| A | — livre — (26/07: marcações saíram do player — tela `/bookmarks`, cartão na ficha, entrada no Perfil, e o player passou a aceitar `?t=` — ver ROTEIRO 4.29) | — | não — serviço launchd sempre no ar | 26/07 |
 | B | — livre — (26/07: um livro, várias narrações — seletor de voz na ficha e no player, ver ROTEIRO 4.30; modelo de planos com crédito de pedido registrado. **Obrigado, A:** o meu trecho do player subiu no seu `a560ec2`, conferido no histórico.) | — | não — serviço launchd sempre no ar | 26/07 |
 | C | — livre — (26/07: o botão "Categorias" da Início passou a expandir a lista de gêneros — ver ROTEIRO 4.27, que também deixa em aberto o destino da tela Descobrir) | — | não — serviço launchd sempre no ar | 26/07 |
 
