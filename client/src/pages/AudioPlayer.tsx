@@ -12,6 +12,7 @@ import {
 import { useState, useEffect, useRef } from "react";
 import BarraDeAcoesDoPlayer from "@/components/BarraDeAcoesDoPlayer";
 import MarcacoesDoLivro from "@/components/MarcacoesDoLivro";
+import HistoricoDoLivro from "@/components/HistoricoDoLivro";
 import { ListaDeNarracoes } from "@/components/SeletorDeNarracao";
 import { NARRATIONS_EVENT, chosenNarration, hasChoiceOfNarration } from "@/lib/narrations";
 import { catalog } from "@/lib/books";
@@ -171,6 +172,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [isCarModeActive, setIsCarModeActive] = useState(false);
   const [showChapters, setShowChapters] = useState(false);
   const [showMarcacoes, setShowMarcacoes] = useState(false);
+  const [showHistorico, setShowHistorico] = useState(false);
   /** A marcação recém-criada, enquanto a caixa de anotação está aberta. */
   const [anotando, setAnotando] = useState<Marcacao | null>(null);
   /** Se o áudio estava tocando quando a caixa abriu, para retomar ao fechar. */
@@ -600,6 +602,18 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
         onFechar={fecharAnotacao}
       />
 
+      {/* "Histórico de escuta" abria um aviso com o capítulo atual — o presente,
+          e já visível na tela. Agora abre o passado de verdade deste título,
+          lido do diário de audição (ROTEIRO 4.36). */}
+      <HistoricoDoLivro
+        aberto={showHistorico}
+        onClose={() => setShowHistorico(false)}
+        bookId={book.id}
+        titulo={book.title}
+        capituloAtual={currentChapter}
+        totalDeCapitulos={chapters.length}
+      />
+
       {/* O painel que o menu de "…" promete há tempo — agora existe. */}
       <MarcacoesDoLivro
         aberto={showMarcacoes}
@@ -841,12 +855,12 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               <button
                 onClick={() => {
                   setShowMoreMenu(false);
-                  toast({ title: "Histórico de escuta", description: `Você está no capítulo ${currentChapter} de ${book.title}.` });
+                  setShowHistorico(true);
                 }}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
                 <History className="w-5 h-5 text-white/50 group-hover:text-white" />
-                <span className="text-sm font-medium">Histórico de escuta</span>
+                <span className="text-sm font-medium">Histórico deste livro</span>
               </button>
 
               {/* Ia para a tela Descobrir e se chamava "Títulos recomendados" —

@@ -404,6 +404,51 @@ export function porDiaDaSemana(diario: Diario): number[] {
   return dias;
 }
 
+/** Um dia em que a pessoa ouviu um livro específico. */
+export interface DiaDoLivro {
+  /** Dia em ISO curto ("2026-07-25"). */
+  dia: string;
+  sec: number;
+  /** Veio do histórico de demonstração, não do uso real. */
+  exemplo: boolean;
+}
+
+/** O que a pessoa já ouviu de **um** livro, dia a dia. */
+export interface HistoricoDeUmLivro {
+  totalSec: number;
+  /** Do mais recente para o mais antigo — é a ordem em que se lê um histórico. */
+  dias: DiaDoLivro[];
+  /** Só de demonstração? Serve para a tela avisar em vez de fingir. */
+  soExemplo: boolean;
+}
+
+/**
+ * O histórico de **um livro**: quanto foi ouvido dele, em que dias.
+ *
+ * O diário já guardava `livros` dentro de cada dia (segundos por id) — faltava
+ * olhar por essa fatia. É o que dá conteúdo real ao "Histórico de escuta" do
+ * tocador, que antes só repetia o capítulo atual (ver ROTEIRO 4.36).
+ */
+export function historicoDoLivro(diario: Diario, bookId: number): HistoricoDeUmLivro {
+  const dias: DiaDoLivro[] = [];
+  let totalSec = 0;
+
+  for (const [dia, registro] of Object.entries(diario)) {
+    const sec = registro.livros[bookId];
+    if (!sec) continue;
+    totalSec += sec;
+    dias.push({ dia, sec, exemplo: Boolean(registro.exemplo) });
+  }
+
+  dias.sort((a, b) => (a.dia < b.dia ? 1 : -1));
+
+  return {
+    totalSec,
+    dias,
+    soExemplo: dias.length > 0 && dias.every((d) => d.exemplo),
+  };
+}
+
 /** "47h", "1h 20min", "35min" — o mesmo texto em toda a tela. */
 export function formatarDuracao(sec: number): string {
   const minutosTotais = Math.round(sec / 60);

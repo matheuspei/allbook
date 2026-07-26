@@ -2717,6 +2717,47 @@ abre o app *e* toda vez que começa um título.
 
 ---
 
+## 4.36 "Histórico de escuta" mostrava o presente (26/07)
+
+O Matheus abriu os três pontinhos do tocador e perguntou a mesma coisa que já
+matou uma tela inteira neste projeto: *"qual é a ideia desse botão aqui?"*.
+
+**O que ele fazia:** um aviso escrito *"Histórico de escuta: você está no
+capítulo 1 de O Clube das 5 da Manhã"*.
+
+**Os dois defeitos, e o segundo é o grave:**
+
+1. **Promete passado, entrega presente.** "Histórico" é o que eu ouvi, quando,
+   quanto. Capítulo atual é agora.
+2. **A informação já estava na tela** — o botão "Capítulo 1" fica dois
+   centímetros acima do dedo. Gastava um toque para contar o que a pessoa está
+   vendo.
+
+É o defeito da 4.23/4.31 numa forma mais difícil de pegar: como ele **fazia**
+alguma coisa (um aviso aparecia), parecia funcional.
+
+### O conserto: o dado já existia, ninguém tinha olhado por ele
+
+**Não foi construído dado novo.** O diário de audição (4.14) sempre guardou
+`livros: Record<bookId, segundos>` **dentro de cada dia** — usado só para o "O
+que você ouve" das Estatísticas, que soma tudo. Bastou olhar pela outra fatia:
+`historicoDoLivro(diario, bookId)` devolve o total e os dias daquele título.
+
+O item virou **"Histórico deste livro"** e abre um painel com o número que
+responde a pergunta (*4h21 em 5 dias de escuta*), o ponto atual como contexto, e
+a lista dos dias com barra comparativa.
+
+**Por que não bastava apagar o item.** A pergunta *"quanto eu já ouvi deste
+livro?"* é real e **não tinha resposta em lugar nenhum do app** — Estatísticas
+soma tudo, "Ouvindo" e "Onde parei" dizem onde você está. Pela regra da 4.31, o
+que faltava não era conteúdo: era o item ter uma pergunta, e ele tem.
+
+**Honestidade herdada da 4.14:** se todos os dias listados vierem do histórico de
+demonstração que o app semeia na primeira abertura, o painel **diz isso**. Número
+inventado apresentado como seu é pior que tela vazia.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
