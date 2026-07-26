@@ -75,6 +75,22 @@ Checklist das telas que faltam:
   aberto (ver "Modelo de negócio e a função central" acima). O selo "Premium" do
   topo do Perfil **foi removido** (24/07, a pedido do Matheus) pelo mesmo motivo —
   sinalizava plano pago; a constante `PLAN` saiu junto.
+  - **26/07 — o motivo caducou, e a tela ficou sem função.** O Matheus reabriu o
+    assunto sem lembrar da decisão: *"qual é a ideia do botão Meu acesso? Os botões
+    não fazem nada, não estou entendendo por que ele existe"*. Duas coisas, e as
+    duas são verdade. (1) **Ele tem razão sobre a aparência:** as seis linhas
+    (catálogo, player, minha lista, downloads, comunidade, sem anúncios) usam
+    exatamente o desenho dos itens de menu do Perfil — cartão, ícone laranja,
+    título e subtítulo, divisórias — mas são `div`, não botão. Parecem menu
+    quebrado. É o defeito da 4.23 em outra forma: aqui não há botão morto, há
+    **texto fantasiado de botão**. (2) **A razão de ela existir mudou:** ela nasceu
+    para ocupar o slot de "Planos" numa fase em que o modelo estava em aberto e ele
+    não queria expor estratégia. Com o modelo decidido (planos com crédito de
+    pedido, ver "Modelo de negócio", 26/07), essa tela tem **destino óbvio**: é
+    onde os créditos do mês vão morar ("você tem 2 créditos, usou 1"), com a troca
+    de plano. Aí ela passa a ter função real. **Enquanto os números não fecham**, o
+    que está em aberto é se ela sai do Perfil ou só perde a cara de menu —
+    decisão do Matheus, recomendação registrada na conversa de 26/07.
 - [ ] Boas-vindas (onboarding)
 - [x] **Ligar Estatísticas ao menu** — feito: já estava no TopNav e agora também no
   Perfil. O cabeçalho que colidia com o TopNav ao rolar foi corrigido.
