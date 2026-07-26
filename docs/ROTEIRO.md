@@ -2194,6 +2194,47 @@ muda o que toca, **sem mudar a interface**.
 
 ---
 
+## 4.31 "Meu acesso" para de dizer o óbvio (26/07)
+
+O Matheus olhou o item "Meu acesso" do Perfil e não entendeu por que ele existia:
+*"os botões não fazem nada, não estou entendendo por que ele existe"*. Depois deu
+a chance com prazo: *"me surpreenda, senão ele simplesmente vai sair"*.
+
+**Os dois defeitos, e ele acertou os dois.** (1) As seis linhas usavam o desenho
+dos itens de menu do Perfil — cartão, ícone laranja, título e subtítulo — mas eram
+`div`. **Texto fantasiado de botão**, que é a 4.23 em outra forma: não havia botão
+morto, havia coisa com cara de botão. (2) O conteúdo dizia o óbvio: "Catálogo
+completo — todos os audiolivros, sem bloqueio". **Ninguém precisa que o app informe
+que existe um catálogo** — isso se vê usando o app.
+
+**A virada, em uma frase: em vez de listar o que existe, mostrar o que é seu.**
+Cada linha traz **o número da pessoa** — 59 títulos e quantos você começou, livros
+guardados, baixados, marcações e velocidade em uso, quem você segue, pedidos
+feitos — e **leva ao lugar**, agora como botão de verdade. Quem já usa vê o próprio
+retrato; quem não usou recebe **convite com caminho**, e o ícone fica apagado para
+a diferença ser visível de longe. O cabeçalho troca "você tem o AllBook inteiro
+nas mãos" (verdadeiro e vazio) por "já está usando **5 recursos de 6**", com um
+filete de progresso — texto e filete, sem medalha nem porcentagem gigante, pela
+regra de evitar a cara de IA.
+
+**Duas decisões de conteúdo que valem registro:**
+- **"Pedir um livro" entrou na lista.** Estava fora, e é o diferencial do app: a
+  tela que fala do que é seu não podia omitir justamente o que nenhum concorrente
+  tem.
+- **"Sem anúncios" saiu da lista e virou rodapé.** É o único benefício sem número
+  possível, e item sem número quebraria o padrão que a tela acabou de criar.
+
+**Fronteira desenhada de propósito com a tela Estatísticas:** Estatísticas é sobre
+**audição** (horas, livros terminados, gêneros, troféus); "Meu acesso" é sobre
+**recursos** — o que do app você está aproveitando. **Nenhuma hora e nenhum livro
+lido aparece aqui**, para as duas telas não repetirem conversa.
+
+**O destino de longo prazo não mudou:** quando os números do plano fecharem, é
+aqui que os créditos do mês moram ("você tem 2 créditos, usou 1"), ao lado do uso
+dos recursos. A tela agora tem função **antes** disso, o que era o problema.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
