@@ -169,6 +169,21 @@ que o app toca.
       parece: ou ele corta 10 mil arquivos, ou distribui o acervo carimbado com o
       nome do AllBook. Reforço opcional: vinhetas curtas também no meio, em
       posições variáveis.
+      - **Colar a vinheta é o MESMO passo que fatiar** — uma chamada de `ffmpeg`
+        na ingestão faz as duas coisas: concatena abertura + livro + fecho e já
+        corta o resultado em segmentos. Não é um segundo sistema, e ninguém toca
+        em arquivo à mão. Com o mestre limpo guardado, trocar a vinheta é rodar o
+        script de novo. (`ffmpeg` já está instalado na máquina do Matheus.)
+      - **Misturar no áudio, e não deixar como faixa separada na playlist.** Como
+        item separado seria fácil de trocar, mas também trivial de descartar por
+        quem raspa — e o propósito dela é justamente ser difícil de remover.
+      - ⚠️ **A vinheta desloca todo o tempo do livro.** Se a abertura tem 8s,
+        cada marcador de capítulo anda 8s, a duração total muda, e **as posições
+        já salvas em `allbook_playback` apontam para o lugar errado**. A
+        automação tem de recalcular os capítulos **depois** de inserir a vinheta,
+        e a conversão das posições antigas entra no mesmo cuidado do item acima
+        sobre `allbook_playback`. É o tipo de coisa que não dá erro nenhum — só
+        faz todo mundo retomar 8 segundos fora do lugar.
 - [ ] Marca d'água por usuário: opcional e para depois. Ela resolve outra coisa
       que a vinheta não resolve — **qual conta** vazou, não qual empresa. Ver a
       comparação no ROTEIRO 4.34.
