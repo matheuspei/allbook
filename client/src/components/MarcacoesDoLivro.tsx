@@ -81,7 +81,7 @@ export default function MarcacoesDoLivro({
       <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
         <DrawerHeader className="text-left">
           <DrawerTitle className="font-display tracking-tight text-white">
-            Marcações e notas
+            Minhas notas deste livro
           </DrawerTitle>
           <DrawerDescription className="text-white/50">
             {marcacoes.length === 0

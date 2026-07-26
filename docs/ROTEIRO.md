@@ -2148,6 +2148,34 @@ oposto do que o botão promete. O que ficou:
   Ninguém escreve dirigindo, e é justamente ali que a tela é grande e simples de
   propósito.
 
+### "Marcações" virou "notas", e os atalhos subiram no Perfil (26/07)
+
+Minutos depois, o Matheus procurou as anotações no Perfil e **não achou** — mesmo
+com o item já lá, funcionando. Duas causas somadas, e as duas valem registro:
+
+**1. Vocabulário.** Ele procurava por *anotações*; a interface dizia
+*marcações*. Não era só preferência: desde que "Marcar" passou a abrir a caixa de
+escrita, o que se guarda ali é **o que a pessoa escreveu**, com o ponto do áudio
+anexado — "nota" é a palavra correta, e "marcação" descrevia a versão anterior da
+função. Renomeado em todos os lugares visíveis: Perfil, tela `/bookmarks`, botão
+da barra do tocador ("Notas"), menu de "…" e o cartão da ficha do livro. **O nome
+interno segue `bookmarks`** (chave, módulo, tipos) — trocar isso quebraria o
+storage de quem já usa, sem ganho nenhum para quem lê a tela.
+
+**2. O item estava enterrado.** A lista de atalhos vinha **depois** da foto, dos
+quatro números, das três recomendações e de dezesseis medalhas em quatro
+categorias. O grupo de conteúdo (Minha lista, Minhas notas, Estatísticas,
+Downloads, Comunidade) subiu para logo abaixo dos números; o grupo de conta
+(Notificações, Configurações, Convidar, Ajuda) ficou no fim. **Navegação antes de
+vitrine** — o Perfil tinha virado uma vitrine com a navegação no rodapé. Para
+isso o item virou o componente `GrupoDeAtalhos`, e os dois grupos passaram a
+poder morar em lugares diferentes da página.
+
+**Lição que se repete nesta sessão:** três defeitos seguidos ("o botão não
+funciona", "não acho as anotações") não eram funcionais — eram de **visibilidade**.
+O código fazia o que devia; a tela não contava. Vale checar isso antes de sair
+depurando lógica.
+
 ---
 
 ## 4.30 Um livro, várias narrações — e um seletor de voz (26/07)

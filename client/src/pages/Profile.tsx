@@ -154,6 +154,66 @@ function MedalhaDoPerfil({ item, onOpen }: { item: Achievement; onOpen: () => vo
   );
 }
 
+/** Um item da lista de atalhos do Perfil. */
+interface AtalhoDoPerfil {
+  icon: LucideIcon;
+  label: string;
+  hint?: string;
+  href?: string;
+  /** Ação executada aqui mesmo, para o que não é uma tela. */
+  onSelect?: () => void;
+}
+
+/**
+ * Um grupo da lista de atalhos.
+ *
+ * Virou componente para os dois grupos poderem morar em **lugares diferentes**
+ * da página: o de conteúdo (lista, notas, estatísticas, downloads) sobe para
+ * logo abaixo dos números, e o de conta fica no fim. O motivo é concreto — o
+ * Matheus não achou "Minhas notas" porque o bloco inteiro vinha **depois** da
+ * foto, dos quatro números, das três recomendações e de dezesseis medalhas em
+ * quatro categorias. Navegação antes de vitrine.
+ */
+function GrupoDeAtalhos({ items, indice }: { items: AtalhoDoPerfil[]; indice: number }) {
+  return (
+    <div className="py-2 border-b border-white/10" data-testid={`profile-section-${indice}`}>
+      {items.map((item) => {
+        const Icon = item.icon;
+
+        const content = (
+          <>
+            <div className="w-9 h-9 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
+              <Icon className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />
+            </div>
+            <span className="text-sm flex-1">{item.label}</span>
+            {item.hint && <span className="text-sm text-white/30">{item.hint}</span>}
+            <ChevronRight className="w-4 h-4 text-white/20 shrink-0" />
+          </>
+        );
+
+        const className =
+          "w-full flex items-center gap-4 py-3.5 text-left hover:text-white/70 transition-colors";
+        const testId = `profile-item-${item.label.toLowerCase().replace(/ /g, "-")}`;
+
+        /*
+          Todo item leva a algum lugar ou faz alguma coisa — os dois que só
+          mostravam "em breve" saíram (ROTEIRO 4.23). O `onSelect` existe para o
+          que resolve aqui mesmo, como o convite, sem precisar de uma tela.
+        */
+        return item.href ? (
+          <Link key={item.label} href={item.href} className={className} data-testid={testId}>
+            {content}
+          </Link>
+        ) : (
+          <button key={item.label} onClick={item.onSelect} className={className} data-testid={testId}>
+            {content}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Profile() {
   const { toast } = useToast();
   const [libraryCount, setLibraryCount] = useState(0);
@@ -271,10 +331,16 @@ export default function Profile() {
   }[][] = [
     [
       { icon: Bookmark, label: "Minha lista", hint: libraryCount > 0 ? String(libraryCount) : undefined, href: "/library" },
+      /*
+       * "Minhas notas", e não "Minhas marcações": o Matheus não encontrou o item
+       * procurando por *anotações* — a palavra que ele usa. E ela ficou correta
+       * depois de "Marcar" passar a abrir a caixa de nota: o que se guarda aqui é
+       * o que a pessoa escreveu, com o ponto do áudio anexado. Fica em segundo
+       * lugar, logo abaixo de "Minha lista", pela mesma razão: as duas são coisa
+       * **sua** guardada no app.
+       */
+      { icon: BookMarked, label: "Minhas notas", hint: bookmarkTotal > 0 ? String(bookmarkTotal) : undefined, href: "/bookmarks" },
       { icon: BarChart3, label: "Estatísticas", href: "/statistics" },
-      // Entra ao lado de "Minha lista" porque é a mesma natureza: coisa **sua**
-      // guardada no app. Antes as marcações só existiam dentro do player.
-      { icon: BookMarked, label: "Minhas marcações", hint: bookmarkTotal > 0 ? String(bookmarkTotal) : undefined, href: "/bookmarks" },
       { icon: Download, label: "Downloads", hint: downloadCount > 0 ? String(downloadCount) : undefined, href: "/downloads" },
       { icon: Users, label: "Comunidade", href: "/community" },
     ],
@@ -368,6 +434,14 @@ export default function Profile() {
           })}
         </div>
       </section>
+
+      {/*
+        Os atalhos de conteúdo vêm **aqui**, colados nos números, e não no fim da
+        página: é navegação, e navegação não pode ficar atrás de vitrine.
+      */}
+      <div className="px-5">
+        <GrupoDeAtalhos items={sections[0]} indice={0} />
+      </div>
 
       {resumo && <StatSpotlight stat={openStat} onClose={() => setOpenStat(null)} resumo={resumo} />}
 
@@ -483,53 +557,9 @@ export default function Profile() {
       </section>
 
       <main className="px-5">
-        {sections.map((items, sectionIdx) => (
-          <div
-            key={sectionIdx}
-            className="py-2 border-b border-white/10"
-            data-testid={`profile-section-${sectionIdx}`}
-          >
-            {items.map((item) => {
-              const Icon = item.icon;
-
-              const content = (
-                <>
-                  <div className="w-9 h-9 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />
-                  </div>
-                  <span className="text-sm flex-1">{item.label}</span>
-                  {item.hint && <span className="text-sm text-white/30">{item.hint}</span>}
-                  <ChevronRight className="w-4 h-4 text-white/20 shrink-0" />
-                </>
-              );
-
-              const className =
-                "w-full flex items-center gap-4 py-3.5 text-left hover:text-white/70 transition-colors";
-              const testId = `profile-item-${item.label.toLowerCase().replace(/ /g, "-")}`;
-
-              /*
-                Todo item leva a algum lugar ou faz alguma coisa — os dois que
-                só mostravam "em breve" saíram (ROTEIRO 4.23). O `onSelect`
-                existe para o que resolve aqui mesmo, como o convite, sem
-                precisar de uma tela própria.
-              */
-              return item.href ? (
-                <Link key={item.label} href={item.href} className={className} data-testid={testId}>
-                  {content}
-                </Link>
-              ) : (
-                <button
-                  key={item.label}
-                  onClick={item.onSelect}
-                  className={className}
-                  data-testid={testId}
-                >
-                  {content}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+        {/* O grupo de conteúdo subiu para antes de "Recomendo" (ver
+            `GrupoDeAtalhos`); aqui fica só o da conta. */}
+        <GrupoDeAtalhos items={sections[1]} indice={1} />
 
         {/*
           Quem não tem sessão não vê "Sair" — vê o convite para entrar. O app

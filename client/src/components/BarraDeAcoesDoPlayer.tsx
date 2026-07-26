@@ -174,7 +174,7 @@ export default function BarraDeAcoesDoPlayer({
         <Acao
           testid="action-bookmarks"
           icone={<Bookmark className="h-5 w-5 fill-current" />}
-          rotulo="Minhas"
+          rotulo="Notas"
           onClick={onVerMarcacoes}
           contador={totalDeMarcacoes}
         />

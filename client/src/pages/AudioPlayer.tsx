@@ -838,7 +838,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 data-testid="menu-bookmarks"
               >
                 <Bookmark className="w-5 h-5 text-white/50 group-hover:text-white" />
-                <span className="text-sm font-medium">Marcações e notas</span>
+                <span className="text-sm font-medium">Minhas notas</span>
                 {totalDeMarcacoes > 0 && (
                   <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold text-white/70">
                     {totalDeMarcacoes}

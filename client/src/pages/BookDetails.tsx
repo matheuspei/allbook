@@ -629,7 +629,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             </div>
             <div className="min-w-0 flex-1">
               <span className="block text-sm font-semibold">
-                {marcacoes.length} {marcacoes.length === 1 ? "marcação sua" : "marcações suas"}
+                {marcacoes.length} {marcacoes.length === 1 ? "nota sua" : "notas suas"}
               </span>
               <span className="block truncate text-xs text-white/50">
                 {marcacoesComNota > 0
