@@ -31,6 +31,22 @@ import {
  * nome. Nenhuma outra tela do app responde "quanto eu já ouvi *deste* livro".
  */
 
+/**
+ * "3 dias", "cerca de 2 meses" — a unidade acompanha o tamanho da previsão.
+ *
+ * **Por que não deixar em dias sempre:** o primeiro teste devolveu *"219 dias"*,
+ * que é a conta certa e a comunicação errada — ninguém processa 219 dias, e o
+ * número soa a julgamento. Em meses a mesma verdade fica legível.
+ */
+function prazoLegivel(dias: number): string {
+  if (dias === 1) return "1 dia";
+  if (dias <= 45) return `${dias} dias`;
+  const meses = Math.round(dias / 30);
+  if (meses < 12) return `${meses} meses`;
+  const anos = Math.round(dias / 365);
+  return anos === 1 ? "1 ano" : `${anos} anos`;
+}
+
 /** "hoje", "ontem", "25 de julho" — data curta, sem soletrar ano à toa. */
 function rotuloDoDia(diaChave: string, hoje: Date): string {
   const hojeChave = diaISO(hoje);
@@ -57,6 +73,7 @@ export default function HistoricoDoLivro({
   titulo,
   capituloAtual,
   totalDeCapitulos,
+  restanteSec,
 }: {
   aberto: boolean;
   onClose: () => void;
@@ -64,6 +81,8 @@ export default function HistoricoDoLivro({
   titulo: string;
   capituloAtual: number;
   totalDeCapitulos: number;
+  /** Quanto falta do livro, em segundos — para a previsão de término. */
+  restanteSec: number;
 }) {
   const [historico, setHistorico] = useState<HistoricoDeUmLivro | null>(null);
 
@@ -83,12 +102,22 @@ export default function HistoricoDoLivro({
   const maiorDia = historico?.dias.reduce((maior, d) => Math.max(maior, d.sec), 0) ?? 0;
   const vazio = !historico || historico.dias.length === 0;
 
+  /*
+   * "Nesse ritmo, ~N dias" — usa o ritmo **deste** livro, não a média geral de
+   * audição. Some quando falta pouco (menos de 5 min é reta final, previsão ali
+   * é ruído) ou quando não há base para chamar de ritmo.
+   */
+  const diasParaTerminar = useMemo(() => {
+    if (!historico?.secPorDiaCorrido || restanteSec < 300) return null;
+    return Math.max(1, Math.ceil(restanteSec / historico.secPorDiaCorrido));
+  }, [historico, restanteSec]);
+
   return (
     <Drawer open={aberto} onOpenChange={(estado) => !estado && onClose()}>
       <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
         <DrawerHeader className="text-left">
           <DrawerTitle className="font-display tracking-tight text-white">
-            Meu tempo neste livro
+            Meu ritmo neste livro
           </DrawerTitle>
           <DrawerDescription className="text-white/50">{titulo}</DrawerDescription>
         </DrawerHeader>
@@ -127,6 +156,25 @@ export default function HistoricoDoLivro({
                 </p>
               )}
             </div>
+
+            {/* A única linha que olha para a frente. Fica fora do cartão do
+                total de propósito: passado e previsão são coisas diferentes, e
+                misturar faria a estimativa parecer tão firme quanto o medido. */}
+            {restanteSec >= 60 && (
+              <p className="mt-3 text-sm leading-relaxed text-white/60">
+                Faltam{" "}
+                <span className="font-semibold text-white">{formatarDuracao(restanteSec)}</span>
+                {diasParaTerminar !== null && (
+                  <>
+                    {" — no seu ritmo neste livro, cerca de "}
+                    <span className="font-semibold text-white">
+                      {prazoLegivel(diasParaTerminar)}
+                    </span>
+                    {" para terminar."}
+                  </>
+                )}
+              </p>
+            )}
 
             <ul className="mt-4 space-y-2.5">
               {historico.dias.map((dia) => (

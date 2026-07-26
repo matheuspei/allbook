@@ -2754,12 +2754,38 @@ histórico da **obra** (quando foi escrita, as edições), o histórico dos
 **comentários**, o histórico de **preço**. A palavra é um guarda-chuva: cabe
 qualquer coisa embaixo, e por isso não diz nada.
 
-Ficou **"Meu tempo neste livro"**, que faz as três coisas que o nome anterior não
-fazia: diz **o que é** (tempo), **de quem é** (meu) e **onde acaba** (neste
-livro). De quebra, casa com o vizinho de cima no mesmo menu, "Minhas notas".
+Passou por **"Meu tempo neste livro"** e parou em **"Meu ritmo neste livro"**,
+que faz as três coisas que "histórico" não fazia — diz **o que é**, **de quem é**
+e **onde acaba** — e ainda cobre o que o painel ganhou logo depois: além do
+passado, a previsão de término. De quebra, casa com o vizinho de cima no mesmo
+menu, "Minhas notas".
 
 **A regra, que vale além deste item:** rótulo de menu não pode ser categoria — a
 pessoa toca para ver *uma* coisa, e o nome tem de ser essa coisa.
+
+### A previsão de término entrou aqui — e é melhor que a das Estatísticas
+
+Lembrança do Matheus: *"no menu de estatística tinha a informação de quanto tempo
+você iria levar para terminar tal livro (…) não sei se esse dado é fidedigno"*.
+
+**Onde está:** existe e está de pé, em `Statistics.tsx` — *"No seu ritmo, você
+termina X em N dias"*.
+
+**Se é fidedigno: tem um viés, e é otimista.** Ela divide o que falta pela sua
+média diária de **todos os livros somados** (últimos 14 dias ÷ 14). Quem ouve
+três títulos em paralelo recebe uma conta que finge que 100% do tempo vai para
+um só — e a previsão sai curta demais.
+
+**A versão do painel corrige isso:** usa o ritmo **daquele** livro —
+`secPorDiaCorrido`, o total ouvido dele dividido pelos dias corridos desde a
+primeira sessão. **Os dias parados entram na conta de propósito:** quem ouve 1h a
+cada três dias não termina no ritmo de 1h por dia; a frequência faz parte do
+ritmo. Sem base (um único dia de escuta) não há previsão — amostra não é ritmo.
+
+**O que só apareceu testando:** a primeira versão disse *"cerca de 219 dias"*.
+Conta certa, comunicação errada — ninguém processa 219 dias, e o número ainda soa
+a cobrança. A unidade passou a acompanhar o tamanho: dias até 45, depois meses,
+depois anos. Virou *"cerca de 7 meses para terminar"*: a mesma verdade, legível.
 
 **Por que não bastava apagar o item.** A pergunta *"quanto eu já ouvi deste
 livro?"* é real e **não tinha resposta em lugar nenhum do app** — Estatísticas

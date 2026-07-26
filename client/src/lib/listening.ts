@@ -420,6 +420,19 @@ export interface HistoricoDeUmLivro {
   dias: DiaDoLivro[];
   /** Só de demonstração? Serve para a tela avisar em vez de fingir. */
   soExemplo: boolean;
+  /**
+   * Segundos por **dia corrido**, contando do primeiro dia de escuta até hoje —
+   * inclusive os dias em que a pessoa não tocou no livro.
+   *
+   * **É de propósito que os dias parados entrem na conta.** Quem ouve 1h a cada
+   * três dias não termina o livro no ritmo de 1h por dia; a frequência faz parte
+   * do ritmo. Dividir só pelos dias ativos daria uma previsão sempre otimista —
+   * o mesmo viés que a previsão das Estatísticas tem por usar a média de **todos**
+   * os livros juntos (ver ROTEIRO 4.36).
+   *
+   * `null` quando não há base: um único dia de escuta não é ritmo, é uma amostra.
+   */
+  secPorDiaCorrido: number | null;
 }
 
 /**
@@ -429,7 +442,11 @@ export interface HistoricoDeUmLivro {
  * olhar por essa fatia. É o que dá conteúdo real ao "Histórico de escuta" do
  * tocador, que antes só repetia o capítulo atual (ver ROTEIRO 4.36).
  */
-export function historicoDoLivro(diario: Diario, bookId: number): HistoricoDeUmLivro {
+export function historicoDoLivro(
+  diario: Diario,
+  bookId: number,
+  hoje = new Date()
+): HistoricoDeUmLivro {
   const dias: DiaDoLivro[] = [];
   let totalSec = 0;
 
@@ -442,10 +459,27 @@ export function historicoDoLivro(diario: Diario, bookId: number): HistoricoDeUmL
 
   dias.sort((a, b) => (a.dia < b.dia ? 1 : -1));
 
+  /*
+   * Do primeiro dia de escuta até hoje. Dois dias na lista já dão um intervalo,
+   * e é o mínimo que eu aceito chamar de ritmo — com um dia só, qualquer conta
+   * seria adivinhação apresentada como número.
+   */
+  let secPorDiaCorrido: number | null = null;
+  if (dias.length >= 2) {
+    const primeiro = new Date(`${dias[dias.length - 1].dia}T12:00:00`);
+    const agora = new Date(`${diaISO(hoje)}T12:00:00`);
+    const diasCorridos = Math.max(
+      1,
+      Math.round((agora.getTime() - primeiro.getTime()) / 86_400_000) + 1
+    );
+    secPorDiaCorrido = totalSec / diasCorridos;
+  }
+
   return {
     totalSec,
     dias,
     soExemplo: dias.length > 0 && dias.every((d) => d.exemplo),
+    secPorDiaCorrido,
   };
 }
 
