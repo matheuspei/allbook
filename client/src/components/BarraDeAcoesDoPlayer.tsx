@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, BookmarkPlus, Car, Timer } from "lucide-react";
+import { Bookmark, BookmarkPlus, Car, Check, Timer } from "lucide-react";
 
 /**
  * A barra de ações do tocador — velocidade, modo carro, temporizador, marcar e
@@ -87,11 +87,16 @@ export default function BarraDeAcoesDoPlayer({
   onVerMarcacoes: () => void;
 }) {
   /*
-   * O pulo do ícone ao salvar. O aviso de toast já existia, mas ele nasce no
-   * topo da tela, longe do dedo — a pessoa tocava aqui embaixo e nada mudava
-   * *aqui embaixo*. Este é o retorno no lugar onde o toque aconteceu.
+   * A confirmação no **próprio botão**, e não só no aviso do topo.
+   *
+   * O primeiro motivo era ergonômico: em celular o dedo está aqui embaixo e o
+   * toast nasce longe. O segundo apareceu em 26/07 e é mais grave — dentro do
+   * player o toast simplesmente **não aparecia**, coberto pela tela (ver a nota
+   * em `ui/toast.tsx`). Sem retorno nenhum, o botão passou por quebrado mesmo
+   * gravando certo. Aqui o rótulo vira "Guardado" por um segundo e meio: fica no
+   * lugar do toque e não depende de nenhuma outra camada.
    */
-  const [pulou, setPulou] = useState(false);
+  const [confirmacao, setConfirmacao] = useState<"nova" | "repetida" | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -102,10 +107,11 @@ export default function BarraDeAcoesDoPlayer({
 
   function marcar() {
     const nova = onMarcar();
-    if (!nova) return;
-    setPulou(true);
+    // Repetido também confirma: sem isso, tocar de novo no mesmo ponto (com o
+    // áudio pausado, por exemplo) continuaria parecendo um botão morto.
+    setConfirmacao(nova ? "nova" : "repetida");
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setPulou(false), 450);
+    timerRef.current = setTimeout(() => setConfirmacao(null), 1500);
   }
 
   /*
@@ -147,13 +153,17 @@ export default function BarraDeAcoesDoPlayer({
       <Acao
         testid="button-add-bookmark"
         icone={
-          <BookmarkPlus
-            className={`h-5 w-5 transition-transform duration-200 ${pulou ? "scale-125" : "scale-100"}`}
-          />
+          confirmacao ? (
+            <Check className="h-5 w-5 scale-125 transition-transform duration-200" />
+          ) : (
+            <BookmarkPlus className="h-5 w-5 transition-transform duration-200" />
+          )
         }
-        rotulo="Marcar"
+        rotulo={
+          confirmacao === "nova" ? "Guardado" : confirmacao === "repetida" ? "Já tinha" : "Marcar"
+        }
         onClick={marcar}
-        destaque={pulou}
+        destaque={confirmacao !== null}
       />
 
       {/*

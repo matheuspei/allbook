@@ -2090,6 +2090,35 @@ quando os dois vêm juntos, por ser o mais específico. Sem isso, tocar numa
 marcação levaria ao **começo do capítulo** — perdendo justamente o que ela
 guarda, que é o instante.
 
+### Nenhum aviso aparecia dentro do player (26/07)
+
+O Matheus voltou: *"o botão marcar, do lado de soneca, não está funcionando"*.
+Medido no navegador com clique de mouse real: **o botão gravava certo** — o
+contador subia a cada toque. O que não funcionava era o **retorno**.
+
+`ToastViewport` vinha do shadcn com `z-[100]`, e o player é
+`fixed inset-0 z-[100]` — **o mesmo nível**. Empate de `z-index` é resolvido pela
+ordem no DOM, e o player, montado depois, cobria o aviso inteiro. Efeito: dentro
+do tocador **nenhum** toast jamais apareceu — nem "Marcação salva", nem "Marcado
+como concluído", nem "Link copiado". A pessoa toca e a tela não responde nada; a
+conclusão óbvia é que o botão está quebrado.
+
+Duas correções, e a segunda existe porque a primeira não basta:
+
+1. **`z-[300]` no viewport dos toasts** — acima do player e das gavetas dele
+   (que vão de 110 a 200). Conserta o app inteiro, não só este botão.
+2. **A confirmação no próprio botão**: o rótulo vira "Guardado" com um ✓ por 1,5s.
+   Em celular o dedo está na barra de baixo e o aviso nasce longe dele — e um
+   retorno que depende de outra camada é frágil, como este caso provou. Tocar
+   **duas vezes no mesmo ponto** também confirma ("Já tinha"): antes ficava mudo,
+   que era outra forma de parecer quebrado.
+
+**Lição repetida, agora com nome:** este é o segundo defeito seguido no player
+causado por **empilhamento** — o primeiro foi o degradê cobrindo a barra de
+ações. O player é `fixed inset-0 z-[100]` e engole o que não estiver acima dele.
+Ao pôr qualquer coisa nova em cena aqui, pergunte primeiro: *em que camada isso
+vai parar?*
+
 ---
 
 ## 4.30 Um livro, várias narrações — e um seletor de voz (26/07)

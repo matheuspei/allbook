@@ -14,7 +14,17 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
+      /*
+       * `z-[300]`, e não o `z-[100]` que vinha do shadcn: **o tocador é
+       * `fixed inset-0 z-[100]`**, o mesmo nível, e como ele é montado depois
+       * cobria o aviso inteiro. O efeito era invisível e enganoso — dentro do
+       * player *nenhum* toast aparecia ("Marcação salva", "Marcado como
+       * concluído", "Link copiado"), e a tela parecia não responder ao toque.
+       * Foi assim que o botão "Marcar" passou por quebrado em 26/07, gravando
+       * certinho o tempo todo. O aviso tem de ficar acima de tudo, inclusive das
+       * gavetas e modais do player (que vão de 110 a 200).
+       */
+      "fixed top-0 z-[300] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
       className
     )}
     {...props}
