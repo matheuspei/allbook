@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Bell, User } from "lucide-react";
+import { Bell, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import BuscaSobreposta from "@/components/BuscaSobreposta";
 import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notifications";
 
 export default function TopNav() {
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [buscando, setBuscando] = useState(false);
   // Quantos avisos ainda não lidos: respostas "responderam você" + avisos de
   // sistema. É o que acende e conta a marca do sino. Zero = sino limpo.
   const [unread, setUnread] = useState(0);
@@ -56,6 +58,7 @@ export default function TopNav() {
   const opaque = scrolled || !isHome;
 
   return (
+    <>
     <header
       data-testid="top-nav"
       className={cn(
@@ -74,6 +77,26 @@ export default function TopNav() {
         </Link>
 
         <div className="flex items-center gap-3">
+          {/*
+            A lupa aqui é a ideia do Matheus (26/07): a busca começa **de onde a
+            pessoa já está**, sem trocar de aba — ela abre por cima e devolve
+            você ao mesmo ponto. Foi o que permitiu a aba virar "Catálogo" e
+            perder o teclado automático.
+
+            **Menos na própria aba Catálogo**, onde o campo de busca é a
+            primeira coisa da tela: dois caminhos para a mesma coisa, um do lado
+            do outro, é a redundância que o app vem cortando.
+          */}
+          {location !== "/search" && (
+            <button
+              onClick={() => setBuscando(true)}
+              data-testid="button-search"
+              aria-label="Pesquisar"
+              className="p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+          )}
           <Link
             href="/notifications"
             data-testid="button-notifications"
@@ -101,6 +124,17 @@ export default function TopNav() {
           </Link>
         </div>
       </div>
+
     </header>
+
+    {/*
+      A busca fica **fora** do `<header>` de propósito. Dentro dele, o `z-50`
+      do cabeçalho cria um contexto de empilhamento próprio, e o painel — mesmo
+      com z maior — não conseguia passar por cima do menu de baixo, que
+      continuava aparecendo e navegável por trás da busca. Aqui fora, ele cobre
+      a tela inteira, como um modo, e o "Cancelar" devolve você ao lugar exato.
+    */}
+    {buscando && <BuscaSobreposta onFechar={() => setBuscando(false)} />}
+    </>
   );
 }

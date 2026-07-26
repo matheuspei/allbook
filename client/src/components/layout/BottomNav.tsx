@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Bookmark, Search, User, Mic } from "lucide-react";
+import { Home, Bookmark, LayoutGrid, User, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -18,6 +18,16 @@ import { cn } from "@/lib/utils";
  * sólida, sempre acesa, sem o realce de "aba atual" — o mesmo gesto do botão
  * central de criar do Instagram e do TikTok. Fica no meio porque é o ponto que
  * o polegar alcança mais fácil no celular.
+ *
+ * **"Buscar" virou "Catálogo" (26/07, ideia do Matheus).** Três razões, e a
+ * primeira é a mesma frase do parágrafo acima: **aba nomeia lugar, não ação** —
+ * Início, Biblioteca e Perfil são lugares, e "Buscar" era o único verbo entre
+ * eles. Segunda: desde a fusão com a Descobrir (4.32), a tela é campo de busca
+ * **mais** porta do pedido, cartões de gênero e "Em alta" — "Buscar" nomeava um
+ * quarto dela. Terceira: o app **já a chamava de catálogo** noutro lugar — o
+ * item do menu do player que leva até ela é "Explorar o catálogo". O ícone
+ * acompanhou: a lupa saiu (foi para o topo da Início, onde a busca começa) e
+ * entrou a grade, que é o desenho de um catálogo.
  */
 export default function BottomNav() {
   const [location] = useLocation();
@@ -26,7 +36,7 @@ export default function BottomNav() {
     { name: "Início", path: "/", icon: Home },
     { name: "Biblioteca", path: "/library", icon: Bookmark },
     { name: "Pedir", path: "/request", icon: Mic, acao: true },
-    { name: "Buscar", path: "/search", icon: Search },
+    { name: "Catálogo", path: "/search", icon: LayoutGrid },
     { name: "Perfil", path: "/profile", icon: User },
   ];
 

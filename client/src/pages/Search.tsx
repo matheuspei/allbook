@@ -200,7 +200,19 @@ export default function Search() {
             placeholder="Pesquisar títulos ou autores"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            autoFocus
+            /*
+             * **Sem `autoFocus` desde 26/07.** A aba passou a se chamar
+             * **Catálogo**: quem entra veio **ver** — cartões de gênero, "Em
+             * alta", a porta do pedido — e o teclado subindo sozinho cobria
+             * metade disso. Quem quer digitar tem agora a lupa no topo da
+             * Início, que é caminho mais curto do que era antes.
+             *
+             * Havia ainda um motivo técnico: o autofoco **nunca funcionou
+             * igual nos dois sistemas**. O iOS bloqueia a abertura de teclado
+             * sem gesto do usuário, então no iPhone o cursor piscava e o
+             * teclado não subia; no Android subia. Prometer teclado numa tela
+             * que só o entrega em metade dos telefones é promessa quebrada.
+             */
             className="w-full bg-white/10 border-none pl-9 pr-9 h-10 rounded-lg text-white placeholder:text-white/40 focus-visible:ring-1 focus-visible:ring-primary/50"
             data-testid="input-search"
           />

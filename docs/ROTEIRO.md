@@ -2831,6 +2831,55 @@ inventado apresentado como seu é pior que tela vazia.
 
 ---
 
+## 4.37 A aba "Buscar" virou "Catálogo", e a lupa subiu para a Início (26/07)
+
+Ideia do Matheus: *"o botão Buscar eu acho pobre (…) a gente poderia mudar ele
+pelo botão Catálogo. Mas a lupa é importante"*.
+
+**Três razões para o nome, e a terceira é a que fecha o caso:**
+1. **Aba nomeia lugar, não ação.** Início, Biblioteca e Perfil são lugares;
+   "Buscar" era o único verbo do menu. (A mesma gramática que já justificava o
+   "Pedir" ser botão e não aba — ver `BottomNav`.)
+2. **A tela deixou de ser só busca** na fusão com a Descobrir, horas antes
+   (4.32): hoje é campo **mais** porta do pedido, cartões de gênero e "Em alta".
+   "Buscar" nomeava um quarto dela.
+3. **O app já a chamava de catálogo**: o item do menu do player que leva até lá
+   é "Explorar o catálogo" (renomeado na própria 4.32). A aba é que tinha ficado
+   com o nome velho. O ícone acompanhou — lupa saiu, entrou a grade.
+
+**A consequência obrigatória: o autofoco saiu.** A tela abria com o teclado na
+cara (`autoFocus` no `Search.tsx`), o que servia a uma aba "Buscar" e atrapalha
+uma aba "Catálogo" — quem entra no catálogo veio **ver**, e o teclado cobre
+justamente os cartões de gênero.
+
+**Apurado no caminho, e vale registro porque derruba uma suposição:** aquele
+autofoco **nunca funcionou igual nos dois sistemas**. O iOS bloqueia abertura de
+teclado sem gesto do usuário, então no iPhone o cursor piscava e o teclado
+**não** subia; no Android subia. A dúvida foi do Matheus — *"não sei se o teclado
+realmente já vai abrir assim, é só uma suposição"* —, e a resposta reforça a
+decisão: nada no app deve **depender** de o teclado subir sozinho.
+
+**A lupa foi para o topo da Início** (`TopNav`), e abre a busca **sobreposta**,
+em tela cheia, voltando ao ponto exato ao cancelar.
+
+- **Rejeitado: a lupa levar para a aba Catálogo.** Era o mais barato, mas troca
+  de aba — e o pedido era justamente poder buscar "de onde a pessoa já está".
+- **Rejeitado: a busca acontecer dentro da Início.** Resultado de busca é lista
+  longa; ali empurraria a vitrine, o "continuar ouvindo" e o resto para fora da
+  tela. Sobreposta, ela tem a tela toda **sem** criar uma segunda busca: os
+  resultados saem do mesmo `SearchResults` da aba (fonte única, 4.18).
+- **A lupa não aparece na própria aba Catálogo**, onde o campo já é a primeira
+  coisa da tela — dois caminhos idênticos lado a lado é a redundância que o app
+  vem cortando.
+
+**Armadilha de CSS que só apareceu testando:** o painel nasceu **dentro** do
+`<header>` do TopNav, que tem `z-50` e portanto cria um contexto de
+empilhamento próprio — o `z-[60]` do painel valia só ali dentro, e o menu de
+baixo continuava por cima, visível e clicável durante a busca. Corrigido tirando
+o painel para fora do `<header>`.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
