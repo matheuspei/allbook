@@ -2743,9 +2743,23 @@ alguma coisa (um aviso aparecia), parecia funcional.
 que você ouve" das Estatísticas, que soma tudo. Bastou olhar pela outra fatia:
 `historicoDoLivro(diario, bookId)` devolve o total e os dias daquele título.
 
-O item virou **"Histórico deste livro"** e abre um painel com o número que
-responde a pergunta (*4h21 em 5 dias de escuta*), o ponto atual como contexto, e
-a lista dos dias com barra comparativa.
+O item abre um painel com o número que responde a pergunta (*4h21 em 5 dias de
+escuta*), o ponto atual como contexto, e a lista dos dias com barra comparativa.
+
+### O nome durou uma versão: "histórico" é palavra guarda-chuva
+
+Primeiro virou **"Histórico deste livro"**, e o Matheus derrubou na hora: *"o
+histórico desse livro pode ser muita coisa, você não acha?"*. E pode mesmo — o
+histórico da **obra** (quando foi escrita, as edições), o histórico dos
+**comentários**, o histórico de **preço**. A palavra é um guarda-chuva: cabe
+qualquer coisa embaixo, e por isso não diz nada.
+
+Ficou **"Meu tempo neste livro"**, que faz as três coisas que o nome anterior não
+fazia: diz **o que é** (tempo), **de quem é** (meu) e **onde acaba** (neste
+livro). De quebra, casa com o vizinho de cima no mesmo menu, "Minhas notas".
+
+**A regra, que vale além deste item:** rótulo de menu não pode ser categoria — a
+pessoa toca para ver *uma* coisa, e o nome tem de ser essa coisa.
 
 **Por que não bastava apagar o item.** A pergunta *"quanto eu já ouvi deste
 livro?"* é real e **não tinha resposta em lugar nenhum do app** — Estatísticas

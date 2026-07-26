@@ -88,7 +88,7 @@ export default function HistoricoDoLivro({
       <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
         <DrawerHeader className="text-left">
           <DrawerTitle className="font-display tracking-tight text-white">
-            Histórico deste livro
+            Meu tempo neste livro
           </DrawerTitle>
           <DrawerDescription className="text-white/50">{titulo}</DrawerDescription>
         </DrawerHeader>

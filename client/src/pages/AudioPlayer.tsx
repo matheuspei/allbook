@@ -860,7 +860,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
                 <History className="w-5 h-5 text-white/50 group-hover:text-white" />
-                <span className="text-sm font-medium">Histórico deste livro</span>
+                <span className="text-sm font-medium">Meu tempo neste livro</span>
               </button>
 
               {/* Ia para a tela Descobrir e se chamava "Títulos recomendados" —
