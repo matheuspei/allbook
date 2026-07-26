@@ -83,7 +83,22 @@ app.use((req, res, next) => {
   }
 
   const port = parseInt(process.env.PORT || "3000", 10);
-  httpServer.listen(port, "127.0.0.1", () => {
-    log(`serving on port ${port}`);
+
+  /*
+   * **Escuta em toda a rede local, não só em `127.0.0.1`** (26/07).
+   *
+   * Com `127.0.0.1` o servidor só atendia a própria máquina — abrir
+   * `http://<ip-da-máquina>:3000` no celular dava "não foi possível conectar".
+   * E testar no celular de verdade é a única forma de ver coisas que o
+   * navegador do computador não reproduz: o **teclado** subindo (ou não) ao
+   * focar um campo, o toque, o tamanho real da tela (ver ROTEIRO 4.37).
+   *
+   * `HOST` permite voltar a fechar quando se quiser: `HOST=127.0.0.1`.
+   * Isto vale para **desenvolvimento na rede de casa**; em produção o servidor
+   * fica atrás de um proxy, que é quem cuida do que fica exposto.
+   */
+  const host = process.env.HOST || "0.0.0.0";
+  httpServer.listen(port, host, () => {
+    log(`serving on port ${port} (host ${host})`);
   });
 })();
