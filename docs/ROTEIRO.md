@@ -97,7 +97,8 @@ Checklist das telas que faltam:
     de plano. Aí ela passa a ter função real. **Enquanto os números não fecham**, o
     que está em aberto é se ela sai do Perfil ou só perde a cara de menu —
     decisão do Matheus, recomendação registrada na conversa de 26/07.
-- [ ] Boas-vindas (onboarding)
+- [ ] Boas-vindas (onboarding) — **a última que falta.** A *abertura animada* do
+      app é outra coisa e foi adiada para depois do backend (ver 4.35).
 - [x] **Ligar Estatísticas ao menu** — feito: já estava no TopNav e agora também no
   Perfil. O cabeçalho que colidia com o TopNav ao rolar foi corrigido.
 
@@ -2629,6 +2630,64 @@ O "baixado" do AllBook é só uma marca — uma lista de ids em `allbook_downloa
 no `localStorage` (`lib/library.ts`). **Nenhum byte de áudio é gravado**, porque
 não há áudio. Não existe nada para roubar ainda, e a decisão pode esperar o áudio
 chegar sem custo nenhum.
+
+---
+
+## 4.35 Abertura do app e vinheta sonora — adiado para depois do backend (26/07)
+
+**Decisão do Matheus: fica para depois do backend.** Não é código, é identidade
+de marca — envolve gerar imagem, gerar som e possivelmente redesenhar o
+logotipo. É um projeto à parte, com ferramentas que não são estas. O que segue é
+o apurado, para ninguém recomeçar do zero lá na frente.
+
+### O pedido
+
+Uma animação curta na abertura, no espírito do "ta-dum" da Netflix e das
+vinhetas de HBO/Disney: *"a gente colocar uma animação simples pode ser o
+diferencial"*.
+
+### Três propostas construídas e **rejeitadas** — *"nenhuma me agradou"*
+
+Ficaram no commit `3669f8d` (`components/Aberturas.tsx` +
+`pages/AberturaTeste.tsx`, apagados na sequência para não virar entulho —
+resgatáveis pelo git):
+
+- **A — a onda vira palavra:** barras de equalizador tocam e colapsam, o
+  logotipo nasce delas.
+- **B — a varredura de luz:** o logotipo está lá apagado e acende por onde uma
+  faixa de luz passa.
+- **C — o marcador de página:** um marcador desce, pousa, e a palavra se abre a
+  partir dele.
+
+**A direção que ele quer, e as três não deram:** *"um livro abrindo com som"*,
+*"um fone com livro"*, **clean/minimalista** — e possivelmente **mudar o
+letreiro**, o logotipo em si.
+
+### O aprendizado que mais vale: esta ferramenta não é a certa para descobrir
+
+Observação do Matheus, e ela procede: *"no Grock você digita e ele te dá centenas
+de opções (…) acho que você demora muito para me dar três"*. **O Claude Code não
+gera imagem nem áudio** — cada animação daquelas foi escrita à mão em código. Daí
+três em minutos, contra dezenas em segundos num gerador.
+
+**A divisão de trabalho que fica combinada:**
+
+| Etapa | Onde |
+| --- | --- |
+| Descobrir o desenho (símbolo, letreiro) | Grok, **Ideogram** (melhor com letra), Midjourney |
+| Ver a ideia mexendo | Sora, Veo, Runway, Kling |
+| A vinheta sonora | **ElevenLabs** (efeito sonoro por descrição), Suno, ou contratar |
+| Virar app: vetorizar, animar, sincronizar com o som | **aqui** |
+
+### O som é o principal — e é uma gravação para dois lugares
+
+Ponto do Matheus, e o mais forte da conversa: *"o som identifica (…) o barulho da
+Netflix, todo mundo sabe que aquele barulho ali é da Netflix"*. **A marca sonora
+gruda mais que a visual**, e cabe em menos de 2 segundos.
+
+E há economia: **a mesma vinheta serve a abertura do app e o começo/fim de cada
+livro** (ver 4.34). Uma gravação, dois lugares — reforçada toda vez que a pessoa
+abre o app *e* toda vez que começa um título.
 
 ---
 

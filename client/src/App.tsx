@@ -27,8 +27,6 @@ import PublisherProfile from "@/pages/PublisherProfile";
 import Studio from "@/pages/Studio";
 import RequestBook from "@/pages/RequestBook";
 import Help from "@/pages/Help";
-// TEMPORÁRIA: comparação das três aberturas. Sai quando o Matheus escolher uma.
-import AberturaTeste from "@/pages/AberturaTeste";
 import CategoryBooks from "@/pages/CategoryBooks";
 import Collection from "@/pages/Collection";
 import AudioPlayer from "@/pages/AudioPlayer";
@@ -115,7 +113,6 @@ function Router() {
             <Route path="/studio" component={Studio} />
             <Route path="/request" component={RequestBook} />
             <Route path="/help" component={Help} />
-            <Route path="/abertura-teste" component={AberturaTeste} />
             <Route path="/category/:slug" component={CategoryBooks} />
             <Route path="/collection/:slug" component={Collection} />
             <Route path="/player/:id" component={AudioPlayer} />
