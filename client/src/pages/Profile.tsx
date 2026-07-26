@@ -3,7 +3,6 @@ import { Link } from "wouter";
 import {
   BarChart3,
   Bell,
-  BookMarked,
   BookOpen,
   Bookmark,
   CheckCircle2,
@@ -38,7 +37,7 @@ import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
 import { readRecommendations } from "@/lib/recommendations";
 import { totalBookmarks } from "@/lib/bookmarks";
-import { readDownloads, readLibrary } from "@/lib/library";
+import { readDownloads } from "@/lib/library";
 import { formatarDuracao } from "@/lib/listening";
 import { lerDadosDeConquista, lerResumo, type ResumoDeAudicao } from "@/lib/stats";
 import AchievementSpotlight from "@/components/AchievementSpotlight";
@@ -216,7 +215,6 @@ function GrupoDeAtalhos({ items, indice }: { items: AtalhoDoPerfil[]; indice: nu
 
 export default function Profile() {
   const { toast } = useToast();
-  const [libraryCount, setLibraryCount] = useState(0);
   const [downloadCount, setDownloadCount] = useState(0);
   const [bookmarkTotal, setBookmarkTotal] = useState(0);
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
@@ -241,8 +239,8 @@ export default function Profile() {
     setRecommendations(readRecommendations());
     setSession(readSession());
 
-    // Mesma fonte usada pelas telas Biblioteca e Downloads (lib/library.ts).
-    setLibraryCount(readLibrary().length);
+    // `libraryCount` saiu junto com o item "Minha lista": sem o item, era leitura
+    // do storage a cada abertura do Perfil para um número que ninguém via.
     setDownloadCount(readDownloads().length);
     setBookmarkTotal(totalBookmarks());
 
@@ -330,16 +328,20 @@ export default function Profile() {
     onSelect?: () => void;
   }[][] = [
     [
-      { icon: Bookmark, label: "Minha lista", hint: libraryCount > 0 ? String(libraryCount) : undefined, href: "/library" },
       /*
        * "Minhas notas", e não "Minhas marcações": o Matheus não encontrou o item
        * procurando por *anotações* — a palavra que ele usa. E ela ficou correta
        * depois de "Marcar" passar a abrir a caixa de nota: o que se guarda aqui é
-       * o que a pessoa escreveu, com o ponto do áudio anexado. Fica em segundo
-       * lugar, logo abaixo de "Minha lista", pela mesma razão: as duas são coisa
-       * **sua** guardada no app.
+       * o que a pessoa escreveu, com o ponto do áudio anexado.
+       *
+       * **"Minha lista" saía daqui e saiu** (26/07, ideia dele): ia para
+       * `/library`, exatamente onde o ícone fixo de Biblioteca da barra de baixo
+       * já leva — atalho duplicado ocupando a primeira linha da lista. O ícone
+       * dele, o marcador de página, ficou para as notas: é o mesmo símbolo que o
+       * tocador usa para marcar trecho, então o desenho passa a ser o mesmo nos
+       * dois lugares.
        */
-      { icon: BookMarked, label: "Minhas notas", hint: bookmarkTotal > 0 ? String(bookmarkTotal) : undefined, href: "/bookmarks" },
+      { icon: Bookmark, label: "Minhas notas", hint: bookmarkTotal > 0 ? String(bookmarkTotal) : undefined, href: "/bookmarks" },
       { icon: BarChart3, label: "Estatísticas", href: "/statistics" },
       { icon: Download, label: "Downloads", hint: downloadCount > 0 ? String(downloadCount) : undefined, href: "/downloads" },
       { icon: Users, label: "Comunidade", href: "/community" },

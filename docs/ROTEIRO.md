@@ -2171,6 +2171,15 @@ vitrine** — o Perfil tinha virado uma vitrine com a navegação no rodapé. Pa
 isso o item virou o componente `GrupoDeAtalhos`, e os dois grupos passaram a
 poder morar em lugares diferentes da página.
 
+**3. "Minha lista" saiu da lista** (ideia dele, na sequência): ia para
+`/library`, exatamente onde o ícone de **Biblioteca** da barra de baixo já leva.
+Era atalho duplicado — e ocupava a primeira linha, a mais nobre. Com ele fora,
+"Minhas notas" virou o primeiro item e herdou o **ícone de marcador de página**,
+que é o mesmo símbolo que o tocador usa para marcar trecho: o desenho passou a
+ser o mesmo nos dois lugares. O contador `libraryCount` foi apagado junto — sem o
+item, era leitura do storage a cada abertura do Perfil para um número que ninguém
+via.
+
 **Lição que se repete nesta sessão:** três defeitos seguidos ("o botão não
 funciona", "não acho as anotações") não eram funcionais — eram de **visibilidade**.
 O código fazia o que devia; a tela não contava. Vale checar isso antes de sair
