@@ -15,7 +15,14 @@ import MarcacoesDoLivro from "@/components/MarcacoesDoLivro";
 import { ListaDeNarracoes } from "@/components/SeletorDeNarracao";
 import { NARRATIONS_EVENT, chosenNarration, hasChoiceOfNarration } from "@/lib/narrations";
 import { catalog } from "@/lib/books";
-import { addBookmark, BOOKMARK_EVENT, bookmarkCount } from "@/lib/bookmarks";
+import AnotarMarcacao from "@/components/AnotarMarcacao";
+// `Bookmark` já é o ícone do lucide aqui em cima — o tipo entra com outro nome.
+import {
+  addBookmark,
+  BOOKMARK_EVENT,
+  bookmarkCount,
+  type Bookmark as Marcacao,
+} from "@/lib/bookmarks";
 import { readSettings } from "@/lib/settings";
 import { readPlayback, savePlayback, showMiniPlayer } from "@/lib/playback";
 import { getChapters, chaptersTotalSec, chapterStartSec, chapterAtSec, formatChapterDuration } from "@/lib/chapters";
@@ -167,6 +174,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [isCarModeActive, setIsCarModeActive] = useState(false);
   const [showChapters, setShowChapters] = useState(false);
   const [showMarcacoes, setShowMarcacoes] = useState(false);
+  /** A marcação recém-criada, enquanto a caixa de anotação está aberta. */
+  const [anotando, setAnotando] = useState<Marcacao | null>(null);
+  /** Se o áudio estava tocando quando a caixa abriu, para retomar ao fechar. */
+  const estavaTocandoRef = useRef(false);
   /*
    * A gaveta de trocar de voz. É aqui, e não só na ficha, porque **é ouvindo que
    * a pessoa descobre que não gosta da narração** (ideia do Matheus, ROTEIRO
@@ -269,10 +280,8 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   }
 
   /**
-   * Guarda o ponto onde o áudio está. Antes esta função **só mostrava o aviso**
-   * "Guardamos o ponto em 1h 12min" — e não guardava nada: a marcação morria ao
-   * sair da tela. Agora ela grava de verdade (`lib/bookmarks.ts`) e o aviso
-   * oferece o caminho para ver a lista, que é onde a pessoa escreve a nota.
+   * Guarda o ponto — sem abrir nada. É o caminho do **Modo Carro**, onde não se
+   * escreve: um toque, um aviso, e a pessoa continua dirigindo.
    */
   function salvarMarcacao(): boolean {
     const { jaExistia } = addBookmark(book.id, currentTime, currentChapter);
@@ -280,10 +289,34 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       title: jaExistia ? "Este ponto já estava marcado" : "Marcação salva",
       description: jaExistia
         ? `Você já tinha guardado ${formatTime(currentTime)} deste título.`
-        : `Guardamos ${formatTime(currentTime)}. Toque em "Minhas" para escrever uma nota.`,
+        : `Guardamos ${formatTime(currentTime)}.`,
     });
-    // Quem chama usa isto para animar o ícone só quando a marcação é nova.
     return !jaExistia;
+  }
+
+  /**
+   * Marcar **e anotar na mesma ação** — o caminho normal, pela barra de baixo.
+   *
+   * O ponto é gravado primeiro e a caixa de nota abre por cima dele já salvo:
+   * se a pessoa fechar sem escrever, a marcação fica. O contrário (só guardar ao
+   * confirmar a nota) transformaria um toque numa tarefa, e quem ouve caminhando
+   * perderia o trecho ao desistir de escrever.
+   *
+   * **Pausa enquanto a caixa está aberta** e retoma depois, se estava tocando:
+   * escrever com o livro correndo faz perder justamente o trecho seguinte.
+   */
+  function marcarEAnotar(): boolean {
+    const { bookmark, jaExistia } = addBookmark(book.id, currentTime, currentChapter);
+    estavaTocandoRef.current = isPlaying;
+    setIsPlaying(false);
+    setAnotando(bookmark);
+    return !jaExistia;
+  }
+
+  function fecharAnotacao() {
+    setAnotando(null);
+    if (estavaTocandoRef.current) setIsPlaying(true);
+    estavaTocandoRef.current = false;
   }
 
   const adjustSpeed = (delta: number) => {
@@ -562,8 +595,18 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
         onVelocidade={() => setShowSpeedMenu(true)}
         onModoCarro={handleCarModeClick}
         onTemporizador={() => setShowTimerMenu(true)}
-        onMarcar={salvarMarcacao}
+        onMarcar={marcarEAnotar}
         onVerMarcacoes={() => setShowMarcacoes(true)}
+      />
+
+      {/* Salva o ponto e já pergunta o que a pessoa quis guardar dele. */}
+      <AnotarMarcacao
+        marcacao={anotando}
+        tituloDoCapitulo={(capitulo) =>
+          chapters.find((ch) => ch.id === capitulo)?.title ?? `Capítulo ${capitulo}`
+        }
+        formatarTempo={formatTime}
+        onFechar={fecharAnotacao}
       />
 
       {/* O painel que o menu de "…" promete há tempo — agora existe. */}

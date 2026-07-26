@@ -2119,6 +2119,30 @@ ações. O player é `fixed inset-0 z-[100]` e engole o que não estiver acima d
 Ao pôr qualquer coisa nova em cena aqui, pergunte primeiro: *em que camada isso
 vai parar?*
 
+### "Marcar" não era marcar, era anotar (26/07)
+
+O Matheus olhou o botão pronto e viu o que faltava: *"a ideia de marcar não era,
+na verdade, marcar, mas anotar. Você primeiro salva a marcação e depois vai lá e
+edita"*. Ele tem razão — sem a nota, o app guarda **um relógio, não um
+pensamento**, e escrever exigia ir à lista e caçar a marcação.
+
+**Não virou uma coisa só, e essa é a decisão que importa registrar.** A saída
+óbvia seria o toque abrir a caixa de escrita e salvar só ao confirmar. Foi
+rejeitada: quem ouve **caminhando, dirigindo ou lavando louça** toca e segue a
+vida — se a nota fosse condição para guardar, fechar a caixa perderia o trecho, o
+oposto do que o botão promete. O que ficou:
+
+- o toque **grava o ponto na hora** e a caixa abre por cima dele **já salvo**;
+- fechar sem escrever mantém a marcação (por isso o botão diz **"Agora não"**, e
+  não "Cancelar" — não há nada a cancelar);
+- ponto repetido **traz a nota que já existia**, para completar em vez de
+  escrever por cima;
+- o áudio **pausa enquanto a caixa está aberta e retoma ao fechar**, se estava
+  tocando: escrever com o livro correndo faz perder o trecho seguinte;
+- **o Modo Carro fica de fora** — lá continua um toque só, sem caixa nenhuma.
+  Ninguém escreve dirigindo, e é justamente ali que a tela é grande e simples de
+  propósito.
+
 ---
 
 ## 4.30 Um livro, várias narrações — e um seletor de voz (26/07)
