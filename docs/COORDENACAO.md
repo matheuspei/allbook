@@ -73,6 +73,17 @@ janelas isso exige disciplina, senão vira bagunça:
 - **Nunca use `git add -A`, `git add .` ou `git commit -a`.** Eles varrem *tudo* que
   mudou na pasta — inclusive o trabalho pela metade da outra janela — e sobem junto.
   **Adicione só os arquivos da sua faixa, um a um:** `git add client/src/pages/Perfil.tsx`.
+- **Escolher o arquivo certo não basta: leia o `git diff` dele antes de adicionar.**
+  Armadilha real, em 26/07: o `AudioPlayer.tsx` estava na faixa B, mas **dentro do
+  mesmo arquivo** havia trechos da janela A (um componente novo que ela ainda não
+  tinha adicionado ao git). Commitar aquele arquivo teria subido a chamada do
+  componente **sem o componente** — app quebrado no GitHub, e a culpa apareceria na
+  janela errada. Git separa por arquivo, não por trecho; quando duas janelas mexem na
+  mesma tela, o arquivo é território comum. **O que fazer:** rodar
+  `git diff <arquivo>` e conferir se cada bloco é seu. Se houver trecho alheio, deixe
+  o arquivo de fora, commite o resto, e **escreva no quadro** que aquele arquivo tem
+  as duas mãos dentro — a outra janela commita o conjunto inteiro e o seu trecho vai
+  junto (foi o que aconteceu; conferido depois no histórico).
 - **Antes de commitar, traga o que a outra já subiu:** `git pull --rebase`. Isso
   evita o push ser recusado por a outra janela ter publicado antes de você.
 - **Commits pequenos e frequentes.** Quanto menor a janela de tempo entre editar e
