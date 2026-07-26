@@ -538,11 +538,11 @@ da Apple TV). As mudanças de rumo, com o porquê:
   TopNav + BottomNav + MiniPlayer; sem cabeçalho fixo nem seta de voltar. Estado
   vazio = grade **"Em alta"** (mais bem avaliados; dá para personalizar por perfil
   quando houver backend). Ao digitar, os resultados do `SearchResults` compartilhado.
-- **Pendência de produto (não resolvida):** "Categorias" (`/discover`) **perdeu a
-  entrada no menu de baixo**. A tela ainda existe (rota `/category/:slug` viva), mas
-  o browse por gênero ficou sem porta fixa. Caminho natural: **dobrar a grade de
-  gêneros dentro da Busca** (como Spotify/Apple TV — "Browse all" abaixo do campo).
-  Decisão do Matheus pendente; não mexer sem ele.
+- ~~**Pendência de produto (não resolvida):** "Categorias" (`/discover`) **perdeu a
+  entrada no menu de baixo**. (…) Caminho natural: **dobrar a grade de gêneros
+  dentro da Busca** (como Spotify/Apple TV — "Browse all" abaixo do campo).~~ —
+  **RESOLVIDA em 26/07, exatamente por esse caminho** (ver 4.32): a grade de
+  gêneros passou a morar na aba Buscar, e a Descobrir foi fundida nela.
 
 ### Conquistas viram muitas medalhas, coloridas (22/07)
 
@@ -591,10 +591,14 @@ desde"). Pediu três coisas, feitas nos **dois** perfis e alinhadas antes:
 
 ---
 
-## 4.5 Decisão em aberto: de onde vem a estrelinha
+## 4.5 ~~Decisão em aberto:~~ de onde vem a estrelinha — **DECIDIDA em 4.15**
 
-Discutido em 21/07, **sem decisão tomada**. O que já foi apurado, para não
-refazer a análise:
+> **Não está mais em aberto.** A decisão foi tomada em 25/07 e está na **4.15**
+> ("Como se avalia no AllBook"): só o livro recebe nota, em duas réguas —
+> história e narração —; autor, narrador e editora ficam com nota **derivada**.
+> O texto abaixo é a apuração de 21/07 que levou até lá, e fica pelo raciocínio.
+
+Discutido em 21/07, **sem decisão tomada na época**. O que já foi apurado:
 
 - São **duas notas, não uma**. A da **obra** (a história) e a da **narração**
   (a performance desta edição). O `bookData` do `BookDetails` já tem os campos
@@ -1231,8 +1235,12 @@ ficha institucional de editora (4.11) — e daqui a um mês ninguém saberia que
 chute. Repetir uma nota verdadeira é melhor do que estampar duas falsas.
 
 **No perfil de pessoa, a caixa mostra a nota do chapéu principal** (o que ela
-mais faz no catálogo): "Nota da obra" para quem escreve, "Nota da narração" para
-quem narra. O segundo chapéu, quando existe, vira uma linha discreta embaixo —
+mais faz no catálogo): "Nota da escrita" para quem escreve, "Nota da narração"
+para quem narra. *(O rótulo era **"Nota da obra"** e mudou em 26/07, a pedido do
+Matheus: no singular, "a obra" soa como **uma** obra específica, mas o número é a
+média de tudo que a pessoa escreveu — Dan Brown tem três títulos e uma nota só.
+"Nota da escrita" nomeia o **trabalho**, faz par exato com "Nota da narração" ao
+lado e não escorrega no gênero de quem escreve, dado que o catálogo não guarda.)* O segundo chapéu, quando existe, vira uma linha discreta embaixo —
 **rejeitada a quarta caixa** na grade, que é de três colunas e apertaria no
 celular.
 

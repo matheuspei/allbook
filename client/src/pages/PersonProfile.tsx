@@ -48,14 +48,22 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
    * A do outro chapéu, quando existe, vira a linha discreta logo abaixo.
    */
   const escreveMais = person.wrote.length >= person.narrated.length;
-  const daObra = { rotulo: "Nota da obra", valor: person.ratingAutor ?? person.rating };
+  /*
+   * O rótulo era **"Nota da obra"**, e dizia a coisa errada (26/07): no
+   * singular, "a obra" soa como *uma* obra específica — mas o número é a média
+   * de **tudo** que a pessoa escreveu. Quem tem doze livros via uma nota só e
+   * ficava sem saber de qual. "Nota da escrita" nomeia o **trabalho**, não o
+   * objeto, faz par exato com "Nota da narração" logo ao lado, e não escorrega
+   * no gênero de quem escreve (autor/autora), que o catálogo nem guarda.
+   */
+  const daObra = { rotulo: "Nota da escrita", valor: person.ratingAutor ?? person.rating };
   const daNarracao = { rotulo: "Nota da narração", valor: person.ratingNarrador ?? person.rating };
   const notaPrincipal = escreveMais ? daObra : daNarracao;
   const notaSecundaria = ehAutorENarrador
     ? {
         texto: escreveMais
           ? `Na narração, a média é ${daNarracao.valor.toFixed(1)}.`
-          : `Na obra escrita, a média é ${daObra.valor.toFixed(1)}.`,
+          : `Na escrita, a média é ${daObra.valor.toFixed(1)}.`,
       }
     : null;
 
