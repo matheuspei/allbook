@@ -2806,6 +2806,28 @@ desde que você retomou, em 12 de julho"*.
 
 Efeito medido nos dados de teste: o mesmo livro saiu de **7 meses para 3 meses**.
 
+### Decidido não construir o algoritmo sofisticado
+
+O Matheus levantou a possibilidade — *"a gente tem que colocar realmente um
+algoritmo bem sofisticado para prever esse tipo de coisa"* — e ele mesmo
+desconfiou na frase seguinte: *"é bem complicado (…) ela vai voltar de onde?"*.
+**Decisão: não construir.** Os motivos, para não se reabrir a discussão:
+
+- **Prever comportamento humano com meia dúzia de dias de dado é ruim por
+  natureza.** Nem Spotify nem Audible tentam adivinhar quando você termina.
+- **Regra que ninguém consegue verificar é pior que regra grosseira.** Peso,
+  decaimento, tolerância — nem eu, nem ele, nem o usuário conseguiria dizer se o
+  número saiu certo. Vira cara de ciência com chute por dentro.
+- **A previsão não é profecia, é leitura do agora.** *"Ela vai voltar de onde?"*
+  — não precisa ser previsto: quando a pessoa voltar, o app recalcula com o que
+  ela fez. Daí a frase ser "no seu ritmo, **cerca de**".
+
+**O que foi feito no lugar, e resolve o caso real com uma linha:** dia com menos
+de **5 minutos** de escuta não abre nem sustenta trecho (`MINIMO_DE_SESSAO_SEC`).
+A espiada de quem abriu só para ouvir a voz do narrador não planta marco zero. O
+tempo dela continua somando no total ouvido — o piso decide **onde o trecho
+começa**, não o que conta.
+
 ### Uma conta só, porque o app estava se contradizendo
 
 > *"Se o seu cálculo é o mais correto, ele também deveria ser replicado no menu
