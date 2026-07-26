@@ -2501,6 +2501,70 @@ trocar de capítulo.
 
 ---
 
+## 4.34 Proteger o áudio: o que dá e o que não dá (26/07)
+
+Levantado pelo Matheus, e é pergunta de negócio, não de tela: *"teria condição de
+um concorrente subir todos os livros que a gente deu o trabalho de produzir e
+roubar esses livros? (…) talvez fosse melhor remover essa função de download"*.
+**Nada foi construído** — o registro é para a decisão não ser refeita do zero
+quando o áudio existir.
+
+### A verdade que precisa vir primeiro: blindagem total não existe
+
+Todo áudio que toca no aparelho de alguém pode, no limite, ser gravado da saída
+de som. Netflix, Spotify e a própria Audible são copiadas todo dia, gastando
+milhões em proteção. **Quem promete 100% está vendendo alguma coisa.** O
+objetivo real é outro, e são três — e só um deles é sobre o negócio:
+
+1. **Atrito**: subir o trabalho a ponto de o curioso desistir.
+2. **Impedir a cópia em escala** ← *este é o que importa*. Um ouvinte gravando um
+   livro para si não machuca o AllBook; mil títulos saindo pela mesma conta em
+   duas horas, sim.
+3. **Rastrear** quem vazou.
+
+Confundir (1) com (2) é o erro caro: gasta-se em DRM sofisticado e deixa-se a
+raspagem passar, que é justamente o que o concorrente faria.
+
+### As camadas, da mais barata para a mais cara
+
+1. **Nunca entregar o arquivo inteiro.** Áudio fatiado em segmentos de ~6s
+   (HLS/DASH, o formato da Netflix), com **endereços assinados que expiram** em
+   poucos minutos e amarrados à conta. Só isto já mata a extensão de Chrome que o
+   Matheus citou: ela sabe pegar um arquivo, não sabe remontar centenas de
+   pedaços com links que morrem.
+2. **Limite de taxa por conta, no servidor.** Quem pede 500 títulos numa tarde
+   não é ouvinte, é raspagem — e o servidor corta. **É a defesa contra o
+   concorrente, e é a mais barata de todas.**
+3. **Marca d'água inaudível por usuário.** Não impede nada; diz de qual conta o
+   arquivo vazou — e o fato de existir já desestimula.
+4. **DRM de verdade (Widevine, FairPlay).** A chave nunca chega ao JavaScript.
+   Custa licença e integração; só se justifica com escala e dinheiro. Entre (1) e
+   (4) existe o meio-termo do HLS com AES-128, que barra script genérico mas
+   deixa a chave ao alcance de quem inspeciona.
+
+### Sobre a tela Downloads: **não remover** — recomendação
+
+O offline não é o furo. Storytel, Audible e Spotify todos têm, e ninguém tira —
+tirar seria perder competitividade por um risco que dá para mitigar. **O que
+muda é onde o arquivo fica:**
+
+- **No navegador**, o offline exige guardar o áudio em cache/IndexedDB, ou seja,
+  **no disco da pessoa** — é o ponto mais exposto.
+- **No app instalado**, o arquivo fica criptografado numa área privada que só o
+  app abre. É o padrão da indústria e é bem mais forte.
+
+**Proposta:** manter o botão; quando o áudio existir, **liberar download offline
+só no app, não no navegador**.
+
+### O que dá tempo: hoje não existe arquivo nenhum
+
+O "baixado" do AllBook é só uma marca — uma lista de ids em `allbook_downloads`
+no `localStorage` (`lib/library.ts`). **Nenhum byte de áudio é gravado**, porque
+não há áudio. Não existe nada para roubar ainda, e a decisão pode esperar o áudio
+chegar sem custo nenhum.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

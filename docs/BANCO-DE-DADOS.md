@@ -148,6 +148,23 @@ Não é dado do usuário — é **código**, e alguém precisa decidir o que aco
 - [ ] `allbook_playback` guarda a posição **em segundos**. Quando o áudio real
       entrar, as durações mudam e toda posição salva fica deslocada.
 
+**⚠️ Decidir o formato ANTES de gravar o primeiro arquivo — aqui mora o
+retrabalho caro.** A proteção do áudio contra cópia (ver ROTEIRO 4.34) não é uma
+camada que se aparafusa depois: ela depende de como o arquivo nasce. Áudio
+gravado como um MP3 inteiro num bucket vira, mais tarde, reprocessar o acervo
+todo. Se já nascer **fatiado em segmentos (HLS/DASH)**, servido por **URL
+assinada de vida curta**, a proteção vem quase de graça.
+
+- [ ] Áudio segmentado (HLS/DASH), nunca um arquivo inteiro exposto.
+- [ ] URL assinada por sessão, com expiração de minutos.
+- [ ] **Limite de taxa por conta** — é a defesa contra raspagem em escala (o
+      concorrente baixando o acervo), e é a mais barata das três. Precisa de
+      conta de verdade, então nasce junto com o login no servidor.
+- [ ] Marca d'água por usuário: opcional, rastreia a origem de um vazamento.
+- [ ] Download offline **só no app**, não no navegador (no navegador o arquivo
+      fica no disco da pessoa). Hoje `allbook_downloads` é só uma marca, e
+      **nenhum byte é gravado** — não há nada exposto ainda.
+
 ### 2.6 ⚠️ O pedido de livro não sai do aparelho
 
 `/request` grava no navegador e o pedido nasce e permanece em `recebido` — não há
