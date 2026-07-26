@@ -57,9 +57,9 @@ export default function Downloads() {
             Baixe um audiolivro para ouvir sem internet. O botão fica na tela de cada livro.
           </p>
           <Link
-            href="/discover"
+            href="/search"
             className="inline-block mt-2 text-sm font-bold text-primary"
-            data-testid="link-downloads-discover"
+            data-testid="link-downloads-search"
           >
             Explorar catálogo
           </Link>

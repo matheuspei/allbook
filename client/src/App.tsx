@@ -7,7 +7,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
-import Discover from "@/pages/Discover";
 import Search from "@/pages/Search";
 import Library from "@/pages/Library";
 import Statistics from "@/pages/Statistics";
@@ -96,7 +95,6 @@ function Router() {
           <Switch location={location}>
             <Route path="/" component={Home} />
             <Route path="/login" component={Login} />
-            <Route path="/discover" component={Discover} />
             <Route path="/search" component={Search} />
             <Route path="/library" component={Library} />
             <Route path="/statistics" component={Statistics} />

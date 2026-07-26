@@ -35,7 +35,9 @@ App que armazena muitos audiolivros, inspirado em Audible/Storytel + Netflix/HBO
 ## 3. FOCO ATUAL — Terminar o frontend
 
 Checklist das telas que faltam:
-- [x] **Descobrir / Explorar** — PRONTA (21/07). Rota `/discover`, com busca, grade de 8 gêneros, Top 10 e Lançamentos.
+- [x] ~~**Descobrir / Explorar**~~ — **FUNDIDA NA BUSCAR em 26/07** (ver 4.32). A
+  rota `/discover` e o `Discover.tsx` não existem mais; a grade de 8 gêneros e a
+  fileira numerada (agora "Em alta") moram na aba **Buscar**.
 - [x] **Perfil** — PRONTA (21/07). Rota `/profile`. Cabeçalho com foto/nome/bio,
   faixa de 4 números que abrem painel animado, conquistas discretas, fileira de
   recomendações e lista de conta. Edição em `/profile/edit` (foto redimensionada
@@ -1909,7 +1911,10 @@ categorias, uma lista rolável fica ruim de varrer — aí vai pedir agrupamento
 (gêneros principais e subgêneros) ou um campo de filtro dentro da lista. Fica
 anotado para quando o acervo justificar.
 
-### Fica em aberto: a tela Descobrir perdeu a aba dela
+### ~~Fica em aberto: a tela Descobrir perdeu a aba dela~~ — RESOLVIDO em 4.32
+
+**Decidido em 26/07: fundida na Buscar.** O registro abaixo fica como estava,
+porque descreve o problema; a decisão e o motivo estão em **4.32**.
 
 Levantado aqui porque a queixa encostou nisso, mas **não decidido nem mexido**.
 Quando "Buscar" e "Pedir" entraram no menu de baixo, **Descobrir saiu** — hoje
@@ -2291,6 +2296,91 @@ lido aparece aqui**, para as duas telas não repetirem conversa.
 **O destino de longo prazo não mudou:** quando os números do plano fecharem, é
 aqui que os créditos do mês moram ("você tem 2 créditos, usou 1"), ao lado do uso
 dos recursos. A tela agora tem função **antes** disso, o que era o problema.
+
+---
+
+## 4.32 A Descobrir foi fundida na Buscar (26/07)
+
+**A regra que nasceu antes da decisão, e que vale para o projeto inteiro:**
+
+> *"As nossas decisões têm que ser tomadas independentemente de existir servidor
+> ou não. Hoje ainda não existe servidor, mas é o próximo passo do projeto. (…)
+> O servidor não limita as nossas decisões."* — Matheus, 26/07
+
+Isso derrubou um argumento meu no meio desta mesma conversa (ver "o Top 10" mais
+abaixo) e **muda o critério de todas as decisões daqui para a frente**: desenhar
+a versão final, e deixar para depois só a **fonte** dos dados. Não encolher a
+interface por causa de uma limitação que some no passo seguinte.
+
+### O diagnóstico: ela era invisível, não feia
+
+O Matheus não conseguia dizer o que era a tela Descobrir — *"eu já não sei o que
+é que ela significa"*. Levantando o caso, o motivo apareceu inteiro, e não era
+questão de gosto:
+
+- **Não tinha aba** no menu de baixo (Início, Biblioteca, Pedir, Buscar, Perfil).
+- **Não tinha nome em lugar nenhum da interface.** "Descobrir" só existia como
+  nome de arquivo e de rota. Os 5 links que levavam até ela usavam **4 nomes
+  diferentes**: "Explorar o catálogo" (Biblioteca vazia, Downloads, ficha do
+  livro), "Ver todos os gêneros" (categoria) e "Títulos recomendados" (menu do
+  player).
+- **O primeiro clique dentro dela te expulsava:** o campo de busca do topo era
+  falso — um botão com cara de campo — e navegava para `/search`.
+- **Três dos quatro blocos já existiam em outro lugar:** busca (aba Buscar),
+  gêneros (botão "Categorias" da Início, 4.27), Lançamentos (card da Início).
+
+**Como a conclusão apareceu, e por que isso vale registro:** três explicações em
+texto não resolveram. O que resolveu foi **dirigir o app com o cursor**,
+narrando cada passo — Início → player → três pontinhos → "Títulos recomendados"
+→ Descobrir → clique no campo → some. Ver o menu de baixo **sem nenhum ícone
+aceso** foi a prova que nenhum parágrafo deu. Para telas, demonstrar ganha de
+descrever.
+
+### A decisão, e de quem foi o argumento
+
+**Fundir na Buscar** — proposta do Matheus, com o melhor argumento que apareceu:
+*"essa tela de descobrir é mais bonita do que a tela de buscar, pelo fato dela
+ter essas cartãozinhas de ficção científica, romance, terror"*. Fundir resolve
+os dois lados de uma vez: a tela órfã não vira lixo, e a Buscar — que era só um
+campo e uma grade de capas — ganha o que lhe faltava.
+
+**Rejeitadas:** (a) *aposentar de vez*, minha recomendação inicial, porque
+jogaria fora a grade de gêneros, que é justamente a parte boa; (b) *devolver uma
+aba a ela*, porque o menu iria a seis itens e ela continuaria repetindo a Início.
+
+### O que veio, o que ficou de fora
+
+A aba Buscar, com o campo vazio, mostra nesta ordem: **porta do pedido** (já
+existia) → **"Navegar por gênero"** (os cartões com capas) → **"Em alta"**.
+
+- **"Lançamentos" não veio.** Já é um dos cards coloridos da Início; repetir
+  seria a mesma lista em dois lugares.
+- **A grade de gêneros passa a existir em dois lugares, e está certo assim.** Na
+  Início é uma lista compacta de pastilhas com ícone (4.27), para quem está
+  passeando; na Buscar são cartões com capas, para quem abriu a busca sem saber
+  o que procurar. Mesmo destino, momentos e desenhos diferentes.
+
+### O Top 10 virou "Em alta" — e a numeração ficou
+
+O "Top 10 da semana" era **falso**: um array de dez ids escrito à mão no
+`Discover.tsx`, sem critério nenhum, e "da semana" não significava nada. O nome
+foi trocado por **"Em alta"**, que é o bloco que a Buscar já tinha e tem régua
+de verdade.
+
+**O desenho que ficou foi o da Descobrir** — a fileira que rola para o lado, com
+as capas numeradas — e aqui está a aplicação da regra do topo desta seção. Eu
+tinha recomendado a grade sem número, argumentando que numerar promete um
+ranking de audiência que o app não sabe calcular sem servidor. **O argumento
+caiu**: o servidor é o próximo passo, então o desenho é o da versão final e o
+que muda depois é só de onde sai a lista (hoje: melhor avaliados; depois: mais
+ouvidos de verdade).
+
+### Consequências mecânicas
+
+`Discover.tsx` apagado, rota `/discover` removida do `App.tsx`, e os 5 links
+apontando para `/search`. O item do menu do player mudou junto: era "Títulos
+recomendados" com ícone de estante, virou **"Explorar o catálogo" com a lupa** —
+o nome e o ícone do lugar onde ele leva. `npm run check` limpo.
 
 ---
 

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Share2, Bluetooth, MoreVertical, ListMusic, RotateCcw, RotateCw, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Library } from "lucide-react";
+import { ChevronDown, ChevronRight, Share2, Bluetooth, MoreVertical, ListMusic, RotateCcw, RotateCw, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Search as SearchIcon } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -47,9 +47,9 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           Este título não está no catálogo — o link pode estar errado.
         </p>
         <Link
-          href="/discover"
+          href="/search"
           className="mt-2 px-6 py-2.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-white/90 transition-colors"
-          data-testid="link-back-to-discover"
+          data-testid="link-back-to-search"
         >
           Explorar o catálogo
         </Link>
@@ -865,12 +865,16 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 <span className="text-sm font-medium">Histórico de escuta</span>
               </button>
 
+              {/* Ia para a tela Descobrir e se chamava "Títulos recomendados" —
+                  nome que não dizia para onde levava. Com a Descobrir fundida na
+                  Buscar (26/07, ROTEIRO 4.32), o item aponta para lá e usa o nome
+                  e o ícone do destino: quem toca aqui sabe onde vai cair. */}
               <button
-                onClick={() => { setShowMoreMenu(false); setLocation('/discover'); }}
+                onClick={() => { setShowMoreMenu(false); setLocation('/search'); }}
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
-                <Library className="w-5 h-5 text-white/50 group-hover:text-white" />
-                <span className="text-sm font-medium">Títulos recomendados</span>
+                <SearchIcon className="w-5 h-5 text-white/50 group-hover:text-white" />
+                <span className="text-sm font-medium">Explorar o catálogo</span>
               </button>
             </div>
           </div>

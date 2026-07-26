@@ -512,7 +512,7 @@ export default function Library() {
                     O que você salvar, ouvir ou baixar aparece aqui — e continua
                     de onde parou em qualquer aparelho.
                   </p>
-                  <Link href="/discover">
+                  <Link href="/search">
                     <button
                       className="mt-5 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-white/90"
                       data-testid="button-explore"

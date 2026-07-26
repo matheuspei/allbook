@@ -461,9 +461,9 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           Este título não está no catálogo — o link pode estar errado.
         </p>
         <Button
-          onClick={() => setLocation("/discover")}
+          onClick={() => setLocation("/search")}
           className="mt-2 bg-white text-black hover:bg-white/90 font-bold"
-          data-testid="button-back-to-discover"
+          data-testid="button-back-to-search"
         >
           Explorar o catálogo
         </Button>

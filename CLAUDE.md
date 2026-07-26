@@ -177,7 +177,7 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
 | --- | --- |
 | `/` | Home |
 | `/login` | Login (entrar e criar conta na mesma tela) |
-| `/discover` | Discover |
+| `/search` | Search (a aba "Buscar"; **absorveu a antiga Descobrir** em 26/07 — ver ROTEIRO 4.32) |
 | `/library` | Library |
 | `/statistics` | Statistics |
 | `/profile` | Profile |
@@ -187,9 +187,14 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
 | `/community` | Community |
 | `/user/:slug` | UserProfile (outro leitor) |
 | `/downloads` | Downloads |
+| `/bookmarks` | Bookmarks (as notas do livro) |
 | `/notifications` | Notifications |
 | `/book/:id` | BookDetails |
 | `/person/:slug` | PersonProfile (autor **e** narrador na mesma tela) |
+| `/publisher/:slug` | PublisherProfile (a editora) |
+| `/studio` | Studio (o AllBook Studio, quem produz a narração) |
+| `/request` | RequestBook (pedir um livro — a aba "Pedir") |
+| `/help` | Help |
 | `/category/:slug` | CategoryBooks (todos os livros de um gênero) |
 | `/collection/:slug` | Collection (livros de uma coleção curada, ex.: "Lançamentos") |
 | `/player/:id` | AudioPlayer |
@@ -197,7 +202,8 @@ PostgreSQL — preparado, mas praticamente sem uso real ainda. O armazenamento h
 **Ordem importa:** `/profile/edit` e `/profile/recommendations` vêm **antes** de
 `/profile` no `Switch`, senão a rota mais curta captura as outras duas.
 
-O menu inferior (`BottomNav`) aponta para Início, Biblioteca, Descobrir e Perfil.
+O menu inferior (`BottomNav`) tem 5 itens: Início, Biblioteca, **Pedir** (o botão
+laranja do meio, que é ação e não aba), Buscar e Perfil.
 Estatísticas fica no TopNav e também dentro do Perfil.
 
 **Comportamento de navegação:** `AudioPlayer` (`/player/:id`) e `Login` (`/login`) são

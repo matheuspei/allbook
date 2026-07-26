@@ -26,7 +26,8 @@ export default function CategoryBooks({ params }: { params: { slug: string } }) 
           <p className="mt-2 text-sm text-white/50">
             Este gênero não existe no catálogo do AllBook.
           </p>
-          <Link href="/discover">
+          {/* A lista de gêneros mora na aba Buscar desde 26/07 (ROTEIRO 4.32). */}
+          <Link href="/search">
             <Button className="mt-6">Ver todos os gêneros</Button>
           </Link>
         </div>
