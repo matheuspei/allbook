@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { CornerDownRight, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
+import { CornerDownRight, Star, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
 
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import { useToast } from "@/hooks/use-toast";
@@ -113,15 +113,30 @@ export default function CommentThread({
       className="bg-white/5 p-4 rounded-xl border border-white/5"
       data-testid={`card-review-${comment.id}`}
     >
-      {/*
-        Sem estrela aqui. A nota do comentário ficava colada no nome do leitor e
-        lia-se como "pontuação do usuário" — e usuário não é avaliado (nem há como
-        avaliar no app). A nota do livro fica no topo da seção; a de profissional,
-        no perfil de autor/narrador. Ver a mesma decisão em `comments.ts` (Comment.rating).
-      */}
       <AutorDoComentario slug={comment.authorSlug} />
 
-      <p className="text-sm text-white/70 leading-relaxed italic mt-3">"{comment.text}"</p>
+      {/*
+        **A estrela voltou em 26/07, a pedido do Matheus** — no formato da
+        Amazon: a nota que a pessoa deu aparece junto do que ela escreveu, senão
+        a frase sozinha não diz se ela amou ou detestou.
+        Ela tinha sido removida (ROTEIRO 4.5) por dois motivos, e os dois
+        mudaram de estado:
+        1. *"No app não há como avaliar nada ainda"* — **caducou**: a avaliação
+           foi construída em 25/07 (4.15, `AvaliarLivro.tsx`). A própria decisão
+           antiga guardou o campo `Comment.rating` no dado dizendo "quando
+           existir avaliação de verdade, ele já está lá". É este momento.
+        2. *"Colada no nome, lia-se como pontuação do usuário"* — **continua
+           valendo**, e é por isso que ela **não** fica na linha do nome: fica
+           encostada no texto do comentário (o texto vem logo abaixo, com
+           `mt-1`), de modo que pertence à frase, não à pessoa.
+        Só em comentário de livro: em perfil de gente e nas respostas, não —
+        mesma regra descrita em `comments.ts` (Comment.rating).
+      */}
+      {bookId !== undefined && comment.rating !== undefined && (
+        <NotaDoComentario nota={comment.rating} />
+      )}
+
+      <p className="text-sm text-white/70 leading-relaxed italic mt-1">"{comment.text}"</p>
 
       <Acoes
         id={comment.id}
@@ -396,6 +411,33 @@ function Acoes({
  * tela). Slug que não existe mais aparece sem link nem ampliação, em vez de
  * prometer uma tela vazia.
  */
+/**
+ * As cinco estrelas que a pessoa deu ao livro, dentro do comentário dela.
+ *
+ * Cheias em âmbar, vazias em branco apagado — o mesmo par de cores das estrelas
+ * de avaliar (`AvaliarLivro`), para as duas telas falarem a mesma língua. O
+ * `aria-label` diz "avaliou este livro", que é o que o desenho quer dizer e o
+ * leitor de tela não tem como adivinhar.
+ */
+function NotaDoComentario({ nota }: { nota: number }) {
+  return (
+    <div
+      className="mt-3 flex items-center gap-0.5"
+      aria-label={`Avaliou este livro com ${nota} de 5 estrelas`}
+      data-testid="comment-rating"
+    >
+      {[1, 2, 3, 4, 5].map((valor) => (
+        <Star
+          key={valor}
+          className={`h-3.5 w-3.5 ${
+            valor <= nota ? "fill-[#f59e0b] text-[#f59e0b]" : "text-white/15"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
 function AutorDoComentario({ slug, small }: { slug: string; small?: boolean }) {
   const [, navegar] = useLocation();
   const membro = findMember(slug);

@@ -630,6 +630,32 @@ nota que a pessoa deu ao livro. Some com o mal-entendido e com a promessa falsa:
 no app **não há como avaliar nada** ainda. O campo `Comment.rating` continua no
 dado, só não aparece — quando existir avaliação de verdade, ele já está lá.
 
+**Atualização de 26/07 — a estrela voltou, e este parágrafo previu o gatilho.**
+O Matheus pediu o formato da Amazon: *"vamos colocar os comentários das pessoas
+com a avaliação dela que ela deu"*. Os dois motivos da remoção mudaram de estado
+de forma diferente, e por isso a volta **não** desfaz a decisão antiga:
+
+- *"Não há como avaliar nada ainda"* — **caducou**. A avaliação foi construída
+  em 25/07 (4.15). O `Comment.rating` estava guardado esperando exatamente isto.
+- *"Colada no nome, lia-se como pontuação do usuário"* — **continua de pé**, e
+  virou a regra do desenho: a estrela **não** fica na linha do nome. Ela fica
+  encostada no texto do comentário (que vem logo abaixo, coladinho), de modo que
+  pertence à frase, não à pessoa. É a diferença entre "este leitor vale 4
+  estrelas" e "ele deu 4 estrelas a este livro".
+
+**Onde aparece:** só em comentário de **livro** (`CommentThread`). Em perfil de
+pessoa e de editora, não — nota de gente segue proibida. Em resposta, também
+não: quem responde fala com alguém, não avalia o livro.
+
+**No seu próprio comentário, as duas notas separadas** (`CommentComposer`):
+"História ★★★★ · Narração ★★★★★", e não uma média — as duas são independentes em
+`ratings.ts`, e a média esconderia o caso mais interessante, o do **livro bom
+com narração morna**. A nota lida é a **atual**, não uma cópia do momento em que
+o comentário foi escrito: avaliação e comentário são a mesma opinião, então
+mudar as estrelas muda o comentário na hora (o componente escuta o
+`RATINGS_EVENT`). Quem comenta sem ter avaliado não ganha estrela nenhuma —
+comentar não obriga a dar nota.
+
 ---
 
 ## 4.6 Notificações: por que a tela foi repaginada (24/07)
