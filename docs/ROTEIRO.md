@@ -2787,6 +2787,39 @@ Conta certa, comunicação errada — ninguém processa 219 dias, e o número ai
 a cobrança. A unidade passou a acompanhar o tamanho: dias até 45, depois meses,
 depois anos. Virou *"cerca de 7 meses para terminar"*: a mesma verdade, legível.
 
+### Os dois furos do "desde a primeira sessão" — e a regra do hiato
+
+O Matheus derrubou a primeira versão do ritmo com dois casos concretos:
+
+1. *"A pessoa abriu o livro, ouviu 30 segundos pra ver como era a voz"* — e
+   aquela curiosidade virava o **marco zero**, pesando na média para sempre.
+2. *"Passou três meses, voltou"* — e os meses parados entravam no ritmo, como se
+   ela estivesse ouvindo devagar. Não estava: estava **fora do livro**.
+
+**Os dois morrem com a mesma regra: hiato acima de 21 dias corta o trecho.** O
+ritmo é só do **trecho atual de leitura** — a sequência de dias sem buraco grande
+até hoje. Dentro do trecho, os dias parados continuam contando (a frequência é
+parte do ritmo); antes dele, nada conta. E se a última escuta foi há mais de 21
+dias, **não há previsão**: a pessoa não está lendo aquilo agora, e "no seu ritmo"
+seria invenção. Quando houve corte, a tela diz de onde partiu — *"no seu ritmo
+desde que você retomou, em 12 de julho"*.
+
+Efeito medido nos dados de teste: o mesmo livro saiu de **7 meses para 3 meses**.
+
+### Uma conta só, porque o app estava se contradizendo
+
+> *"Se o seu cálculo é o mais correto, ele também deveria ser replicado no menu
+> de estatísticas. Não faz sentido ter dois tipos de cálculo."* — Matheus
+
+Ele está certo, e o problema era pior que estilo: **a mesma pergunta tinha duas
+respostas conforme a tela**. A conta virou `previsaoDeTermino()` em
+`lib/listening.ts`, e Estatísticas e tocador chamam a mesma função.
+
+**Até a redação do prazo foi junto** (`prazoLegivel`): pegos no teste, os dois
+diziam o mesmo número de formas diferentes — *"75 dias"* numa tela, *"3 meses"* na
+outra. Mesmo número, duas leituras. É a regra da fonte única do `CLAUDE.md`
+valendo também para a **frase**, não só para o dado.
+
 **Por que não bastava apagar o item.** A pergunta *"quanto eu já ouvi deste
 livro?"* é real e **não tinha resposta em lugar nenhum do app** — Estatísticas
 soma tudo, "Ouvindo" e "Onde parei" dizem onde você está. Pela regra da 4.31, o
