@@ -22,8 +22,9 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (26/07: marcações saíram do player — tela `/bookmarks`, cartão na ficha, entrada no Perfil, e o player passou a aceitar `?t=` — ver ROTEIRO 4.29) | — | não — serviço launchd sempre no ar | 26/07 |
-| B | — livre — (26/07: um livro, várias narrações — seletor de voz na ficha e no player, ver ROTEIRO 4.30; modelo de planos com crédito de pedido registrado. **Obrigado, A:** o meu trecho do player subiu no seu `a560ec2`, conferido no histórico.) | — | não — serviço launchd sempre no ar | 26/07 |
+| A | — livre — (26/07: "Marcar" passou a anotar na hora — ponto salvo antes, áudio pausa, Modo Carro fora — ver ROTEIRO 4.29) | — | não — serviço launchd sempre no ar | 26/07 |
+| B | "Meu acesso" deixa de listar o óbvio e passa a mostrar o uso real de cada recurso | `client/src/pages/Plans.tsx` | não — serviço launchd sempre no ar | 26/07 |
+| B (anterior) | — livre — (26/07: um livro, várias narrações — seletor de voz na ficha e no player, ver ROTEIRO 4.30; modelo de planos com crédito de pedido registrado. **Obrigado, A:** o meu trecho do player subiu no seu `a560ec2`, conferido no histórico.) | — | não — serviço launchd sempre no ar | 26/07 |
 | C | — livre — (26/07: o botão "Categorias" da Início passou a expandir a lista de gêneros — ver ROTEIRO 4.27, que também deixa em aberto o destino da tela Descobrir) | — | não — serviço launchd sempre no ar | 26/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
