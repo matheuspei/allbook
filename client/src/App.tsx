@@ -17,7 +17,6 @@ import RecommendationsEdit from "@/pages/RecommendationsEdit";
 // Renomeado no import: `Switch` do wouter já ocupa o espaço dos nomes genéricos,
 // e `Settings` seria confundido com o ícone de mesmo nome do lucide.
 import SettingsPage from "@/pages/Settings";
-import Plans from "@/pages/Plans";
 import Community from "@/pages/Community";
 import UserProfile from "@/pages/UserProfile";
 import Bookmarks from "@/pages/Bookmarks";
@@ -105,7 +104,6 @@ function Router() {
             <Route path="/profile/recommendations" component={RecommendationsEdit} />
             <Route path="/profile" component={Profile} />
             <Route path="/settings" component={SettingsPage} />
-            <Route path="/plans" component={Plans} />
             <Route path="/community" component={Community} />
             <Route path="/user/:slug" component={UserProfile} />
             <Route path="/downloads" component={Downloads} />

@@ -279,7 +279,10 @@ export default function Profile() {
       { icon: Users, label: "Comunidade", href: "/community" },
     ],
     [
-      { icon: CheckCircle2, label: "Meu acesso", href: "/plans" },
+      // "Meu acesso" morava aqui e **saiu** em 26/07, por decisão do Matheus (ver
+      // ROTEIRO 4.31). A tela dizia o óbvio; a versão que mostrava o uso real de
+      // cada recurso também não convenceu. O slot volta a existir quando houver
+      // plano e crédito de verdade para mostrar.
       { icon: Bell, label: "Notificações", href: "/notifications" },
       { icon: Settings, label: "Configurações", href: "/settings" },
       { icon: Share2, label: "Convidar amigos", onSelect: convidarAmigos },

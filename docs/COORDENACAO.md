@@ -23,7 +23,7 @@ o quê **agora**.
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
 | A | — livre — (26/07: "Marcar" passou a anotar na hora — ponto salvo antes, áudio pausa, Modo Carro fora — ver ROTEIRO 4.29) | — | não — serviço launchd sempre no ar | 26/07 |
-| B | — livre — (26/07: "Meu acesso" virou o retrato do que é seu — número real por recurso e cada linha clicável, ver ROTEIRO 4.31; antes: narrações e planos, 4.30) | — | não — serviço launchd sempre no ar | 26/07 |
+| B | — livre — (26/07: **"Meu acesso" foi removida** — rota `/plans`, `Plans.tsx` e o item do Perfil não existem mais, ver ROTEIRO 4.31; antes: narrações e planos, 4.30) | — | não — serviço launchd sempre no ar | 26/07 |
 | C | — livre — (26/07: o botão "Categorias" da Início passou a expandir a lista de gêneros — ver ROTEIRO 4.27, que também deixa em aberto o destino da tela Descobrir) | — | não — serviço launchd sempre no ar | 26/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a

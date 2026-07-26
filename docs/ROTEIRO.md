@@ -66,7 +66,11 @@ Checklist das telas que faltam:
   entrando sozinha se o arquivo for posto em `client/src/assets/images/people/`.
   Para isso o catálogo ganhou o campo `narrator` e cresceu de 38 para 59 títulos —
   perfil de autor com um livro só não mostrava nada.
-- [x] **Planos / Assinatura → virou "Meu acesso"** (`/plans`, 24/07). Por decisão
+- [ ] **Planos / Assinatura — a tela FOI REMOVIDA em 26/07** (ver 4.31). O histórico
+  abaixo fica porque explica por que ela existiu e por que saiu; a rota `/plans`, o
+  arquivo `Plans.tsx` e o item do Perfil **não existem mais**. Ela volta quando
+  houver plano e crédito de verdade para mostrar.
+- [x] ~~**Planos / Assinatura → virou "Meu acesso"**~~ (`/plans`, 24/07). Por decisão
   do Matheus, a tela **não fala de preço nem de plano pago** e **não insinua
   cobrança futura** — ele não quer expor a estratégia nem criar ansiedade. Ela só
   celebra, no presente, o que a pessoa já tem (catálogo, player, listas, downloads,
@@ -165,9 +169,10 @@ serviço que a pessoa está assinando. **Regra que fica: o crédito é a unidade
 2. Nomes dos planos, teste grátis, e se a fase gratuita (200–500 usuários) vem
    antes de tudo isso.
 
-**Nada disso está no código.** A tela `/plans` continua sem falar de preço, como
-decidido em 24/07 — os números acima só saem do papel quando o Matheus mandar
-construir a tela de Planos.
+**Nada disso está no código, e não há mais tela onde estar:** a `/plans` foi
+removida em 26/07 (ver 4.31). Os números acima só saem do papel quando o Matheus
+mandar construir a tela de Planos — que nascerá do zero, já com crédito e plano de
+verdade para mostrar.
 
 ### Estilo: evitar a "cara de IA"
 A primeira versão do Perfil foi rejeitada por parecer gerada automaticamente. Os
@@ -2194,7 +2199,24 @@ muda o que toca, **sem mudar a interface**.
 
 ---
 
-## 4.31 "Meu acesso" para de dizer o óbvio (26/07)
+## 4.31 "Meu acesso": a reforma que não convenceu, e a tela saiu (26/07)
+
+> **DESFECHO, para ler antes do resto:** a reforma descrita aqui foi construída,
+> mostrada, e **rejeitada** — *"não gostei de nada disso, pode deletar"*. A tela
+> foi **removida**: a rota `/plans`, o arquivo `Plans.tsx` e o item do Perfil não
+> existem mais. O que fica registrado é **o que foi tentado**, para ninguém gastar
+> o mesmo esforço de novo achando que é ideia nova.
+>
+> **A lição, e ela é maior que esta tela:** o defeito original não era o conteúdo
+> ruim — era a **tela não ter pergunta para responder**. "O que é meu no AllBook"
+> não é uma dúvida que alguém tem: quem quer a lista abre a Biblioteca, quem quer
+> os baixados abre Downloads, quem quer o retrato abre Estatísticas. Encher de
+> número real uma tela sem pergunta só faz um resumo bonito de coisas que já têm
+> tela própria. **Tela precisa de pergunta, não de conteúdo.** A `/plans` volta a
+> existir quando a pergunta existir — *"quantos créditos eu tenho e o que faço com
+> eles"* —, e aí ela nasce do zero.
+
+O relato do que foi tentado:
 
 O Matheus olhou o item "Meu acesso" do Perfil e não entendeu por que ele existia:
 *"os botões não fazem nada, não estou entendendo por que ele existe"*. Depois deu
