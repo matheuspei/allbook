@@ -22,7 +22,7 @@ o quê **agora**.
 
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
-| A | — livre — (27/07, tudo commitado: "Detalhes do título" saiu do menu do player, porque tocar no título já abre a ficha (ROTEIRO 4.38); e o "está tocando" virou um só para player e barrinha — sair do player não parece mais parar a audição. `AudioPlayer.tsx`, `MiniPlayer.tsx`, `playback.ts` e `BookDetails.tsx` **liberados**.) Aba `🟢 JANELA A` | — | não — serviço launchd sempre no ar (escutando na **rede local**; `HOST=127.0.0.1` fecha) | 27/07 |
+| A | — livre — (27/07, tudo commitado: selo/marca d'água da janela na prévia, ver 1.1 abaixo. Antes: "Detalhes do título" saiu do menu do player, porque tocar no título já abre a ficha (ROTEIRO 4.38); e o "está tocando" virou um só para player e barrinha — sair do player não parece mais parar a audição. `AudioPlayer.tsx`, `MiniPlayer.tsx`, `playback.ts` e `BookDetails.tsx` **liberados**.) Aba `🟢 JANELA A` | — | não — serviço launchd sempre no ar (escutando na **rede local**; `HOST=127.0.0.1` fecha) | 27/07 |
 | B | — livre — (26/07, tudo commitado: Descobrir fundida na Buscar/Catálogo (4.32); proteção do áudio registrada (4.34); aberturas animadas adiadas para depois do backend (4.35); "Histórico de escuta" do player virou **"Meu ritmo neste livro"**, com previsão de término em conta única com as Estatísticas (4.36). `AudioPlayer.tsx` **devolvido**.) Aba `🔵 JANELA B` | — | não — serviço launchd sempre no ar | 27/07 |
 | C | — livre — (26/07: o botão "Categorias" da Início passou a expandir a lista de gêneros — ver ROTEIRO 4.27, que também deixa em aberto o destino da tela Descobrir) | — | não — serviço launchd sempre no ar | 26/07 |
 
@@ -43,6 +43,25 @@ O jeito mais seguro de não colidir é **não trabalhar no mesmo lugar**. Divida
 
 Se as duas precisam mexer em telas ao mesmo tempo, divida por **tela**: uma janela
 na tela Descobrir, outra no Perfil — e cada uma declara no quadro os arquivos dela.
+
+### 1.1 Abra o app com a sua letra: `?janela=A`
+
+Todas as abas do Chrome se chamavam "localhost" e mostravam a mesma tela — não
+dava para saber qual janela do Claude tinha aberto qual aba. Desde 27/07 o
+próprio app resolve isso: **abra `http://localhost:3000/?janela=A`** (ou `B`, ou
+`C`) e aquela aba passa a se identificar em três lugares:
+
+- o **nome da guia** vira `🟢 JANELA A — AllBook`;
+- uma **pastilha colorida** aparece na barra de desenvolvimento, no alto;
+- uma **marca d'água** grande fica no fundo, ao lado da moldura do telefone.
+
+Cores: **A verde · B azul · C roxo**. A letra fica guardada no `sessionStorage`,
+que é por aba — sobrevive a recarregar e a navegar pelo app, e **não** contamina
+as outras abas. Só passe o `?janela=` uma vez, na primeira abertura.
+
+Nada disso aparece no app publicado nem no celular (é `import.meta.env.DEV`), e
+nenhuma das marcas encosta na tela do app — todas vivem na área de
+desenvolvimento em volta. Código em `client/src/components/DevJanela.tsx`.
 
 ### 2. Nunca edite um arquivo que a outra janela declarou
 Se o arquivo que você precisa está na faixa da outra janela, **não edite por cima**.

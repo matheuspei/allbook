@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, ReactNode } from "react";
 
+import { MarcaDaJanela, SeloDaJanela, useJanelaDaAba } from "@/components/DevJanela";
+
 const IS_DEV = import.meta.env.DEV;
 
 interface Device {
@@ -30,6 +32,8 @@ export default function DevMobileWrapper({ children }: { children: ReactNode }) 
   const [idx, setIdx] = useState(0);
   const [scale, setScale] = useState(1);
   const device = DEVICES[idx];
+  // Qual janela do Claude Code abriu esta aba (`?janela=A`) — ver DevJanela.tsx.
+  const janela = useJanelaDaAba();
 
   const outerW = device.width + FRAME_BORDER * 2;
   const outerH = device.height + FRAME_BORDER * 2;
@@ -72,6 +76,8 @@ export default function DevMobileWrapper({ children }: { children: ReactNode }) 
           scrollbarWidth: "none",
         }}
       >
+        {janela && <SeloDaJanela letra={janela} />}
+        {janela && <span style={{ width: 8, flexShrink: 0 }} />}
         {DEVICES.map((d, i) => (
           <button
             key={d.name}
@@ -115,9 +121,11 @@ export default function DevMobileWrapper({ children }: { children: ReactNode }) 
           justifyContent: "center",
           padding: PAD,
           overflow: "hidden",
+          position: "relative",
         }}
       >
-        <div style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}>
+        {janela && <MarcaDaJanela letra={janela} />}
+        <div style={{ transform: `scale(${scale})`, transformOrigin: "center center", position: "relative", zIndex: 1 }}>
           <div
             style={{
               width: outerW,
