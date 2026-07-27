@@ -3070,6 +3070,32 @@ porquê, tudo deixa de fazer sentido."* O que caiu foi a **voz**, não a âncora
 comentário preso ao minuto exato, **em texto**, continua sendo o diferencial que
 só um app de audiolivro tem.
 
+### Construído em 27/07 (fundação + sala), e as decisões que apareceram fazendo
+
+A sala do livro **existe** desde 27/07 (commits `dcc9695`, `a3f58d2` e o
+seguinte). O que está no app: comentário com âncora em segundos, trava de
+spoiler pela posição real do player, carimbo "cap. 7 · 12:40" que leva ao ponto,
+botão **Conversa** no player com contador do trecho, marcas na barra e denúncia.
+Três decisões que só apareceram construindo, e que valem registro:
+
+- **A marca do que está adiante aparece — apagada e sem clique.** Na barra do
+  player, ponto laranja = conversa liberada; ponto fraco = há alguém falando
+  adiante. Mostrar que **existe** não é spoiler (a ficha já conta "+4 presas"), e
+  esconder faria a barra mentir. Quem pular para lá está escolhendo estragar a
+  própria escuta — a trava é contra o acidente, não contra a vontade.
+- **A Comunidade passou a ser "onde a conversa está", por LIVRO.** Antes era um
+  feed de gente: sem seguir ninguém, uma lista de estranhos. Livro é endereço
+  melhor que pessoa — você entra pelo assunto. Seguir continua abaixo, como
+  extra. A prévia respeita a trava e nunca mostra comentário marcado como
+  spoiler: numa vitrine ninguém escolheu abrir nada.
+- **Denúncia é local e o app diz isso.** Denunciar esconde o comentário **para
+  você**, na hora, com desfazer — e o aviso diz a verdade: "enquanto não há
+  servidor, isto vale só neste aparelho". A alternativa (prometer que "um
+  moderador vai analisar") seria o tipo de teatro que o ROTEIRO 4.23 mandou
+  varrer. Os poderes de moderador de verdade (marcar spoiler alheio, silenciar)
+  ficam para quando houver contas — a assinatura de `lib/moderacao.ts` já está
+  pronta para virar POST.
+
 ### Quatro ajustes do parecer da Janela A (a fazer antes de codar)
 
 1. **Âncora em segundos, não em capítulo.** Os capítulos aqui têm 50–85 minutos —

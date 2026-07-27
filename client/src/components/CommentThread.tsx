@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { CornerDownRight, EyeOff, Headphones, Star, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
+import { CornerDownRight, EyeOff, Flag, Headphones, Star, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
 
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import { useToast } from "@/hooks/use-toast";
 import { repliesTo, type Comment } from "@/lib/comments";
 import { findMember, findMemberByName } from "@/lib/community";
+import { denunciar, type MotivoDaDenuncia } from "@/lib/moderacao";
 import { addNotification } from "@/lib/notifications";
 import { savePlaying } from "@/lib/playback";
 import { initialOf, readProfile } from "@/lib/profile";
@@ -168,6 +169,16 @@ export default function CommentThread({
         onReact={reagir}
         replyCount={total}
         onReply={bookId !== undefined ? () => abrirResposta("") : undefined}
+        onDenunciar={(motivo) => {
+          denunciar(comment.id, motivo);
+          toast({
+            title: "Escondido para você",
+            description:
+              motivo === "spoiler"
+                ? "Marcamos como spoiler. Enquanto não há servidor, isto vale só neste aparelho."
+                : "Enquanto não há servidor, isto vale só neste aparelho.",
+          });
+        }}
       />
 
       {total > 0 && (
@@ -360,6 +371,7 @@ function Acoes({
   onReply,
   replyCount,
   small,
+  onDenunciar,
 }: {
   id: string;
   likes: number;
@@ -369,11 +381,13 @@ function Acoes({
   onReply?: () => void;
   replyCount?: number;
   small?: boolean;
+  /** Só no comentário de primeiro nível — resposta some junto com ele. */
+  onDenunciar?: (motivo: MotivoDaDenuncia) => void;
 }) {
   const size = small ? "w-3 h-3" : "w-3.5 h-3.5";
 
   return (
-    <div className={`flex items-center gap-1 ${small ? "mt-1.5" : "pt-3"}`}>
+    <div className={`flex flex-wrap items-center gap-1 ${small ? "mt-1.5" : "pt-3"}`}>
       <button
         type="button"
         onClick={() => onReact(id, "like")}
@@ -420,6 +434,73 @@ function Acoes({
           Responder
         </button>
       )}
+
+      {onDenunciar && <BotaoDeDenuncia onDenunciar={onDenunciar} id={id} />}
+    </div>
+  );
+}
+
+/**
+ * Denunciar, em dois toques.
+ *
+ * O primeiro toque abre as opções; o segundo escolhe o motivo. Um toque só
+ * seria perigoso demais para um alvo pequeno ao lado de "Responder" — e os
+ * motivos importam: **spoiler** é o dano típico da sala do livro, e é o que a
+ * moderação vai querer separar de ofensa quando houver fila de verdade.
+ */
+function BotaoDeDenuncia({
+  id,
+  onDenunciar,
+}: {
+  id: string;
+  onDenunciar: (motivo: MotivoDaDenuncia) => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+
+  if (!aberto) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAberto(true)}
+        className="ml-auto rounded-md p-1.5 text-white/20 transition-colors hover:text-white/60"
+        aria-label="Denunciar este comentário"
+        data-testid={`button-report-${id}`}
+      >
+        <Flag className="h-3.5 w-3.5" strokeWidth={1.75} />
+      </button>
+    );
+  }
+
+  /*
+   * Aberto, ocupa a **linha inteira** (`w-full`) em vez de disputar espaço com
+   * curtir e responder: espremido na mesma linha, o "cancelar" saía da tela do
+   * celular — e cancelar é justamente a saída de quem tocou sem querer.
+   */
+  return (
+    <div className="mt-1 flex w-full items-center justify-end gap-1 text-[11px]">
+      <span className="text-white/30">Esconder:</span>
+      <button
+        type="button"
+        onClick={() => onDenunciar("spoiler")}
+        className="rounded-md px-1.5 py-1 font-semibold text-[#f59e0b] transition-colors hover:bg-white/10"
+        data-testid={`report-spoiler-${id}`}
+      >
+        spoiler
+      </button>
+      <button
+        type="button"
+        onClick={() => onDenunciar("ofensa")}
+        className="rounded-md px-1.5 py-1 font-semibold text-white/60 transition-colors hover:bg-white/10"
+      >
+        ofensa
+      </button>
+      <button
+        type="button"
+        onClick={() => setAberto(false)}
+        className="rounded-md px-1.5 py-1 text-white/30 transition-colors hover:bg-white/10"
+      >
+        cancelar
+      </button>
     </div>
   );
 }

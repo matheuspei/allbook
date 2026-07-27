@@ -12,6 +12,7 @@ import {
 import { useState, useEffect, useMemo, useRef } from "react";
 import BarraDeAcoesDoPlayer from "@/components/BarraDeAcoesDoPlayer";
 import ConversaDoTrecho from "@/components/ConversaDoTrecho";
+import MarcasDaConversa from "@/components/MarcasDaConversa";
 import { commentsForBook } from "@/lib/comments";
 import { myCommentsFor } from "@/lib/myComments";
 import { comentariosNoTrecho } from "@/lib/sala";
@@ -545,6 +546,17 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           {/* Progress Section */}
           <div className="w-full space-y-2 px-2 shrink-0">
             <div className="relative pt-1">
+              {/* Onde tem gente falando neste capítulo (ROTEIRO 4.39). */}
+              <MarcasDaConversa
+                bookId={book.id}
+                chapterStart={chapterStart}
+                chapterDuration={chapterDuration}
+                currentTime={currentTime}
+                onAbrir={(posicao) => {
+                  setCurrentTime(posicao);
+                  setShowConversa(true);
+                }}
+              />
               <Slider
                 value={[chapterProgress]}
                 onValueChange={(val) => {

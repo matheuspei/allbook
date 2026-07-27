@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { MessageSquare, Sparkles } from "lucide-react";
 
+import ConversasDeAgora from "@/components/ConversasDeAgora";
 import PageHeader from "@/components/PageHeader";
 import {
   activityFeed,
@@ -51,6 +52,15 @@ export default function Community() {
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="community-page">
       <PageHeader title="Comunidade" fallback="/profile" />
+
+      {/*
+        **O primeiro bloco deixou de ser gente e passou a ser conversa** (27/07,
+        ROTEIRO 4.39). Antes, quem não seguia ninguém abria a Comunidade e
+        encontrava uma lista de estranhos — sem motivo para se importar com
+        nenhum. Livro é um endereço melhor: você entra pelo assunto. Seguir
+        continua logo abaixo, como extra.
+      */}
+      <ConversasDeAgora />
 
       {seguindo.length > 0 && (
         <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="following-row">

@@ -4,6 +4,7 @@ import { Lock, MessageSquare } from "lucide-react";
 import CommentComposer from "@/components/CommentComposer";
 import CommentThread from "@/components/CommentThread";
 import { commentsForBook } from "@/lib/comments";
+import { desfazerDenuncia, idsEscondidos, MODERACAO_EVENT } from "@/lib/moderacao";
 import { PLAYBACK_EVENT } from "@/lib/playback";
 import { comecouOLivro, posicaoNoLivro, separarSala } from "@/lib/sala";
 import type { Reactions } from "@/lib/reactions";
@@ -56,7 +57,21 @@ export default function SalaDoLivro({
     return () => window.removeEventListener(PLAYBACK_EVENT, atualizar);
   }, [bookId]);
 
-  const todos = commentsForBook(bookId);
+  /*
+   * O que você escondeu ao denunciar não some do mundo — some da **sua** tela,
+   * e com volta: a linha do fim conta quantos são e devolve todos de uma vez.
+   * Denúncia sem desfazer é armadilha num alvo pequeno de celular.
+   */
+  const [escondidos, setEscondidos] = useState<Set<string>>(() => idsEscondidos());
+
+  useEffect(() => {
+    const atualizar = () => setEscondidos(idsEscondidos());
+    window.addEventListener(MODERACAO_EVENT, atualizar);
+    return () => window.removeEventListener(MODERACAO_EVENT, atualizar);
+  }, []);
+
+  const todos = commentsForBook(bookId).filter((item) => !escondidos.has(item.id));
+  const escondidosAqui = commentsForBook(bookId).filter((item) => escondidos.has(item.id));
   const { visiveis, adiante } = separarSala(todos, posicao);
 
   return (
@@ -87,7 +102,22 @@ export default function SalaDoLivro({
 
       {adiante > 0 && <Adiante quantas={adiante} comecou={comecou} />}
 
-      {todos.length === 0 && <SalaVazia />}
+      {todos.length === 0 && escondidosAqui.length === 0 && <SalaVazia />}
+
+      {escondidosAqui.length > 0 && (
+        <button
+          type="button"
+          onClick={() => escondidosAqui.forEach((item) => desfazerDenuncia(item.id))}
+          className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:bg-white/[0.05]"
+          data-testid="sala-escondidos"
+        >
+          <span className="text-xs text-white/35">
+            {escondidosAqui.length}{" "}
+            {escondidosAqui.length === 1 ? "comentário escondido" : "comentários escondidos"} por você
+          </span>
+          <span className="text-xs font-semibold text-primary">Mostrar</span>
+        </button>
+      )}
     </div>
   );
 }
