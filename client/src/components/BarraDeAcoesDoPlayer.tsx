@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, BookmarkPlus, Car, Check, Timer } from "lucide-react";
+import { Bookmark, BookmarkPlus, Car, Check, MessageSquare, Timer } from "lucide-react";
 
 /**
  * A barra de ações do tocador — velocidade, modo carro, temporizador, marcar e
@@ -70,21 +70,30 @@ export default function BarraDeAcoesDoPlayer({
   velocidade,
   temporizadorLigado,
   totalDeMarcacoes,
+  falasNoTrecho,
   onVelocidade,
   onModoCarro,
   onTemporizador,
   onMarcar,
   onVerMarcacoes,
+  onConversa,
 }: {
   velocidade: number;
   temporizadorLigado: boolean;
   totalDeMarcacoes: number;
+  /**
+   * Quantas pessoas comentaram nos últimos minutos de áudio. Vira o contador do
+   * botão de conversa — é o aviso de que você entrou num trecho onde outros
+   * pararam para dizer algo (ROTEIRO 4.39).
+   */
+  falasNoTrecho: number;
   onVelocidade: () => void;
   onModoCarro: () => void;
   onTemporizador: () => void;
   /** Guarda o ponto atual. Devolve se a marcação era nova. */
   onMarcar: () => boolean;
   onVerMarcacoes: () => void;
+  onConversa: () => void;
 }) {
   /*
    * A confirmação no **próprio botão**, e não só no aviso do topo.
@@ -137,7 +146,10 @@ export default function BarraDeAcoesDoPlayer({
             {velocidade.toFixed(2).replace(".", ",")}x
           </span>
         }
-        rotulo="Velocidade"
+        /* "Veloc." e não "Velocidade": com a Conversa, a barra passou a ter seis
+           alvos, e o rótulo inteiro era o único que não cabia — aparecia
+           truncado como "VELOCID…". O ícone já diz o número (1,00x). */
+        rotulo="Veloc."
         onClick={onVelocidade}
       />
       <Acao testid="action-car" icone={<Car className="h-5 w-5" />} rotulo="Carro" onClick={onModoCarro} />
@@ -164,6 +176,22 @@ export default function BarraDeAcoesDoPlayer({
         }
         onClick={marcar}
         destaque={confirmacao !== null}
+      />
+
+      {/*
+        Conversa: fica **sempre** na barra, ao contrário das marcações. Aqui o
+        zero não é beco sem saída — é convite: a folha abre com a caixa de
+        escrever já presa neste ponto do áudio, e é assim que a primeira
+        mensagem de um livro vazio nasce. O contador só aparece quando alguém
+        comentou por perto, e é ele que avisa "você entrou num trecho comentado".
+      */}
+      <Acao
+        testid="action-conversa"
+        icone={<MessageSquare className="h-5 w-5" />}
+        rotulo="Conversa"
+        onClick={onConversa}
+        contador={falasNoTrecho}
+        destaque={falasNoTrecho > 0}
       />
 
       {/*

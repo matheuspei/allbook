@@ -41,6 +41,20 @@ export interface MyComment {
   text: string;
   /** ISO completo — ordena do mais novo para o mais velho. */
   date: string;
+  /**
+   * Em que segundo do áudio você estava — a âncora da sala do livro
+   * (ROTEIRO 4.39, e o porquê está em `comments.ts`). Ausente = você falou do
+   * livro em geral, e aí todo mundo lê.
+   */
+  positionSec?: number;
+  /** Você marcou como spoiler: o texto fica atrás de um toque para os outros. */
+  spoiler?: boolean;
+}
+
+/** O que se pode prender a um comentário na hora de publicar. */
+export interface OpcoesDoComentario {
+  positionSec?: number;
+  spoiler?: boolean;
 }
 
 /** Quanto cabe num comentário. Curto de propósito: comentário, não resenha. */
@@ -92,7 +106,11 @@ function save(list: MyComment[]): MyComment[] {
 }
 
 /** Você comenta. Devolve a lista nova para a tela já mostrar. */
-export function addComment(target: CommentTarget, text: string): MyComment[] {
+export function addComment(
+  target: CommentTarget,
+  text: string,
+  opcoes: OpcoesDoComentario = {},
+): MyComment[] {
   const clean = text.trim().slice(0, MAX_COMMENT);
   if (!clean) return readMyComments();
 
@@ -101,6 +119,10 @@ export function addComment(target: CommentTarget, text: string): MyComment[] {
     ...target,
     text: clean,
     date: new Date().toISOString(),
+    // Só grava o que existe: comentário sem âncora não deve carregar
+    // `positionSec: undefined` para o JSON.
+    ...(opcoes.positionSec !== undefined ? { positionSec: opcoes.positionSec } : {}),
+    ...(opcoes.spoiler ? { spoiler: true } : {}),
   };
 
   return save([...readMyComments(), comment]);

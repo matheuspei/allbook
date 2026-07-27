@@ -93,6 +93,32 @@ export function separarSala(
   return { visiveis, adiante };
 }
 
+/**
+ * Os comentários presos **perto do ponto onde a pessoa está** — a conversa que
+ * o player mostra enquanto ela ouve.
+ *
+ * Só olha para trás: de `posicaoSec - janelaSec` até `posicaoSec`. Nada que
+ * esteja adiante entra, nem por um segundo — é a mesma trava da sala, e é o que
+ * permite mostrar um contador no player sem entregar o que vem depois.
+ *
+ * Cinco minutos de janela por padrão: um comentário feito quatro minutos antes
+ * ainda é sobre a mesma cena; meia hora depois já é outro assunto.
+ */
+export function comentariosNoTrecho(
+  comentarios: Comment[],
+  posicaoSec: number,
+  janelaSec = 300,
+): Comment[] {
+  return comentarios
+    .filter(
+      (item) =>
+        item.positionSec !== undefined &&
+        item.positionSec <= posicaoSec + 1 &&
+        item.positionSec >= posicaoSec - janelaSec,
+    )
+    .sort((a, b) => (a.positionSec ?? 0) - (b.positionSec ?? 0));
+}
+
 /** "12:40" ou "1:12:40" — o mesmo formato do player. */
 export function formatarPosicao(segundos: number): string {
   const total = Math.max(0, Math.floor(segundos));

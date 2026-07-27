@@ -9,8 +9,12 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import BarraDeAcoesDoPlayer from "@/components/BarraDeAcoesDoPlayer";
+import ConversaDoTrecho from "@/components/ConversaDoTrecho";
+import { commentsForBook } from "@/lib/comments";
+import { myCommentsFor } from "@/lib/myComments";
+import { comentariosNoTrecho } from "@/lib/sala";
 import MarcacoesDoLivro from "@/components/MarcacoesDoLivro";
 import HistoricoDoLivro from "@/components/HistoricoDoLivro";
 import { ListaDeNarracoes } from "@/components/SeletorDeNarracao";
@@ -203,7 +207,29 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * salva ou apaga — o evento avisa, como no resto da casa.
    */
   const [totalDeMarcacoes, setTotalDeMarcacoes] = useState(0);
+  const [showConversa, setShowConversa] = useState(false);
   const { toast } = useToast();
+
+  /**
+   * Quantas falas existem nos últimos 5 minutos de áudio — o contador do botão
+   * "Conversa" (ROTEIRO 4.39).
+   *
+   * Recalculado a cada meio minuto de audição, e não a cada segundo: a conta
+   * varre a lista de comentários, e fazer isso 60 vezes por minuto seria
+   * desperdício para um número que muda de dois em dois minutos.
+   */
+  const janelaDeConversa = Math.floor(currentTime / 30);
+  const falasNoTrecho = useMemo(() => {
+    const posicao = janelaDeConversa * 30;
+    const dosOutros = comentariosNoTrecho(commentsForBook(book.id), posicao).length;
+    const meus = myCommentsFor({ bookId: book.id }).filter(
+      (item) =>
+        item.positionSec !== undefined &&
+        item.positionSec <= posicao + 1 &&
+        item.positionSec >= posicao - 300,
+    ).length;
+    return dosOutros + meus;
+  }, [book.id, janelaDeConversa]);
 
   useEffect(() => {
     showMiniPlayer();
@@ -603,7 +629,19 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
         onTemporizador={() => setShowTimerMenu(true)}
         onMarcar={marcarEAnotar}
         onVerMarcacoes={() => setShowMarcacoes(true)}
+        falasNoTrecho={falasNoTrecho}
+        onConversa={() => setShowConversa(true)}
       />
+
+      {/* A conversa deste ponto do áudio — a metade da sala do livro que mora
+          dentro do player (ROTEIRO 4.39). */}
+      {showConversa && (
+        <ConversaDoTrecho
+          bookId={book.id}
+          posicaoSec={currentTime}
+          onFechar={() => setShowConversa(false)}
+        />
+      )}
 
       {/* Salva o ponto e já pergunta o que a pessoa quis guardar dele. */}
       <AnotarMarcacao

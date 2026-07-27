@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Star, Trash2 } from "lucide-react";
+import { EyeOff, Headphones, Star, Trash2 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import { initialOf, readProfile } from "@/lib/profile";
@@ -12,6 +12,7 @@ import {
   type MyComment,
 } from "@/lib/myComments";
 import { myRatingOf, RATINGS_EVENT, type MinhaAvaliacao } from "@/lib/ratings";
+import { comecouOLivro, posicaoNoLivro, rotuloDaAncora } from "@/lib/sala";
 
 /**
  * Escrever um comentário de primeiro nível — e ver/apagar os seus.
@@ -40,15 +41,38 @@ import { myRatingOf, RATINGS_EVENT, type MinhaAvaliacao } from "@/lib/ratings";
 export default function CommentComposer({
   alvo,
   placeholder = "Deixe seu comentário sobre este livro…",
+  ancoraInicial,
 }: {
   alvo: CommentTarget;
   /** O convite dentro do campo. Muda com o alvo: livro, pessoa ou editora. */
   placeholder?: string;
+  /**
+   * Prender o comentário neste segundo do áudio, já ligado ao abrir.
+   *
+   * Quem passa isto é o **player**: lá a pessoa está ouvindo aquele trecho, e a
+   * intenção de falar *sobre ele* é óbvia. Na ficha do livro a caixa nasce
+   * desligada, porque ali o comum é falar da obra inteira — e comentário preso
+   * a um ponto só aparece para quem já chegou nele.
+   */
+  ancoraInicial?: number;
 }) {
   const { toast } = useToast();
   const perfil = readProfile();
   const [texto, setTexto] = useState("");
   const [meus, setMeus] = useState<MyComment[]>(() => myCommentsFor(alvo));
+
+  const bookId = alvo.bookId;
+  /*
+   * A âncora oferecida: a que veio do player, ou o ponto onde a pessoa parou
+   * neste livro. Só existe para alvo-livro e para quem já começou — não faz
+   * sentido prender no segundo zero de um livro que nunca se abriu.
+   */
+  const pontoAtual =
+    bookId !== undefined && (ancoraInicial !== undefined || comecouOLivro(bookId))
+      ? ancoraInicial ?? posicaoNoLivro(bookId)
+      : undefined;
+  const [prender, setPrender] = useState(ancoraInicial !== undefined);
+  const [spoiler, setSpoiler] = useState(false);
 
   // A sua nota deste livro, para estampar no seu comentário. Reage ao evento de
   // avaliação: mudar as estrelas ali em cima muda estas aqui na hora, sem F5.
@@ -66,10 +90,20 @@ export default function CommentComposer({
   function publicar() {
     const limpo = texto.trim();
     if (!limpo) return;
-    addComment(alvo, limpo);
+
+    const ancora = prender && pontoAtual !== undefined ? pontoAtual : undefined;
+    addComment(alvo, limpo, { positionSec: ancora, spoiler });
+
     setMeus(myCommentsFor(alvo));
     setTexto("");
-    toast({ title: "Comentário publicado" });
+    setSpoiler(false);
+    toast({
+      title: "Comentário publicado",
+      description:
+        ancora !== undefined && bookId !== undefined
+          ? `Preso em ${rotuloDaAncora(bookId, ancora)} — só quem chegou aí vai ler.`
+          : undefined,
+    });
   }
 
   function apagar(id: string) {
@@ -108,6 +142,43 @@ export default function CommentComposer({
           data-testid="comment-input"
         />
 
+        {/*
+          As duas escolhas da sala, e elas só aparecem em comentário de livro.
+          Ficam **acima** do botão de publicar de propósito: são decisões sobre
+          quem vai poder ler, e decidir isso depois de mandar não existe.
+        */}
+        {bookId !== undefined && (
+          <div className="flex flex-wrap gap-2">
+            {pontoAtual !== undefined && (
+              <Interruptor
+                ligado={prender}
+                onToggle={() => setPrender((v) => !v)}
+                icone={<Headphones className="h-3 w-3" />}
+                testid="comment-anchor-toggle"
+                titulo={
+                  prender
+                    ? `Preso em ${rotuloDaAncora(bookId, pontoAtual)}`
+                    : `Prender em ${rotuloDaAncora(bookId, pontoAtual)}`
+                }
+              />
+            )}
+            <Interruptor
+              ligado={spoiler}
+              onToggle={() => setSpoiler((v) => !v)}
+              icone={<EyeOff className="h-3 w-3" />}
+              testid="comment-spoiler-toggle"
+              titulo="Contém spoiler"
+              cor="ambar"
+            />
+          </div>
+        )}
+
+        {bookId !== undefined && prender && pontoAtual !== undefined && (
+          <p className="text-[11px] leading-relaxed text-white/35">
+            Só quem já ouviu até esse ponto vai ler o que você escrever.
+          </p>
+        )}
+
         <div className="flex items-center justify-between">
           <span className="text-[10px] text-white/25">
             {texto.length}/{MAX_COMMENT}
@@ -141,10 +212,79 @@ export default function CommentComposer({
             </button>
           </div>
           <MinhasEstrelas nota={minhaNota} />
+
+          {/*
+            No **seu** comentário o texto nunca fica coberto — você já sabe o que
+            escreveu. O que aparece é o estado dele para os outros: onde ficou
+            preso e se está marcado como spoiler.
+          */}
+          {(c.positionSec !== undefined || c.spoiler) && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {c.positionSec !== undefined && c.bookId !== undefined && (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
+                  data-testid="my-comment-anchor"
+                >
+                  <Headphones className="h-3 w-3" />
+                  {rotuloDaAncora(c.bookId, c.positionSec)}
+                </span>
+              )}
+              {c.spoiler && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f59e0b]/10 px-2.5 py-1 text-[11px] font-semibold text-[#f59e0b]">
+                  <EyeOff className="h-3 w-3" />
+                  Marcado como spoiler
+                </span>
+              )}
+            </div>
+          )}
+
           <p className="text-sm text-white/70 leading-relaxed italic mt-1">"{c.text}"</p>
         </div>
       ))}
     </>
+  );
+}
+
+/**
+ * Uma escolha ligada/desligada, no formato de pastilha.
+ *
+ * Pastilha e não caixinha de marcar: no celular a área de toque de um checkbox
+ * é pequena demais, e aqui as duas opções mudam **quem vai ler** o comentário —
+ * merecem ser vistas de longe e acertadas de primeira.
+ */
+function Interruptor({
+  ligado,
+  onToggle,
+  icone,
+  titulo,
+  testid,
+  cor = "marca",
+}: {
+  ligado: boolean;
+  onToggle: () => void;
+  icone: React.ReactNode;
+  titulo: string;
+  testid: string;
+  cor?: "marca" | "ambar";
+}) {
+  const aceso =
+    cor === "ambar"
+      ? "bg-[#f59e0b]/15 text-[#f59e0b] ring-[#f59e0b]/40"
+      : "bg-primary/15 text-primary ring-primary/40";
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={ligado}
+      data-testid={testid}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold ring-1 transition-colors ${
+        ligado ? aceso : "bg-white/[0.04] text-white/40 ring-white/10 hover:text-white/70"
+      }`}
+    >
+      {icone}
+      {titulo}
+    </button>
   );
 }
 
