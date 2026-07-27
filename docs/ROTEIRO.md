@@ -2902,6 +2902,43 @@ o painel para fora do `<header>`.
 
 ---
 
+## 4.38 "Detalhes do título" saiu do menu do player (27/07)
+
+O menu dos três pontinhos, dentro do player, abria a ficha do livro por um item
+chamado "Detalhes do título". **Saiu.**
+
+**A razão é uma só: já havia outro caminho para o mesmo lugar.** Tocar no título
+do livro no corpo do player — o botão com a setinha, criado justamente porque o
+menu era escondido demais — abre a mesma ficha, com um gesto que a pessoa tenta
+antes de procurar menu nenhum. Dois botões para um destino é a gordura que o app
+vem cortando desde a 4.23.
+
+**O critério que o Matheus deixou para ele voltar** (vale para qualquer item de
+menu daqui para a frente): *"pra manter isso aí, a gente teria que acrescentar
+alguma informação extra que não teria em outro lugar. (…) Como está hoje, não
+dá."* Ou seja, um item de menu se sustenta por **conteúdo próprio**, não por
+atalho para tela que já é alcançável.
+
+**Achado do mesmo dia, consertado junto** — este é bug, não decisão, mas está
+aqui porque muda o que se espera do player: o player e a barrinha de baixo
+(`MiniPlayer`) tinham **cada um o seu** "está tocando". Sair do player no meio de
+um capítulo fazia a barrinha aparecer com o ícone de **tocar**, como se a
+audição tivesse parado, e o botão dela era enfeite — trocava de desenho sem mexer
+no progresso. Agora o estado mora no `playback.ts` (`sessionStorage`, como a
+visibilidade da barra: é estado *da visita*), os dois leem e escrevem ali, e com
+a barra na tela o tempo continua correndo. Enquanto não existe áudio de verdade,
+quem faz o tempo passar fora do player é um relógio de 5 em 5 segundos — a
+precisão que a barrinha mostra.
+
+**Armadilha de teste, para ninguém perder tempo de novo:** com **duas abas** do
+app abertas, as duas escrevem no mesmo `localStorage`, e a segunda parece
+"roubar" o progresso da primeira — o player abrindo no zero, o tempo andando
+mesmo pausado. Não é bug do app: é o navegador. Confirmado ouvindo o evento
+`storage`, que só dispara quando **outra** aba escreve. Ao testar progresso,
+deixe uma aba só.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

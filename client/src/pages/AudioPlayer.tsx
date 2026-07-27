@@ -818,16 +818,14 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col py-2">
-              {/* Usa `book.id` (já resolvido) em vez de `params.id`, que podia
-                  ser 'current' e caía num /book/5 fixo — abrindo o livro errado. */}
-              <Link href={`/book/${book.id}`}>
-                <button className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full">
-                  <BookOpen className="w-5 h-5 text-white/50 group-hover:text-white" />
-                  <span className="text-sm font-medium">Detalhes do título</span>
-                </button>
-              </Link>
+              {/* "Detalhes do título" saiu em 27/07: era um segundo caminho para
+                  o mesmo lugar — tocar no título do livro, ali no meio do
+                  player, já abre a ficha, e é o gesto que a pessoa tenta
+                  primeiro. O critério do Matheus para ele voltar: só se trouxer
+                  informação que não exista em nenhum outro lugar (ROTEIRO 4.38).
 
-              {/* "Conectar dispositivo Bluetooth" também saiu em 26/07: era o
+                  "Conectar dispositivo Bluetooth" saiu em 26/07 por motivo
+                  parecido: era o
                   mesmo teatro dos diálogos do modo carro — o app não conecta
                   nada, quem conecta é o sistema do celular (ROTEIRO 4.33). */}
               <button
