@@ -16,6 +16,7 @@ import {
   Settings,
   Share2,
   Users,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -38,6 +39,7 @@ import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profi
 import { readRecommendations } from "@/lib/recommendations";
 import { totalBookmarks } from "@/lib/bookmarks";
 import { readDownloads } from "@/lib/library";
+import { meusClubes } from "@/lib/clubes";
 import { formatarDuracao } from "@/lib/listening";
 import { lerDadosDeConquista, lerResumo, type ResumoDeAudicao } from "@/lib/stats";
 import AchievementSpotlight from "@/components/AchievementSpotlight";
@@ -217,6 +219,7 @@ export default function Profile() {
   const { toast } = useToast();
   const [downloadCount, setDownloadCount] = useState(0);
   const [bookmarkTotal, setBookmarkTotal] = useState(0);
+  const [totalDeClubes, setTotalDeClubes] = useState(0);
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
   const [profile, setProfile] = useState<UserProfile>(readProfile);
   const [recommendations, setRecommendations] = useState<{ book: Book; note: string }[]>(readRecommendations);
@@ -242,6 +245,7 @@ export default function Profile() {
     // `libraryCount` saiu junto com o item "Minha lista": sem o item, era leitura
     // do storage a cada abertura do Perfil para um número que ninguém via.
     setDownloadCount(readDownloads().length);
+    setTotalDeClubes(meusClubes().length);
     setBookmarkTotal(totalBookmarks());
 
     // Os números do topo saem daqui — a mesma conta das Estatísticas.
@@ -345,6 +349,19 @@ export default function Profile() {
       { icon: BarChart3, label: "Estatísticas", href: "/statistics" },
       { icon: Download, label: "Downloads", hint: downloadCount > 0 ? String(downloadCount) : undefined, href: "/downloads" },
       { icon: Users, label: "Comunidade", href: "/community" },
+      /*
+       * Clubes ganha linha própria em vez de ficar só dentro da Comunidade: é
+       * onde há **compromisso** (prazo, encontro, gente esperando), e o que tem
+       * prazo precisa estar a um toque — não a dois (ROTEIRO 4.39). A contagem
+       * mostra em quantos você está; sem nenhum, o item continua valendo como
+       * porta para descobrir.
+       */
+      {
+        icon: UsersRound,
+        label: "Clubes de leitura",
+        hint: totalDeClubes > 0 ? String(totalDeClubes) : undefined,
+        href: "/clubes",
+      },
     ],
     [
       // "Meu acesso" morava aqui e **saiu** em 26/07, por decisão do Matheus (ver

@@ -17,6 +17,9 @@ import RecommendationsEdit from "@/pages/RecommendationsEdit";
 // e `Settings` seria confundido com o ícone de mesmo nome do lucide.
 import SettingsPage from "@/pages/Settings";
 import Community from "@/pages/Community";
+import Clubes from "@/pages/Clubes";
+import Clube from "@/pages/Clube";
+import NovoClube from "@/pages/NovoClube";
 import UserProfile from "@/pages/UserProfile";
 import Bookmarks from "@/pages/Bookmarks";
 import Downloads from "@/pages/Downloads";
@@ -103,6 +106,11 @@ function Router() {
             <Route path="/profile" component={Profile} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/community" component={Community} />
+            {/* `/clubes/novo` antes de `/clubes` e de `/clube/:id`: rota mais
+                específica primeiro é a regra deste Switch (ver o cabeçalho). */}
+            <Route path="/clubes/novo" component={NovoClube} />
+            <Route path="/clubes" component={Clubes} />
+            <Route path="/clube/:id" component={Clube} />
             <Route path="/user/:slug" component={UserProfile} />
             <Route path="/downloads" component={Downloads} />
             <Route path="/bookmarks" component={Bookmarks} />

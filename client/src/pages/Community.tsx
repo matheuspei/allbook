@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { MessageSquare, Sparkles } from "lucide-react";
 
+import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
 import ConversasDeAgora from "@/components/ConversasDeAgora";
 import PageHeader from "@/components/PageHeader";
 import {
@@ -61,6 +62,10 @@ export default function Community() {
         continua logo abaixo, como extra.
       */}
       <ConversasDeAgora />
+
+      {/* Os clubes entram logo depois da conversa dos livros: a sala é a porta
+          aberta, o clube é o compromisso (ROTEIRO 4.39). */}
+      <ClubesNaComunidade />
 
       {seguindo.length > 0 && (
         <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="following-row">

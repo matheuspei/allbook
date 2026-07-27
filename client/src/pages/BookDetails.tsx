@@ -23,6 +23,7 @@ import { publisherOfBook } from "@/lib/publishers";
 import { STUDIO_NAME, narratorKind } from "@/lib/studio";
 import PublisherMark from "@/components/PublisherMark";
 import SalaDoLivro from "@/components/SalaDoLivro";
+import FaixaDoClubeNoLivro from "@/components/clube/FaixaDoClubeNoLivro";
 import AvaliarLivro from "@/components/AvaliarLivro";
 import SeletorDeNarracao from "@/components/SeletorDeNarracao";
 import { NARRATIONS_EVENT, chosenNarration } from "@/lib/narrations";
@@ -762,6 +763,10 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             chegou não aparece. A caixa de escrever continua dentro dela, pelo
             motivo de sempre: sem caixa, livro sem comentário semeado fica mudo.
           */}
+          {/* Se algum clube está lendo este livro agora, o convite aparece
+              aqui — a pessoa já está olhando o título (ROTEIRO 4.39). */}
+          <FaixaDoClubeNoLivro bookId={Number(params.id)} />
+
           <SalaDoLivro
             bookId={Number(params.id)}
             reactions={reactions}
