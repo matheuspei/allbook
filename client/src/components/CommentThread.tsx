@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { CornerDownRight, Star, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
+import { CornerDownRight, EyeOff, Headphones, Star, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
 
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import { useToast } from "@/hooks/use-toast";
 import { repliesTo, type Comment } from "@/lib/comments";
 import { findMember, findMemberByName } from "@/lib/community";
 import { addNotification } from "@/lib/notifications";
+import { savePlaying } from "@/lib/playback";
 import { initialOf, readProfile } from "@/lib/profile";
+import { rotuloDaAncora } from "@/lib/sala";
 import {
   addIncomingReply,
   addReply,
@@ -52,6 +54,12 @@ export default function CommentThread({
   const [respondendoA, setRespondendoA] = useState<string | null>(null);
   const [texto, setTexto] = useState("");
   const [locais, setLocais] = useState<MyReply[]>(() => myRepliesTo(comment.id));
+  /*
+   * Spoiler marcado à mão começa coberto e só abre no toque — a âncora no áudio
+   * não cobre quem está atrás e fala do fim (ROTEIRO 4.39). Vale por comentário
+   * e por visita: fechar a tela cobre de novo.
+   */
+  const [revelado, setRevelado] = useState(false);
 
   const respostas = repliesTo(comment.id);
   const total = respostas.length + locais.length;
@@ -136,7 +144,21 @@ export default function CommentThread({
         <NotaDoComentario nota={comment.rating} />
       )}
 
-      <p className="text-sm text-white/70 leading-relaxed italic mt-1">"{comment.text}"</p>
+      {/*
+        O carimbo da âncora: em que ponto do áudio a pessoa estava. Tocar nele
+        abre o player exatamente ali — o mesmo caminho (`?t=`) que as marcações
+        já usavam. É o que faz a conversa e a audição serem a mesma coisa, e não
+        duas telas separadas (ROTEIRO 4.39).
+      */}
+      {bookId !== undefined && comment.positionSec !== undefined && (
+        <CarimboDaAncora bookId={bookId} positionSec={comment.positionSec} />
+      )}
+
+      {comment.spoiler && !revelado ? (
+        <VeuDeSpoiler onRevelar={() => setRevelado(true)} />
+      ) : (
+        <p className="text-sm text-white/70 leading-relaxed italic mt-1">"{comment.text}"</p>
+      )}
 
       <Acoes
         id={comment.id}
@@ -435,6 +457,56 @@ function NotaDoComentario({ nota }: { nota: number }) {
         />
       ))}
     </div>
+  );
+}
+
+/**
+ * "cap. 7 · 12:40" — onde no áudio a pessoa estava quando escreveu.
+ *
+ * É botão, não etiqueta: leva ao ponto exato no player. O ícone é o fone de
+ * propósito — deixa claro que aquilo é uma posição de **escuta**, não a hora em
+ * que o comentário foi postado, que é o que um relógio sugeriria.
+ */
+function CarimboDaAncora({ bookId, positionSec }: { bookId: number; positionSec: number }) {
+  const [, navegar] = useLocation();
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        savePlaying(true);
+        navegar(`/player/${bookId}?t=${positionSec}`);
+      }}
+      className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/20"
+      aria-label={`Ouvir este trecho: ${rotuloDaAncora(bookId, positionSec)}`}
+      data-testid="comment-anchor"
+    >
+      <Headphones className="h-3 w-3" />
+      {rotuloDaAncora(bookId, positionSec)}
+    </button>
+  );
+}
+
+/**
+ * O comentário que a própria pessoa marcou como spoiler.
+ *
+ * Cobre o texto em vez de escondê-lo: saber que **existe** um comentário ali
+ * não estraga nada, e é o que dá à sala a cara de conversa cheia em vez de
+ * lugar vazio. Só o conteúdo fica atrás do toque.
+ */
+function VeuDeSpoiler({ onRevelar }: { onRevelar: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onRevelar}
+      className="mt-2 flex w-full items-center gap-2.5 rounded-lg bg-white/[0.06] px-3 py-2.5 text-left transition-colors hover:bg-white/10"
+      data-testid="comment-spoiler-veil"
+    >
+      <EyeOff className="h-4 w-4 shrink-0 text-[#f59e0b]" />
+      <span className="text-xs text-white/50">
+        <span className="font-semibold text-[#f59e0b]">Contém spoiler</span> — toque para ver
+      </span>
+    </button>
   );
 }
 

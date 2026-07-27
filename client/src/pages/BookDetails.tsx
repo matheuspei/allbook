@@ -22,9 +22,7 @@ import { findPerson } from "@/lib/people";
 import { publisherOfBook } from "@/lib/publishers";
 import { STUDIO_NAME, narratorKind } from "@/lib/studio";
 import PublisherMark from "@/components/PublisherMark";
-import { commentsForBook } from "@/lib/comments";
-import CommentThread from "@/components/CommentThread";
-import CommentComposer from "@/components/CommentComposer";
+import SalaDoLivro from "@/components/SalaDoLivro";
 import AvaliarLivro from "@/components/AvaliarLivro";
 import SeletorDeNarracao from "@/components/SeletorDeNarracao";
 import { NARRATIONS_EVENT, chosenNarration } from "@/lib/narrations";
@@ -356,10 +354,6 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     window.addEventListener(NARRATIONS_EVENT, sincronizar);
     return () => window.removeEventListener(NARRATIONS_EVENT, sincronizar);
   }, [params.id, book.narrator]);
-
-  // Os comentários não moram mais dentro do livro: vêm da lista própria, que é
-  // a mesma fonte que o perfil de cada leitor consulta.
-  const comentarios = commentsForBook(Number(params.id));
 
   /**
    * As suas curtidas e descurtidas.
@@ -761,23 +755,18 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               informação, não botão. A regra e o porquê estão no componente. */}
           <AvaliarLivro bookId={Number(params.id)} />
 
-          <div className="space-y-3">
-            {/*
-              A caixa de comentar vale para TODOS os livros (antes não existia).
-              Ela também mostra e apaga os seus comentários. Os comentários do
-              esqueleto (fixos) vêm logo abaixo. Sem caixa, livro sem comentário
-              semeado ficava mudo — foi o que o Matheus notou no "Garota Exemplar".
-            */}
-            <CommentComposer alvo={{ bookId: Number(params.id) }} />
-            {comentarios.map((comment) => (
-              <CommentThread
-                key={comment.id}
-                comment={comment}
-                reactions={reactions}
-                onReactionsChange={setReactions}
-              />
-            ))}
-          </div>
+          {/*
+            A lista solta de comentários virou a **sala do livro** em 27/07
+            (ROTEIRO 4.39): mesma conversa, agora com cada mensagem podendo estar
+            presa a um ponto do áudio — e o que está à frente de onde a pessoa
+            chegou não aparece. A caixa de escrever continua dentro dela, pelo
+            motivo de sempre: sem caixa, livro sem comentário semeado fica mudo.
+          */}
+          <SalaDoLivro
+            bookId={Number(params.id)}
+            reactions={reactions}
+            onReactionsChange={setReactions}
+          />
         </section>
 
         <section className="space-y-4 pb-10">

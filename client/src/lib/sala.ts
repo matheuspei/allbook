@@ -1,0 +1,116 @@
+/**
+ * A sala do livro — a regra de quem vê o quê.
+ *
+ * **A ideia, em uma frase:** a conversa mora no livro, cada comentário pode
+ * estar preso a um segundo do áudio, e ninguém lê o que está à frente de onde
+ * chegou. A defesa contra spoiler não depende de a pessoa declarar onde está —
+ * **o player já sabe**, porque é ele que toca. É isso que a sala tem de
+ * diferente de uma caixa de comentários comum (ROTEIRO 4.39).
+ *
+ * **A regra, escrita para poder ser conferida:**
+ *
+ * > Um comentário é **livre** quando não tem âncora, ou quando a âncora está em
+ * > algum ponto por onde a pessoa já passou. Quando a âncora está à frente, ele
+ * > é **adiante** — a pessoa vê que existe, nunca o texto. E um comentário
+ * > **marcado como spoiler** fica velado mesmo estando atrás, atrás de um toque.
+ *
+ * A ordem importa: `adiante` ganha de `spoiler`. Se o comentário está à frente
+ * *e* é spoiler, a pessoa nem sabe que há algo revelável ali.
+ *
+ * **Sem âncora = fala do livro em geral** (a opinião de quem terminou, o elogio
+ * à narração). Esses são a faixa que todo mundo vê, inclusive quem nunca abriu
+ * o livro — sem eles a sala pareceria morta justamente para quem está decidindo
+ * se vai ouvir.
+ *
+ * **Limite conhecido, e é importante:** a posição vem do `playback.ts`, que
+ * guarda no **navegador**, não na pessoa. Quem ouve no celular e abre no
+ * computador aparece no começo, e a sala se fecha sozinha. A trava só é
+ * confiável depois das contas — até lá isto é demonstração honesta, não
+ * mecanismo. (Registrado no ROTEIRO 4.39.)
+ */
+
+import { chapterAtSec } from "@/lib/chapters";
+import type { Comment } from "@/lib/comments";
+import { readPlaybackList } from "@/lib/playback";
+
+export type EstadoNaSala =
+  /** Dá para ler agora. */
+  | "livre"
+  /** Está à frente de onde a pessoa chegou: mostra que existe, nunca o texto. */
+  | "adiante"
+  /** Marcado como spoiler: o texto fica atrás de um toque. */
+  | "spoiler";
+
+/**
+ * Onde a pessoa parou neste livro, em segundos. `0` se nunca começou.
+ *
+ * Lê a lista inteira (e não só o último livro) porque a sala de um livro
+ * precisa da posição **daquele** livro, mesmo que a pessoa esteja ouvindo outro
+ * agora.
+ */
+export function posicaoNoLivro(bookId: number): number {
+  const entrada = readPlaybackList().find((item) => item.bookId === bookId);
+  return entrada?.positionSec ?? 0;
+}
+
+/** A pessoa já começou este livro? Serve para o texto da tela mudar de tom. */
+export function comecouOLivro(bookId: number): boolean {
+  return readPlaybackList().some((item) => item.bookId === bookId);
+}
+
+/**
+ * O estado de um comentário para quem está a `posicaoSec` do livro.
+ *
+ * A margem de 1 segundo existe para o caso comum de comentar exatamente onde se
+ * está: sem ela, o próprio comentário recém-escrito apareceria "adiante" por
+ * causa de um arredondamento.
+ */
+export function estadoNaSala(comment: Comment, posicaoSec: number): EstadoNaSala {
+  if (comment.positionSec !== undefined && comment.positionSec > posicaoSec + 1) {
+    return "adiante";
+  }
+  return comment.spoiler ? "spoiler" : "livre";
+}
+
+/**
+ * Separa a conversa em "o que dá para ler" e "o que está guardado".
+ *
+ * Os que estão adiante não voltam com texto nenhum — só a contagem, para a tela
+ * poder dizer "+3 mensagens à frente" sem entregar nada.
+ */
+export function separarSala(
+  comentarios: Comment[],
+  posicaoSec: number,
+): { visiveis: Comment[]; adiante: number } {
+  const visiveis: Comment[] = [];
+  let adiante = 0;
+
+  for (const comment of comentarios) {
+    if (estadoNaSala(comment, posicaoSec) === "adiante") adiante += 1;
+    else visiveis.push(comment);
+  }
+
+  return { visiveis, adiante };
+}
+
+/** "12:40" ou "1:12:40" — o mesmo formato do player. */
+export function formatarPosicao(segundos: number): string {
+  const total = Math.max(0, Math.floor(segundos));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const mm = String(m).padStart(2, "0");
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+/**
+ * "cap. 7 · 12:40" — o carimbo que aparece no comentário.
+ *
+ * O capítulo entra como **rótulo**, para a pessoa se situar; quem manda é o
+ * segundo. Tocar no carimbo abre o player naquele ponto exato (`?t=`), que é o
+ * caminho que já existia para as marcações.
+ */
+export function rotuloDaAncora(bookId: number, positionSec: number): string {
+  return `cap. ${chapterAtSec(bookId, positionSec)} · ${formatarPosicao(positionSec)}`;
+}

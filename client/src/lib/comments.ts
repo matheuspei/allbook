@@ -58,6 +58,35 @@ export interface Comment {
    * nesses casos misturaria coisas diferentes e sujaria a média do livro.
    */
   rating?: number;
+  /**
+   * **A âncora: em que segundo do áudio a pessoa estava quando comentou.**
+   *
+   * É a peça central da sala do livro (ROTEIRO 4.39). Com ela, quem ainda não
+   * chegou naquele ponto não lê o comentário — a trava de spoiler sai do
+   * próprio player, que já sabe onde cada um está. Num app de clube comum a
+   * pessoa teria de **declarar à mão** onde parou, e ninguém declara.
+   *
+   * **Em segundos, não em capítulo**, e isso foi decidido: os capítulos aqui
+   * têm 50 a 85 minutos, e dentro de um cabe spoiler graúdo. O capítulo vira
+   * só rótulo na tela ("cap. 7 · 12:40").
+   *
+   * **Ausente = fala do livro em geral** (a opinião de quem terminou, o elogio à
+   * narração). Esses aparecem para todo mundo, inclusive para quem nem começou
+   * — são a "faixa sem spoiler" que impede a sala de parecer morta na ficha.
+   *
+   * **Resposta não tem âncora própria:** ela segue a do comentário que responde.
+   * Duas âncoras na mesma conversa dariam uma resposta visível antes da
+   * pergunta.
+   */
+  positionSec?: number;
+  /**
+   * Marcado à mão como spoiler por quem escreveu (ou pelo moderador depois).
+   *
+   * A âncora **não** cobre tudo: alguém no capítulo 3 pode escrever "não se
+   * apeguem à Lenora, ela morre no fim". Contra isso só existem duas defesas —
+   * esta marcação e a denúncia. O texto fica escondido atrás de um toque.
+   */
+  spoiler?: boolean;
   text: string;
   /** ISO. Serve para ordenar a atividade de quem você segue. */
   date: string;
@@ -140,6 +169,31 @@ export const comments: Comment[] = [
   { id: "r6", parentId: "c20", authorSlug: "juliana-s", bookId: 7, likes: 9, dislikes: 0, date: "2026-07-14", text: "Comecei ontem por causa deste comentário. Já entendi o que você quis dizer sobre as vozes." },
   { id: "r7", parentId: "c26", authorSlug: "marcos-v", bookId: 125, likes: 14, dislikes: 9, date: "2026-07-09", text: "\"Leve com desconfiança\" é o melhor conselho que já li sobre esse livro." },
   { id: "r8", parentId: "c17", authorSlug: "carla-lima", bookId: 130, likes: 21, dislikes: 12, date: "2026-06-19", text: "Discordo. Ele não ficou parecido com o noticiário — a gente é que passou a ler o noticiário procurando o livro." },
+
+  /*
+   * — SALA DO LIVRO: comentários **ancorados** num ponto do áudio —
+   *
+   * Diferentes dos de cima: aqueles falam do livro inteiro (e por isso aparecem
+   * para todo mundo, inclusive para quem nem começou); estes são reação a um
+   * momento, e só aparecem para quem já passou por ele. É o que a sala do livro
+   * tem de diferente de uma caixa de comentários comum (ROTEIRO 4.39).
+   *
+   * As posições ficam abaixo de ~2h30 de propósito: os livros mais curtos do
+   * catálogo têm ~5h, então nenhuma âncora cai fora do livro. A única exceção é
+   * a de 11h08, que só existe em livro longo (id 1, 12h36) e serve justamente
+   * para se ver velada quando a pessoa está no começo.
+   */
+  { id: "s1", authorSlug: "juliana-s", bookId: 1, positionSec: 1450, rating: 5, likes: 22, dislikes: 1, date: "2026-07-21", text: "A pausa que o narrador faz antes de a Kit entrar na casa vale o livro todo. Voltei três vezes." },
+  { id: "s2", authorSlug: "ricardo", bookId: 1, positionSec: 4020, likes: 9, dislikes: 0, date: "2026-07-20", text: "Aqui eu tive que parar e olhar em volta. Ouvindo à noite não foi a melhor ideia." },
+  { id: "s3", authorSlug: "carla-lima", bookId: 1, positionSec: 9300, rating: 4, likes: 17, dislikes: 3, date: "2026-07-19", text: "Reparem no que a Lenora não responde nesta conversa. É proposital." },
+  { id: "s4", authorSlug: "ana-paula", bookId: 1, positionSec: 40100, spoiler: true, likes: 31, dislikes: 4, date: "2026-07-22", text: "Depois desta revelação o livro inteiro muda de sentido — e o primeiro capítulo passa a ser outra coisa." },
+  { id: "s5", authorSlug: "beto", bookId: 1, positionSec: 21000, likes: 6, dislikes: 1, date: "2026-07-18", text: "Melhor capítulo até agora. O ritmo da narração muda junto com a história." },
+
+  { id: "s6", authorSlug: "luciana", bookId: 102, positionSec: 900, rating: 5, likes: 14, dislikes: 0, date: "2026-07-20", text: "Essa parte do 1% por dia é onde a ficha cai. Parei o áudio e fui anotar." },
+  { id: "s7", authorSlug: "felipe-g", bookId: 102, positionSec: 5400, likes: 8, dislikes: 2, date: "2026-07-16", text: "Aqui ele repete o que já disse na introdução. Dá para acelerar sem perder nada." },
+
+  { id: "s8", authorSlug: "marcos-v", bookId: 106, positionSec: 1200, likes: 11, dislikes: 0, date: "2026-07-15", text: "Comecei desconfiando da narradora já nesta primeira sessão de terapia." },
+  { id: "s9", authorSlug: "ana-paula", bookId: 106, positionSec: 8200, spoiler: true, likes: 19, dislikes: 2, date: "2026-07-17", text: "O detalhe do diário aqui entrega mais do que parece na primeira escuta." },
 
   // — comentários sobre PESSOAS (autor/narrador). Sem nota, sem bookId. —
   // — Rafael Nogueira, narrador de ficção científica —
