@@ -2939,6 +2939,81 @@ deixe uma aba só.
 
 ---
 
+## 4.39 Decisão em aberto: clube de leitura e "sala do livro" (27/07)
+
+**Nada disto foi construído.** É proposta, registrada aqui porque a ideia já se
+perdeu uma vez: a Janela A sugeriu ao Matheus "clube de leitura e sala do livro"
+em conversa, e a sugestão **não ficou escrita em documento nenhum** — em 27/07 a
+Janela B varreu `docs/` e o `CLAUDE.md` e a única aparição da palavra "clube" era
+o título do livro *O Clube das 5 da Manhã*. Sugestão falada e não registrada é
+sugestão perdida.
+
+### O pedido do Matheus (27/07)
+Fazer o clube **dentro do AllBook**, como um "a mais", e não como projeto
+separado. A intenção declarada: *"que as pessoas não cheguem ali só para ouvir um
+audiolivro; que fiquem desfrutando de outras coisas"* — comunidade de verdade,
+gente interagindo com gente. **Rejeitada** (pelo Matheus, no mesmo dia) a
+proposta do Claude de construir o clube como aplicativo à parte.
+
+### Por que o AllBook tem uma vantagem que um app de clube não tem
+Todo clube de leitura sofre dos mesmos dois males: **o ritmo se perde** (um
+terminou, outro está na página 12) e **o spoiler afasta quem está atrasado**.
+
+A defesa contra spoiler é ancorar cada comentário numa posição do livro e
+esconder o que está adiante de onde a pessoa chegou. Num app de clube comum isso
+depende de a pessoa **declarar à mão** onde está — e ninguém declara. **No
+AllBook o player já sabe**: ele é quem toca o áudio. A trava de spoiler sai de
+graça, e é isso que torna o clube melhor aqui dentro do que fora.
+
+### O desenho proposto: são DUAS coisas, não uma
+1. **Sala do livro — aberta, sem compromisso.** Existe sozinha para todo livro do
+   catálogo. É a conversa da ficha do livro, com cada comentário preso a um
+   capítulo e escondido de quem ainda não chegou lá. Ninguém "entra", ninguém
+   marca data, ninguém pode decepcionar ninguém.
+2. **Clube — fechado, com compromisso.** Grupo com ciclo: um livro, data de
+   início e fim, marcos no meio ("até o capítulo 8 no dia 10"), régua mostrando
+   onde cada um está, encontro marcado e votação do próximo livro.
+
+**A ordem importa: sala primeiro, clube depois.** Clube tem custo social alto —
+ninguém aceita prazo com estranhos antes de ter provado a conversa. Sala é a
+porta de entrada; o clube é o compromisso. Começar pelo clube é o erro clássico,
+e dá sala de reunião vazia.
+
+### O que aproveita do que já existe
+- `comments.ts` (autor, livro, data, nota), respostas de um nível, curtir e
+  descurtir — a conversa **já está construída**; falta só o campo de posição.
+- `playback.ts` — sabe onde a pessoa está no áudio. É a trava de spoiler.
+- As notas do livro (`/bookmarks`) — marcar um ponto do áudio já existe; o
+  comentário ancorado é uma nota que a pessoa decide tornar pública.
+- `following.ts` e `/community` — o laço social e a tela onde os clubes moram.
+- `notifications.ts` — o aviso de marco ("faltam 3 dias para o capítulo 16").
+
+### O que fica de fora, de propósito
+- **Clube no menu de baixo ou na Início** — contraria a decisão de 21/07
+  ("nada de comunidade no Início; o foco é sempre o audiolivro"). Entrada pelo
+  Perfil e pela ficha do livro.
+- **Gamificação do clube** (ranking de quem ouviu mais, sequência de dias): faz
+  a pessoa **mentir o progresso** para não ficar mal na foto — e progresso
+  mentido quebra exatamente a trava de spoiler. Nocivo, não só supérfluo.
+- **Chat em tempo real, "está digitando", presença.** Clube é assíncrono; cada
+  um ouve no seu horário.
+- **Resumo do livro por IA** — mata a razão de existir do clube. O uso honesto é
+  outro: sugerir **perguntas de discussão** para quem tem que puxar a conversa.
+- **Vários livros ao mesmo tempo no mesmo clube.** Um ciclo por vez.
+
+### Ordem de construção proposta
+0. **Fundação** (invisível): comentário ganha capítulo; o player expõe a posição.
+1. **Sala do livro** na ficha, com a trava de spoiler. ← o pulo do gato
+2. **Clube**: criar, entrar por convite, ciclo com marcos, régua de progresso.
+3. **Conversa do clube** por marco + aviso de marco nas notificações.
+4. **Votação do próximo livro** + estante do clube (o que já foi lido).
+
+**Ressalva honesta:** 0 e 1 dá para fazer de verdade hoje, com os leitores
+fictícios de `community.ts` (que são esqueleto de propósito). De 2 em diante, o
+clube só é real com backend — por ora seria **vitrine**, como o resto do app.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
