@@ -73,6 +73,40 @@ function registrarConclusao(bookId: number): void {
   }
 }
 
+/**
+ * **Está tocando agora?** — uma verdade só, dividida pelo player e pela barrinha.
+ *
+ * Fica no `sessionStorage` pelo mesmo motivo da visibilidade da barra: é estado
+ * *desta visita*. Abrir o app amanhã não pode encontrar nada tocando sozinho.
+ *
+ * Nasceu de um defeito concreto (27/07): sair do player tocando (pelo título do
+ * livro, que leva à ficha) fazia a barrinha aparecer com o ícone de **tocar**,
+ * como se a audição tivesse parado — e o botão dela era enfeite, não mexia no
+ * progresso. Quem saía do player achava que tinha perdido o lugar.
+ *
+ * `null` = ninguém tocou nada ainda nesta visita (diferente de "pausado", que é
+ * uma escolha da pessoa e precisa ser respeitada ao reabrir o player).
+ */
+const PLAYING_KEY = "allbook_playing";
+
+export function readPlaying(): boolean | null {
+  try {
+    const guardado = sessionStorage.getItem(PLAYING_KEY);
+    return guardado === null ? null : guardado === "1";
+  } catch {
+    return null;
+  }
+}
+
+export function savePlaying(playing: boolean): void {
+  try {
+    sessionStorage.setItem(PLAYING_KEY, playing ? "1" : "0");
+  } catch {
+    /* sem storage: cada tela cuida do próprio estado, como era antes */
+  }
+  notify();
+}
+
 /** Avisa o `MiniPlayer` que algo mudou — ele não recarrega a página sozinho. */
 export const PLAYBACK_EVENT = "allbook:playback";
 
@@ -198,6 +232,7 @@ export function removeFromPlayback(bookId: number): void {
 export function clearPlayback(): void {
   localStorage.removeItem(PROGRESS_KEY);
   hideMiniPlayer();
+  savePlaying(false);
   notify();
 }
 

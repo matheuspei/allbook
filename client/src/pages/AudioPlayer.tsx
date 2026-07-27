@@ -25,7 +25,7 @@ import {
   type Bookmark as Marcacao,
 } from "@/lib/bookmarks";
 import { readSettings } from "@/lib/settings";
-import { readPlayback, savePlayback, showMiniPlayer } from "@/lib/playback";
+import { readPlayback, readPlaying, savePlayback, savePlaying, showMiniPlayer } from "@/lib/playback";
 import { getChapters, chaptersTotalSec, chapterStartSec, chapterAtSec, formatChapterDuration } from "@/lib/chapters";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -59,7 +59,12 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   }
 
   const [, setLocation] = useLocation();
-  const [isPlaying, setIsPlaying] = useState(true);
+  /*
+   * Abre tocando — é o que a pessoa espera de quem apertou "Reproduzir". A
+   * exceção é ter pausado na barrinha e voltado para cá: aí o player abre no
+   * estado em que ela deixou, em vez de dar play por conta própria (27/07).
+   */
+  const [isPlaying, setIsPlaying] = useState(() => readPlaying() ?? true);
 
   /**
    * Qual livro tocar.
@@ -203,6 +208,14 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   useEffect(() => {
     showMiniPlayer();
   }, [book.id]);
+
+  /*
+   * Tocar/pausar aqui vale para o app inteiro: a barrinha lê o mesmo estado e
+   * continua de onde o player parou quando a pessoa sai desta tela.
+   */
+  useEffect(() => {
+    savePlaying(isPlaying);
+  }, [isPlaying]);
 
   // A contagem de marcações do livro, sempre em dia: lida ao entrar e a cada
   // escrita (salvar no botão, apagar no painel).

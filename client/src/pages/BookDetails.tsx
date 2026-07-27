@@ -33,7 +33,7 @@ import { readReactions, type Reactions } from "@/lib/reactions";
 import PersonAvatar from "@/components/PersonAvatar";
 import { motion } from "framer-motion";
 import { getChapters, chaptersTotalSec, chapterStartSec, formatChapterDuration, formatBookDuration } from "@/lib/chapters";
-import { readPlaybackList, playbackPercent, remainingLabel, type Playback } from "@/lib/playback";
+import { readPlaybackList, playbackPercent, remainingLabel, savePlaying, type Playback } from "@/lib/playback";
 import {
   addToLibrary as salvarNaBiblioteca,
   isInLibrary,
@@ -552,7 +552,9 @@ export default function BookDetails({ params }: { params: { id: string } }) {
 
         <div className="flex gap-3">
           <Button
-            onClick={() => setLocation(`/player/${book.id}`)}
+            /* Quem aperta "Reproduzir" está mandando tocar — mesmo que tenha
+               pausado a barrinha antes. O player lê esta bandeira ao abrir. */
+            onClick={() => { savePlaying(true); setLocation(`/player/${book.id}`); }}
             className="flex-1 h-12 bg-white text-black hover:bg-white/90 border-none rounded-lg text-base font-bold flex items-center justify-center gap-2"
             data-testid="button-play"
           >
@@ -665,7 +667,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
                 <button
                   key={ch.id}
                   type="button"
-                  onClick={() => setLocation(`/player/${book.id}?chapter=${ch.id}`)}
+                  onClick={() => { savePlaying(true); setLocation(`/player/${book.id}?chapter=${ch.id}`); }}
                   className={`group flex w-full items-center justify-between gap-3 border-b border-white/5 p-4 text-left transition-colors last:border-none ${
                     isCurrent ? "bg-primary/10" : "hover:bg-white/5"
                   }`}
@@ -817,7 +819,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           chapters.find((ch) => ch.id === capitulo)?.title ?? `Capítulo ${capitulo}`
         }
         formatarTempo={formatarPonto}
-        onIr={(positionSec) => setLocation(`/player/${params.id}?t=${positionSec}`)}
+        onIr={(positionSec) => { savePlaying(true); setLocation(`/player/${params.id}?t=${positionSec}`); }}
       />
     </div>
   );

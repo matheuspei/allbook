@@ -9,8 +9,12 @@ import {
   playbackBook,
   playbackPercent,
   readPlayback,
+  readPlaying,
   remainingLabel,
+  savePlayback,
+  savePlaying,
 } from "@/lib/playback";
+import { chapterAtSec } from "@/lib/chapters";
 
 /**
  * A barrinha do player, flutuando acima do menu inferior.
@@ -37,7 +41,15 @@ export default function MiniPlayer() {
   const [location] = useLocation();
   const [visible, setVisible] = useState(isMiniPlayerVisible);
   const [playback, setPlayback] = useState(readPlayback);
-  const [isPlaying, setIsPlaying] = useState(false);
+  /*
+   * O "está tocando" **não é desta barra** — é do app, e mora no `playback.ts`.
+   * Antes era um `useState(false)` só daqui, com dois efeitos ruins: sair do
+   * player no meio de um capítulo mostrava o ícone de tocar (parecia que a
+   * audição tinha parado), e o botão era enfeite — trocava de desenho sem mexer
+   * no progresso de ninguém. Agora player e barrinha leem e escrevem no mesmo
+   * lugar (27/07).
+   */
+  const [isPlaying, setIsPlaying] = useState(() => readPlaying() ?? false);
 
   /**
    * Deslocamento do arraste, em pixels. 0 = parado no lugar.
@@ -57,11 +69,41 @@ export default function MiniPlayer() {
     function sync() {
       setVisible(isMiniPlayerVisible());
       setPlayback(readPlayback());
+      setIsPlaying(readPlaying() ?? false);
     }
     sync();
     window.addEventListener(PLAYBACK_EVENT, sync);
     return () => window.removeEventListener(PLAYBACK_EVENT, sync);
   }, [location]);
+
+  /**
+   * A audição continua andando com a barra na tela.
+   *
+   * Enquanto não há áudio de verdade, quem faz o tempo passar é este relógio —
+   * o mesmo truque do player, só que de 5 em 5 segundos, que é a precisão que a
+   * barra mostra ("2h 14m restantes"). Sem isto, sair do player congelava o
+   * livro: a pessoa via "tocando" e o tempo restante parado no mesmo número.
+   *
+   * Não roda dentro do player (lá o próprio player conta, e contar duas vezes
+   * dobraria a velocidade) nem com a barra fechada — nada avança escondido.
+   */
+  useEffect(() => {
+    if (!isPlaying || !visible || location.startsWith("/player")) return;
+
+    const relogio = setInterval(() => {
+      const atual = readPlayback();
+      if (!atual) return;
+      const posicao = Math.min(atual.positionSec + 5, atual.durationSec);
+      savePlayback({
+        bookId: atual.bookId,
+        chapter: chapterAtSec(atual.bookId, posicao),
+        positionSec: posicao,
+        durationSec: atual.durationSec,
+      });
+    }, 5000);
+
+    return () => clearInterval(relogio);
+  }, [isPlaying, visible, location]);
 
   // Na tela cheia do player a barra não faz sentido: o player já está aberto.
   if (location.startsWith("/player")) return null;
@@ -152,7 +194,7 @@ export default function MiniPlayer() {
 
           <div className="flex items-center gap-0.5 shrink-0">
             <button
-              onClick={() => setIsPlaying((v) => !v)}
+              onClick={() => savePlaying(!isPlaying)}
               className="p-2 text-white hover:text-primary transition-colors"
               aria-label={isPlaying ? "Pausar" : "Tocar"}
               data-testid="button-mini-player-play"
