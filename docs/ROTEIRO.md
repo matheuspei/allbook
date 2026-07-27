@@ -3012,6 +3012,88 @@ e dá sala de reunião vazia.
 fictícios de `community.ts` (que são esqueleto de propósito). De 2 em diante, o
 clube só é real com backend — por ora seria **vitrine**, como o resto do app.
 
+### Atualização da mesma tarde (27/07): o que o Matheus decidiu na conversa
+
+A Janela A revisou o desenho acima com ele. O que mudou:
+
+**1. Sala e clube não são dois sistemas — são um só, em dois graus.**
+A diferença que ficou clara na conversa: **a sala é do livro, o clube é das
+pessoas.** A sala existe porque o livro existe (as 59 já nascem prontas), não tem
+dono, ninguém entra nem sai, e acumula conversa para sempre. O clube é um grupo
+com dono, prazo e fim.
+
+Como o Matheus quer o **moderador desde o início** ("até para o moderador criar o
+clube"), a decisão foi **unificar**: uma conversa só, morando no livro, com
+âncora no áudio e trava de spoiler — e o **clube como uma "turma" por cima dela**,
+um recorte com dono, membros, prazo e marcos, visível só para a turma. Escreve-se
+**um** mecanismo de mensagens; o clube vira camada fina de regras.
+
+**2. O moderador entra na fundação, não na fase 4.** Poderes: criar o clube
+(livro, prazo, marcos); convidar, aceitar e remover membro; fixar a pergunta da
+rodada; apagar/esconder mensagem e silenciar quem estraga; **marcar como spoiler
+o que alguém postou sem marcar** (o poder mais usado na prática); encerrar o
+ciclo. Na **sala aberta**, que não tem dono, a moderação é passiva: qualquer um
+denuncia, o autor apaga o próprio, e a denúncia cai numa fila que o AllBook
+resolve. Sem isso, a primeira conversa desandada não tem quem apague.
+
+**3. O encontro: rodada assíncrona, em texto.** Hora marcada é inimiga de quem
+ouve audiolivro (a pessoa ouve dirigindo, na academia, às 23h) — copiar o
+encontro presencial é o caminho errado. O que fica: o moderador abre 2–3
+perguntas, a turma responde numa **janela** de dois ou três dias, e as respostas
+ficam juntas como um capítulo do clube. Quem se atrasa lê tudo depois.
+
+**4. DESCARTADO: áudio gravado por leitores** (a proposta de "encontro ouvido" —
+cada um grava 1–2 min e o player toca as respostas em sequência, como episódio do
+clube; e as reações em voz ancoradas no trecho).
+
+- **O motivo NÃO é custo — e isto está escrito para ninguém repetir o argumento
+  errado.** Voz comprimida ocupa ~0,25 MB/min: um encontro de 8 pessoas dá ~4 MB,
+  cem encontros dão ~400 MB. Um único audiolivro de 12h pesa ~350 MB. Todos os
+  encontros de um mês cabem no espaço de **um** livro do acervo, e armazenamento
+  custa centavos por giga/mês. Se o servidor vai existir para os audiolivros — e
+  vai —, o áudio de leitor é uma gota.
+- **O motivo é privacidade e moderação**, e é sério: (a) **voz identifica a
+  pessoa** — o apelido protege, a voz não; (b) tende a ser tratada como dado
+  pessoal, com consentimento, finalidade, prazo de guarda e direito de apagar, e
+  cuidado redobrado com menores; (c) **grava o fundo junto** (a casa, o filho, a
+  conversa de outra pessoa); (d) **áudio não se modera em escala** — ninguém ouve
+  400 áudios, e um abuso fica no ar até alguém tropeçar nele. Texto se varre, se
+  busca, se filtra.
+- **O que precisaria estar resolvido para voltar** (o Matheus deixou explícito que
+  pode mudar de ideia): consentimento claro, **expiração** do áudio no fim do
+  ciclo, aprovação do moderador antes de publicar, botão de apagar do próprio
+  autor e nada de download.
+
+**5. O comentário ancorado no trecho FICA — é a peça principal.** Palavras dele:
+*"comentar é a coisa principal; se você exclui o comentário, exclui o motivo do
+porquê, tudo deixa de fazer sentido."* O que caiu foi a **voz**, não a âncora: o
+comentário preso ao minuto exato, **em texto**, continua sendo o diferencial que
+só um app de audiolivro tem.
+
+### Quatro ajustes do parecer da Janela A (a fazer antes de codar)
+
+1. **Âncora em segundos, não em capítulo.** Os capítulos aqui têm 50–85 minutos —
+   dentro de um cabe spoiler graúdo. O player sabe o segundo; ancorar nele custa o
+   mesmo e protege de verdade. O capítulo vira só rótulo ("cap. 7 · 12:40").
+2. **Quem ainda não começou o livro não pode ver uma sala morta.** Posição zero =
+   nada visível, justamente para quem está decidindo se vai ouvir. Precisa de uma
+   faixa **sem spoiler** e, para o resto, um velado com contagem ("+18 mensagens
+   adiante"): mostra que há vida sem entregar nada.
+3. **Manter o "marcar spoiler" à mão.** A âncora não protege do comentário que
+   fala do futuro estando atrás ("não se apeguem à Lenora"). Contra isso só
+   existem marcação manual e denúncia.
+4. **A régua do clube mostra o grupo, não cada membro pelo nome.** Progresso
+   nominal e público é a mesma pressão social que a seção anterior condena na
+   gamificação — e leva a mentir o progresso, que quebra a trava de spoiler.
+   Mostrar "a roda está no cap. 6" e a sua posição.
+
+**Faltavam ainda:** o **estado vazio** da sala (a maioria dos 59 livros vai estar
+vazia — "seja o primeiro" + as perguntas de discussão sugeridas) e a ressalva de
+que **a trava de spoiler só é confiável depois das contas**: hoje `playback.ts`
+guarda a posição no **navegador**, então quem ouve no celular e abre no
+computador aparece no capítulo 1 e a sala se fecha sozinha. Antes das contas, a
+sala é demonstração honesta, não mecanismo.
+
 ---
 
 ## 5. Backlog de faxina técnica (não urgente)
