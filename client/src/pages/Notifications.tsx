@@ -1,10 +1,25 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { Bell, Flame, Gift, Mic, Sparkles, Tag, type LucideIcon } from "lucide-react";
+import {
+  Bell,
+  CalendarClock,
+  Flame,
+  Gift,
+  MessageCircleQuestion,
+  Mic,
+  Sparkles,
+  Tag,
+  Vote,
+  type LucideIcon,
+} from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
+import { avisosDeClube } from "@/lib/avisosDeClube";
 import { catalog, getBooksByIds } from "@/lib/books";
+import { CLUBES_EVENT } from "@/lib/clubes";
 import { findMember } from "@/lib/community";
+import { PLAYBACK_EVENT } from "@/lib/playback";
+import { RODADAS_EVENT } from "@/lib/rodadas";
 import {
   isSystemRead,
   markAllNotificationsRead,
@@ -270,6 +285,15 @@ export default function Notifications() {
         </div>
       )}
 
+      {/*
+        Os prazos dos seus clubes vêm **primeiro**, e são calculados na hora
+        (ver `lib/avisosDeClube.ts`): é o único tipo de aviso aqui que ainda dá
+        para resolver — o capítulo combinado, a rodada aberta, a votação. Eles
+        não entram no contador do sino de propósito: não têm estado de "lida" e
+        ficariam acesos o ciclo inteiro.
+      */}
+      <PrazosDosClubes />
+
       {avisos.length === 0 ? (
         <div className="px-8 py-24 text-center space-y-4" data-testid="notifications-empty">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/25 to-orange-600/10 ring-1 ring-primary/20 flex items-center justify-center">
@@ -385,5 +409,70 @@ function Cartao({
         />
       )}
     </button>
+  );
+}
+
+/**
+ * Os prazos dos clubes em que você está.
+ *
+ * Ficam no topo da tela porque são a única coisa aqui que **ainda dá para
+ * resolver**: o capítulo combinado desta semana, a rodada que fecha amanhã, a
+ * votação que você não fez. Aviso de lançamento e de oferta pode esperar; um
+ * prazo, não.
+ *
+ * Nada de "marcar como lida": um prazo não se lê, se cumpre — ele some sozinho
+ * quando você alcança o capítulo, responde a rodada ou vota.
+ */
+function PrazosDosClubes() {
+  const [, navegar] = useLocation();
+  const [avisos, setAvisos] = useState(() => avisosDeClube());
+
+  useEffect(() => {
+    const atualizar = () => setAvisos(avisosDeClube());
+    atualizar();
+    window.addEventListener(CLUBES_EVENT, atualizar);
+    window.addEventListener(RODADAS_EVENT, atualizar);
+    window.addEventListener(PLAYBACK_EVENT, atualizar);
+    return () => {
+      window.removeEventListener(CLUBES_EVENT, atualizar);
+      window.removeEventListener(RODADAS_EVENT, atualizar);
+      window.removeEventListener(PLAYBACK_EVENT, atualizar);
+    };
+  }, []);
+
+  if (avisos.length === 0) return null;
+
+  return (
+    <section className="px-5 pb-4" data-testid="prazos-dos-clubes">
+      <h2 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-white/35">
+        Seus clubes
+      </h2>
+      <div className="space-y-2">
+        {avisos.map((aviso) => (
+          <button
+            key={aviso.id}
+            onClick={() => navegar(`/clube/${aviso.clubeId}`)}
+            className="flex w-full items-start gap-3 rounded-xl border border-primary/20 bg-primary/[0.06] p-3.5 text-left transition-colors hover:bg-primary/[0.1]"
+            data-testid={`aviso-clube-${aviso.tipo}`}
+          >
+            <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+              {aviso.tipo === "rodada" ? (
+                <MessageCircleQuestion className="h-4 w-4" />
+              ) : aviso.tipo === "votacao" ? (
+                <Vote className="h-4 w-4" />
+              ) : (
+                <CalendarClock className="h-4 w-4" />
+              )}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-bold">{aviso.clube}</span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-white/55">
+                {aviso.texto}
+              </span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }

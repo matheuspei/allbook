@@ -71,7 +71,11 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
           <span className="text-white/55">
             Você: {meu === 0 ? "não começou" : `capítulo ${meu}`}
           </span>
-          <span className="text-white/55">A roda: capítulo {roda}</span>
+          {/* "capítulo 0" não existe: num clube recém-criado ninguém começou
+              ainda, e o número solto parecia defeito. */}
+          <span className="text-white/55">
+            {roda === 0 ? "A roda: ninguém começou" : `A roda: capítulo ${roda}`}
+          </span>
         </div>
 
         <div className="relative mt-2 h-1.5 rounded-full bg-white/10">
