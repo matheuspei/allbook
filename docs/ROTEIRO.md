@@ -3096,6 +3096,46 @@ Três decisões que só apareceram construindo, e que valem registro:
   ficam para quando houver contas — a assinatura de `lib/moderacao.ts` já está
   pronta para virar POST.
 
+### O CLUBE foi construído (27/07, noite) — e o que se decidiu fazendo
+
+Commits `a3ae2c6` (clube inteiro) e `aa23648` (prazos). No app: `/clubes`,
+`/clube/:id`, `/clubes/novo`; entrada pela Comunidade, pelo Perfil e por uma
+faixa na ficha do livro do ciclo. Decisões que valem registro:
+
+- **A régua compara você com a RODA, não com cada pessoa.** É a mediana dos
+  membros, e não a média nem o líder: média é puxada por quem devorou o livro em
+  dois dias, e mostrar nome por nome transforma o clube em corrida — a mesma
+  pressão que a decisão antigamificação evita, porque leva a **mentir o
+  progresso**, e progresso mentido quebra a trava de spoiler.
+- **A unidade do mural é o CAPÍTULO; a da sala é o SEGUNDO.** Não é inconsistência
+  — é o que cada um combina. A sala é individual ("o que eu já ouvi"); o clube
+  tem um acordo coletivo ("até o capítulo 6 esta semana"), e é ele que decide o
+  que aparece. Mensagem à frente chega **coberta com o número à mostra**: a
+  pessoa sabe que existe conversa lá e não é surpreendida.
+- **O encontro não tem hora marcada** — é uma **rodada**: pergunta aberta por 3
+  dias, cada um responde quando dá. Marcar "quinta às 20h" excluiria justamente
+  quem ouve dirigindo, na academia, às 23h.
+- **Votação: três opções, número aberto, nome fechado.** Você vê quantos votos
+  cada livro tem, não quem votou em quê — mesma razão da régua. Ao encerrar, o
+  vencedor vira o ciclo e o livro anterior vai para a **estante do clube**, que é
+  o que dá continuidade em vez de o grupo morrer no fim do primeiro livro.
+- **Criar um clube mostra os marcos ANTES de criar.** "4 semanas" não diz nada;
+  "até o capítulo 4 em 03/08, até o 7 em 10/08…" mostra se o ritmo é exagerado
+  para o tamanho do livro.
+- **Os avisos de prazo são calculados, não guardados** (`lib/avisosDeClube.ts`),
+  e **não acendem o sino**: prazo é estado, não acontecimento; guardar produziria
+  "faltam 3 dias" mostrado uma semana depois, e um aviso sem estado de "lida"
+  deixaria o sino aceso o ciclo inteiro. Só avisa **quem está atrasado** — cobrar
+  quem está em dia é o caminho curto para a pessoa desligar as notificações.
+- **O progresso dos outros membros é simulado, estável e declarado.** Semente por
+  membro+clube, ancorada no tempo decorrido do ciclo, para a régua não pular a
+  cada desenho. A tela diz, com todas as letras, que os membros são fictícios.
+
+**Limitação conhecida, e ela é honesta:** os poderes de moderador (cobrir
+spoiler alheio, esconder) existem e funcionam, mas num clube recém-criado **não
+há mensagem de outra pessoa para moderar** — só haverá quando existirem contas.
+Não se encenou um grupo cheio para dar o que ver.
+
 ### Quatro ajustes do parecer da Janela A (a fazer antes de codar)
 
 1. **Âncora em segundos, não em capítulo.** Os capítulos aqui têm 50–85 minutos —
