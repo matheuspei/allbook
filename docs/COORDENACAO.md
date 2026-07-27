@@ -23,7 +23,7 @@ o quê **agora**.
 | Janela | Faixa (área que vai tocar) | Arquivos/pasta em uso | Está rodando o servidor? | Atualizado |
 |--------|-----------------------------|-----------------------|--------------------------|------------|
 | A | — livre — (27/07, tudo commitado: selo/marca d'água da janela na prévia, ver 1.1 abaixo. Antes: "Detalhes do título" saiu do menu do player, porque tocar no título já abre a ficha (ROTEIRO 4.38); e o "está tocando" virou um só para player e barrinha — sair do player não parece mais parar a audição. `AudioPlayer.tsx`, `MiniPlayer.tsx`, `playback.ts` e `BookDetails.tsx` **liberados**.) Aba `🟢 JANELA A` | — | não — serviço launchd sempre no ar (escutando na **rede local**; `HOST=127.0.0.1` fecha) | 27/07 |
-| B | — livre — (26/07, tudo commitado: Descobrir fundida na Buscar/Catálogo (4.32); proteção do áudio registrada (4.34); aberturas animadas adiadas para depois do backend (4.35); "Histórico de escuta" do player virou **"Meu ritmo neste livro"**, com previsão de término em conta única com as Estatísticas (4.36). `AudioPlayer.tsx` **devolvido**.) Aba `🔵 JANELA B` | — | não — serviço launchd sempre no ar | 27/07 |
+| B | **assumida** — sessão nova registrada a pedido do Matheus, aguardando a próxima tarefa (voz `pm_santa` confirmada) Aba `🔵 JANELA B` | — | não — serviço launchd sempre no ar | 27/07 |
 | C | — livre — (26/07: o botão "Categorias" da Início passou a expandir a lista de gêneros — ver ROTEIRO 4.27, que também deixa em aberto o destino da tela Descobrir) | — | não — serviço launchd sempre no ar | 26/07 |
 
 > Use "Janela A" e "Janela B" só como apelido. Se abrir uma terceira, acrescente a
