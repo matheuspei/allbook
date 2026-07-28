@@ -4257,6 +4257,32 @@ alvo cai para ~60 e volta a cortar.
 
 ---
 
+## 4.51 "Ver a conversa" levava à sinopse (28/07)
+
+O Matheus, no player: *"quando você coloca 'ver a conversa do livro inteiro',
+ela te leva para a página principal do livro — a gente já tinha falado que a
+conversa tinha que ter uma janela própria"*. Tinha mesmo: a §4.41 criou
+`/book/:id/conversa` justamente porque **porta não pode mentir**, e o link do
+player continuava apontando para `/book/:id`, a ficha. Quem tocava em "ver a
+conversa" caía na sinopse e tinha de rolar até achar a sala.
+
+**Não era um esquecimento anônimo:** a janela B deixou o pedido por escrito no
+quadro de `COORDENACAO.md` (*"segue de pé o pedido à A: `ConversaDoTrecho.tsx:168`
+→ apontar para `/book/:id/conversa`"*) e ele ficou parado até o Matheus notar
+sozinho. **Lição para o quadro:** recado de uma janela para a outra só vale se
+alguém o transformar em tarefa; enterrado numa célula de tabela, ele envelhece.
+
+**O mesmo defeito estava em mais um lugar, e foi junto:** o aviso "responderam
+você" (`Notifications`) também abria a ficha. Agora **avisos de resposta abrem a
+conversa**; os avisos do sistema (o livro pedido ficou pronto, o lançamento do
+autor) continuam abrindo a ficha, porque falam do **título**, não da conversa.
+
+**Conferido e mantido como está:** no mural da Comunidade, o nome do livro dentro
+da frase ("Fulano avaliou *X*") continua levando à ficha — ali o link é o
+**título**, e mandá-lo para a conversa é que seria mentira.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

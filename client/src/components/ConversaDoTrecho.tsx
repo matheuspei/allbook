@@ -168,8 +168,16 @@ export default function ConversaDoTrecho({
           )}
         </div>
 
+        {/*
+          **Vai para a conversa, não para a ficha** (ROTEIRO 4.51). Este link
+          apontava para `/book/:id` e caía na sinopse: quem tocava em "ver a
+          conversa" tinha de rolar a ficha inteira até achar a sala. Porta não
+          pode mentir — foi a mesma razão que fez a conversa ganhar endereço
+          próprio na §4.41, e a janela B deixou o recado pedindo esta troca no
+          quadro de coordenação. Ficou pendente até o Matheus notar de novo.
+        */}
         <Link
-          href={`/book/${bookId}`}
+          href={`/book/${bookId}/conversa`}
           className="mt-5 flex items-center justify-between rounded-xl bg-white/[0.05] px-4 py-3.5 text-sm transition-colors hover:bg-white/10"
           data-testid="link-sala-completa"
         >

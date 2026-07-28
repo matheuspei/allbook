@@ -245,7 +245,17 @@ export default function Notifications() {
         atual.map((item) => (item.id === aviso.id ? { ...item, lida: true } : item)),
       );
     }
-    if (aviso.bookId) setLocation(`/book/${aviso.bookId}`);
+    /*
+      **"Responderam você" abre a conversa; o resto abre a ficha** (ROTEIRO
+      4.51). O destino segue o que o aviso promete: quem toca numa resposta quer
+      ler a resposta, e cair na sinopse obrigava a rolar a ficha inteira até
+      achar a sala. Os avisos do sistema (o livro que ficou pronto, o lançamento
+      do autor) falam do **título**, e para esses a ficha é o lugar certo.
+    */
+    if (!aviso.bookId) return;
+    setLocation(
+      aviso.tipo === "resposta" ? `/book/${aviso.bookId}/conversa` : `/book/${aviso.bookId}`,
+    );
   }
 
   function marcarTodasLidas() {
