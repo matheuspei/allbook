@@ -22,6 +22,8 @@ import Clube from "@/pages/Clube";
 import NovoClube from "@/pages/NovoClube";
 import GerenciarClube from "@/pages/GerenciarClube";
 import UserProfile from "@/pages/UserProfile";
+import You from "@/pages/You";
+import Achievements from "@/pages/Achievements";
 import Bookmarks from "@/pages/Bookmarks";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
@@ -116,6 +118,10 @@ function Router() {
             <Route path="/clube/:id/gerenciar" component={GerenciarClube} />
             <Route path="/clube/:id" component={Clube} />
             <Route path="/user/:slug" component={UserProfile} />
+            {/* O painel privado ("Você") e a grade de conquistas — a separação
+                página pública × painel decidida em 28/07 (ROTEIRO 4.41). */}
+            <Route path="/you" component={You} />
+            <Route path="/achievements" component={Achievements} />
             <Route path="/downloads" component={Downloads} />
             <Route path="/bookmarks" component={Bookmarks} />
             <Route path="/notifications" component={Notifications} />
