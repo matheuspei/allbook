@@ -3376,6 +3376,85 @@ daquela decisão.
 arquitetura acima, a recomendação com motivo é o **conteúdo que alimenta a
 Comunidade**: é ela que dá o que ver quando você abre a página de alguém.
 
+### Construído em 28/07, no mesmo dia (janela B)
+
+O Matheus aprovou a proposta (folha `_proposta-comunidade.html`, fora do git) e
+mandou construir. Quatro fases, quatro commits — `67fd579`, `5046a29`,
+`ba2ad43` e a troca do menu. O que se decidiu **fazendo**:
+
+- **A contradição de 21/07 foi resolvida a favor da porta própria:** Comunidade
+  entrou no menu de baixo no lugar do Perfil, que virou o **avatar no topo**
+  (com a foto de verdade). O Início continua limpo de social — essa metade da
+  decisão antiga segue valendo.
+- **Nenhum número social inventado.** A página não mostra seguidores (não há
+  servidor); mostra horas, títulos e recomendações, que são verdade desde o
+  primeiro dia. O "compartilhar" não gera link do perfil — **compartilha as
+  suas indicações em texto**, porque um link que só funciona na sua máquina é
+  um link que mente.
+- **"Ouvindo agora" nasceu fictício e anotado:** os 5 leitores com o campo
+  ganharam livros coerentes com a bio e que eles **ainda não recomendam**
+  (estar no meio ≠ já ter indicado). Quando houver servidor, vem do progresso
+  real, **com interruptor de privacidade no painel** — regra já decidida.
+- **O motivo medido substituiu o "talvez combine":** as sugestões dizem "está
+  ouvindo o mesmo livro, 3 capítulos à sua frente" e "recomenda 2 que você já
+  ouviu" — pesos: mesmo livro agora > sua lista > o que você já ouviu > gênero.
+- **Selos: as 2 medalhas mais raras**, calculadas (lendária > rara > comum); a
+  grade completa foi para `/achievements`, e o placar "X de 16" mora no painel.
+- **Mantido intacto o trabalho da janela A:** `ConversasDeAgora` e
+  `ClubesNaComunidade` seguem na tela, reposicionados (conversa antes de gente,
+  como a 4.39 pedia).
+
+**Ficou de fora, com motivo:** curtir recomendação (exigiria estender
+`reactions.ts` e inventar contadores que ninguém produziu); "ver tudo" nos
+comentários da própria página (não existe tela de "meus comentários" — os 3
+mais recentes bastam até ela existir); e o e-mail sumiu da página pública de
+propósito (é cadastro, não conteúdo — mora no painel).
+
+### Avaliação × conversa: separadas em 28/07 (era "em aberto", o Matheus mandou fazer)
+
+O Matheus apontou: *"parece que é a mesma coisa — comentários e a conversa…
+você não sabe o que é conversa, o que é comentário"*. **Apurado no código, a
+sensação tem causa concreta e histórica:**
+
+- A ficha empilha **três blocos de opinião**: a nota média (Narração/História
+  + origem), a sua avaliação (`AvaliarLivro`, estrelas com portão de 20%), e a
+  "Conversa" (`SalaDoLivro`) — e dentro da conversa os comentários **semeados**
+  exibem estrelas (`Comment.rating`), com cara de resenha no meio do papo.
+- **A origem:** as estrelas nos comentários são de 26/07, de quando a seção era
+  uma lista de comentários (avaliações). Em 27/07 a lista **virou** a sala do
+  livro (4.39) sem separar os gêneros — a mistura é o resíduo dessa virada.
+- **O detalhe que facilita o conserto:** os fluxos NOVOS já são separados. A
+  sua nota vive em `ratings.ts` (sem texto) e a sua fala em `myComments.ts`
+  (sem nota) — só o dado semeado antigo (`Comment.rating`) e a exibição juntam
+  os dois.
+
+**A regra construída (commit `bc5da29`):** **nota = avaliação; âncora =
+conversa; a âncora ganha da nota; os formulários não se cruzam.** A ficha
+ganhou a seção "Avaliações" (nota média + a sua nota + resenhas com estrela,
+"N acharam útil", respostas em leitura) e a "Conversa" ficou só com o papo. A
+separação foi feita **na fonte** (`comments.ts`), sem tocar nos arquivos da
+janela A: `commentsForBook` passou a devolver só conversa — e a sala, as
+marcas na barra e o painel do trecho, que consomem dela, se corrigiram
+sozinhos. Decisões dentro da decisão:
+
+- **Os 3 híbridos semeados (nota + âncora) são conversa** — quem escreve preso
+  a um ponto está falando do trecho; a estrela deles não aparece no papo, mas
+  a nota **continua na média** (`notasDoLivro`, que soma tudo).
+- **A média da comunidade não perdeu nada:** `ratings.ts` trocou de fonte
+  justamente para continuar contando as resenhas que saíram da conversa.
+- **As 8 respostas penduradas em resenhas continuam legíveis** ("N respostas"
+  na avaliação, só leitura) — arrumar a casa não podia apagar fala existente.
+- **Avaliação não tem caixa de escrever nem responder**: a sua nota é o
+  `AvaliarLivro`; conversar é na sala. Escrever o *texto* da própria resenha
+  ficou de fora por ora — exigiria `rating` em `MyComment`, e é outra obra.
+- A estrela **mudou de casa, não morreu** — o histórico está anotado no
+  próprio `CommentThread`, porque a estrela no fio tinha sido pedido do
+  Matheus em 26/07, e a decisão nova substitui aquela com contexto.
+
+**Ligado a isso, pendente na janela A:** `ConversaDoTrecho.tsx:168` ("Ver a
+conversa do livro inteiro") ainda aponta para a ficha; o destino certo é a
+página `/book/:id/conversa`. Pedido registrado no quadro da COORDENACAO.
+
 ---
 
 ## 4.42 O moderador manda de verdade, e a tela de clubes aguenta quantidade (28/07)
