@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Pause, Play } from "lucide-react";
+import { Bookmark, Pause, Play } from "lucide-react";
 
-import { MAX_CITACAO_SEC, MIN_CITACAO_SEC } from "@/lib/citacoes";
+import { useToast } from "@/hooks/use-toast";
+import { MAX_CITACAO_SEC, MIN_CITACAO_SEC, criarCitacao } from "@/lib/citacoes";
+import { guardarTrecho, jaGuardado } from "@/lib/trechosGuardados";
 import { chaptersTotalSec } from "@/lib/chapters";
 import { formatarPosicao } from "@/lib/sala";
 
@@ -40,6 +42,7 @@ export default function CortadorDeTrecho({
   fim: number;
   onChange: (inicio: number, fim: number) => void;
 }) {
+  const { toast } = useToast();
   const trilhoRef = useRef<HTMLDivElement>(null);
   const [arrastando, setArrastando] = useState<"inicio" | "fim" | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
@@ -222,6 +225,30 @@ export default function CortadorDeTrecho({
             {formatarPosicao(cursor)} — parando em {formatarPosicao(fim)}
           </>
         )}
+      </button>
+
+      {/*
+        **Guardar é o que faz o trecho servir fora daqui** (ROTEIRO 4.45). Sem
+        este botão, um corte só valeria no comentário que está sendo escrito
+        agora — e o pedido do Matheus era poder citar também no fórum e no clube,
+        que são outra tela e outro momento. Cortar é ouvindo; anexar é depois.
+      */}
+      <button
+        type="button"
+        onClick={() => {
+          guardarTrecho(criarCitacao(bookId, inicio, fim - inicio));
+          toast({
+            title: "Trecho guardado",
+            description: "Dá para anexar em qualquer conversa pelo botão de clipe.",
+          });
+        }}
+        className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-lg bg-primary/12 py-2.5 text-xs font-bold text-primary ring-1 ring-inset ring-primary/30 transition-colors hover:bg-primary/20"
+        data-testid="guardar-trecho"
+      >
+        <Bookmark className="h-3.5 w-3.5" />
+        {jaGuardado(criarCitacao(bookId, inicio, fim - inicio))
+          ? "Guardado — usar em outra conversa"
+          : "Guardar para usar em outra conversa"}
       </button>
 
       <p className="mt-2 text-[10.5px] leading-relaxed text-white/25">

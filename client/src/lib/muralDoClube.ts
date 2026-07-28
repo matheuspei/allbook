@@ -15,6 +15,7 @@
  * fase. Sem servidor, o efeito vale neste aparelho; a tela diz isso.
  */
 
+import { type Citacao } from "@/lib/citacoes";
 import { community } from "@/lib/community";
 import { EU } from "@/lib/clubes";
 
@@ -34,6 +35,11 @@ export interface MensagemDoClube {
   capitulo?: number;
   /** Marcado como spoiler — por quem escreveu ou pelo moderador. */
   spoiler?: boolean;
+  /**
+   * Um trecho do áudio citado junto (ROTEIRO 4.45). Cortado no player e
+   * anexado aqui — a mesma peça que a sala e o fórum usam.
+   */
+  citacao?: Citacao;
 }
 
 /** Mensagens do esqueleto: dão o que ver num mural que ninguém escreveu ainda. */
@@ -167,10 +173,11 @@ export function totalDoMural(clubeId: string): number {
 export function publicarNoMural(
   clubeId: string,
   texto: string,
-  opcoes: { capitulo?: number; spoiler?: boolean } = {},
+  opcoes: { capitulo?: number; spoiler?: boolean; citacao?: Citacao } = {},
 ): void {
   const limpo = texto.trim().slice(0, MAX_MENSAGEM);
-  if (!limpo) return;
+  /* Mensagem só com trecho vale: às vezes o trecho já diz tudo. */
+  if (!limpo && !opcoes.citacao) return;
 
   const estado = readEstado();
   const mensagem: MensagemDoClube = {
@@ -181,6 +188,7 @@ export function publicarNoMural(
     data: new Date().toISOString(),
     ...(opcoes.capitulo !== undefined ? { capitulo: opcoes.capitulo } : {}),
     ...(opcoes.spoiler ? { spoiler: true } : {}),
+    ...(opcoes.citacao ? { citacao: opcoes.citacao } : {}),
   };
 
   salvar({ ...estado, minhas: [...estado.minhas, mensagem] });

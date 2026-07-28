@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { EyeOff, Lock, Shield, Trash2 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
+import AnexarTrecho from "@/components/AnexarTrecho";
+import CitacaoDeAudio from "@/components/CitacaoDeAudio";
+import { type Citacao } from "@/lib/citacoes";
 import { EU, capituloCombinado, corDoMembro, meuCapitulo, souDono, type Clube } from "@/lib/clubes";
 import {
   apagarMinhaMensagem,
@@ -40,6 +43,7 @@ export default function MuralDoClube({ clube }: { clube: Clube }) {
     escondidasDoClube(clube.id),
   );
   const [texto, setTexto] = useState("");
+  const [trecho, setTrecho] = useState<Citacao | undefined>(undefined);
   const [prender, setPrender] = useState(true);
 
   useEffect(() => {
@@ -59,7 +63,11 @@ export default function MuralDoClube({ clube }: { clube: Clube }) {
   function publicar() {
     const limpo = texto.trim();
     if (!limpo) return;
-    publicarNoMural(clube.id, limpo, { capitulo: prender && meu > 0 ? meu : undefined });
+    publicarNoMural(clube.id, limpo, {
+      capitulo: prender && meu > 0 ? meu : undefined,
+      citacao: trecho,
+    });
+    setTrecho(undefined);
     setTexto("");
     toast({
       title: "Publicado no mural",
@@ -106,13 +114,18 @@ export default function MuralDoClube({ clube }: { clube: Clube }) {
           </button>
         )}
 
+        {/* Anexar um trecho guardado ouvindo (ROTEIRO 4.45). */}
+        <div className="mt-3">
+          <AnexarTrecho citacao={trecho} onEscolher={setTrecho} />
+        </div>
+
         <div className="mt-3 flex items-center justify-between">
           <span className="text-[10px] text-white/25">
             {texto.length}/{MAX_MENSAGEM}
           </span>
           <button
             onClick={publicar}
-            disabled={texto.trim().length === 0}
+            disabled={texto.trim().length === 0 && !trecho}
             className="text-sm font-semibold text-primary transition-colors disabled:text-white/20"
             data-testid="mural-send"
           >
@@ -249,7 +262,14 @@ function Mensagem({
           </span>
         </button>
       ) : (
-        <p className="mt-2 text-sm leading-relaxed text-white/75">{mensagem.texto}</p>
+        <>
+          {mensagem.texto && (
+            <p className="mt-2 text-sm leading-relaxed text-white/75">{mensagem.texto}</p>
+          )}
+          {/* O trecho fica junto do texto, atrás do mesmo véu: 40 segundos do
+              capítulo 9 entregam tanto quanto a frase (ROTEIRO 4.43). */}
+          {mensagem.citacao && <CitacaoDeAudio citacao={mensagem.citacao} />}
+        </>
       )}
 
       {souModerador && !ehMinha && (

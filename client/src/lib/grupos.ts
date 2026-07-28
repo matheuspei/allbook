@@ -21,6 +21,7 @@
  * existe — é a **grupoda** do clube, da janela A, outra coisa.
  */
 
+import { type Citacao } from "@/lib/citacoes";
 import { community, type CommunityMember } from "@/lib/community";
 
 const PARTICIPO_KEY = "allbook_grupos_participo";
@@ -312,6 +313,8 @@ export interface MinhaResposta {
   topicoId: string;
   texto: string;
   date: string;
+  /** Um trecho do áudio citado junto (ROTEIRO 4.45). */
+  citacao?: Citacao;
 }
 
 function lerLista<T>(chave: string): T[] {
@@ -417,14 +420,20 @@ export function minhasRespostas(): MinhaResposta[] {
 }
 
 /** Responde a um tópico (semeado ou seu). Texto vazio não entra. */
-export function responder(topicoId: string, texto: string): MinhaResposta | null {
+export function responder(
+  topicoId: string,
+  texto: string,
+  citacao?: Citacao,
+): MinhaResposta | null {
   const clean = texto.trim().slice(0, MAX_RESPOSTA);
-  if (!clean) return null;
+  /* Resposta só com trecho vale: às vezes o trecho já é a resposta. */
+  if (!clean && !citacao) return null;
   const resposta: MinhaResposta = {
     id: `minha-r-${Date.now()}`,
     topicoId,
     texto: clean,
     date: new Date().toISOString(),
+    ...(citacao ? { citacao } : {}),
   };
   gravarLista(MINHAS_RESPOSTAS_KEY, [...minhasRespostas(), resposta]);
   return resposta;
@@ -657,6 +666,8 @@ export interface RespostaNaTela {
   texto: string;
   date: string;
   minha: boolean;
+  /** Um trecho do áudio citado junto. */
+  citacao?: Citacao;
   /** O dono do fórum escondeu. */
   escondida: boolean;
   /** O dono cobriu como spoiler: o texto fica atrás de um toque. */
@@ -693,6 +704,7 @@ export function fioDo(topicoId: string): RespostaNaTela[] {
       texto: item.texto,
       date: item.date.slice(0, 10),
       minha: true,
+      ...(item.citacao ? { citacao: item.citacao } : {}),
       escondida: moderacao.respostas.includes(item.id),
       spoiler: moderacao.spoilers.includes(item.id),
     }));

@@ -3,7 +3,10 @@ import { Link, useParams } from "wouter";
 import { Ban, EyeOff, Send, Trash2 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AnexarTrecho from "@/components/AnexarTrecho";
+import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import PageHeader from "@/components/PageHeader";
+import { type Citacao } from "@/lib/citacoes";
 import { useToast } from "@/hooks/use-toast";
 import { relativeDate } from "@/lib/activity";
 import { initialOf, readProfile } from "@/lib/profile";
@@ -41,6 +44,7 @@ export default function Topico() {
   const souDono = souDonoDo(grupoId);
   /* Revelar é por sessão e por resposta: fechar a tela cobre tudo de novo. */
   const [revelados, setRevelados] = useState<string[]>([]);
+  const [trecho, setTrecho] = useState<Citacao | undefined>(undefined);
 
   useEffect(() => {
     const atualizar = () => setFio(fioDo(params.topicoId ?? ""));
@@ -64,9 +68,10 @@ export default function Topico() {
   }
 
   function publicar() {
-    const nova = responder(topico!.id, texto);
+    const nova = responder(topico!.id, texto, trecho);
     if (nova) {
       setTexto("");
+      setTrecho(undefined);
       toast({ title: "Resposta publicada" });
     }
   }
@@ -179,7 +184,12 @@ export default function Topico() {
                   Marcada como spoiler — toque para ler assim mesmo.
                 </button>
               ) : (
-                <p className="mt-1 text-sm leading-relaxed text-white/80">{resposta.texto}</p>
+                <>
+                  {resposta.texto && (
+                    <p className="mt-1 text-sm leading-relaxed text-white/80">{resposta.texto}</p>
+                  )}
+                  {resposta.citacao && <CitacaoDeAudio citacao={resposta.citacao} />}
+                </>
               )}
             </div>
           </div>
@@ -193,26 +203,33 @@ export default function Topico() {
 
         {/* A caixa no fim, onde a leitura termina. */}
         <div
-          className="mt-2 flex items-end gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-2.5"
+          className="mt-2 rounded-2xl border border-white/10 bg-white/[0.03] p-2.5"
           data-testid="topico-composer"
         >
-          <textarea
-            value={texto}
-            onChange={(event) => setTexto(event.target.value.slice(0, MAX_RESPOSTA))}
-            placeholder="Responder ao tópico…"
-            rows={2}
-            className="min-h-[40px] w-full resize-none bg-transparent px-1.5 text-sm leading-relaxed text-white placeholder:text-white/30 focus:outline-none"
-            data-testid="topico-input"
-          />
-          <button
-            onClick={publicar}
-            disabled={texto.trim().length === 0}
-            className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-black transition-opacity disabled:opacity-30"
-            data-testid="topico-publish"
-          >
-            <Send className="h-3 w-3" />
-            Responder
-          </button>
+          <div className="flex items-end gap-2">
+            <textarea
+              value={texto}
+              onChange={(event) => setTexto(event.target.value.slice(0, MAX_RESPOSTA))}
+              placeholder="Responder ao tópico…"
+              rows={2}
+              className="min-h-[40px] w-full resize-none bg-transparent px-1.5 text-sm leading-relaxed text-white placeholder:text-white/30 focus:outline-none"
+              data-testid="topico-input"
+            />
+            <button
+              onClick={publicar}
+              disabled={texto.trim().length === 0 && !trecho}
+              className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-black transition-opacity disabled:opacity-30"
+              data-testid="topico-publish"
+            >
+              <Send className="h-3 w-3" />
+              Responder
+            </button>
+          </div>
+
+          {/* Anexar um trecho que você guardou ouvindo (ROTEIRO 4.45). */}
+          <div className="mt-2 px-1.5">
+            <AnexarTrecho citacao={trecho} onEscolher={setTrecho} />
+          </div>
         </div>
       </main>
     </div>

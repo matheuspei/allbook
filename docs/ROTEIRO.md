@@ -4009,6 +4009,49 @@ com o clube para quem usa.
 
 ---
 
+## 4.45 O trecho vira uma peça que circula (28/07)
+
+**Construído.** O Matheus pediu que desse para citar um trecho **também no fórum
+e no clube**, e deixou a forma comigo: *"como é que a gente vai fazer para a
+pessoa conseguir pegar esse trecho e mencionar nesse campo? Aí é com você"*.
+
+### A decisão: cortar se faz ouvindo, anexar se faz escrevendo
+
+São **dois momentos diferentes e distantes**, e a ferramenta tem de respeitar
+isso. Ninguém corta um trecho de dentro de uma caixa de texto — ali estaria
+chutando o minuto sem ouvir, e o corte "exato" que a §4.43 construiu perderia o
+sentido. O momento em que se **quer** citar é ouvindo ("essa frase!"); o momento
+em que se **escreve** é depois, em outra tela.
+
+Então o trecho passa a ser uma **coisa guardada**:
+
+1. No player, o cortador ganhou **"Guardar para usar em outra conversa"**.
+2. Em qualquer campo de escrever — mural do clube, resposta do fórum — um botão
+   **📎 Trecho** abre os seus guardados e anexa com um toque.
+
+**A aba "Guardados" da maquete da janela B sai de graça desta lista** — era a
+mesma ideia, chegando pelos dois lados.
+
+### O que isso implica, e por que vale
+
+- **Um mecanismo, quatro destinos.** A mesma `Citacao` vale na sala do livro, no
+  mural do clube, no fórum e (quando existir) no feed. O cartão `CitacaoDeAudio`
+  é o mesmo em todos — o que você vê escolhendo é o que os outros veem publicado.
+  É a lição que a §4.40 cobrou caro: escrever **um** mecanismo, não quatro
+  parecidos.
+- **Mensagem só com trecho vale.** Às vezes o trecho já é a resposta; exigir texto
+  junto seria burocracia.
+- **Guardar o mesmo corte duas vezes não duplica.** Quem toca "guardar" de novo
+  quer garantir que está lá, não quer uma cópia.
+- **O estado vazio ensina onde se corta**, com o caminho até lá — um "você não
+  tem trechos" seco seria a tela morta que a 4.23 mandou varrer.
+
+**Testado ponta a ponta:** cortei 40s em *A Paciente Silenciosa* no player,
+guardei, abri um tópico do fórum, anexei pelo clipe e publiquei — o cartão do
+trecho aparece na resposta, com capa, carimbo e o botão que toca só ele.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
