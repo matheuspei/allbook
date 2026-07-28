@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
-import { Check, MessageSquare, Pin, Plus, Trash2, UserPlus } from "lucide-react";
+import { Check, EyeOff, MessageSquare, Pin, Plus, Shield, Trash2, Undo2, UserPlus } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
@@ -10,11 +10,15 @@ import {
   MAX_TITULO,
   GRUPOS_EVENT,
   alternarParticipacao,
+  alternarFixado,
+  alternarTopicoEscondido,
   apagarMeuGrupo,
   apagarMeuTopico,
   criarTopico,
   participoDa,
   grupoPorId,
+  escondidosDo,
+  podeApagarGrupo,
   topicosDa,
   type TopicoNaTela,
 } from "@/lib/grupos";
@@ -37,10 +41,17 @@ export default function Grupo() {
   const [dentro, setDentro] = useState(false);
   const [criando, setCriando] = useState(false);
   const [titulo, setTitulo] = useState("");
+  const [podeApagar, setPodeApagar] = useState(false);
+  const [escondidos, setEscondidos] = useState<{ topicos: string[]; respostas: string[] }>({
+    topicos: [],
+    respostas: [],
+  });
 
   useEffect(() => {
     const atualizar = () => {
       setTopicos(grupo ? topicosDa(grupo.id) : []);
+      setPodeApagar(grupo ? podeApagarGrupo(grupo.id) : false);
+      setEscondidos(grupo ? escondidosDo(grupo.id) : { topicos: [], respostas: [] });
       setDentro(grupo ? participoDa(grupo.id) : false);
     };
     atualizar();
@@ -128,8 +139,15 @@ export default function Grupo() {
           </button>
         </div>
 
-        {/* Grupo seu: dá para apagar — leva os seus tópicos junto. */}
-        {grupo.meu && (
+        {/*
+          **Apagar só enquanto o fórum for só seu** (ROTEIRO 4.44). Assim que
+          outra pessoa abre um tópico aqui, a casa deixa de ser sua para
+          demolir — apagá-la levaria junto o que ela escreveu. O que fica no
+          lugar não é nada: é a moderação de conteúdo, logo abaixo de cada
+          tópico, que é o poder que o Matheus pediu e que resolve o problema
+          real (tirar o que não devia estar aqui).
+        */}
+        {grupo.meu && podeApagar && (
           <button
             onClick={() => {
               apagarMeuGrupo(grupo.id);
@@ -142,6 +160,40 @@ export default function Grupo() {
             <Trash2 className="h-3.5 w-3.5" />
             Apagar este grupo
           </button>
+        )}
+
+        {grupo.meu && !podeApagar && (
+          <p className="mt-3 flex items-start gap-2 rounded-lg bg-white/[0.04] px-3 py-2.5 text-[11px] leading-relaxed text-white/40">
+            <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+            <span>
+              <b className="text-white/70">Você modera aqui.</b> Dá para fixar e esconder tópicos e
+              respostas. Apagar o grupo inteiro não — já tem conversa de outras pessoas dentro.
+            </span>
+          </p>
+        )}
+
+        {escondidos.topicos.length > 0 && (
+          <div className="mt-3 rounded-lg bg-white/[0.04] p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
+              Escondidos por você · {escondidos.topicos.length}
+            </p>
+            <div className="mt-2 space-y-1.5">
+              {escondidos.topicos.map((id) => (
+                <button
+                  key={id}
+                  onClick={() => {
+                    alternarTopicoEscondido(grupo.id, id);
+                    toast({ title: "Tópico devolvido ao grupo" });
+                  }}
+                  className="flex w-full items-center gap-1.5 text-left text-[11px] font-semibold text-primary"
+                  data-testid={`devolver-topico-${id}`}
+                >
+                  <Undo2 className="h-3 w-3" />
+                  Devolver um tópico
+                </button>
+              ))}
+            </div>
+          </div>
         )}
 
         {criando && (
@@ -180,7 +232,10 @@ export default function Grupo() {
               href={`/grupo/${grupo.id}/topico/${topico.id}`}
               className="block rounded-xl border border-white/5 bg-white/[0.03] p-3.5 mb-2.5 transition-colors hover:bg-white/[0.06]"
             >
-              <p className="pr-6 text-sm font-semibold leading-snug">
+              {/* A folga da direita tem de caber os DOIS botões de moderação
+                  (fixar e esconder), não um: com `pr-6` o título passava por
+                  baixo do alfinete. */}
+              <p className={`text-sm font-semibold leading-snug ${grupo.meu && !topico.meu ? "pr-16" : "pr-6"}`}>
                 {topico.fixado && (
                   <Pin className="mr-1.5 inline h-3.5 w-3.5 align-[-2px] text-primary" />
                 )}
@@ -200,6 +255,48 @@ export default function Grupo() {
                 <span>{relativeDate(topico.ultimaAtividade)}</span>
               </p>
             </Link>
+
+            {/*
+              Moderação do dono: fixar e esconder o que é dos outros.
+
+              **Absoluto no canto do cartão**, e não em fluxo normal: em fluxo
+              os botões caíam **entre** os cartões, sem dono visível — parecia
+              que pertenciam ao tópico de baixo. O título já reserva o espaço
+              (`pr-6`), e o `relative` do embrulho é o que ancora isto aqui.
+            */}
+            {grupo.meu && !topico.meu && (
+              <div className="absolute right-2 top-2 flex items-center gap-0.5">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const fixou = alternarFixado(grupo.id, topico.id);
+                    toast({ title: fixou ? "Tópico fixado no topo" : "Tópico solto" });
+                  }}
+                  className={`rounded-md p-1.5 transition-colors ${
+                    topico.fixado ? "text-primary" : "text-white/25 hover:text-white/70"
+                  }`}
+                  aria-label={topico.fixado ? "Soltar do topo" : "Fixar no topo"}
+                  data-testid={`fixar-${topico.id}`}
+                >
+                  <Pin className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alternarTopicoEscondido(grupo.id, topico.id);
+                    toast({
+                      title: "Tópico escondido",
+                      description: "Some para todo mundo. Dá para devolver no topo da tela.",
+                    });
+                  }}
+                  className="rounded-md p-1.5 text-white/25 transition-colors hover:text-red-300"
+                  aria-label="Esconder este tópico"
+                  data-testid={`esconder-${topico.id}`}
+                >
+                  <EyeOff className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
 
             {topico.meu && (
               <button

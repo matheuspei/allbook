@@ -3948,6 +3948,67 @@ mencionado num post, e as sugestões de quem seguir.
 
 ---
 
+## 4.44 Fórum, não grupo — e quem cria modera o conteúdo, não a casa (28/07)
+
+**Resolve a colisão aberta na §4.43.** O Matheus trocou a palavra e a troca
+resolveu o problema: *"na verdade, a ideia não é criar um grupo. Realmente, a
+ideia do grupo talvez seja ruim, mas a ideia do fórum é boa"*. E perguntou
+direto: *"você acha que, se eu criar isso, vai concorrer com o clube do livro?"*
+
+### Não concorrem — e a razão é tamanho e fim
+
+| | Clube | Fórum |
+|---|---|---|
+| Junta gente por | um livro **com prazo** | um assunto |
+| Tamanho útil | 4 a 12 | quanto mais, melhor |
+| Acaba? | **sim**, o ciclo tem fim | **não**, e não deve |
+| Você deve algo? | sim, aceitou um ritmo | nada |
+| Chegar depois | constrange (a trava de spoiler) | é normal, lê tudo |
+
+Um fórum de 300 pessoas funciona **melhor** que um de 8; um clube de 300 não
+funciona. São curvas opostas — por isso se alimentam em vez de brigar. **O que
+concorria era o "grupo"** da §4.43: dono + privado + expulsar é um clube sem
+livro. O fórum não tem nada disso.
+
+**A linha é testável, e é a que não se deve cruzar:** se o fórum ganhar **prazo e
+livro do ciclo**, virou clube. Se o clube ganhar **tópicos permanentes e perder o
+fim**, virou fórum.
+
+### Quem cria modera o conteúdo — mas não pode demolir a casa
+
+O pedido era *"quem criou o fórum tem que poder excluir em algum momento isso"*.
+A janela A concordou com metade e o Matheus aceitou a divisão:
+
+- **Moderar conteúdo, sem ressalva:** esconder resposta, esconder tópico, fixar
+  tópico, **cobrir como spoiler**. Tudo reversível — moderação errada acontece, e
+  sem volta ela custa uma pessoa.
+- **Apagar o fórum, só enquanto ele for só seu** (nenhum tópico de outra pessoa
+  dentro). Depois disso, apagar destruiria o trabalho dos outros. **É o oposto do
+  clube**, onde apagar é legítimo (§4.40) — porque o clube tem 8 pessoas e
+  **acaba de qualquer jeito** quando o ciclo fecha.
+
+Construído em `lib/grupos.ts` (moderação em `localStorage`, ids escondidos em vez
+de exclusão real), `pages/Grupo.tsx` e `pages/Topico.tsx`.
+
+- **Cobrir vem antes de esconder na ordem dos botões:** é o que mais se usa —
+  quase ninguém posta spoiler de má-fé, posta distraído, e esconder a mensagem
+  inteira por isso é desproporcional.
+- **Escondido some para todo mundo**, inclusive para o dono; ele devolve pela
+  caixa "Escondidos por você" no topo. Deixar na lista com um véu confundiria
+  quem lê.
+- **`suspense-misterio` passou a ser seu**, pelo mesmo motivo do clube "Suspense
+  de Domingo": fórum recém-criado nasce vazio, e a moderação nasceria botão morto.
+- **Dois defeitos de layout achados testando:** os botões de moderação em fluxo
+  normal caíam **entre** os cartões, parecendo do tópico de baixo (viraram
+  absolutos no canto); e a folga do título (`pr-6`) não cabia dois ícones, então
+  o texto passava por baixo do alfinete.
+
+**Pendente:** renomear "Grupo" para "Fórum" na tela. O código chama grupo em 72
+lugares; a troca é de rótulo, não de estrutura — mas é ela que mata a confusão
+com o clube para quem usa.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

@@ -69,13 +69,21 @@ export interface TopicoSemeado {
  * ------------------------------------------------------------------ */
 
 export const grupos: Grupo[] = [
+  /*
+   * **Este fórum é seu**, e existe por um motivo prático (ROTEIRO 4.44): um
+   * fórum recém-criado nasce vazio, sem tópico de outra pessoa dentro — e a
+   * moderação que o Matheus pediu nasceria como botão morto, que é o que a 4.23
+   * manda varrer. Marcá-lo como seu dá o que moderar. Mesmo precedente do clube
+   * "Suspense de Domingo", e pela mesma razão.
+   */
   {
     id: "suspense-misterio",
     nome: "Suspense & Mistério",
     emoji: "🕵️",
     descricao:
-      "Reviravolta, narrador não confiável e o medo de dar play no último capítulo.",
+      "Reviravolta, narrador não confiável e o medo de dar play no último capítulo. Este é seu: dá para fixar e esconder o que aparece aqui.",
     membros: ["ana-paula", "marcos-v", "beto", "carla-lima", "ricardo"],
+    meu: true,
   },
   {
     id: "quem-ouve-no-transito",
@@ -445,6 +453,8 @@ export interface TopicoNaTela {
   fixado: boolean;
   /** Você criou — pode apagar. */
   meu: boolean;
+  /** O dono do fórum escondeu (ROTEIRO 4.44). */
+  escondido: boolean;
   totalRespostas: number;
   ultimaAtividade: string;
 }
@@ -466,8 +476,133 @@ function contarRespostas(topicoId: string, semeadas: RespostaSemeada[]): {
   };
 }
 
+/* ------------------------------------------------------------------ *
+ * Moderação de conteúdo — o poder de quem criou (28/07, ROTEIRO 4.44).
+ *
+ * **A decisão do Matheus, e o que ficou de fora.** Ele pediu que quem cria
+ * pudesse *"excluir em algum momento isso"*. Moderar **conteúdo** entrou sem
+ * ressalva: esconder resposta, esconder tópico, fixar, cobrir spoiler. Destruir
+ * o fórum inteiro, não — um fórum com gente dentro guarda o trabalho de outras
+ * pessoas, e apagá-lo é apagar o que não é seu. Isso é o contrário do clube, que
+ * tem oito pessoas e **acaba de qualquer jeito** quando o ciclo fecha; por lá
+ * apagar é legítimo (§4.40).
+ *
+ * **A regra que sobrou:** apagar só enquanto o fórum for **só seu** — nenhum
+ * tópico de outra pessoa dentro. Passado disso, o criador esconde o que precisa,
+ * mas a casa fica de pé.
+ *
+ * **Esconder, e não apagar de verdade**, pelo mesmo motivo do mural do clube:
+ * moderação errada acontece, e sem volta ela custa uma pessoa. Tudo o que se
+ * esconde aqui pode ser devolvido.
+ * ------------------------------------------------------------------ */
+
+const MODERACAO_KEY = "allbook_grupos_moderacao";
+
+interface Moderacao {
+  /** Ids de tópicos escondidos pelo dono do fórum. */
+  topicos: string[];
+  /** Ids de respostas escondidas. */
+  respostas: string[];
+  /** Ids de tópicos que o dono fixou no topo. */
+  fixados: string[];
+  /** Ids de respostas cobertas como spoiler pelo dono. */
+  spoilers: string[];
+}
+
+const SEM_MODERACAO: Moderacao = { topicos: [], respostas: [], fixados: [], spoilers: [] };
+
+function lerModeracao(): Moderacao {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(MODERACAO_KEY) || "null");
+    if (!guardado || typeof guardado !== "object") return SEM_MODERACAO;
+    return {
+      topicos: Array.isArray(guardado.topicos) ? guardado.topicos : [],
+      respostas: Array.isArray(guardado.respostas) ? guardado.respostas : [],
+      fixados: Array.isArray(guardado.fixados) ? guardado.fixados : [],
+      spoilers: Array.isArray(guardado.spoilers) ? guardado.spoilers : [],
+    };
+  } catch {
+    return SEM_MODERACAO;
+  }
+}
+
+function gravarModeracao(estado: Moderacao): void {
+  localStorage.setItem(MODERACAO_KEY, JSON.stringify(estado));
+  window.dispatchEvent(new Event(GRUPOS_EVENT));
+}
+
+/** Você criou este fórum — e portanto modera o que acontece nele. */
+export function souDonoDo(grupoId: string): boolean {
+  return grupoPorId(grupoId)?.meu === true;
+}
+
+/** Liga/desliga um id numa das listas de moderação. Só o dono consegue. */
+function alternar(grupoId: string, campo: keyof Moderacao, id: string): boolean {
+  if (!souDonoDo(grupoId)) return false;
+  const estado = lerModeracao();
+  const tinha = estado[campo].includes(id);
+  gravarModeracao({
+    ...estado,
+    [campo]: tinha ? estado[campo].filter((item) => item !== id) : [...estado[campo], id],
+  });
+  return !tinha;
+}
+
+/** Esconder/devolver um tópico. Devolve `true` quando passou a ficar escondido. */
+export function alternarTopicoEscondido(grupoId: string, topicoId: string): boolean {
+  return alternar(grupoId, "topicos", topicoId);
+}
+
+/** Esconder/devolver uma resposta. */
+export function alternarRespostaEscondida(grupoId: string, respostaId: string): boolean {
+  return alternar(grupoId, "respostas", respostaId);
+}
+
+/** Fixar/soltar um tópico no topo — o 📌 do fórum. */
+export function alternarFixado(grupoId: string, topicoId: string): boolean {
+  return alternar(grupoId, "fixados", topicoId);
+}
+
+/**
+ * Cobrir uma resposta como spoiler.
+ *
+ * É o poder mais usado na prática em qualquer conversa sobre livro: quase
+ * ninguém posta spoiler de má-fé, posta distraído. Esconder a mensagem inteira
+ * seria punição desproporcional; cobrir resolve e mantém a conversa.
+ */
+export function alternarSpoiler(grupoId: string, respostaId: string): boolean {
+  return alternar(grupoId, "spoilers", respostaId);
+}
+
+/** O que você escondeu neste fórum — para poder devolver. */
+export function escondidosDo(grupoId: string): { topicos: string[]; respostas: string[] } {
+  const estado = lerModeracao();
+  const idsDoGrupo = new Set(topicosSemeados.filter((t) => t.grupoId === grupoId).map((t) => t.id));
+  for (const meu of meusTopicos().filter((t) => t.grupoId === grupoId)) idsDoGrupo.add(meu.id);
+  return {
+    topicos: estado.topicos.filter((id) => idsDoGrupo.has(id)),
+    respostas: estado.respostas,
+  };
+}
+
+/**
+ * Dá para apagar este fórum?
+ *
+ * Só enquanto ele for **só seu**: nenhum tópico de outra pessoa dentro. Depois
+ * disso, apagar destruiria o que os outros escreveram — e a tela oferece
+ * esconder conteúdo, não demolir a casa.
+ */
+export function podeApagarGrupo(grupoId: string): boolean {
+  if (!souDonoDo(grupoId)) return false;
+  return topicosDa(grupoId, { incluirEscondidos: true }).every((topico) => topico.meu);
+}
+
 /** Os tópicos de umo grupo: fixado primeiro, depois pela última atividade. */
-export function topicosDa(grupoId: string): TopicoNaTela[] {
+export function topicosDa(
+  grupoId: string,
+  opcoes: { incluirEscondidos?: boolean } = {},
+): TopicoNaTela[] {
+  const moderacao = lerModeracao();
   const doEsqueleto: TopicoNaTela[] = topicosSemeados
     .filter((topico) => topico.grupoId === grupoId)
     .map((topico) => {
@@ -478,8 +613,9 @@ export function topicosDa(grupoId: string): TopicoNaTela[] {
         titulo: topico.titulo,
         autor: community.find((member) => member.slug === topico.autorSlug) ?? null,
         date: topico.date,
-        fixado: topico.fixado === true,
+        fixado: topico.fixado === true || moderacao.fixados.includes(topico.id),
         meu: false,
+        escondido: moderacao.topicos.includes(topico.id),
         totalRespostas: total,
         ultimaAtividade: ultima || topico.date,
       };
@@ -495,18 +631,23 @@ export function topicosDa(grupoId: string): TopicoNaTela[] {
         titulo: topico.titulo,
         autor: null,
         date: topico.date,
-        fixado: false,
+        fixado: moderacao.fixados.includes(topico.id),
         meu: true,
+        escondido: moderacao.topicos.includes(topico.id),
         totalRespostas: total,
         ultimaAtividade: ultima || topico.date.slice(0, 10),
       };
     });
 
-  return [...doEsqueleto, ...meus].sort(
-    (a, b) =>
-      Number(b.fixado) - Number(a.fixado) ||
-      b.ultimaAtividade.localeCompare(a.ultimaAtividade),
-  );
+  return [...doEsqueleto, ...meus]
+    /* Escondido some para todo mundo. O dono vê pela tela de moderação, que é
+       onde ele devolve — deixar na lista com um véu confundiria quem lê. */
+    .filter((topico) => opcoes.incluirEscondidos || !topico.escondido)
+    .sort(
+      (a, b) =>
+        Number(b.fixado) - Number(a.fixado) ||
+        b.ultimaAtividade.localeCompare(a.ultimaAtividade),
+    );
 }
 
 /** Uma resposta como o fio mostra. */
@@ -516,6 +657,10 @@ export interface RespostaNaTela {
   texto: string;
   date: string;
   minha: boolean;
+  /** O dono do fórum escondeu. */
+  escondida: boolean;
+  /** O dono cobriu como spoiler: o texto fica atrás de um toque. */
+  spoiler: boolean;
 }
 
 export function tituloDoTopico(topicoId: string): TopicoNaTela | undefined {
@@ -528,6 +673,7 @@ export function tituloDoTopico(topicoId: string): TopicoNaTela | undefined {
 
 /** O fio: respostas semeadas + as suas, na ordem em que chegaram. */
 export function fioDo(topicoId: string): RespostaNaTela[] {
+  const moderacao = lerModeracao();
   const semeado = topicosSemeados.find((topico) => topico.id === topicoId);
   const doEsqueleto: RespostaNaTela[] = (semeado?.respostas ?? []).map((item, indice) => ({
     id: `${topicoId}-r${indice}`,
@@ -535,6 +681,8 @@ export function fioDo(topicoId: string): RespostaNaTela[] {
     texto: item.texto,
     date: item.date,
     minha: false,
+    escondida: moderacao.respostas.includes(`${topicoId}-r${indice}`),
+    spoiler: moderacao.spoilers.includes(`${topicoId}-r${indice}`),
   }));
 
   const minhas: RespostaNaTela[] = minhasRespostas()
@@ -545,9 +693,13 @@ export function fioDo(topicoId: string): RespostaNaTela[] {
       texto: item.texto,
       date: item.date.slice(0, 10),
       minha: true,
+      escondida: moderacao.respostas.includes(item.id),
+      spoiler: moderacao.spoilers.includes(item.id),
     }));
 
-  return [...doEsqueleto, ...minhas].sort((a, b) => a.date.localeCompare(b.date));
+  return [...doEsqueleto, ...minhas]
+    .filter((resposta) => !resposta.escondida)
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /** O resumo que a vitrine da Comunidade mostra. */

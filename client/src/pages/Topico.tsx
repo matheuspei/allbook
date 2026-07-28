@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "wouter";
-import { Send, Trash2 } from "lucide-react";
+import { Ban, EyeOff, Send, Trash2 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PageHeader from "@/components/PageHeader";
@@ -10,8 +10,11 @@ import { initialOf, readProfile } from "@/lib/profile";
 import {
   MAX_RESPOSTA,
   GRUPOS_EVENT,
+  alternarRespostaEscondida,
+  alternarSpoiler,
   apagarMinhaResposta,
   fioDo,
+  souDonoDo,
   responder,
   grupoPorId,
   tituloDoTopico,
@@ -33,6 +36,11 @@ export default function Topico() {
   const [texto, setTexto] = useState("");
 
   const topico = tituloDoTopico(params.topicoId ?? "");
+  /* O fórum a que este tópico pertence — a moderação é de quem criou o fórum. */
+  const grupoId = topico?.grupoId ?? params.id ?? "";
+  const souDono = souDonoDo(grupoId);
+  /* Revelar é por sessão e por resposta: fechar a tela cobre tudo de novo. */
+  const [revelados, setRevelados] = useState<string[]>([]);
 
   useEffect(() => {
     const atualizar = () => setFio(fioDo(params.topicoId ?? ""));
@@ -119,8 +127,60 @@ export default function Topico() {
                     <Trash2 className="h-3 w-3" />
                   </button>
                 )}
+
+                {/*
+                  Moderação do dono do fórum (ROTEIRO 4.44). **Cobrir vem antes
+                  de esconder** na ordem dos botões porque é o que ele mais vai
+                  usar: quase ninguém posta spoiler de má-fé, posta distraído —
+                  e esconder a mensagem inteira por isso seria desproporcional.
+                */}
+                {souDono && !resposta.minha && (
+                  <span className="ml-auto flex items-center gap-0.5">
+                    <button
+                      onClick={() => {
+                        const cobriu = alternarSpoiler(grupoId, resposta.id);
+                        toast({
+                          title: cobriu ? "Coberto como spoiler" : "Descoberto",
+                        });
+                      }}
+                      className={`p-1 transition-colors ${
+                        resposta.spoiler ? "text-[#f59e0b]" : "text-white/20 hover:text-white/60"
+                      }`}
+                      aria-label="Cobrir como spoiler"
+                      data-testid={`spoiler-${resposta.id}`}
+                    >
+                      <EyeOff className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        alternarRespostaEscondida(grupoId, resposta.id);
+                        toast({
+                          title: "Resposta escondida",
+                          description: "Some do fio. Dá para devolver tocando de novo no olho.",
+                        });
+                      }}
+                      className="p-1 text-white/20 transition-colors hover:text-red-300"
+                      aria-label="Esconder esta resposta"
+                      data-testid={`esconder-resposta-${resposta.id}`}
+                    >
+                      <Ban className="h-3 w-3" />
+                    </button>
+                  </span>
+                )}
               </p>
-              <p className="mt-1 text-sm leading-relaxed text-white/80">{resposta.texto}</p>
+
+              {resposta.spoiler && !revelados.includes(resposta.id) ? (
+                <button
+                  onClick={() => setRevelados((atual) => [...atual, resposta.id])}
+                  className="mt-1.5 flex w-full items-center gap-2 rounded-lg bg-white/[0.05] px-3 py-2 text-left text-[11.5px] text-white/45 transition-colors hover:bg-white/10"
+                  data-testid={`revelar-${resposta.id}`}
+                >
+                  <EyeOff className="h-3 w-3 shrink-0 text-[#f59e0b]" />
+                  Marcada como spoiler — toque para ler assim mesmo.
+                </button>
+              ) : (
+                <p className="mt-1 text-sm leading-relaxed text-white/80">{resposta.texto}</p>
+              )}
             </div>
           </div>
         ))}
