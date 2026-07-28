@@ -15,7 +15,8 @@ import {
 import { community, findMember } from "@/lib/community";
 import { isFollowing, readFollowing, toggleFollow } from "@/lib/following";
 import { readLibrary } from "@/lib/library";
-import { RODAS_EVENT, resumoDasRodas } from "@/lib/rodasDeConversa";
+import { GRUPOS_EVENT, criarGrupo, resumoDosGrupos } from "@/lib/grupos";
+import { catalog } from "@/lib/books";
 
 /**
  * Comunidade (`/community`) — reorganizada em três abas internas (28/07).
@@ -24,23 +25,26 @@ import { RODAS_EVENT, resumoDasRodas } from "@/lib/rodasDeConversa";
  * Matheus apontou: *"muita coisa, muita coisa solta — organizar melhor"*. A
  * resposta é a divisão por assunto, nas pílulas que a Biblioteca já usa:
  *
- * - **Agora** — o vivo: quem está ouvindo (fita de capas) e o Mural.
- * - **Conversas** — o assunto: as conversas da semana (fusão do "top da
- *   semana" com as portas — apontavam para as mesmas salas), as Rodas
- *   (Orkut: roda → tópico → respostas) e os clubes.
- * - **Gente** — as pessoas: pódio da semana, combina com você, seguindo.
+ * - **Mural** — o vivo: quem está ouvindo (fita de capas) e o Mural.
+ * - **Grupos** — o assunto: as conversas da semana (fusão do "top da
+ *   semana" com as portas — apontavam para as mesmas salas), os Grupos
+ *   (Orkut: grupo → tópico → respostas, com CRIAR) e os clubes.
+ * - **Pessoas** — combina com você, a lista de todo mundo, seguindo.
+ *   (O pódio nasceu e morreu no mesmo dia — "não está legal", disse ele.)
  *
  * Cada aba tem 2–3 blocos. Nenhuma função morreu na reorganização; a fileira
  * "Seguindo" encolheu para uma linha porque era a mais redundante (quem você
  * segue já aparece no mural e nas páginas).
  */
 
-type Aba = "agora" | "conversas" | "gente";
+type Aba = "agora" | "grupos" | "pessoas";
 
 const ABAS: { key: Aba; label: string }[] = [
-  { key: "agora", label: "Agora" },
-  { key: "conversas", label: "Conversas" },
-  { key: "gente", label: "Gente" },
+  // "Mural" nomeia o coração; "Grupos" é a palavra que todo mundo entende
+  // hoje (28/07 — "Conversas" e "Rodas de conversa" caíram por pedido).
+  { key: "agora", label: "Mural" },
+  { key: "grupos", label: "Grupos" },
+  { key: "pessoas", label: "Pessoas" },
 ];
 
 export default function Community() {
@@ -83,8 +87,8 @@ export default function Community() {
       </header>
 
       {aba === "agora" && <AbaAgora />}
-      {aba === "conversas" && <AbaConversas />}
-      {aba === "gente" && <AbaGente />}
+      {aba === "grupos" && <AbaGrupos />}
+      {aba === "pessoas" && <AbaPessoas />}
     </div>
   );
 }
@@ -147,43 +151,111 @@ function AbaAgora() {
 }
 
 /* ------------------------------------------------------------------ *
- * Conversas — o assunto: salas da semana, Rodas, clubes
+ * Grupos — o assunto: salas da semana, Grupos, clubes
  * ------------------------------------------------------------------ */
 
-function AbaConversas() {
-  const [rodas, setRodas] = useState(() => resumoDasRodas());
+function AbaGrupos() {
+  const { toast } = useToast();
+  const [grupos, setGrupos] = useState(() => resumoDosGrupos());
+  const [criando, setCriando] = useState(false);
+  const [nome, setNome] = useState("");
+  const [emoji, setEmoji] = useState("");
+  const [descricao, setDescricao] = useState("");
 
   useEffect(() => {
-    const atualizar = () => setRodas(resumoDasRodas());
+    const atualizar = () => setGrupos(resumoDosGrupos());
     atualizar();
-    window.addEventListener(RODAS_EVENT, atualizar);
-    return () => window.removeEventListener(RODAS_EVENT, atualizar);
+    window.addEventListener(GRUPOS_EVENT, atualizar);
+    return () => window.removeEventListener(GRUPOS_EVENT, atualizar);
   }, []);
 
+  /** Cria o grupo e limpa o formulário — quem cria já entra participando. */
+  function publicarGrupo() {
+    const novo = criarGrupo(nome, emoji, descricao);
+    if (novo) {
+      setNome("");
+      setEmoji("");
+      setDescricao("");
+      setCriando(false);
+      toast({ title: `Grupo "${novo.nome}" criado`, description: "Você já participa — crie o primeiro tópico." });
+    }
+  }
+
   return (
-    <div data-testid="community-conversas">
+    <div data-testid="community-grupos">
       {/* A fusão: o "top da semana" e as portas eram as mesmas salas. */}
       <ConversasDeAgora />
 
-      <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="community-rodas">
-        <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-          Rodas de conversa
-        </h2>
+      <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="community-grupos-lista">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
+            Grupos
+          </h2>
+          {/* O que faltava (28/07): criar grupo é de quem usa, não só do app. */}
+          <button
+            onClick={() => setCriando((v) => !v)}
+            className="flex items-center gap-1 text-xs font-semibold text-primary"
+            data-testid="button-create-group"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Criar grupo
+          </button>
+        </div>
+
+        {criando && (
+          <div className="mb-3 rounded-xl border border-white/10 bg-white/[0.03] p-3.5" data-testid="group-composer">
+            <div className="flex gap-2">
+              <input
+                value={emoji}
+                onChange={(event) => setEmoji(event.target.value.slice(0, 4))}
+                placeholder="💬"
+                className="w-12 rounded-lg border border-white/10 bg-transparent py-2 text-center text-base focus:outline-none focus:border-primary/50"
+                aria-label="Ícone do grupo (um emoji)"
+                data-testid="group-emoji"
+              />
+              <input
+                value={nome}
+                onChange={(event) => setNome(event.target.value.slice(0, 40))}
+                placeholder="Nome do grupo…"
+                autoFocus
+                className="min-w-0 flex-1 rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
+                data-testid="group-name"
+              />
+            </div>
+            <input
+              value={descricao}
+              onChange={(event) => setDescricao(event.target.value.slice(0, 160))}
+              placeholder="Sobre o que é? (opcional)"
+              className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-xs focus:outline-none focus:border-primary/50"
+              data-testid="group-description"
+            />
+            <div className="mt-2.5 flex justify-end">
+              <button
+                onClick={publicarGrupo}
+                disabled={nome.trim().length === 0}
+                className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-black disabled:opacity-30"
+                data-testid="group-publish"
+              >
+                Criar
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2.5">
-          {rodas.map(({ roda, totalTopicos, totalPessoas, participo }) => (
+          {grupos.map(({ grupo, totalTopicos, totalPessoas, participo }) => (
             <Link
-              key={roda.id}
-              href={`/roda/${roda.id}`}
+              key={grupo.id}
+              href={`/grupo/${grupo.id}`}
               className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06]"
-              data-testid={`roda-card-${roda.id}`}
+              data-testid={`grupo-card-${grupo.id}`}
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] ring-1 ring-white/10 text-xl">
-                {roda.emoji}
+                {grupo.emoji}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">
-                  {roda.nome}
+                  {grupo.nome}
                   {participo && (
                     <span className="ml-2 text-[9px] font-bold uppercase tracking-wide text-primary">
                       você participa
@@ -211,7 +283,7 @@ function AbaConversas() {
  * Gente — pódio, afinidade e quem você segue
  * ------------------------------------------------------------------ */
 
-function AbaGente() {
+function AbaPessoas() {
   const { toast } = useToast();
   const [sugestoes, setSugestoes] = useState<Suggestion[]>([]);
   const [following, setFollowing] = useState<string[]>([]);
@@ -234,45 +306,19 @@ function AbaGente() {
     });
   }
 
-  // O pódio: os três que mais ouviram — celebração, não ranking de pressão.
-  const podio = [...community].sort((a, b) => b.hoursListened - a.hoursListened).slice(0, 3);
-  const medalhas = ["🥇", "🥈", "🥉"];
-
   const seguindo = following
     .map((slug) => findMember(slug))
     .filter((member): member is NonNullable<typeof member> => member !== undefined);
 
-  return (
-    <div data-testid="community-gente">
-      <section className="px-5 pt-1 pb-4 border-b border-white/10" data-testid="community-podium">
-        <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-          O pódio da semana
-        </h2>
-        <div className="flex items-center gap-2 rounded-xl border border-amber-500/25 bg-gradient-to-r from-amber-500/10 to-amber-500/[0.02] px-4 py-3">
-          {podio.map((member, indice) => (
-            <Link
-              key={member.slug}
-              href={`/user/${member.slug}`}
-              className="flex flex-1 items-center gap-2 group"
-              data-testid={`podium-${member.slug}`}
-            >
-              <span className="text-base">{medalhas[indice]}</span>
-              <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${member.color} text-xs font-bold`}
-              >
-                {member.name.charAt(0)}
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-[11px] font-bold leading-tight transition-colors group-hover:text-primary">
-                  {member.name.split(" ")[0]}
-                </span>
-                <span className="block text-[9px] text-white/35">{member.hoursListened}h</span>
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
+  /*
+   * O pódio da semana morava aqui e MORREU em 28/07, no mesmo dia em que
+   * nasceu — o Matheus: "não está legal, tem que ser totalmente reformulado".
+   * No lugar: a lista completa de "Todo mundo", rica de contexto (bio, o que
+   * a pessoa está ouvindo, seguir ali) — gente como gente, não como ranking.
+   */
 
+  return (
+    <div data-testid="community-pessoas">
       {sugestoes.length > 0 && (
         <section className="pt-5 pb-4 border-b border-white/10" data-testid="community-suggestions">
           <h2 className="mb-3 px-5 text-[11px] font-semibold uppercase tracking-wider text-white/40">
@@ -332,6 +378,58 @@ function AbaGente() {
           </div>
         </section>
       )}
+
+      {/* Todo mundo, com contexto: bio, o que está ouvindo, e o Seguir ali.
+          É o que substituiu o pódio — gente como gente, não como ranking. */}
+      <section className="px-5 pt-5 pb-2 border-b border-white/10" data-testid="community-everyone">
+        <h2 className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+          Todo mundo
+        </h2>
+        {community.map((member) => {
+          const ja = isFollowing(member.slug);
+          const ouvindo = member.ouvindoAgora
+            ? catalog.find((book) => book.id === member.ouvindoAgora?.bookId)
+            : undefined;
+          return (
+            <div
+              key={member.slug}
+              className="flex items-center gap-3 border-b border-white/5 py-3 last:border-b-0"
+              data-testid={`everyone-${member.slug}`}
+            >
+              <Link
+                href={`/user/${member.slug}`}
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${member.color} font-display font-bold`}
+              >
+                {member.name.charAt(0)}
+              </Link>
+              <Link href={`/user/${member.slug}`} className="min-w-0 flex-1 group">
+                <p className="truncate text-sm font-semibold transition-colors group-hover:text-primary">
+                  {member.name}
+                </p>
+                <p className="truncate text-[11px] text-white/40">{member.bio}</p>
+                {ouvindo && (
+                  <p className="mt-0.5 flex items-center gap-1 truncate text-[10px] text-green-400/80">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-400" />
+                    ouvindo {ouvindo.title}
+                  </p>
+                )}
+              </Link>
+              <button
+                onClick={() => seguir(member.slug, member.name.split(" ")[0])}
+                className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                  ja
+                    ? "border border-white/15 text-white/50"
+                    : "bg-primary text-black hover:bg-primary/90"
+                }`}
+                data-testid={`everyone-follow-${member.slug}`}
+              >
+                {ja ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                {ja ? "Seguindo" : "Seguir"}
+              </button>
+            </div>
+          );
+        })}
+      </section>
 
       {/* Uma linha, não um bloco: era a parte mais redundante da tela antiga. */}
       {seguindo.length > 0 && (

@@ -5,30 +5,33 @@ import { Check, MessageSquare, Pin, Plus, Trash2, UserPlus } from "lucide-react"
 import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { relativeDate } from "@/lib/activity";
+import { useLocation } from "wouter";
 import {
   MAX_TITULO,
-  RODAS_EVENT,
+  GRUPOS_EVENT,
   alternarParticipacao,
+  apagarMeuGrupo,
   apagarMeuTopico,
   criarTopico,
   participoDa,
-  rodaPorId,
+  grupoPorId,
   topicosDa,
   type TopicoNaTela,
-} from "@/lib/rodasDeConversa";
+} from "@/lib/grupos";
 
 /**
- * A tela de uma Roda (`/roda/:id`) — a "comunidade" do Orkut, por dentro.
+ * A tela de um Grupo (`/grupo/:id`) — a "comunidade" do Orkut, por dentro.
  *
  * Cabeçalho com o assunto, botão de participar, e a lista de **tópicos** —
  * cada um com autor, contagem de respostas e última atividade. Criar tópico é
  * para quem entrou; quem toca em "Criar" sem ter entrado, entra junto (um
  * atrito a menos, e o gesto já diz a intenção).
  */
-export default function Roda() {
+export default function Grupo() {
   const params = useParams<{ id: string }>();
   const { toast } = useToast();
-  const roda = rodaPorId(params.id ?? "");
+  const [, setLocation] = useLocation();
+  const grupo = grupoPorId(params.id ?? "");
 
   const [topicos, setTopicos] = useState<TopicoNaTela[]>([]);
   const [dentro, setDentro] = useState(false);
@@ -37,20 +40,20 @@ export default function Roda() {
 
   useEffect(() => {
     const atualizar = () => {
-      setTopicos(roda ? topicosDa(roda.id) : []);
-      setDentro(roda ? participoDa(roda.id) : false);
+      setTopicos(grupo ? topicosDa(grupo.id) : []);
+      setDentro(grupo ? participoDa(grupo.id) : false);
     };
     atualizar();
-    window.addEventListener(RODAS_EVENT, atualizar);
-    return () => window.removeEventListener(RODAS_EVENT, atualizar);
+    window.addEventListener(GRUPOS_EVENT, atualizar);
+    return () => window.removeEventListener(GRUPOS_EVENT, atualizar);
   }, [params.id]);
 
-  if (!roda) {
+  if (!grupo) {
     return (
-      <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="roda-missing">
-        <PageHeader title="Roda" fallback="/community" />
+      <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="grupo-missing">
+        <PageHeader title="Grupo" fallback="/community" />
         <div className="px-8 py-20 text-center space-y-4">
-          <p className="text-sm text-white/50">Essa roda não existe.</p>
+          <p className="text-sm text-white/50">Esso grupo não existe.</p>
           <Link href="/community" className="inline-block text-sm font-bold text-primary">
             Voltar à Comunidade
           </Link>
@@ -60,9 +63,9 @@ export default function Roda() {
   }
 
   function participar() {
-    const agora = alternarParticipacao(roda!.id);
+    const agora = alternarParticipacao(grupo!.id);
     toast({
-      title: agora ? `Você entrou em ${roda!.nome}` : `Você saiu de ${roda!.nome}`,
+      title: agora ? `Você entrou em ${grupo!.nome}` : `Você saiu de ${grupo!.nome}`,
       description: agora ? "Agora pode criar tópicos e responder." : undefined,
     });
   }
@@ -70,43 +73,43 @@ export default function Roda() {
   function publicarTopico() {
     if (!criando) {
       // Criar já diz a intenção: quem não entrou, entra junto.
-      if (!dentro) alternarParticipacao(roda!.id);
+      if (!dentro) alternarParticipacao(grupo!.id);
       setCriando(true);
       return;
     }
-    const novo = criarTopico(roda!.id, titulo);
+    const novo = criarTopico(grupo!.id, titulo);
     if (novo) {
       setTitulo("");
       setCriando(false);
-      toast({ title: "Tópico criado", description: "Ele já está no topo da lista da roda." });
+      toast({ title: "Tópico criado", description: "Ele já está no topo da lista do grupo." });
     }
   }
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="roda-page">
-      <PageHeader title="Roda" fallback="/community" />
+    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="grupo-page">
+      <PageHeader title="Grupo" fallback="/community" />
 
       <header className="px-5 pt-6 pb-5 border-b border-white/10">
         <div className="flex items-center gap-3.5">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/[0.06] ring-1 ring-white/10 text-3xl">
-            {roda.emoji}
+            {grupo.emoji}
           </span>
           <div className="min-w-0 flex-1">
-            <h1 className="font-display text-xl font-bold tracking-tight">{roda.nome}</h1>
+            <h1 className="font-display text-xl font-bold tracking-tight">{grupo.nome}</h1>
             <p className="mt-0.5 text-[11px] text-white/40">
-              {roda.membros.length + (dentro ? 1 : 0)} pessoas
+              {grupo.membros.length + (dentro ? 1 : 0)} pessoas
               {dentro && " · você participa"}
             </p>
           </div>
         </div>
 
-        <p className="mt-3.5 text-sm leading-relaxed text-white/55">{roda.descricao}</p>
+        <p className="mt-3.5 text-sm leading-relaxed text-white/55">{grupo.descricao}</p>
 
         <div className="mt-4 flex gap-2.5">
           <button
             onClick={publicarTopico}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
-            data-testid="roda-create-topic"
+            data-testid="grupo-create-topic"
           >
             <Plus className="h-4 w-4" />
             Criar tópico
@@ -118,22 +121,38 @@ export default function Roda() {
                 ? "border border-white/15 text-white/70 hover:bg-white/5"
                 : "border border-primary/50 text-primary hover:bg-primary/10"
             }`}
-            data-testid="roda-join"
+            data-testid="grupo-join"
           >
             {dentro ? <Check className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
             {dentro ? "Participando" : "Participar"}
           </button>
         </div>
 
+        {/* Grupo seu: dá para apagar — leva os seus tópicos junto. */}
+        {grupo.meu && (
+          <button
+            onClick={() => {
+              apagarMeuGrupo(grupo.id);
+              toast({ title: `Grupo "${grupo.nome}" apagado` });
+              setLocation("/community");
+            }}
+            className="mt-3 flex w-full items-center justify-center gap-1.5 py-2 text-xs text-white/30 transition-colors hover:text-white/60"
+            data-testid="grupo-delete"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Apagar este grupo
+          </button>
+        )}
+
         {criando && (
-          <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] p-3" data-testid="roda-composer">
+          <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] p-3" data-testid="grupo-composer">
             <input
               value={titulo}
               onChange={(event) => setTitulo(event.target.value.slice(0, MAX_TITULO))}
               placeholder="O título do seu tópico — uma pergunta funciona bem…"
               autoFocus
               className="w-full bg-transparent text-sm text-white placeholder:text-white/30 focus:outline-none"
-              data-testid="roda-topic-title"
+              data-testid="grupo-topic-title"
             />
             <div className="mt-2.5 flex items-center justify-between">
               <span className="text-[10px] text-white/25">{titulo.length}/{MAX_TITULO}</span>
@@ -141,7 +160,7 @@ export default function Roda() {
                 onClick={publicarTopico}
                 disabled={titulo.trim().length === 0}
                 className="rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-black disabled:opacity-30"
-                data-testid="roda-topic-publish"
+                data-testid="grupo-topic-publish"
               >
                 Publicar tópico
               </button>
@@ -158,7 +177,7 @@ export default function Roda() {
         {topicos.map((topico) => (
           <div key={topico.id} className="group relative" data-testid={`topico-${topico.id}`}>
             <Link
-              href={`/roda/${roda.id}/topico/${topico.id}`}
+              href={`/grupo/${grupo.id}/topico/${topico.id}`}
               className="block rounded-xl border border-white/5 bg-white/[0.03] p-3.5 mb-2.5 transition-colors hover:bg-white/[0.06]"
             >
               <p className="pr-6 text-sm font-semibold leading-snug">

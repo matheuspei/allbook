@@ -9,17 +9,17 @@ import { relativeDate } from "@/lib/activity";
 import { initialOf, readProfile } from "@/lib/profile";
 import {
   MAX_RESPOSTA,
-  RODAS_EVENT,
+  GRUPOS_EVENT,
   apagarMinhaResposta,
   fioDo,
   responder,
-  rodaPorId,
+  grupoPorId,
   tituloDoTopico,
   type RespostaNaTela,
-} from "@/lib/rodasDeConversa";
+} from "@/lib/grupos";
 
 /**
- * O fio de um tópico (`/roda/:id/topico/:topicoId`) — as respostas em
+ * O fio de um tópico (`/grupo/:id/topico/:topicoId`) — as respostas em
  * sequência, como no Orkut. A caixa de responder fica no fim, onde a leitura
  * termina; resposta sua tem lixeira.
  */
@@ -28,7 +28,7 @@ export default function Topico() {
   const { toast } = useToast();
   const perfil = useMemo(readProfile, []);
 
-  const roda = rodaPorId(params.id ?? "");
+  const grupo = grupoPorId(params.id ?? "");
   const [fio, setFio] = useState<RespostaNaTela[]>([]);
   const [texto, setTexto] = useState("");
 
@@ -37,11 +37,11 @@ export default function Topico() {
   useEffect(() => {
     const atualizar = () => setFio(fioDo(params.topicoId ?? ""));
     atualizar();
-    window.addEventListener(RODAS_EVENT, atualizar);
-    return () => window.removeEventListener(RODAS_EVENT, atualizar);
+    window.addEventListener(GRUPOS_EVENT, atualizar);
+    return () => window.removeEventListener(GRUPOS_EVENT, atualizar);
   }, [params.topicoId]);
 
-  if (!roda || !topico) {
+  if (!grupo || !topico) {
     return (
       <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="topico-missing">
         <PageHeader title="Tópico" fallback="/community" />
@@ -65,14 +65,14 @@ export default function Topico() {
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="topico-page">
-      <PageHeader title={roda.nome} fallback={`/roda/${roda.id}`} />
+      <PageHeader title={grupo.nome} fallback={`/grupo/${grupo.id}`} />
 
       <header className="px-5 pt-5 pb-4 border-b border-white/10">
         <h1 className="font-display text-lg font-bold leading-snug tracking-tight">
           {topico.titulo}
         </h1>
         <p className="mt-1.5 text-[11px] text-white/40">
-          por {topico.meu ? "você" : topico.autor?.name ?? "alguém"} · em {roda.emoji} {roda.nome}{" "}
+          por {topico.meu ? "você" : topico.autor?.name ?? "alguém"} · em {grupo.emoji} {grupo.nome}{" "}
           · {fio.length} {fio.length === 1 ? "resposta" : "respostas"}
         </p>
       </header>

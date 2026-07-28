@@ -17,7 +17,7 @@ import RecommendationsEdit from "@/pages/RecommendationsEdit";
 // e `Settings` seria confundido com o ícone de mesmo nome do lucide.
 import SettingsPage from "@/pages/Settings";
 import Community from "@/pages/Community";
-import Roda from "@/pages/Roda";
+import Grupo from "@/pages/Grupo";
 import Topico from "@/pages/Topico";
 import Clubes from "@/pages/Clubes";
 import Clube from "@/pages/Clube";
@@ -112,10 +112,10 @@ function Router() {
             <Route path="/profile" component={Profile} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/community" component={Community} />
-            {/* As Rodas de conversa (Orkut: comunidade → tópico → respostas).
+            {/* Os Grupos (Orkut: comunidade → tópico → respostas).
                 A mais específica primeiro, regra deste Switch. */}
-            <Route path="/roda/:id/topico/:topicoId" component={Topico} />
-            <Route path="/roda/:id" component={Roda} />
+            <Route path="/grupo/:id/topico/:topicoId" component={Topico} />
+            <Route path="/grupo/:id" component={Grupo} />
             {/* `/clubes/novo` antes de `/clubes` e de `/clube/:id`: rota mais
                 específica primeiro é a regra deste Switch (ver o cabeçalho). */}
             <Route path="/clubes/novo" component={NovoClube} />

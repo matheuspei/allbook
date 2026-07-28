@@ -1,47 +1,49 @@
 /**
- * As Rodas de conversa — a ideia do Orkut, com o nome da casa (28/07).
+ * As Grupos — a ideia do Orkut, com o nome da casa (28/07).
  *
  * O Matheus lembrou das comunidades do Orkut: você entrava numa comunidade,
  * dentro dela havia **tópicos**, e cada tópico tinha o seu fio de respostas.
- * Aqui a estrutura é a mesma — **Roda → tópicos → respostas** — com o nome
- * "Roda" porque "comunidade dentro da Comunidade" confundiria, e a palavra já
- * é do app ("Formador de Roda", "a sua roda").
+ * Aqui a estrutura é a mesma — **Grupo → tópicos → respostas** — com o nome
+ * "Grupo" porque "comunidade dentro da Comunidade" confundiria, e a palavra já
+ * é do app ("Formador de Grupo", "a suo grupo").
  *
  * **O nível que faltava:** a sala do livro conversa sobre UM livro; o clube é
- * uma turma com prazo; a Roda conversa sobre UM ASSUNTO ("Suspense &
+ * uma turma com prazo; o Grupo conversa sobre UM ASSUNTO ("Suspense &
  * Mistério", "Quem ouve no trânsito") — é a casa do pedido de indicação por
  * tema, que estava anotado no roteiro esperando lugar.
  *
  * **Quem pode o quê:** entrar é livre (um toque); criar tópico e responder é
- * para quem entrou. Como tudo no app: as rodas e os fios dos leitores
+ * para quem entrou. Como tudo no app: as grupos e os fios dos leitores
  * fictícios são o esqueleto semeado; o que VOCÊ faz mora no `localStorage`
  * (participações, tópicos e respostas) e sobrevive a recarregar.
  *
- * O arquivo se chama `rodasDeConversa` e não `rodas` porque `lib/rodas.ts` já
- * existe — é a **rodada** do clube, da janela A, outra coisa.
+ * O arquivo se chama `grupos` e não `grupos` porque `lib/grupos.ts` já
+ * existe — é a **grupoda** do clube, da janela A, outra coisa.
  */
 
 import { community, type CommunityMember } from "@/lib/community";
 
-const PARTICIPO_KEY = "allbook_rodas_participo";
-const MEUS_TOPICOS_KEY = "allbook_rodas_meus_topicos";
-const MINHAS_RESPOSTAS_KEY = "allbook_rodas_minhas_respostas";
+const PARTICIPO_KEY = "allbook_grupos_participo";
+const MEUS_TOPICOS_KEY = "allbook_grupos_meus_topicos";
+const MINHAS_RESPOSTAS_KEY = "allbook_grupos_minhas_respostas";
 
 /** Aviso de mudança — as telas releem sem recarregar. */
-export const RODAS_EVENT = "allbook:rodas";
+export const GRUPOS_EVENT = "allbook:grupos";
 
 /** Tamanhos: título curto de fórum; resposta um pouco maior que post do mural. */
 export const MAX_TITULO = 120;
 export const MAX_RESPOSTA = 400;
 
-export interface Roda {
+export interface Grupo {
   id: string;
   nome: string;
-  /** O ícone da roda — emoji, como as comunidades do Orkut tinham imagem. */
+  /** O ícone do grupo — emoji, como as comunidades do Orkut tinham imagem. */
   emoji: string;
   descricao: string;
-  /** Slugs de `community.ts` que "moram" nesta roda. */
+  /** Slugs de `community.ts` que "moram" neste grupo. */
   membros: string[];
+  /** Você criou — pode apagar, e ele mora no `localStorage`. */
+  meu?: boolean;
 }
 
 export interface RespostaSemeada {
@@ -53,20 +55,20 @@ export interface RespostaSemeada {
 
 export interface TopicoSemeado {
   id: string;
-  rodaId: string;
+  grupoId: string;
   titulo: string;
   autorSlug: string;
   date: string;
-  /** Fixado no topo da roda (o 📌 do Orkut). */
+  /** Fixado no topo do grupo (o 📌 do Orkut). */
   fixado?: boolean;
   respostas: RespostaSemeada[];
 }
 
 /* ------------------------------------------------------------------ *
- * O esqueleto — rodas e fios fictícios, para dar o que ler no dia 1
+ * O esqueleto — grupos e fios fictícios, para dar o que ler no dia 1
  * ------------------------------------------------------------------ */
 
-export const rodas: Roda[] = [
+export const grupos: Grupo[] = [
   {
     id: "suspense-misterio",
     nome: "Suspense & Mistério",
@@ -108,7 +110,7 @@ export const rodas: Roda[] = [
 const topicosSemeados: TopicoSemeado[] = [
   {
     id: "t-garota-final",
-    rodaId: "suspense-misterio",
+    grupoId: "suspense-misterio",
     titulo: 'Final de "Garota Exemplar": genial ou trapaça?',
     autorSlug: "ana-paula",
     date: "2026-07-26",
@@ -141,7 +143,7 @@ const topicosSemeados: TopicoSemeado[] = [
   },
   {
     id: "t-narrador-suspense",
-    rodaId: "suspense-misterio",
+    grupoId: "suspense-misterio",
     titulo: "Narrador de suspense: sussurro ou voz firme?",
     autorSlug: "marcos-v",
     date: "2026-07-24",
@@ -161,7 +163,7 @@ const topicosSemeados: TopicoSemeado[] = [
   },
   {
     id: "t-indicacao-suspense",
-    rodaId: "suspense-misterio",
+    grupoId: "suspense-misterio",
     titulo: "Me indiquem: suspense curto pra maratonar no feriado",
     autorSlug: "ricardo",
     date: "2026-07-21",
@@ -180,7 +182,7 @@ const topicosSemeados: TopicoSemeado[] = [
   },
   {
     id: "t-velocidade-transito",
-    rodaId: "quem-ouve-no-transito",
+    grupoId: "quem-ouve-no-transito",
     titulo: "Velocidade 1,5x no trânsito: prática ou heresia?",
     autorSlug: "marcos-v",
     date: "2026-07-23",
@@ -199,7 +201,7 @@ const topicosSemeados: TopicoSemeado[] = [
   },
   {
     id: "t-capitulo-acaba",
-    rodaId: "quem-ouve-no-transito",
+    grupoId: "quem-ouve-no-transito",
     titulo: "O capítulo acabou e você ainda não chegou: o que fazem?",
     autorSlug: "felipe-g",
     date: "2026-07-19",
@@ -213,7 +215,7 @@ const topicosSemeados: TopicoSemeado[] = [
   },
   {
     id: "t-elizabeth-audio",
-    rodaId: "classicos",
+    grupoId: "classicos",
     titulo: "Orgulho e Preconceito: a Elizabeth do áudio supera a do papel?",
     autorSlug: "juliana-s",
     date: "2026-07-22",
@@ -233,7 +235,7 @@ const topicosSemeados: TopicoSemeado[] = [
   },
   {
     id: "t-1984-medo",
-    rodaId: "classicos",
+    grupoId: "classicos",
     titulo: "1984 em áudio dá mais medo do que no papel?",
     autorSlug: "carla-lima",
     date: "2026-07-18",
@@ -247,7 +249,7 @@ const topicosSemeados: TopicoSemeado[] = [
   },
   {
     id: "t-duna-audio",
-    rodaId: "ficcao-cientifica",
+    grupoId: "ficcao-cientifica",
     titulo: "Duna: dá pra começar pelo áudio ou se perde nos nomes?",
     autorSlug: "carla-lima",
     date: "2026-07-20",
@@ -267,7 +269,7 @@ const topicosSemeados: TopicoSemeado[] = [
   },
   {
     id: "t-habitos-funcionou",
-    rodaId: "habitos-vida-real",
+    grupoId: "habitos-vida-real",
     titulo: "Hábitos Atômicos: o que funcionou de verdade pra vocês?",
     autorSlug: "luciana",
     date: "2026-07-25",
@@ -292,7 +294,7 @@ const topicosSemeados: TopicoSemeado[] = [
 
 export interface MeuTopico {
   id: string;
-  rodaId: string;
+  grupoId: string;
   titulo: string;
   date: string;
 }
@@ -315,22 +317,63 @@ function lerLista<T>(chave: string): T[] {
 
 function gravarLista<T>(chave: string, lista: T[]): void {
   localStorage.setItem(chave, JSON.stringify(lista));
-  window.dispatchEvent(new Event(RODAS_EVENT));
+  window.dispatchEvent(new Event(GRUPOS_EVENT));
 }
 
-export function rodasQueParticipo(): string[] {
+/* — os grupos que VOCÊ cria (pedido de 28/07: "eu não posso criar um grupo?") — */
+
+const MEUS_GRUPOS_KEY = "allbook_grupos_meus";
+
+export function meusGrupos(): Grupo[] {
+  return lerLista<Grupo>(MEUS_GRUPOS_KEY).map((grupo) => ({ ...grupo, meu: true }));
+}
+
+/** Cria um grupo seu. Nome vazio não cria; emoji vazio ganha o padrão 💬. */
+export function criarGrupo(nome: string, emoji: string, descricao: string): Grupo | null {
+  const nomeLimpo = nome.trim().slice(0, 40);
+  if (!nomeLimpo) return null;
+  const grupo: Grupo = {
+    id: `meu-g-${Date.now()}`,
+    nome: nomeLimpo,
+    emoji: emoji.trim().slice(0, 4) || "💬",
+    descricao: descricao.trim().slice(0, 160),
+    membros: [],
+    meu: true,
+  };
+  gravarLista(MEUS_GRUPOS_KEY, [...lerLista<Grupo>(MEUS_GRUPOS_KEY), grupo]);
+  // Quem cria, participa — criar já é o maior gesto de entrada.
+  const participo = lerLista<string>(PARTICIPO_KEY);
+  if (!participo.includes(grupo.id)) gravarLista(PARTICIPO_KEY, [...participo, grupo.id]);
+  return grupo;
+}
+
+/** Apaga um grupo seu — os tópicos e respostas que você criou nele vão junto. */
+export function apagarMeuGrupo(id: string): void {
+  gravarLista(MEUS_GRUPOS_KEY, lerLista<Grupo>(MEUS_GRUPOS_KEY).filter((g) => g.id !== id));
+  gravarLista(PARTICIPO_KEY, lerLista<string>(PARTICIPO_KEY).filter((p) => p !== id));
+  for (const topico of meusTopicos().filter((t) => t.grupoId === id)) {
+    apagarMeuTopico(topico.id);
+  }
+}
+
+/** Todos os grupos que existem: os semeados e os seus. */
+export function todosOsGrupos(): Grupo[] {
+  return [...grupos, ...meusGrupos()];
+}
+
+export function gruposQueParticipo(): string[] {
   return lerLista<string>(PARTICIPO_KEY);
 }
 
-export function participoDa(rodaId: string): boolean {
-  return rodasQueParticipo().includes(rodaId);
+export function participoDa(grupoId: string): boolean {
+  return gruposQueParticipo().includes(grupoId);
 }
 
 /** Entra ou sai. Devolve o estado novo (true = dentro). */
-export function alternarParticipacao(rodaId: string): boolean {
-  const atual = rodasQueParticipo();
-  const dentro = atual.includes(rodaId);
-  gravarLista(PARTICIPO_KEY, dentro ? atual.filter((id) => id !== rodaId) : [...atual, rodaId]);
+export function alternarParticipacao(grupoId: string): boolean {
+  const atual = gruposQueParticipo();
+  const dentro = atual.includes(grupoId);
+  gravarLista(PARTICIPO_KEY, dentro ? atual.filter((id) => id !== grupoId) : [...atual, grupoId]);
   return !dentro;
 }
 
@@ -338,13 +381,13 @@ export function meusTopicos(): MeuTopico[] {
   return lerLista<MeuTopico>(MEUS_TOPICOS_KEY);
 }
 
-/** Cria um tópico seu numa roda. Título vazio não cria. */
-export function criarTopico(rodaId: string, titulo: string): MeuTopico | null {
+/** Cria um tópico seu numo grupo. Título vazio não cria. */
+export function criarTopico(grupoId: string, titulo: string): MeuTopico | null {
   const clean = titulo.trim().slice(0, MAX_TITULO);
-  if (!clean || !rodaPorId(rodaId)) return null;
+  if (!clean || !grupoPorId(grupoId)) return null;
   const topico: MeuTopico = {
     id: `meu-t-${Date.now()}`,
-    rodaId,
+    grupoId,
     titulo: clean,
     date: new Date().toISOString(),
   };
@@ -387,14 +430,14 @@ export function apagarMinhaResposta(id: string): void {
  * As leituras que as telas usam — esqueleto + o seu, já juntos
  * ------------------------------------------------------------------ */
 
-export function rodaPorId(id: string): Roda | undefined {
-  return rodas.find((roda) => roda.id === id);
+export function grupoPorId(id: string): Grupo | undefined {
+  return todosOsGrupos().find((grupo) => grupo.id === id);
 }
 
 /** Um tópico como a tela vê: semeado ou seu, com contagem e última data. */
 export interface TopicoNaTela {
   id: string;
-  rodaId: string;
+  grupoId: string;
   titulo: string;
   /** Membro fictício, ou `null` = você. */
   autor: CommunityMember | null;
@@ -423,15 +466,15 @@ function contarRespostas(topicoId: string, semeadas: RespostaSemeada[]): {
   };
 }
 
-/** Os tópicos de uma roda: fixado primeiro, depois pela última atividade. */
-export function topicosDa(rodaId: string): TopicoNaTela[] {
+/** Os tópicos de umo grupo: fixado primeiro, depois pela última atividade. */
+export function topicosDa(grupoId: string): TopicoNaTela[] {
   const doEsqueleto: TopicoNaTela[] = topicosSemeados
-    .filter((topico) => topico.rodaId === rodaId)
+    .filter((topico) => topico.grupoId === grupoId)
     .map((topico) => {
       const { total, ultima } = contarRespostas(topico.id, topico.respostas);
       return {
         id: topico.id,
-        rodaId,
+        grupoId,
         titulo: topico.titulo,
         autor: community.find((member) => member.slug === topico.autorSlug) ?? null,
         date: topico.date,
@@ -443,12 +486,12 @@ export function topicosDa(rodaId: string): TopicoNaTela[] {
     });
 
   const meus: TopicoNaTela[] = meusTopicos()
-    .filter((topico) => topico.rodaId === rodaId)
+    .filter((topico) => topico.grupoId === grupoId)
     .map((topico) => {
       const { total, ultima } = contarRespostas(topico.id, []);
       return {
         id: topico.id,
-        rodaId,
+        grupoId,
         titulo: topico.titulo,
         autor: null,
         date: topico.date,
@@ -476,8 +519,8 @@ export interface RespostaNaTela {
 }
 
 export function tituloDoTopico(topicoId: string): TopicoNaTela | undefined {
-  for (const roda of rodas) {
-    const achado = topicosDa(roda.id).find((topico) => topico.id === topicoId);
+  for (const grupo of todosOsGrupos()) {
+    const achado = topicosDa(grupo.id).find((topico) => topico.id === topicoId);
     if (achado) return achado;
   }
   return undefined;
@@ -508,17 +551,18 @@ export function fioDo(topicoId: string): RespostaNaTela[] {
 }
 
 /** O resumo que a vitrine da Comunidade mostra. */
-export function resumoDasRodas(): {
-  roda: Roda;
+export function resumoDosGrupos(): {
+  grupo: Grupo;
   totalTopicos: number;
   totalPessoas: number;
   participo: boolean;
 }[] {
-  return rodas.map((roda) => ({
-    roda,
-    totalTopicos: topicosDa(roda.id).length,
+  // Os seus grupos primeiro: quem cria quer se ver no topo da lista.
+  return [...meusGrupos(), ...grupos].map((grupo) => ({
+    grupo,
+    totalTopicos: topicosDa(grupo.id).length,
     // Você conta quando entrou — o esqueleto não vira número inflado.
-    totalPessoas: roda.membros.length + (participoDa(roda.id) ? 1 : 0),
-    participo: participoDa(roda.id),
+    totalPessoas: grupo.membros.length + (participoDa(grupo.id) ? 1 : 0),
+    participo: participoDa(grupo.id),
   }));
 }
