@@ -109,12 +109,34 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
           />
         </div>
 
+        {/*
+          **O texto foi corrigido em 28/07 porque mentia** (ROTEIRO 4.40). Ele
+          dizia "mensagem que fala além disso chega coberta", dando a entender que
+          o **combinado** decidia o que aparece. Não decide: `MuralDoClube` cobre
+          pelo capítulo em que **você** está. Estando no 3 com o combinado no 7,
+          mensagens de capítulo 5 e 6 — dentro do combinado! — chegavam cobertas,
+          e a tela dizia o contrário.
+
+          As duas regras são diferentes e agora estão escritas como são: o
+          combinado é **até onde escrever**, um acordo do grupo; o que você já
+          ouviu é **até onde ler**, e é individual porque só ela protege de
+          verdade quem ficou para trás. Se a leitura seguisse o combinado, quem
+          está no 3 levaria spoiler do 6 com o app dizendo que está tudo certo.
+        */}
         {marco && (
-          <p className="mt-3 flex items-center gap-2 rounded-lg bg-black/25 px-3 py-2 text-[11px] leading-relaxed text-white/60">
-            <Lock className="h-3 w-3 shrink-0 text-[#f59e0b]" />
+          <p className="mt-3 flex items-start gap-2 rounded-lg bg-black/25 px-3 py-2 text-[11px] leading-relaxed text-white/60">
+            <Lock className="mt-0.5 h-3 w-3 shrink-0 text-[#f59e0b]" />
             <span>
-              Combinado da roda: <b className="text-white/85">até o capítulo {combinado}</b>, prazo{" "}
-              {prazoEmTexto(marco.prazo)}. Mensagem que fala além disso chega coberta.
+              Combinado da roda: <b className="text-white/85">não passar do capítulo {combinado}</b>{" "}
+              nas mensagens, prazo {prazoEmTexto(marco.prazo)}.{" "}
+              {meu > 0 ? (
+                <>
+                  Você lê o que fala até onde ouviu (cap. {meu}); o resto chega coberto e abre
+                  sozinho conforme você avança.
+                </>
+              ) : (
+                <>Você lê cada mensagem quando chegar ao trecho de que ela fala.</>
+              )}
             </span>
           </p>
         )}

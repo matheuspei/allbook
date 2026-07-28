@@ -8,6 +8,13 @@ import { catalog } from "@/lib/books";
 import { getChapters } from "@/lib/chapters";
 import { criarClube, marcosSemanais, hojeIso, dataCurta, somarDiasIso } from "@/lib/clubes";
 
+/**
+ * Quantas pessoas cabem. Para em 20 pelo mesmo motivo que a tela de gerenciar:
+ * acima disso a régua da roda deixa de descrever alguém, e o clube passa a
+ * precisar de outra ferramenta em vez de um número maior.
+ */
+const VAGAS: (number | undefined)[] = [undefined, 6, 12, 20];
+
 /** Quantas semanas o ciclo pode ter. Quatro é o padrão de clube de leitura. */
 const SEMANAS = [2, 3, 4, 6];
 
@@ -40,6 +47,7 @@ export default function NovoClube() {
   const [bookId, setBookId] = useState<number | null>(null);
   const [semanas, setSemanas] = useState(4);
   const [comecaEm, setComecaEm] = useState(0);
+  const [limite, setLimite] = useState<number | undefined>(undefined);
 
   const encontrados = busca.trim()
     ? catalog
@@ -178,6 +186,38 @@ export default function NovoClube() {
           )}
         </Campo>
 
+        {/*
+          **Vagas na criação** (ROTEIRO 4.40, pedido do Matheus em 28/07). Fica
+          aqui, e não só em Gerenciar, porque o tamanho do clube é uma decisão de
+          intenção: quem quer uma turma de quatro pensa nisso ao fundar, não
+          depois de dez pessoas terem entrado. O padrão é sem limite — clube
+          nasce querendo gente.
+        */}
+        <Campo titulo="Quantas pessoas cabem">
+          <div className="flex gap-2">
+            {VAGAS.map((valor) => (
+              <button
+                key={valor ?? "livre"}
+                type="button"
+                onClick={() => setLimite(valor)}
+                className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
+                  limite === valor
+                    ? "bg-white text-black"
+                    : "bg-white/[0.06] text-white/60 hover:bg-white/10"
+                }`}
+                data-testid={`clube-vagas-${valor ?? "livre"}`}
+              >
+                {valor ?? "Sem limite"}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-white/35">
+            {limite === undefined
+              ? "Qualquer pessoa com o link pode entrar. Dá para pôr um limite depois."
+              : `Com ${limite}, todo mundo ainda responde a todo mundo. Dá para mudar depois em Gerenciar.`}
+          </p>
+        </Campo>
+
         <Campo titulo="Em quantas semanas">
           <div className="flex gap-2">
             {SEMANAS.map((valor) => (
@@ -217,7 +257,7 @@ export default function NovoClube() {
         <button
           onClick={() => {
             if (!podeCriar || bookId === null) return;
-            const clube = criarClube({ nome, descricao, bookId, semanas, comecaEm });
+            const clube = criarClube({ nome, descricao, bookId, semanas, comecaEm, limite });
             toast({
               title: comecaEm === 0 ? "Clube criado" : "Clube criado — estreia marcada",
               description:

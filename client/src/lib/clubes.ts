@@ -69,6 +69,16 @@ export interface Clube {
   estante: { bookId: number; terminadoEm: string }[];
   /** Gênero que dá a cara do clube — usado para sugerir. */
   genero: string;
+  /**
+   * Quantas pessoas cabem. Ausente = sem limite.
+   *
+   * **Pedido do Matheus em 28/07** (ROTEIRO 4.40), e ele tem razão de produto:
+   * clube de leitura tem um tamanho útil. Com quatro pessoas todo mundo responde
+   * a todo mundo; com quarenta a conversa vira mural de avisos e ninguém se sente
+   * responsável por aparecer. Deixar o dono escolher é o que permite um clube
+   * pequeno e íntimo existir ao lado de um aberto e grande.
+   */
+  limite?: number;
 }
 
 /* ------------------------------------------------------------------ *
@@ -203,6 +213,31 @@ export const clubesSemeados: Clube[] = [
    * em estreia, a seção "começando em breve" nasceria vazia e ninguém entenderia
    * para que ela serve.
    */
+  /*
+   * **Um clube que é seu, com gente dentro.** Existe por um problema prático,
+   * não por enfeite: o Matheus pediu (28/07) que o moderador tivesse muita
+   * autonomia — tirar gente, pôr assunto em votação, definir quantas vagas. Só
+   * que um clube recém-criado nasce **só com você**, então a lista de membros
+   * teria uma linha, sem ninguém para remover, e a tela de moderação nasceria
+   * como botão morto — exatamente o que a 4.23 mandou varrer.
+   *
+   * A saída honesta foi semear um clube **do qual você é dono**, com os leitores
+   * fictícios de `community.ts` dentro, e **dizer isso na própria descrição**.
+   * Não é encenação: é o mesmo esqueleto declarado que o app usa em toda parte,
+   * posto onde a moderação precisa dele. Apagar leva um toque.
+   */
+  {
+    id: "exemplo-do-dono",
+    nome: "Suspense de Domingo",
+    descricao:
+      "Exemplo: um clube com gente dentro, para você ver os poderes do moderador funcionando de verdade. Os membros são leitores fictícios — pode apagar este clube quando quiser.",
+    donoSlug: EU,
+    membros: [EU, "carla-lima", "marcos-v", "juliana-s", "beto"],
+    ciclo: cicloSemeado(104, 9, 4),
+    estante: [],
+    genero: "Suspense",
+    limite: 8,
+  },
   {
     id: "duna-domingo",
     nome: "Duna, do começo",
@@ -231,9 +266,23 @@ interface EstadoLocal {
   ciclos: Record<string, Ciclo>;
   /** Livros acrescentados à estante de um clube ao encerrar um ciclo. */
   estantes: Record<string, { bookId: number; terminadoEm: string }[]>;
+  /** Membros que o moderador removeu: clubeId → slugs. */
+  removidos: Record<string, string[]>;
+  /** Quantas pessoas cabem: clubeId → limite. Ausente = sem limite. */
+  limites: Record<string, number>;
+  /** Clubes semeados que você apagou (só acontece nos que você modera). */
+  apagados: string[];
 }
 
-const VAZIO: EstadoLocal = { criados: [], entrou: [], ciclos: {}, estantes: {} };
+const VAZIO: EstadoLocal = {
+  criados: [],
+  entrou: [],
+  ciclos: {},
+  estantes: {},
+  removidos: {},
+  limites: {},
+  apagados: [],
+};
 
 function readEstado(): EstadoLocal {
   try {
@@ -244,6 +293,9 @@ function readEstado(): EstadoLocal {
       entrou: Array.isArray(guardado.entrou) ? guardado.entrou : [],
       ciclos: guardado.ciclos ?? {},
       estantes: guardado.estantes ?? {},
+      removidos: guardado.removidos ?? {},
+      limites: guardado.limites ?? {},
+      apagados: Array.isArray(guardado.apagados) ? guardado.apagados : [],
     };
   } catch {
     return VAZIO;
@@ -262,18 +314,45 @@ function salvar(estado: EstadoLocal): void {
 /** Um clube semeado, já com as suas alterações por cima. */
 function comAlteracoes(clube: Clube, estado: EstadoLocal): Clube {
   const entrou = estado.entrou.includes(clube.id);
+  return moderado(
+    {
+      ...clube,
+      membros: entrou ? [...clube.membros, EU] : clube.membros,
+      ciclo: estado.ciclos[clube.id] ?? clube.ciclo,
+      estante: [...(estado.estantes[clube.id] ?? []), ...clube.estante],
+    },
+    estado,
+  );
+}
+
+/**
+ * O que o moderador mexeu, aplicado por cima — vale igual para clube semeado e
+ * para clube seu, e é por isso que mora numa função à parte.
+ *
+ * Guardar "quem foi removido" em vez de reescrever a lista de membros é a mesma
+ * escolha do resto da casa: o esqueleto fica intacto e só a sua decisão é
+ * guardada. Quando houver servidor, isto vira um DELETE e a tela não muda.
+ */
+function moderado(clube: Clube, estado: EstadoLocal): Clube {
+  const fora = estado.removidos[clube.id];
+  const limite = estado.limites[clube.id];
+
   return {
     ...clube,
-    membros: entrou ? [...clube.membros, EU] : clube.membros,
-    ciclo: estado.ciclos[clube.id] ?? clube.ciclo,
-    estante: [...(estado.estantes[clube.id] ?? []), ...clube.estante],
+    membros: fora ? clube.membros.filter((slug) => !fora.includes(slug)) : clube.membros,
+    ...(limite !== undefined ? { limite } : {}),
   };
 }
 
 /** Todos os clubes que existem para você: os semeados e os seus. */
 export function todosOsClubes(): Clube[] {
   const estado = readEstado();
-  return [...estado.criados, ...clubesSemeados.map((clube) => comAlteracoes(clube, estado))];
+  return [
+    ...estado.criados.map((clube) => moderado(clube, estado)),
+    ...clubesSemeados
+      .filter((clube) => !estado.apagados.includes(clube.id))
+      .map((clube) => comAlteracoes(clube, estado)),
+  ];
 }
 
 export function clubePorId(id: string): Clube | undefined {
@@ -395,20 +474,112 @@ export function linkDoClube(id: string): string {
   return `${window.location.origin}/clube/${id}`;
 }
 
+/** Lotado: o limite que o dono definiu foi alcançado. */
+export function clubeCheio(clube: Clube): boolean {
+  return clube.limite !== undefined && clube.membros.length >= clube.limite;
+}
+
+/** Quantas vagas ainda há. `undefined` quando o clube não tem limite. */
+export function vagasRestantes(clube: Clube): number | undefined {
+  if (clube.limite === undefined) return undefined;
+  return Math.max(0, clube.limite - clube.membros.length);
+}
+
 export function entrarNoClube(id: string): void {
   const estado = readEstado();
   if (estado.criados.some((clube) => clube.id === id)) return;
   if (estado.entrou.includes(id)) return;
+
+  /* O limite vale de verdade: entrar em clube lotado não pode ser possível só
+     porque a tela deixou o botão aceso. A tela também esconde o botão. */
+  const clube = clubePorId(id);
+  if (clube && clubeCheio(clube)) return;
+
   salvar({ ...estado, entrou: [...estado.entrou, id] });
 }
 
 export function sairDoClube(id: string): void {
   const estado = readEstado();
+  const clube = clubePorId(id);
+
+  /* Dono de clube semeado (o exemplo) apaga de verdade: sem isto ele voltaria
+     na próxima abertura, porque o esqueleto é código, não dado. */
+  const apagaSemeado = clube !== undefined && souDono(clube) && !estado.criados.some((c) => c.id === id);
+
   salvar({
     ...estado,
     entrou: estado.entrou.filter((item) => item !== id),
-    criados: estado.criados.filter((clube) => clube.id !== id),
+    criados: estado.criados.filter((c) => c.id !== id),
+    apagados: apagaSemeado ? [...estado.apagados, id] : estado.apagados,
   });
+}
+
+/* ------------------------------------------------------------------ *
+ * Poderes do moderador (ROTEIRO 4.40).
+ *
+ * O pedido do Matheus foi direto: *"esse cara tem que ter muita autonomia"*.
+ * Os três que faltavam — tirar gente, pôr assunto em votação e dizer quantas
+ * pessoas cabem — moram aqui. Todos checam a posse: quem não é dono não modera,
+ * e a checagem fica na biblioteca (e não só na tela) porque tela se contorna.
+ * ------------------------------------------------------------------ */
+
+/**
+ * Tirar alguém do clube.
+ *
+ * **Não dá para remover você mesmo:** o dono que quer sair está, na verdade,
+ * apagando o clube — e essa é outra ação, com outra confirmação. Sem esta trava,
+ * um clube ficaria sem dono e sem quem o modere.
+ */
+export function removerMembro(clubeId: string, slug: string): void {
+  if (slug === EU) return;
+  const clube = clubePorId(clubeId);
+  if (!clube || !souDono(clube)) return;
+
+  const estado = readEstado();
+  const jaFora = estado.removidos[clubeId] ?? [];
+  if (jaFora.includes(slug)) return;
+
+  salvar({ ...estado, removidos: { ...estado.removidos, [clubeId]: [...jaFora, slug] } });
+}
+
+/** Devolver alguém que foi removido — todo poder de moderação precisa de volta. */
+export function readmitirMembro(clubeId: string, slug: string): void {
+  const clube = clubePorId(clubeId);
+  if (!clube || !souDono(clube)) return;
+
+  const estado = readEstado();
+  salvar({
+    ...estado,
+    removidos: {
+      ...estado.removidos,
+      [clubeId]: (estado.removidos[clubeId] ?? []).filter((item) => item !== slug),
+    },
+  });
+}
+
+/** Quem o moderador tirou deste clube — para poder desfazer. */
+export function membrosRemovidos(clubeId: string): string[] {
+  return readEstado().removidos[clubeId] ?? [];
+}
+
+/**
+ * Quantas pessoas cabem. `undefined` tira o limite.
+ *
+ * **Nunca abaixo de quem já está dentro:** diminuir o limite não expulsa
+ * ninguém. Expulsar é uma decisão do moderador, tomada nome por nome — fazer
+ * isso de lado, mexendo num número, seria a pior forma de perder um membro.
+ */
+export function definirLimite(clubeId: string, limite: number | undefined): void {
+  const clube = clubePorId(clubeId);
+  if (!clube || !souDono(clube)) return;
+
+  const estado = readEstado();
+  const limites = { ...estado.limites };
+
+  if (limite === undefined) delete limites[clubeId];
+  else limites[clubeId] = Math.max(clube.membros.length, limite);
+
+  salvar({ ...estado, limites });
 }
 
 /**
@@ -432,6 +603,8 @@ export function criarClube(dados: {
    * primeiro capítulo, todas no mesmo ponto.
    */
   comecaEm?: number;
+  /** Quantas pessoas cabem. Ausente = sem limite (ROTEIRO 4.40). */
+  limite?: number;
 }): Clube {
   const estado = readEstado();
   const inicio = somarDias(hojeIso(), dados.comecaEm ?? 0);
@@ -451,6 +624,7 @@ export function criarClube(dados: {
     },
     estante: [],
     genero: livro?.genre ?? "Geral",
+    ...(dados.limite !== undefined ? { limite: dados.limite } : {}),
   };
 
   salvar({ ...estado, criados: [clube, ...estado.criados] });

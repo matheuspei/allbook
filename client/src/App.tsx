@@ -20,6 +20,7 @@ import Community from "@/pages/Community";
 import Clubes from "@/pages/Clubes";
 import Clube from "@/pages/Clube";
 import NovoClube from "@/pages/NovoClube";
+import GerenciarClube from "@/pages/GerenciarClube";
 import UserProfile from "@/pages/UserProfile";
 import Bookmarks from "@/pages/Bookmarks";
 import Downloads from "@/pages/Downloads";
@@ -110,6 +111,9 @@ function Router() {
                 específica primeiro é a regra deste Switch (ver o cabeçalho). */}
             <Route path="/clubes/novo" component={NovoClube} />
             <Route path="/clubes" component={Clubes} />
+            {/* `/clube/:id/gerenciar` antes de `/clube/:id` pela mesma razão:
+                a rota mais curta capturaria a mais longa. */}
+            <Route path="/clube/:id/gerenciar" component={GerenciarClube} />
             <Route path="/clube/:id" component={Clube} />
             <Route path="/user/:slug" component={UserProfile} />
             <Route path="/downloads" component={Downloads} />

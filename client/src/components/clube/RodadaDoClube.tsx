@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
-import { MessageCircleQuestion, Sparkles, Trash2 } from "lucide-react";
+import { MessageCircleQuestion, Trash2 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import { corDoMembro, souDono, type Clube } from "@/lib/clubes";
 import {
-  abrirRodada,
   apagarMinhaResposta,
   encerrarRodada,
   janelaEmTexto,
   minhaResposta,
   nomeDoAutor,
-  PERGUNTAS_SUGERIDAS,
   responderRodada,
   rodadaAberta,
   rodadasEncerradas,
@@ -37,7 +35,6 @@ export default function RodadaDoClube({ clube }: { clube: Clube }) {
   const [aberta, setAberta] = useState<Rodada | undefined>(() => rodadaAberta(clube.id));
   const [encerradas, setEncerradas] = useState<Rodada[]>(() => rodadasEncerradas(clube.id));
   const [texto, setTexto] = useState("");
-  const [novaPergunta, setNovaPergunta] = useState("");
 
   useEffect(() => {
     const atualizar = () => {
@@ -49,15 +46,26 @@ export default function RodadaDoClube({ clube }: { clube: Clube }) {
     return () => window.removeEventListener(RODADAS_EVENT, atualizar);
   }, [clube.id]);
 
-  const souModerador = souDono(clube);
   const jaRespondi = aberta ? minhaResposta(aberta.id) : undefined;
+
+  /*
+   * **Sem rodada aberta e sem histórico, a seção não aparece** (ROTEIRO 4.40).
+   * Antes ela era permanente: quem moderava batia numa caixa de "abrir rodada"
+   * **antes** de ver a conversa, e quem não moderava lia "nenhuma rodada aberta
+   * agora" — um aviso sobre a ausência de algo. Era metade da queixa de layout.
+   * Abrir rodada agora mora em `/clube/:id/gerenciar`, junto dos outros poderes.
+   */
+  if (!aberta && encerradas.length === 0) return null;
 
   return (
     <section className="space-y-3" data-testid="rodada-do-clube">
-      <div className="flex items-baseline justify-between">
-        <h2 className="font-display text-lg font-bold">Encontro</h2>
-        <span className="text-xs text-white/35">sem hora marcada</span>
-      </div>
+      {/*
+        "Encontro · sem hora marcada" saiu. Como cabeçalho ele lia como defeito
+        ("ninguém marcou a hora") quando era a decisão de desenho — o encontro do
+        AllBook é assíncrono de propósito. "A rodada" diz o que a coisa é, e a
+        explicação de que não tem hora marcada está dentro do bloco.
+      */}
+      <h2 className="font-display text-lg font-bold">A rodada</h2>
 
       {aberta ? (
         <div className="rounded-xl border border-primary/25 bg-primary/[0.07] p-4">
@@ -132,7 +140,7 @@ export default function RodadaDoClube({ clube }: { clube: Clube }) {
             )}
           </div>
 
-          {souModerador && (
+          {souDono(clube) && (
             <button
               onClick={() => {
                 encerrarRodada(aberta.id);
@@ -145,21 +153,7 @@ export default function RodadaDoClube({ clube }: { clube: Clube }) {
             </button>
           )}
         </div>
-      ) : souModerador ? (
-        <AbrirRodada
-          valor={novaPergunta}
-          onChange={setNovaPergunta}
-          onAbrir={() => {
-            abrirRodada(clube.id, novaPergunta);
-            setNovaPergunta("");
-            toast({ title: "Rodada aberta", description: "A turma tem 3 dias para responder." });
-          }}
-        />
-      ) : (
-        <p className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-xs leading-relaxed text-white/45">
-          Nenhuma rodada aberta agora. Quem modera o clube abre a próxima pergunta.
-        </p>
-      )}
+      ) : null}
 
       {encerradas.length > 0 && (
         <div className="space-y-2">
@@ -189,65 +183,5 @@ export default function RodadaDoClube({ clube }: { clube: Clube }) {
         </div>
       )}
     </section>
-  );
-}
-
-/**
- * A caixa de abrir rodada, com sugestões.
- *
- * As sugestões não são enfeite: puxar conversa é a parte difícil de moderar um
- * clube, e quem trava na pergunta acaba não abrindo rodada nenhuma. Todas as
- * sugestões funcionam em qualquer ponto do livro — nenhuma depende do final.
- */
-function AbrirRodada({
-  valor,
-  onChange,
-  onAbrir,
-}: {
-  valor: string;
-  onChange: (texto: string) => void;
-  onAbrir: () => void;
-}) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4" data-testid="abrir-rodada">
-      <p className="text-sm font-semibold">Abrir a próxima rodada</p>
-      <p className="mt-1 text-xs text-white/45">
-        Uma pergunta, três dias para responder. Cada um responde quando puder.
-      </p>
-
-      <textarea
-        value={valor}
-        onChange={(event) => onChange(event.target.value.slice(0, 200))}
-        placeholder="Qual é a pergunta desta rodada?"
-        rows={2}
-        className="mt-3 w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/25 focus:outline-none"
-        data-testid="rodada-pergunta"
-      />
-
-      <div className="mt-2.5 flex flex-wrap gap-1.5">
-        {PERGUNTAS_SUGERIDAS.slice(0, 3).map((sugestao) => (
-          <button
-            key={sugestao}
-            type="button"
-            onClick={() => onChange(sugestao)}
-            className="flex items-center gap-1 rounded-full bg-white/[0.06] px-2.5 py-1 text-[10.5px] text-white/50 transition-colors hover:text-white/80"
-          >
-            <Sparkles className="h-2.5 w-2.5" />
-            {sugestao.length > 34 ? `${sugestao.slice(0, 34)}…` : sugestao}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-3 flex justify-end">
-        <button
-          onClick={onAbrir}
-          disabled={valor.trim().length === 0}
-          className="text-sm font-semibold text-primary transition-colors disabled:text-white/20"
-          data-testid="abrir-rodada-send"
-        >
-          Abrir rodada
-        </button>
-      </div>
-    </div>
   );
 }

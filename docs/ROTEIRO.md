@@ -3270,6 +3270,114 @@ enxugar dela vale para qualquer uma das outras.
 
 ---
 
+## 4.41 A comunidade é pré-requisito do clube — e o Perfil é duas coisas ao mesmo tempo (28/07)
+
+Conversa com o Matheus na janela B, no mesmo dia em que a A avaliava o clube.
+**Nada construído ainda; o que segue é decisão de rumo e o que foi rejeitado.**
+
+**As três propostas de Perfil da folha `_comparacao-perfil.html` foram
+rejeitadas** — e não pelo visual: *"até o design e o layout estão bonitos, não é
+essa a questão"*. O defeito é conceitual, e ele apontou na proposta B: **a mesma
+tela é vitrine e menu ao mesmo tempo**. "Comunidade", "Estatísticas", "Minhas
+notas" são portas do **seu** uso; não têm sentido nenhum numa página feita para
+**outra pessoa** ver. Estavam ali só porque hoje o Perfil é a única porta que
+leva à Comunidade — herança, não desenho.
+
+**A regra que fica: separar por dono, não por tela.**
+1. **Sua página** (pública) — só o que faz sentido alguém ver: o que você ouve,
+   o que recomenda e por quê, o que você disse, seus selos, seus clubes.
+2. **Painel** (privado) — notas, downloads, estatísticas, ajustes, sair. Atrás
+   da engrenagem; não é vitrine.
+3. **Comunidade** — lugar próprio, não item dentro do Perfil.
+
+**A Comunidade tem que ser refeita inteira** (*"está horrível, muito ruim e não
+tem função nenhuma"*), e o motivo dela mudou de peso. Nas palavras do Matheus:
+**sem comunidade não existe clube** — *"se você não tiver uma interação, uma
+comunidade com outras pessoas, […] não vai ter como ser possível você criar o
+clube de livros"*. Você precisa **encontrar** gente antes de ter a quem
+convidar. A Comunidade deixa de ser apêndice social e vira **infraestrutura do
+clube**: descobrir pessoas por afinidade, ver o que elas ouvem e recomendam,
+interagir, e convidar.
+
+**Contradição a resolver, e é decisão do Matheus.** A decisão de 21/07 (seção
+"Decisões da Comunidade") diz: *"o social é secundário e fica escondido,
+alcançado pelo Perfil"*, e rejeita comunidade no Início. **É essa decisão que
+hoje impede o clube de existir.** Ou o social ganha porta própria (o candidato
+óbvio é o `BottomNav`, hoje Início · Biblioteca · Pedir · Buscar · Perfil), ou o
+clube continua sem gente para encher. A recomendação registrada aqui: dar porta
+própria à Comunidade; manter o Início limpo de social, que era o coração
+daquela decisão.
+
+**O que "Recomendo" passa a ser.** Hoje é uma seção do Perfil que **ninguém vê**
+— o rótulo diz "Visível para a comunidade" e ela vive no `localStorage`. Na
+arquitetura acima, a recomendação com motivo é o **conteúdo que alimenta a
+Comunidade**: é ela que dá o que ver quando você abre a página de alguém.
+
+### O que o Matheus decidiu em 28/07, e o que foi construído
+
+Vistas as três propostas, ele decidiu: **fazer as três**, e acrescentou um pedido
+que não estava em nenhuma delas — *"a gente tem que dar mais autonomia para quem
+está criando o clube… esse cara tem que ter muita autonomia"*: excluir pessoas,
+pôr assunto em votação, e definir quantas pessoas cabem.
+
+**As três só convivem se cada uma virar uma camada, e não uma tela concorrente.**
+A 2 e a 3 brigam de frente: a 2 faz a tela do clube ser uma lista de capítulos
+(que rola por definição) e a 3 pede uma tela sem rolagem. A saída foi dar altura
+diferente a cada uma: **1 = onde a conversa acontece** (o player), **3 = o estado
+do clube agora** (a tela do clube), **2 = o arquivo** (a conversa capítulo a
+capítulo, um nível abaixo). A moderação desce junto com a 2, pelo mesmo motivo:
+não é uso diário.
+
+**Fase 1 — o clube dentro do player** (commit `26ccd7c`). Faixa da turma no
+player, marcas da turma na barra, e a conversa do trecho com abas "da turma / de
+todos". Duas correções da maquete apareceram olhando o código:
+
+- **A faixa mostra ritmo, não contagem de falas.** A barra de ações já tem o botão
+  "Conversa" com contador; repetir o número seria redundância. O que só a faixa
+  pode dizer é a coisa útil de se saber ouvindo: *estou no ritmo da turma?* E quem
+  passou do combinado vê a faixa mudar de tom — é quem pode estragar a escuta dos
+  outros.
+- **A marca da turma é a mesma laranja com um anel, não uma cor nova.** A maquete
+  tinha verde só para o clube; caiu porque a barra já tem dois tipos de marca e um
+  terceiro **tom** em pontinhos de 8px não se distingue — vira cor decorativa. A
+  barra de ações também já tinha **seis** itens (o código abrevia "Velocidade"
+  para "Veloc." por isso): as abas foram para dentro da folha em vez de virarem um
+  sétimo botão.
+
+**Fase 2 — poderes do moderador e a tela enxuta.** Nova tela
+`/clube/:id/gerenciar` com vagas, membros (remover e devolver), pauta, rodada,
+mensagens escondidas e apagar. Decisões que apareceram fazendo:
+
+- **Pauta e votação do próximo livro ficam separadas.** A votação do livro **muda
+  o estado do clube** (o vencedor vira o ciclo, o anterior vai para a estante); a
+  pauta é o grupo decidindo algo que o moderador executa. Fundir faria a mais
+  inofensiva herdar o poder de trocar o livro de todo mundo.
+- **Remover é reversível para quem removeu.** Errar o toque numa lista de nomes é
+  fácil demais; quem sai aparece logo abaixo com "devolver".
+- **Diminuir o limite nunca expulsa ninguém.** Perder um membro de lado, mexendo
+  num número, seria a pior forma de perdê-lo.
+- **Semeado um clube que é seu** (`exemplo-do-dono`, "Suspense de Domingo"), com
+  quatro leitores fictícios e a descrição dizendo que é exemplo. Sem ele a tela de
+  remover membro nasceria com uma linha (você) e seria botão morto — o que a 4.23
+  manda varrer. Apagar leva um toque.
+- **O voto dos outros na pauta é simulado, estável e declarado**, igual ao
+  progresso dos membros: uma pauta que mostra "1 voto" para sempre não deixa ver o
+  mecanismo.
+
+**Os defeitos da 4.40 consertados nesta rodada:** apagar o clube saiu do botão
+discreto (agora em Gerenciar, com confirmação que diz o que se perde, e sem o
+aviso que mentia "você saiu do…"); o texto do combinado parou de prometer o que
+não cumpre — **o combinado é até onde escrever, o que você já ouviu é até onde
+ler**, e a tela agora diz as duas; o rodapé de "membros fictícios" só aparece
+quando há outros membros; a seção da rodada some quando não há rodada nem
+histórico (era a caixa vazia que vinha antes da conversa); e "Encontro · sem hora
+marcada" virou **"A rodada"**, porque como cabeçalho lia como defeito.
+
+**Ainda não feito:** a fase 3 (a conversa capítulo a capítulo) e as sinopses em
+inglês.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

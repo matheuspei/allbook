@@ -5,12 +5,14 @@ import { BookOpen, LogOut, Share2, Shield, UserPlus, Users } from "lucide-react"
 import PageHeader from "@/components/PageHeader";
 import CartaoDoCiclo from "@/components/clube/CartaoDoCiclo";
 import MuralDoClube from "@/components/clube/MuralDoClube";
+import PautaNoClube from "@/components/clube/PautaNoClube";
 import RodadaDoClube from "@/components/clube/RodadaDoClube";
 import VotacaoDoClube from "@/components/clube/VotacaoDoClube";
 import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
 import {
   CLUBES_EVENT,
+  clubeCheio,
   clubePorId,
   corDoMembro,
   dataCurta,
@@ -21,6 +23,7 @@ import {
   sairDoClube,
   souDono,
   souMembro,
+  vagasRestantes,
   type Clube as ClubeTipo,
 } from "@/lib/clubes";
 
@@ -57,11 +60,21 @@ async function copiarParaAreaDeTransferencia(texto: string): Promise<boolean> {
 /**
  * A tela de um clube.
  *
- * A ordem dos blocos é a ordem do que a pessoa quer saber ao abrir: **o que
- * estamos lendo e até onde** (o ciclo), **o que está sendo perguntado agora**
- * (a rodada), **o que a turma está dizendo** (o mural), **o que vem depois** (a
- * votação) e **o que já lemos juntos** (a estante). Configuração e saída ficam
- * no fim, onde não atrapalham.
+ * **Reformulada em 28/07** (ROTEIRO 4.40). O Matheus disse que o layout não
+ * agradava, e a apuração deu razão a ele com um motivo concreto: eram **cinco
+ * seções empilhadas e permanentes** — ciclo, rodada, mural, votação, estante —,
+ * e várias passavam a maior parte do tempo vazias. Um clube sem rodada aberta
+ * mostrava uma caixa de "abrir rodada" **antes** da conversa; um clube novo
+ * mostrava uma régua dizendo "ninguém começou ainda".
+ *
+ * **A regra nova, e ela vale para a tela inteira: o que é por tempo determinado
+ * aparece quando é a hora e some depois.** Rodada e pauta entraram como blocos
+ * condicionais; a estante só aparece quando há livro nela. O que sobra é o que
+ * sempre tem o que dizer: o ciclo e a conversa.
+ *
+ * **A moderação saiu daqui** para `/clube/:id/gerenciar`. Moderar não é uso
+ * diário — é o que se faz quando algo precisa mudar —, e empilhar os poderes
+ * junto da conversa era parte do que fazia esta tela parecer um formulário.
  *
  * Quem **não** é membro vê a mesma tela em modo vitrine, com o convite no topo:
  * clube fechado que não deixa espiar nada não convence ninguém a entrar.
@@ -97,6 +110,8 @@ export default function Clube({ params }: { params: { id: string } }) {
 
   const membro = souMembro(clube);
   const dono = souDono(clube);
+  const cheio = clubeCheio(clube);
+  const vagas = vagasRestantes(clube);
 
   /**
    * Convidar: a folha nativa do celular quando existe, copiar o link quando
@@ -161,26 +176,46 @@ export default function Clube({ params }: { params: { id: string } }) {
               ))}
             </div>
             <span className="text-xs text-white/40">
-              {clube.membros.length} {clube.membros.length === 1 ? "membro" : "membros"} · moderado
-              por {nomeDoMembro(clube.donoSlug)}
+              {/* Com limite, o que interessa é o que sobra: "5 de 8" diz na hora
+                  se ainda dá para chamar alguém. Sem limite, o número puro. */}
+              {clube.limite !== undefined
+                ? `${clube.membros.length} de ${clube.limite} lugares`
+                : `${clube.membros.length} ${clube.membros.length === 1 ? "membro" : "membros"}`}
+              {" · moderado por "}
+              {nomeDoMembro(clube.donoSlug)}
             </span>
           </div>
 
+          {/*
+            O selo do moderador virou **porta** para a tela de gerenciar, em vez
+            de um aviso que só informava. Antes ele listava poderes que estavam
+            espalhados pela própria tela; agora ele leva ao lugar onde todos
+            moram, que é o que o Matheus pediu em 28/07 ao falar de autonomia.
+          */}
           {dono && (
-            <p
-              className="flex items-center gap-2 rounded-lg bg-primary/[0.08] px-3 py-2 text-[11px] leading-relaxed text-white/60"
+            <Link
+              href={`/clube/${clube.id}/gerenciar`}
+              className="flex items-center gap-2 rounded-lg bg-primary/[0.08] px-3 py-2.5 text-[11px] leading-relaxed text-white/60 transition-colors hover:bg-primary/15"
               data-testid="selo-moderador"
             >
               <Shield className="h-3.5 w-3.5 shrink-0 text-primary" />
-              <span>
-                <b className="text-white/85">Você modera este clube.</b> Pode abrir rodadas, cobrir
-                spoiler de quem esqueceu de marcar, esconder mensagem e encerrar o ciclo.
+              <span className="flex-1">
+                <b className="text-white/85">Você modera este clube.</b> Vagas, quem fica, o que a
+                turma vota.
               </span>
-            </p>
+              <span className="shrink-0 font-semibold text-primary">Gerenciar ›</span>
+            </Link>
           )}
 
           <div className="flex gap-2">
-            {!membro && (
+            {!membro && cheio && (
+              <p className="flex-1 rounded-xl bg-white/[0.04] px-4 py-3 text-xs leading-relaxed text-white/45">
+                <b className="text-white/75">Este clube está cheio</b> — {clube.limite} de{" "}
+                {clube.limite} lugares ocupados. Quem modera define quantas pessoas cabem.
+              </p>
+            )}
+
+            {!membro && !cheio && (
               <button
                 onClick={() => {
                   entrarNoClube(clube.id);
@@ -224,6 +259,12 @@ export default function Clube({ params }: { params: { id: string } }) {
 
         {membro ? (
           <>
+            {/*
+              Rodada, pauta e votação **aparecem quando é a hora**, não como
+              seções fixas (ROTEIRO 4.40). Cada uma some sozinha quando não há
+              nada aberto — é a regra que tirou as caixas vazias da tela.
+            */}
+            <PautaNoClube clube={clube} />
             <RodadaDoClube clube={clube} />
             <MuralDoClube clube={clube} />
             <VotacaoDoClube clube={clube} />
@@ -238,18 +279,28 @@ export default function Clube({ params }: { params: { id: string } }) {
 
         {clube.estante.length > 0 && <EstanteDoClube clube={clube} />}
 
-        {membro && (
+        {/*
+          Sair e apagar são ações diferentes e agora ficam em lugares diferentes.
+          **Apagar saiu daqui** (ROTEIRO 4.40): era o mesmo botão discreto de
+          "sair", destruía o clube e o mural num toque, sem confirmação, e ainda
+          avisava "você saiu do…" — o aviso mentia sobre o que tinha acontecido.
+          Agora mora em Gerenciar, com uma caixa que diz o que se perde.
+        */}
+        {membro && !dono && (
           <button
             onClick={() => {
               sairDoClube(clube.id);
-              toast({ title: `Você saiu do ${clube.nome}` });
+              toast({
+                title: `Você saiu do ${clube.nome}`,
+                description: "Dá para voltar pelo mesmo endereço, se o clube não estiver cheio.",
+              });
               navegar("/clubes");
             }}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 py-2.5 text-xs font-semibold text-white/40 transition-colors hover:text-white/70"
             data-testid="button-sair-clube"
           >
             <LogOut className="h-3.5 w-3.5" />
-            {dono ? "Apagar este clube" : "Sair do clube"}
+            Sair do clube
           </button>
         )}
 
@@ -257,11 +308,25 @@ export default function Clube({ params }: { params: { id: string } }) {
           A honestidade que o app pratica em toda parte (ROTEIRO 4.23): os outros
           membros são os leitores fictícios de `community.ts`. Encenar um grupo
           cheio de gente real seria o tipo de teatro que já foi varrido daqui.
+
+          **Só aparece quando há "outros"** (ROTEIRO 4.40): num clube recém-criado
+          existe você e mais ninguém, e a frase falava de gente que não estava lá
+          — aviso que não corresponde a nada na tela é ruído, não honestidade.
         */}
-        <p className="pb-2 text-center text-[10.5px] leading-relaxed text-white/25">
-          Os outros membros são leitores fictícios, como o resto da comunidade — o clube funciona
-          de verdade, com gente de verdade, quando houver contas e servidor.
-        </p>
+        {clube.membros.length > 1 && (
+          <p className="pb-2 text-center text-[10.5px] leading-relaxed text-white/25">
+            Os outros membros são leitores fictícios, como o resto da comunidade — o clube funciona
+            de verdade, com gente de verdade, quando houver contas e servidor.
+          </p>
+        )}
+
+        {clube.membros.length === 1 && membro && (
+          <p className="pb-2 text-center text-[10.5px] leading-relaxed text-white/25">
+            Por enquanto você está sozinho aqui. Compartilhe o endereço do clube — quem abrir o
+            link cai nesta página com o botão de entrar
+            {vagas !== undefined ? `, e ainda há ${vagas} ${vagas === 1 ? "lugar" : "lugares"}` : ""}.
+          </p>
+        )}
       </div>
     </div>
   );
