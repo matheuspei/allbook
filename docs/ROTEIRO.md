@@ -3208,6 +3208,68 @@ sala é demonstração honesta, não mecanismo.
 
 ---
 
+## 4.40 Apurado em 28/07: o clube não usa o próprio diferencial
+
+**Nada decidido ainda** — isto é apuração, registrada para ninguém refazê-la. O
+Matheus, no dia seguinte à construção, disse três coisas ao mesmo tempo: teme que
+o clube fique **invisível**, duvida que ele tenha **diferencial de verdade**
+(*"eu quero que isso seja uma ferramenta que as pessoas realmente possam
+utilizar"*), e **não gosta do layout** de hoje. Varredura no código mostrou que as
+três queixas têm a mesma raiz, e ela não é de desenho.
+
+**1. O clube está ausente do único lugar onde a pessoa passa o tempo.** Ele
+aparece em `Community`, `Search`, `Notifications`, `Profile` e `BookDetails`. No
+`AudioPlayer` e no `MiniPlayer`: **zero menções**. A pessoa passa dez horas dentro
+do player ouvindo o livro do ciclo e ali o clube não existe. Ele mora em todas as
+telas onde ela **não** está ouvindo — daí a sensação de invisível.
+
+**2. O clube joga fora a única coisa que só o AllBook tem.** A sala do livro
+(comentário preso ao **segundo** exato) vive no player e funciona. O clube nunca
+toca nela: em `clubes.ts:508` ele pega o `positionSec` e converte na hora para
+capítulo, **descartando a precisão**. O mural é um chat cronológico; a rodada é um
+tópico de fórum. Nenhum dos dois precisa de um player para existir — **um grupo de
+WhatsApp faz igual, e as pessoas já têm o grupo de WhatsApp**. A §4.39 tinha
+decidido o contrário ("sala e clube são um mecanismo só, o clube é uma turma por
+cima"); na hora de construir viraram dois sistemas que não se falam. **O
+diferencial existe e está construído — só que fora do clube.**
+
+**Três reformulações desenhadas** (maquete em `client/public/_comparacao-clube.html`,
+temporária, fora do git):
+
+1. **O clube ouve com você** — o clube deixa de ser lugar e vira companhia dentro
+   do player: selo da turma no topo, marcas da turma na barra, e a conversa do
+   trecho com aba "da turma / de todos". A tela `/clube/:id` encolhe para painel de
+   estado. *Custo:* o clube perde peso como destino.
+2. **A conversa segue o livro** — o mural cronológico morre; a conversa se organiza
+   por **capítulo**, e o que está adiante vira **uma linha com um número** em vez de
+   uma parede de caixas cinza. *Custo:* perde o "agora" do burburinho do dia.
+3. **Cabe numa tela** — enxuga as cinco seções empilhadas para uma só; rodada e
+   votação viram **tarja que aparece na semana em que é a hora**. *Custo:* deixa o
+   clube bonito e **continua invisível**.
+
+**Parecer da Janela A:** 1 + 2, nessa ordem — a 1 é a única que responde "isso tem
+diferencial?" com um sim que ninguém copia sem ser dono do player, e a 2 conserta a
+tela e a parede cinza de forma estrutural. A **3 sozinha não se recomenda**, mas o
+enxugar dela vale para qualquer uma das outras.
+
+**Defeitos achados no mesmo passeio** (independentes da reformulação):
+
+- **`Clube.tsx:241` apaga o clube sem confirmação e sem desfazer**, e o aviso mente:
+  diz *"Você saiu do…"* quando o clube e o mural inteiro foram destruídos.
+- **A regra de spoiler que a tela promete não é a que ela executa.** O cartão diz
+  *"Combinado da roda: até o capítulo 7… Mensagem que fala além disso chega
+  coberta"*, mas `MuralDoClube.tsx:196` cobre pelo **seu** capítulo. Estando no 3,
+  mensagens de cap. 5 e 6 — dentro do combinado — chegam cobertas. Ou o texto muda,
+  ou o comportamento; hoje o app diz uma coisa e faz outra.
+- O rodapé *"os outros membros são leitores fictícios"* aparece em clube que só tem
+  você.
+- **Fora do clube:** medido, **52 de 54 sinopses estão em inglês** e **7 têm
+  marcação crua** — a de *A Paciente Silenciosa* abre com `## [The Silent Patient
+  PDF](https://…)`. Vêm da Open Library via `npm run catalogo`. Num app cuja
+  identidade é PT-BR, é a mancha mais visível da ficha.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
