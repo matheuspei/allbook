@@ -3449,6 +3449,29 @@ uma lista corrida, e lista corrida não se lê com trezentos itens.
   estreias e os seus clubes: quem digita "Duna" quer o clube de Duna, não quer
   saber em que gaveta ele estava.
 
+### Encher de clube para ver se o desenho aguenta
+
+Pedido dele logo depois: *"cria alguns clubes bem aleatórios, colocando pessoas,
+colocando estreia, enchendo isso"*. **Com cinco clubes tudo parece organizado; o
+desenho só se prova com vinte.** Foram semeados **21 clubes** em 9 gêneros, 8
+deles ainda por estrear — variados *de propósito*, não ao acaso: clube lotado e
+clube de duas pessoas, estreia amanhã e estreia daqui a dez dias, ciclo no começo
+e ciclo quase no fim, gênero com seis clubes e gênero com um só.
+
+Três coisas que **só apareceram com a tela cheia**, e que foram corrigidas:
+
+- **"Seus clubes" comia a tela inteira.** Com cinco clubes seus, o carrossel e a
+  busca ficavam abaixo da dobra. Agora mostra **três, ordenados pelo encontro mais
+  próximo** (é o clube que precisa de você agora, não o que você entrou primeiro),
+  e o resto atrás de um toque.
+- **A tarja de data cobria o rodapé da capa** — e capa de livro tem texto ali
+  (título, autor, frase de crítica), então dava letra sobre letra. Virou uma
+  **etiqueta pequena no canto de cima**, que tapa o mínimo.
+- **Faltava gente.** `community.ts` tem oito leitores, e é território da janela B.
+  Os **figurantes** (nome + cor, nada mais) moram em `clubes.ts`: um clube de dez
+  pessoas precisa de dez avatares, não de dez biografias — meia dúzia de perfis
+  pela metade em `community.ts` estragaria a tela Comunidade.
+
 ### Registrado porque ele levantou e descartou sozinho
 
 O Matheus cogitou *"colocar em votação um livro… quando tiver perto do fim"* e

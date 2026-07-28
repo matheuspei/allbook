@@ -59,6 +59,7 @@ export default function Clubes() {
 
   const [busca, setBusca] = useState("");
   const [topico, setTopico] = useState<string | undefined>(undefined);
+  const [todosOsMeus, setTodosOsMeus] = useState(false);
 
   useEffect(() => {
     const atualizar = () => {
@@ -75,6 +76,11 @@ export default function Clubes() {
       window.removeEventListener(MURAL_EVENT, atualizar);
     };
   }, []);
+
+  /* Encontro mais próximo primeiro: é o clube que precisa de você agora. */
+  const meusOrdenados = [...meus].sort((a, b) =>
+    a.ciclo.encontro.localeCompare(b.ciclo.encontro),
+  );
 
   const procurando = busca.trim().length > 0 || topico !== undefined;
   /*
@@ -96,11 +102,33 @@ export default function Clubes() {
         {!procurando && (
           <>
             {meus.length > 0 && (
-              <Secao titulo="Seus clubes" icone={<Users className="h-3 w-3" />}>
+              <Secao
+                titulo={`Seus clubes · ${meus.length}`}
+                icone={<Users className="h-3 w-3" />}
+              >
                 <div className="space-y-3 px-5">
-                  {meus.map((clube) => (
+                  {(todosOsMeus ? meusOrdenados : meusOrdenados.slice(0, 3)).map((clube) => (
                     <CartaoDoSeuClube key={clube.id} clube={clube} />
                   ))}
+
+                  {/*
+                    **Três, e o resto atrás de um toque.** Estando em oito clubes,
+                    a lista inteira empurrava o carrossel e a busca para fora da
+                    tela — e quem abre esta tela raramente quer o oitavo clube,
+                    quer o que tem prazo chegando. Por isso a ordem é por
+                    **encontro mais próximo**, e não por ordem de entrada.
+                  */}
+                  {meus.length > 3 && (
+                    <button
+                      onClick={() => setTodosOsMeus(!todosOsMeus)}
+                      className="w-full rounded-xl border border-white/8 py-2.5 text-xs font-semibold text-white/45 transition-colors hover:bg-white/5 hover:text-white/80"
+                      data-testid="ver-todos-meus-clubes"
+                    >
+                      {todosOsMeus
+                        ? "Mostrar menos"
+                        : `Ver os outros ${meus.length - 3} que são seus`}
+                    </button>
+                  )}
                 </div>
               </Secao>
             )}
@@ -361,7 +389,7 @@ function CartaoDeEstreia({ clube, grande }: { clube: Clube; grande?: boolean }) 
   const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
   if (!livro) return null;
 
-  const lado = grande ? 210 : 150;
+  const lado = grande ? 200 : 148;
 
   return (
     <Link
@@ -377,22 +405,25 @@ function CartaoDeEstreia({ clube, grande }: { clube: Clube; grande?: boolean }) 
           className="w-full object-cover"
           style={{ height: lado }}
         />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-2.5 pt-8">
-          <p className="text-[9.5px] font-bold uppercase tracking-[0.12em] text-[#f59e0b]">
-            {estreiaEmTexto(clube)}
-          </p>
-          {grande && (
-            <p className="mt-0.5 truncate text-[10.5px] text-white/70">{livro.title}</p>
-          )}
-        </div>
+        {/*
+          **A data virou uma etiqueta no canto, e não uma tarja sobre a arte.**
+          A tarja com degradê cobria o rodapé da capa — e capa de livro tem texto
+          lá embaixo (título, autor, frase de crítica), então o resultado era
+          letra sobre letra. Uma etiqueta pequena no alto tapa o mínimo e se lê
+          num relance, que é tudo o que ela precisa fazer.
+        */}
+        <span className="absolute left-1.5 top-1.5 rounded-md bg-black/75 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#f59e0b] backdrop-blur-sm">
+          {estreiaEmTexto(clube)}
+        </span>
       </div>
-      <p
-        className={`mt-2 line-clamp-2 font-bold leading-tight ${grande ? "text-sm" : "text-xs"}`}
-      >
+
+      <p className={`mt-2 line-clamp-2 font-bold leading-tight ${grande ? "text-sm" : "text-xs"}`}>
         {clube.nome}
       </p>
-      <p className="mt-0.5 truncate text-[10.5px] text-white/35">
-        {clube.membros.length} inscritos · {dataCurta(clube.ciclo.inicio)}
+      <p className="mt-0.5 truncate text-[10.5px] text-white/45">{livro.title}</p>
+      <p className="mt-0.5 truncate text-[10.5px] text-white/30">
+        {clube.membros.length} {clube.membros.length === 1 ? "inscrito" : "inscritos"} ·{" "}
+        {dataCurta(clube.ciclo.inicio)}
       </p>
     </Link>
   );

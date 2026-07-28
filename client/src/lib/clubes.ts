@@ -278,6 +278,200 @@ export const clubesSemeados: Clube[] = [
     genero: "Suspense",
     limite: 8,
   },
+  /* ------------------------------------------------------------------ *
+   * O resto do povoado (28/07, ROTEIRO 4.42).
+   *
+   * **Por que existem:** o Matheus pediu para *"criar alguns clubes bem
+   * aleatórios, colocando pessoas, colocando estreia, enchendo isso"* — só assim
+   * dá para ver se o carrossel, a busca e as pastilhas de tópico aguentam
+   * quantidade. Com cinco clubes tudo parece organizado; o desenho só se prova
+   * com vinte.
+   *
+   * Nada aqui é aleatório de verdade — é variado **de propósito**, para cada
+   * caso limite aparecer na tela: clube lotado, clube de duas pessoas, estreia
+   * hoje e estreia daqui a dez dias, ciclo no começo e ciclo quase no fim,
+   * gênero com muitos clubes e gênero com um só.
+   * ------------------------------------------------------------------ */
+  {
+    id: "1984-quinta",
+    nome: "Distopia às Quintas",
+    descricao:
+      "Lemos os clássicos que todo mundo cita e pouca gente terminou. Um por mês, sem vergonha de achar datado.",
+    donoSlug: "gustavo-a",
+    membros: ["gustavo-a", "nara", "elias", "sandra-l", "caio", "tereza-m", "vitor-h"],
+    ciclo: cicloSemeado(130, 16, 4),
+    estante: [{ bookId: 131, terminadoEm: "2026-06-20" }],
+    genero: "Ficção Científica",
+    limite: 10,
+  },
+  {
+    id: "tres-corpos",
+    nome: "O Problema dos 3 Corpos — leitura guiada",
+    descricao:
+      "A física assusta mais que a trama. Vamos devagar, explicando o que der, sem estragar nada de ninguém.",
+    donoSlug: "elias",
+    membros: ["elias", "hugo-p", "caio", "otavio"],
+    ciclo: cicloSemeado(109, 6, 6),
+    estante: [],
+    genero: "Ficção Científica",
+  },
+  {
+    id: "tolkien-ano",
+    nome: "Um ano na Terra-média",
+    descricao: "O Senhor dos Anéis em ritmo humano. Quem já leu volta pelo prazer; quem nunca leu descobre.",
+    donoSlug: "sandra-l",
+    membros: ["sandra-l", "marcos-v", "iara", "dani-r", "paulo-s", "bia-costa"],
+    ciclo: cicloSemeado(129, 30, 8),
+    estante: [],
+    genero: "Ficção Científica",
+    limite: 6,
+  },
+  {
+    id: "romance-cafe",
+    nome: "Romance com café",
+    descricao: "Sem julgamento e sem ironia: a gente vem chorar mesmo. Um por mês, e vale reler os favoritos.",
+    donoSlug: "bia-costa",
+    membros: ["bia-costa", "renata-v", "lia-f", "marina-t", "nara", "juliana-s", "iara", "sandra-l"],
+    ciclo: cicloSemeado(141, 11, 4),
+    estante: [
+      { bookId: 142, terminadoEm: "2026-06-25" },
+      { bookId: 143, terminadoEm: "2026-05-28" },
+    ],
+    genero: "Romance",
+  },
+  {
+    id: "austen",
+    nome: "Clube Jane Austen",
+    descricao: "Orgulho e Preconceito de novo, sim. E de novo no ano que vem. A conversa nunca é a mesma.",
+    donoSlug: "renata-v",
+    membros: ["renata-v", "marina-t", "lia-f"],
+    ciclo: cicloSemeado(140, -6, 5),
+    estante: [{ bookId: 307, terminadoEm: "2026-07-02" }],
+    genero: "Romance",
+  },
+  {
+    id: "sexta-13",
+    nome: "Sexta-feira 13",
+    descricao: "Terror clássico, um por mês, e a regra é só uma: ninguém conta o susto antes da hora.",
+    donoSlug: "otavio",
+    membros: ["otavio", "hugo-p", "paulo-s", "dani-r", "vitor-h", "beto", "caio", "tereza-m", "iara"],
+    ciclo: cicloSemeado(144, 21, 5),
+    estante: [{ bookId: 305, terminadoEm: "2026-06-18" }],
+    genero: "Terror",
+    limite: 9,
+  },
+  {
+    id: "exorcista",
+    nome: "Não durmo mais",
+    descricao: "Começou como brincadeira e virou compromisso. Ouvimos de dia, porque à noite ninguém aguenta.",
+    donoSlug: "hugo-p",
+    membros: ["hugo-p", "iara"],
+    ciclo: cicloSemeado(145, -3, 4),
+    estante: [],
+    genero: "Terror",
+  },
+  {
+    id: "poltrona",
+    nome: "Detetives de poltrona",
+    descricao:
+      "Cada um aposta em quem foi antes da metade. Quem acertar leva o direito de escolher o próximo livro.",
+    donoSlug: "marcos-v",
+    membros: ["marcos-v", "ana-paula", "tereza-m", "gustavo-a", "renata-v", "elias", "nara"],
+    ciclo: cicloSemeado(119, 14, 4),
+    estante: [
+      { bookId: 3, terminadoEm: "2026-06-30" },
+      { bookId: 2, terminadoEm: "2026-05-20" },
+    ],
+    genero: "Mistério",
+  },
+  {
+    id: "garota-trem",
+    nome: "Narradoras não confiáveis",
+    descricao: "Só livros em que a pessoa que conta a história esconde alguma coisa. É o nosso tipo favorito.",
+    donoSlug: "juliana-s",
+    membros: ["juliana-s", "carla-lima", "bia-costa", "lia-f", "marina-t"],
+    ciclo: cicloSemeado(120, -2, 4),
+    estante: [],
+    genero: "Mistério",
+    limite: 5,
+  },
+  {
+    id: "dinheiro-adulto",
+    nome: "Dinheiro de gente adulta",
+    descricao:
+      "Um livro de finanças por mês e uma conversa honesta: o que você mudou de verdade na sua vida?",
+    donoSlug: "ricardo",
+    membros: ["ricardo", "felipe-g", "gustavo-a", "paulo-s", "vitor-h", "otavio"],
+    ciclo: cicloSemeado(101, 9, 4),
+    estante: [{ bookId: 125, terminadoEm: "2026-06-12" }],
+    genero: "Negócios",
+    limite: 12,
+  },
+  {
+    id: "pense-de-novo",
+    nome: "Mudei de ideia",
+    descricao: "Clube de quem gosta de estar errado. Cada rodada alguém defende a opinião contrária à sua.",
+    donoSlug: "caio",
+    membros: ["caio", "dani-r", "sandra-l", "elias"],
+    ciclo: cicloSemeado(108, -8, 3),
+    estante: [],
+    genero: "Negócios",
+  },
+  {
+    id: "vidas-inteiras",
+    nome: "Vidas inteiras",
+    descricao: "Biografia é o único jeito de viver duas vezes. Uma por mês, e sempre de gente muito diferente.",
+    donoSlug: "luciana",
+    membros: ["luciana", "tereza-m", "nara", "renata-v", "iara", "marcos-v", "bia-costa", "paulo-s", "lia-f"],
+    ciclo: cicloSemeado(112, 24, 6),
+    estante: [
+      { bookId: 111, terminadoEm: "2026-06-08" },
+      { bookId: 135, terminadoEm: "2026-04-30" },
+    ],
+    genero: "Biografia",
+  },
+  {
+    id: "anne-frank",
+    nome: "O Diário, devagar",
+    descricao: "Um trecho por dia, sem pressa. É curto, mas não é para maratonar.",
+    donoSlug: "marina-t",
+    membros: ["marina-t", "lia-f", "sandra-l", "dani-r"],
+    ciclo: cicloSemeado(136, -1, 4),
+    estante: [],
+    genero: "Biografia",
+    limite: 4,
+  },
+  {
+    id: "manha-cedo",
+    nome: "O clube das 5 da manhã (literal)",
+    descricao:
+      "A gente lê o livro e tenta acordar às 5 junto. Metade desiste na segunda semana e tudo bem.",
+    donoSlug: "felipe-g",
+    membros: ["felipe-g", "otavio", "hugo-p", "vitor-h", "caio", "gustavo-a", "ricardo"],
+    ciclo: cicloSemeado(4, 5, 4),
+    estante: [],
+    genero: "Autoajuda",
+  },
+  {
+    id: "alquimista",
+    nome: "Segunda leitura",
+    descricao: "Livros que a gente leu adolescente e quer ver o que sobrou. Nem sempre sobra — e é o interessante.",
+    donoSlug: "tereza-m",
+    membros: ["tereza-m", "nara", "iara", "beto", "renata-v"],
+    ciclo: cicloSemeado(203, -5, 3),
+    estante: [{ bookId: 201, terminadoEm: "2026-07-05" }],
+    genero: "Autoajuda",
+  },
+  {
+    id: "essencialismo",
+    nome: "Menos coisas",
+    descricao: "Produtividade sem culpa. Se você não fez a tarefa da semana, vem assim mesmo.",
+    donoSlug: "dani-r",
+    membros: ["dani-r", "sandra-l", "luciana", "paulo-s", "marina-t", "felipe-g"],
+    ciclo: cicloSemeado(107, 18, 4),
+    estante: [{ bookId: 124, terminadoEm: "2026-06-22" }],
+    genero: "Produtividade",
+  },
   {
     id: "duna-domingo",
     nome: "Duna, do começo",
@@ -880,14 +1074,53 @@ export function capituloDaRoda(clube: Clube): number {
     : capitulos[meio];
 }
 
+/* ------------------------------------------------------------------ *
+ * Gente a mais, só para o clube.
+ *
+ * **Por que existe aqui e não em `community.ts`:** os oito leitores de lá são
+ * perfis completos (bio, horas ouvidas, conquistas, recomendações) e sustentam a
+ * tela Comunidade. Para o clube basta um nome e uma cor — um clube de dez pessoas
+ * não precisa de dez biografias, precisa de dez avatares. Botar meia dúzia de
+ * perfis pela metade lá dentro estragaria a outra tela.
+ *
+ * São **figurantes declarados**: aparecem como membros e na régua do grupo, e a
+ * tela do clube já diz, no rodapé, que os outros membros são fictícios.
+ * ------------------------------------------------------------------ */
+const figurantes: { slug: string; nome: string; cor: string }[] = [
+  { slug: "tereza-m", nome: "Tereza M.", cor: "from-emerald-500 to-teal-600" },
+  { slug: "gustavo-a", nome: "Gustavo A.", cor: "from-sky-500 to-blue-600" },
+  { slug: "nara", nome: "Nara", cor: "from-fuchsia-500 to-purple-600" },
+  { slug: "elias", nome: "Elias", cor: "from-amber-500 to-orange-600" },
+  { slug: "bia-costa", nome: "Bia Costa", cor: "from-rose-400 to-red-500" },
+  { slug: "hugo-p", nome: "Hugo P.", cor: "from-lime-500 to-green-600" },
+  { slug: "sandra-l", nome: "Sandra L.", cor: "from-violet-500 to-indigo-600" },
+  { slug: "caio", nome: "Caio", cor: "from-cyan-500 to-sky-600" },
+  { slug: "renata-v", nome: "Renata V.", cor: "from-pink-500 to-rose-600" },
+  { slug: "otavio", nome: "Otávio", cor: "from-orange-500 to-amber-600" },
+  { slug: "lia-f", nome: "Lia F.", cor: "from-teal-500 to-emerald-600" },
+  { slug: "dani-r", nome: "Dani R.", cor: "from-indigo-500 to-violet-600" },
+  { slug: "paulo-s", nome: "Paulo S.", cor: "from-red-500 to-rose-600" },
+  { slug: "iara", nome: "Iara", cor: "from-green-500 to-lime-600" },
+  { slug: "vitor-h", nome: "Vitor H.", cor: "from-blue-500 to-cyan-600" },
+  { slug: "marina-t", nome: "Marina T.", cor: "from-purple-500 to-fuchsia-600" },
+];
+
 /** O nome de um membro, resolvido — `EU` vira "Você". */
 export function nomeDoMembro(slug: string): string {
   if (slug === EU) return "Você";
-  return community.find((membro) => membro.slug === slug)?.name ?? "Alguém";
+  return (
+    community.find((membro) => membro.slug === slug)?.name ??
+    figurantes.find((membro) => membro.slug === slug)?.nome ??
+    "Alguém"
+  );
 }
 
 /** A cor do avatar de um membro (a mesma de `community.ts`). */
 export function corDoMembro(slug: string): string {
   if (slug === EU) return "from-primary to-[#f59e0b]";
-  return community.find((membro) => membro.slug === slug)?.color ?? "from-white/20 to-white/10";
+  return (
+    community.find((membro) => membro.slug === slug)?.color ??
+    figurantes.find((membro) => membro.slug === slug)?.cor ??
+    "from-white/20 to-white/10"
+  );
 }
