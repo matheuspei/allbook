@@ -148,6 +148,46 @@ export function marcosSemanais(bookId: number, semanas: number, inicio: string):
   }));
 }
 
+/** Dias entre duas datas (positivo quando `fim` vem depois de `inicio`). */
+export function diasEntre(inicio: string, fim: string): number {
+  const a = new Date(`${inicio}T12:00:00`).getTime();
+  const b = new Date(`${fim}T12:00:00`).getTime();
+  return Math.round((b - a) / 86400000);
+}
+
+/**
+ * Marcos **sugeridos** entre duas datas quaisquer — a partir daqui o moderador
+ * edita à vontade.
+ *
+ * **Por que passou a existir** (ROTEIRO 4.42): a versão anterior só sabia gerar
+ * ciclos de 2, 3, 4 ou 6 semanas fechadas, porque o formulário só oferecia esses
+ * botões. O Matheus apontou o problema com todas as letras — o moderador *"não
+ * consegue dizer qual é o dia que ele quer que acabe"*. Agora o ciclo é definido
+ * por **duas datas**, e os marcos são apenas um ponto de partida razoável dentro
+ * delas: divide o período em semanas (ou no que couber) e reparte os capítulos.
+ *
+ * A regra de arredondamento garante que o **último marco é sempre o livro
+ * inteiro** — um ciclo que termina no capítulo 12 de 13 deixaria o final fora do
+ * combinado, e é justamente o final que a turma quer discutir junta.
+ */
+export function marcosSugeridos(bookId: number, inicio: string, fim: string): Marco[] {
+  const totalCapitulos = getChapters(bookId).length;
+  const dias = Math.max(1, diasEntre(inicio, fim));
+  /* Um marco por semana, no mínimo um e no máximo um por capítulo: pedir marco
+     de dois em dois dias vira cobrança, e mais marcos que capítulos repetiria o
+     mesmo número em linhas seguidas. */
+  const quantos = Math.max(1, Math.min(totalCapitulos, Math.round(dias / 7)));
+  const passoCap = totalCapitulos / quantos;
+  const passoDias = dias / quantos;
+
+  return Array.from({ length: quantos }, (_, i) => ({
+    id: i + 1,
+    chapter:
+      i === quantos - 1 ? totalCapitulos : Math.min(totalCapitulos, Math.round(passoCap * (i + 1))),
+    prazo: i === quantos - 1 ? fim : somarDias(inicio, Math.round(passoDias * (i + 1))),
+  }));
+}
+
 /* ------------------------------------------------------------------ *
  * O esqueleto: clubes que já existem para haver o que descobrir.
  * ------------------------------------------------------------------ */
@@ -594,20 +634,23 @@ export function criarClube(dados: {
   nome: string;
   descricao: string;
   bookId: number;
-  semanas: number;
   /**
-   * Daqui a quantos dias o clube estreia. `0` = começa hoje.
+   * O ciclo inteiro, já decidido pelo moderador (ROTEIRO 4.42).
    *
-   * Marcar estreia para a semana que vem é o que dá **tempo de juntar gente**:
-   * o clube aparece em "começando em breve" e as pessoas entram antes do
-   * primeiro capítulo, todas no mesmo ponto.
+   * **Antes esta função calculava o ciclo sozinha**, a partir de "daqui a quantos
+   * dias" e "quantas semanas" — e por isso o formulário só podia oferecer
+   * botõezinhos. Agora quem decide é a tela, e a biblioteca só guarda: data de
+   * estreia livre, data do encontro livre, e marcos que o moderador editou um a
+   * um. Nada disto é mais caro para um servidor — uma data continua sendo uma
+   * data —, era simplificação de interface travando o dono do clube.
    */
-  comecaEm?: number;
+  inicio: string;
+  encontro: string;
+  marcos: Marco[];
   /** Quantas pessoas cabem. Ausente = sem limite (ROTEIRO 4.40). */
   limite?: number;
 }): Clube {
   const estado = readEstado();
-  const inicio = somarDias(hojeIso(), dados.comecaEm ?? 0);
   const livro = catalog.find((book) => book.id === dados.bookId);
 
   const clube: Clube = {
@@ -618,9 +661,9 @@ export function criarClube(dados: {
     membros: [EU],
     ciclo: {
       bookId: dados.bookId,
-      inicio,
-      encontro: somarDias(inicio, dados.semanas * 7),
-      marcos: marcosSemanais(dados.bookId, dados.semanas, inicio),
+      inicio: dados.inicio,
+      encontro: dados.encontro,
+      marcos: dados.marcos,
     },
     estante: [],
     genero: livro?.genre ?? "Geral",
@@ -629,6 +672,32 @@ export function criarClube(dados: {
 
   salvar({ ...estado, criados: [clube, ...estado.criados] });
   return clube;
+}
+
+/**
+ * Trocar o ciclo de um clube que você modera — datas e marcos.
+ *
+ * **Existe porque o combinado muda no meio do caminho** (ROTEIRO 4.42): metade
+ * da turma atrasou, um feriado caiu no meio, o livro era mais longo do que
+ * parecia. Sem isto o moderador só podia refazer o clube do zero, perdendo o
+ * mural. Guardar o ciclo alterado em `ciclos` já era o caminho que a votação do
+ * próximo livro usava — aqui ele só passa a valer também para quem é dono.
+ */
+export function editarCiclo(clubeId: string, ciclo: Ciclo): void {
+  const clube = clubePorId(clubeId);
+  if (!clube || !souDono(clube)) return;
+
+  const estado = readEstado();
+  const ehCriado = estado.criados.some((item) => item.id === clubeId);
+
+  salvar(
+    ehCriado
+      ? {
+          ...estado,
+          criados: estado.criados.map((item) => (item.id === clubeId ? { ...item, ciclo } : item)),
+        }
+      : { ...estado, ciclos: { ...estado.ciclos, [clubeId]: ciclo } },
+  );
 }
 
 /** Troca o livro do ciclo (o que acontece quando uma votação termina). */

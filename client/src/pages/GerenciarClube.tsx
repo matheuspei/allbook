@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Eye, MessageCircleQuestion, Plus, Shield, Trash2, Undo2, UserMinus, Users, Vote, X } from "lucide-react";
+import { CalendarRange, Eye, MessageCircleQuestion, Plus, Shield, Trash2, Undo2, UserMinus, Users, Vote, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
+import EditorDeMarcos from "@/components/clube/EditorDeMarcos";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +20,10 @@ import {
   EU,
   clubePorId,
   corDoMembro,
+  dataCurta,
   definirLimite,
+  editarCiclo,
+  estaComecando,
   membrosRemovidos,
   nomeDoMembro,
   readmitirMembro,
@@ -28,6 +32,7 @@ import {
   souDono,
   vagasRestantes,
   type Clube as ClubeTipo,
+  type Marco,
 } from "@/lib/clubes";
 import {
   MAX_OPCAO,
@@ -119,6 +124,7 @@ export default function GerenciarClube({ params }: { params: { id: string } }) {
         </p>
 
         <Vagas clube={clube} />
+        <RitmoDoCiclo key={`c-${versao}`} clube={clube} />
         <Membros key={`m-${versao}`} clube={clube} />
         <PautaDoModerador key={`p-${versao}`} clube={clube} />
         <RodadaDoModerador key={`r-${versao}`} clube={clube} />
@@ -212,6 +218,145 @@ function Vagas({ clube }: { clube: ClubeTipo }) {
           );
         })}
       </div>
+
+      {/*
+        **Qualquer número** (ROTEIRO 4.42). Os botões acima são atalhos; quem
+        quer 14 escreve 14. O piso é o número de quem já está dentro — diminuir
+        o limite nunca expulsa ninguém.
+      */}
+      <div className="mt-2.5 flex items-center gap-2">
+        <span className="text-[11.5px] text-white/45">Ou o número exato:</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={clube.membros.length}
+          max={999}
+          value={clube.limite ?? ""}
+          placeholder="—"
+          onChange={(e) => {
+            const numero = Number(e.target.value);
+            definirLimite(
+              clube.id,
+              e.target.value === "" || numero < 1 ? undefined : Math.round(numero),
+            );
+          }}
+          className="w-20 rounded-lg bg-white/[0.06] px-3 py-2 text-center text-sm font-semibold outline-none ring-1 ring-inset ring-white/8 placeholder:text-white/20 focus:ring-primary/50"
+          data-testid="vagas-exato"
+        />
+      </div>
+    </section>
+  );
+}
+
+/* ================================================================== *
+ * 1b. Ritmo do ciclo — as datas e os marcos, editáveis.
+ * ================================================================== */
+
+/**
+ * **O combinado muda no meio do caminho, e o app tem de deixar** (ROTEIRO 4.42).
+ * Metade da turma atrasou, caiu um feriado, o livro era mais longo do que
+ * parecia. Antes disto o moderador só podia refazer o clube do zero — perdendo o
+ * mural inteiro —, e o Matheus apontou a falta com todas as letras: *"na questão
+ * dos capítulos, ele poderia também editar quando é que cada um começa e acaba;
+ * ele também não tem essa autonomia hoje"*.
+ *
+ * **A estreia não é editável depois que o clube começou.** Mudar o passado não
+ * significa nada: quem já ouviu, já ouviu. Enquanto o clube está em formação, ela
+ * abre — é justamente aí que adiar para juntar mais gente faz sentido.
+ */
+function RitmoDoCiclo({ clube }: { clube: ClubeTipo }) {
+  const { toast } = useToast();
+  const emFormacao = estaComecando(clube);
+
+  const [inicio, setInicio] = useState(clube.ciclo.inicio);
+  const [fim, setFim] = useState(clube.ciclo.encontro);
+  const [marcos, setMarcos] = useState<Marco[]>(clube.ciclo.marcos);
+
+  const mudou =
+    inicio !== clube.ciclo.inicio ||
+    fim !== clube.ciclo.encontro ||
+    JSON.stringify(marcos) !== JSON.stringify(clube.ciclo.marcos);
+
+  return (
+    <section>
+      <Titulo icone={<CalendarRange className="h-4 w-4 text-primary" />} texto="O ritmo do ciclo" />
+
+      <div className="mb-3 grid grid-cols-2 gap-2">
+        <label className="block">
+          <span className="mb-1.5 block text-[10.5px] font-semibold uppercase tracking-[0.12em] text-white/30">
+            Estreia
+          </span>
+          <input
+            type="date"
+            value={inicio}
+            disabled={!emFormacao}
+            onChange={(e) => e.target.value && setInicio(e.target.value)}
+            className={`w-full rounded-lg px-2.5 py-2 text-[13px] outline-none ring-1 ring-inset [color-scheme:dark] ${
+              emFormacao
+                ? "bg-white/[0.06] ring-white/8 focus:ring-primary/50"
+                : "cursor-not-allowed bg-white/[0.02] text-white/30 ring-white/5"
+            }`}
+            data-testid="ciclo-inicio"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1.5 block text-[10.5px] font-semibold uppercase tracking-[0.12em] text-white/30">
+            Encontro
+          </span>
+          <input
+            type="date"
+            min={inicio}
+            value={fim}
+            onChange={(e) => e.target.value && setFim(e.target.value)}
+            className="w-full rounded-lg bg-white/[0.06] px-2.5 py-2 text-[13px] outline-none ring-1 ring-inset ring-white/8 [color-scheme:dark] focus:ring-primary/50"
+            data-testid="ciclo-fim"
+          />
+        </label>
+      </div>
+
+      {!emFormacao && (
+        <p className="mb-3 text-[10.5px] leading-relaxed text-white/25">
+          A estreia foi em {dataCurta(clube.ciclo.inicio)} e não muda mais — quem já ouviu, já
+          ouviu. As datas do combinado, sim.
+        </p>
+      )}
+
+      <EditorDeMarcos
+        bookId={clube.ciclo.bookId}
+        inicio={inicio}
+        fim={fim}
+        marcos={marcos}
+        onChange={setMarcos}
+      />
+
+      {mudou && (
+        <div className="mt-3 flex gap-2">
+          <button
+            onClick={() => {
+              setInicio(clube.ciclo.inicio);
+              setFim(clube.ciclo.encontro);
+              setMarcos(clube.ciclo.marcos);
+            }}
+            className="rounded-xl bg-white/[0.06] px-4 py-2.5 text-xs font-bold text-white/60 transition-colors hover:bg-white/12"
+          >
+            Descartar
+          </button>
+          <button
+            onClick={() => {
+              editarCiclo(clube.id, { ...clube.ciclo, inicio, encontro: fim, marcos });
+              toast({
+                title: "Ritmo atualizado",
+                description: "A turma vê o combinado novo na tela do clube.",
+              });
+            }}
+            className="flex-1 rounded-xl bg-primary py-2.5 text-xs font-bold text-black transition-colors hover:bg-primary/90"
+            data-testid="button-salvar-ciclo"
+          >
+            Salvar o novo combinado
+          </button>
+        </div>
+      )}
     </section>
   );
 }

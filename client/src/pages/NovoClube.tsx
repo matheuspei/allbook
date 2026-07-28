@@ -1,24 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Check, Search } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
+import EditorDeMarcos from "@/components/clube/EditorDeMarcos";
 import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
 import { getChapters } from "@/lib/chapters";
-import { criarClube, marcosSemanais, hojeIso, dataCurta, somarDiasIso } from "@/lib/clubes";
+import {
+  criarClube,
+  dataCurta,
+  diasEntre,
+  hojeIso,
+  marcosSugeridos,
+  somarDiasIso,
+  type Marco,
+} from "@/lib/clubes";
 
-/**
- * Quantas pessoas cabem. Para em 20 pelo mesmo motivo que a tela de gerenciar:
- * acima disso a régua da roda deixa de descrever alguém, e o clube passa a
- * precisar de outra ferramenta em vez de um número maior.
- */
+/** Atalhos de tamanho de turma. O campo ao lado aceita qualquer número. */
 const VAGAS: (number | undefined)[] = [undefined, 6, 12, 20];
 
-/** Quantas semanas o ciclo pode ter. Quatro é o padrão de clube de leitura. */
+/** Atalhos de duração. O campo de data ao lado aceita qualquer dia. */
 const SEMANAS = [2, 3, 4, 6];
 
-/** Quando o clube estreia. Uma semana é o teto: mais que isso, a turma esquece. */
+/** Atalhos de estreia. O campo de data ao lado aceita qualquer dia. */
 const ESTREIAS = [
   { dias: 0, rotulo: "Hoje" },
   { dias: 3, rotulo: "Em 3 dias" },
@@ -28,10 +33,16 @@ const ESTREIAS = [
 /**
  * Criar um clube — e, com ele, virar moderador.
  *
- * **A tela mostra os marcos antes de criar.** Escolher "4 semanas" não diz
- * nada; ver "até o capítulo 3 em 03/08, até o 6 em 10/08…" diz tudo — inclusive
- * se o ritmo é exagerado para o tamanho do livro. É a diferença entre um
- * formulário e uma decisão informada.
+ * **A tela mostra os marcos antes de criar, e agora deixa editá-los.** Ver "até
+ * o capítulo 3 em 03/08, até o 6 em 10/08…" já dizia se o ritmo era exagerado
+ * para o tamanho do livro; faltava poder consertar ali mesmo.
+ *
+ * **Nada aqui é mais uma lista fechada** (ROTEIRO 4.42). Estreia, tamanho da
+ * turma, data do encontro e cada marco aceitam qualquer valor — os botõezinhos
+ * viraram **atalhos** que preenchem os campos, não as únicas opções. O pedido do
+ * Matheus foi direto: *"o moderador é a chave principal disso aqui, ele tem que
+ * ter muita autonomia de como ele quer gerir o clube dele"*. E não custa nada:
+ * uma data continua sendo uma data para qualquer servidor futuro.
  *
  * **Não há campo de convidar ninguém**, e isso é honesto: sem contas e sem
  * servidor não existe para quem mandar convite. O clube nasce com você dentro,
@@ -45,9 +56,10 @@ export default function NovoClube() {
   const [descricao, setDescricao] = useState("");
   const [busca, setBusca] = useState("");
   const [bookId, setBookId] = useState<number | null>(null);
-  const [semanas, setSemanas] = useState(4);
-  const [comecaEm, setComecaEm] = useState(0);
+  const [inicio, setInicio] = useState(hojeIso());
+  const [fim, setFim] = useState(somarDiasIso(hojeIso(), 28));
   const [limite, setLimite] = useState<number | undefined>(undefined);
+  const [marcos, setMarcos] = useState<Marco[]>([]);
 
   const encontrados = busca.trim()
     ? catalog
@@ -58,11 +70,22 @@ export default function NovoClube() {
     : [];
 
   const escolhido = bookId !== null ? catalog.find((livro) => livro.id === bookId) : undefined;
-  // Os marcos saem da data de estreia, não de hoje: marcar "em 1 semana" tem de
-  // empurrar todos os prazos junto, senão a prévia mentiria.
-  const inicio = comecaEm === 0 ? hojeIso() : somarDiasIso(hojeIso(), comecaEm);
-  const marcos = bookId !== null ? marcosSemanais(bookId, semanas, inicio) : [];
-  const podeCriar = nome.trim().length >= 3 && bookId !== null;
+  const totalCapitulos = bookId !== null ? getChapters(bookId).length : 0;
+  const duracaoEmDias = diasEntre(inicio, fim);
+
+  /*
+   * A sugestão se refaz quando muda o livro ou as datas — mas **não** quando o
+   * moderador edita um marco à mão: `marcos` não entra nas dependências, senão a
+   * edição dele seria desfeita no próximo desenho. Trocar de livro ou de data é
+   * mudar a premissa; aí refazer é o certo, e o botão "refazer sugestão" está lá
+   * para quem quiser voltar depois de editar.
+   */
+  useEffect(() => {
+    if (bookId === null || duracaoEmDias <= 0) return;
+    setMarcos(marcosSugeridos(bookId, inicio, fim));
+  }, [bookId, inicio, fim, duracaoEmDias]);
+
+  const podeCriar = nome.trim().length >= 3 && bookId !== null && duracaoEmDias > 0;
 
   return (
     <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="novo-clube-page">
@@ -167,9 +190,9 @@ export default function NovoClube() {
               <button
                 key={opcao.dias}
                 type="button"
-                onClick={() => setComecaEm(opcao.dias)}
+                onClick={() => setInicio(somarDiasIso(hojeIso(), opcao.dias))}
                 className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors ${
-                  comecaEm === opcao.dias
+                  inicio === somarDiasIso(hojeIso(), opcao.dias)
                     ? "bg-white text-black"
                     : "bg-white/[0.06] text-white/60 hover:bg-white/10"
                 }`}
@@ -179,20 +202,31 @@ export default function NovoClube() {
               </button>
             ))}
           </div>
-          {comecaEm > 0 && (
+
+          {/*
+            **O campo de data livre** (ROTEIRO 4.42). Os três botões continuam
+            como atalho — são as escolhas de nove em cada dez clubes —, mas
+            deixaram de ser as únicas: quem quer estrear no dia 14 escolhe o dia
+            14. Era o próprio Matheus quem apontava a camisa de força: *"ele não
+            tem muita autonomia para dizer quando é que o clube começa"*.
+          */}
+          <input
+            type="date"
+            min={hojeIso()}
+            value={inicio}
+            onChange={(e) => e.target.value && setInicio(e.target.value)}
+            className="mt-2 w-full rounded-lg bg-white/[0.06] px-3 py-2.5 text-sm outline-none ring-1 ring-inset ring-white/8 [color-scheme:dark] focus:ring-primary/50"
+            data-testid="clube-estreia-data"
+          />
+
+          {diasEntre(hojeIso(), inicio) > 0 && (
             <p className="mt-2 text-[11px] leading-relaxed text-white/40">
-              O clube fica na vitrine de estreias até lá — quem entrar antes começa junto com você.
+              Estreia em {dataCurta(inicio)} — o clube fica na vitrine até lá, e quem entrar antes
+              começa junto com você.
             </p>
           )}
         </Campo>
 
-        {/*
-          **Vagas na criação** (ROTEIRO 4.40, pedido do Matheus em 28/07). Fica
-          aqui, e não só em Gerenciar, porque o tamanho do clube é uma decisão de
-          intenção: quem quer uma turma de quatro pensa nisso ao fundar, não
-          depois de dez pessoas terem entrado. O padrão é sem limite — clube
-          nasce querendo gente.
-        */}
         <Campo titulo="Quantas pessoas cabem">
           <div className="flex gap-2">
             {VAGAS.map((valor) => (
@@ -211,6 +245,27 @@ export default function NovoClube() {
               </button>
             ))}
           </div>
+
+          {/* Qualquer número (ROTEIRO 4.42): *"se ele quiser colocar 14 pessoas,
+              ele também não consegue"*. Agora consegue. */}
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-[11.5px] text-white/45">Ou o número exato:</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={999}
+              value={limite ?? ""}
+              placeholder="—"
+              onChange={(e) => {
+                const numero = Number(e.target.value);
+                setLimite(e.target.value === "" || numero < 1 ? undefined : Math.round(numero));
+              }}
+              className="w-20 rounded-lg bg-white/[0.06] px-3 py-2 text-center text-sm font-semibold outline-none ring-1 ring-inset ring-white/8 placeholder:text-white/20 focus:ring-primary/50"
+              data-testid="clube-vagas-exato"
+            />
+          </div>
+
           <p className="mt-2 text-[11px] leading-relaxed text-white/35">
             {limite === undefined
               ? "Qualquer pessoa com o link pode entrar. Dá para pôr um limite depois."
@@ -218,52 +273,78 @@ export default function NovoClube() {
           </p>
         </Campo>
 
-        <Campo titulo="Em quantas semanas">
+        {/*
+          **Quando acaba virou uma data, não um número de semanas** (ROTEIRO
+          4.42). O Matheus: *"nas semanas também, ele não consegue dizer qual é o
+          dia que ele quer que acabe"*. Os atalhos de 2/4/6 semanas continuam,
+          porque quase todo clube usa um deles — mas agora eles só **preenchem** o
+          campo de data, que é quem manda.
+        */}
+        <Campo titulo="Quando é o encontro">
           <div className="flex gap-2">
             {SEMANAS.map((valor) => (
               <button
                 key={valor}
                 type="button"
-                onClick={() => setSemanas(valor)}
-                className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
-                  semanas === valor
+                onClick={() => setFim(somarDiasIso(inicio, valor * 7))}
+                className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors ${
+                  fim === somarDiasIso(inicio, valor * 7)
                     ? "bg-white text-black"
                     : "bg-white/[0.06] text-white/60 hover:bg-white/10"
                 }`}
                 data-testid={`clube-semanas-${valor}`}
               >
-                {valor}
+                {valor} sem.
               </button>
             ))}
           </div>
 
-          {marcos.length > 0 && (
-            <div className="mt-3 rounded-lg bg-white/[0.03] p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
-                O ritmo ficaria assim
-              </p>
-              <ul className="mt-2 space-y-1">
-                {marcos.map((marco) => (
-                  <li key={marco.id} className="text-xs text-white/55">
-                    Semana {marco.id}: até o capítulo{" "}
-                    <b className="text-white/85">{marco.chapter}</b>, em {dataCurta(marco.prazo)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <input
+            type="date"
+            min={inicio}
+            value={fim}
+            onChange={(e) => e.target.value && setFim(e.target.value)}
+            className="mt-2 w-full rounded-lg bg-white/[0.06] px-3 py-2.5 text-sm outline-none ring-1 ring-inset ring-white/8 [color-scheme:dark] focus:ring-primary/50"
+            data-testid="clube-encontro-data"
+          />
+
+          <p className="mt-2 text-[11px] leading-relaxed text-white/40">
+            {duracaoEmDias > 0
+              ? `${duracaoEmDias} dias de ciclo${escolhido ? ` para ${totalCapitulos} capítulos` : ""}.`
+              : "O encontro precisa ser depois da estreia."}
+          </p>
         </Campo>
+
+        {bookId !== null && marcos.length > 0 && (
+          <Campo titulo="O ritmo, marco a marco">
+            <EditorDeMarcos
+              bookId={bookId}
+              inicio={inicio}
+              fim={fim}
+              marcos={marcos}
+              onChange={setMarcos}
+            />
+          </Campo>
+        )}
 
         <button
           onClick={() => {
             if (!podeCriar || bookId === null) return;
-            const clube = criarClube({ nome, descricao, bookId, semanas, comecaEm, limite });
+            const estreiaHoje = diasEntre(hojeIso(), inicio) <= 0;
+            const clube = criarClube({
+              nome,
+              descricao,
+              bookId,
+              inicio,
+              encontro: fim,
+              marcos,
+              limite,
+            });
             toast({
-              title: comecaEm === 0 ? "Clube criado" : "Clube criado — estreia marcada",
-              description:
-                comecaEm === 0
-                  ? "Você é o moderador: pode abrir rodadas e cuidar do combinado."
-                  : `Ele já aparece em "Começando em breve". Convide gente pelo botão do clube.`,
+              title: estreiaHoje ? "Clube criado" : "Clube criado — estreia marcada",
+              description: estreiaHoje
+                ? "Você é o moderador: pode abrir rodadas e cuidar do combinado."
+                : `Estreia em ${dataCurta(inicio)} e já aparece em "Começando em breve".`,
             });
             navegar(`/clube/${clube.id}`);
           }}
