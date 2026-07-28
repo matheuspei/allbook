@@ -3502,6 +3502,27 @@ Recomendações continuam como vitrine própria na página (o feed da pessoa nã
 as repete). Segue de fora: o tipo "entrou no clube", porque o esqueleto não
 tem data de entrada em clube.
 
+### Privacidade da vitrine: dois interruptores (28/07, pedido do Matheus)
+
+*"Mostrar o que está ouvindo tem que ser algo que o usuário tenha que
+escolher"* — e, na sequência, *"assim também os clubes"*. Construído (commit
+`faad832`): grupo **Privacidade** no painel `/you`, com dois interruptores em
+`lib/settings.ts` (que só aceita chave que o app obedece de verdade):
+
+- **"Mostrar o que estou ouvindo"** — desliga o bloco "Ouvindo agora" **e o
+  fundo do topo** da página pública: a capa desfocada entrega o que está
+  tocando tanto quanto o bloco, esconder um sem o outro seria vazamento.
+- **"Mostrar meus clubes"** — esconde a lista de clubes **da vitrine**; dentro
+  do clube a turma continua te vendo, que é outro contrato.
+
+**Decisões dentro da decisão:** os dois nascem **ligados** enquanto não há
+contas (hoje ninguém além de você abre a sua página; nascer desligado mataria
+o recurso invisível) — quando houver cadastro, a escolha deve virar pergunta
+do primeiro uso. O MiniPlayer não obedece ao interruptor: ele é seu, não da
+vitrine. E um detalhe de código que o teste pegou: dois toques no mesmo
+instante se sobrescreviam (estado velho no fechamento) — o gravar passou a
+partir do storage, não do estado da tela.
+
 **Ligado a isso, pendente na janela A:** `ConversaDoTrecho.tsx:168` ("Ver a
 conversa do livro inteiro") ainda aponta para a ficha; o destino certo é a
 página `/book/:id/conversa`. Pedido registrado no quadro da COORDENACAO.
