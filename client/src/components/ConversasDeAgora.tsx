@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Lock, MessageSquare } from "lucide-react";
+import { Headphones, Lock, MessageSquare } from "lucide-react";
 
+import { vitrineDeConversas } from "@/lib/activity";
 import { catalog } from "@/lib/books";
 import { findMember } from "@/lib/community";
 import { PLAYBACK_EVENT } from "@/lib/playback";
-import { livrosComConversa } from "@/lib/sala";
 
 /**
  * "Onde a conversa está acontecendo" — o topo da Comunidade.
@@ -16,17 +16,23 @@ import { livrosComConversa } from "@/lib/sala";
  * porque o assunto interessa, não porque conhece quem está falando. Seguir
  * continua existindo, logo abaixo — deixou de ser a porta e virou um extra.
  *
+ * **Quais livros, e em que ordem (28/07):** a fonte é `vitrineDeConversas`
+ * (`lib/activity.ts`), com o algoritmo que o Matheus ditou — os que você está
+ * ouvindo, os da sua biblioteca, os dos seus últimos temas, o papo novo, o
+ * volume. Antes era `livrosComConversa` (volume desde sempre), que não olhava
+ * você nem o calendário — e ainda contava resenha como conversa.
+ *
  * **A trava vale aqui também.** A prévia só traz o que você já pode ler naquele
  * livro, e nunca um comentário marcado como spoiler: numa vitrine ninguém
  * escolheu abrir nada. Quando há mensagem presa, o cartão diz **quantas** — é o
  * que transforma "não tenho o que ver" em "tem coisa esperando por mim ali".
  */
 export default function ConversasDeAgora() {
-  const [salas, setSalas] = useState(() => livrosComConversa());
+  const [salas, setSalas] = useState(() => vitrineDeConversas());
 
   useEffect(() => {
-    // Ouvir muda o que está liberado: voltar do player recalcula sozinho.
-    const atualizar = () => setSalas(livrosComConversa());
+    // Ouvir muda o que está liberado E a ordem: voltar do player recalcula.
+    const atualizar = () => setSalas(vitrineDeConversas());
     atualizar();
     window.addEventListener(PLAYBACK_EVENT, atualizar);
     return () => window.removeEventListener(PLAYBACK_EVENT, atualizar);
@@ -66,6 +72,13 @@ export default function ConversasDeAgora() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold">{book.title}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-[11px] text-white/40">
+                    {/* Por que ESTE livro subiu: você está dentro dele. */}
+                    {sala.estouOuvindo && (
+                      <span className="flex items-center gap-1 font-medium text-primary/90">
+                        <Headphones className="h-3 w-3" />
+                        ouvindo
+                      </span>
+                    )}
                     <span className="flex items-center gap-1">
                       <MessageSquare className="h-3 w-3" />
                       {sala.total} {sala.total === 1 ? "mensagem" : "mensagens"}

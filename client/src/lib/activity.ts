@@ -13,10 +13,12 @@
  */
 
 import { catalog, type Book } from "@/lib/books";
-import { comments, type Comment } from "@/lib/comments";
+import { comments, ehAvaliacao, type Comment } from "@/lib/comments";
 import { community, findMember, type CommunityMember } from "@/lib/community";
 import { readFollowing } from "@/lib/following";
+import { readLibrary } from "@/lib/library";
 import { readPlaybackList } from "@/lib/playback";
+import { posicaoNoLivro, separarSala } from "@/lib/sala";
 
 /**
  * Um acontecimento é **uma pessoa e um livro**, não uma ação solta.
@@ -278,6 +280,112 @@ function recommendedBooks(member: CommunityMember): Book[] {
   return member.recommendations
     .map((item) => catalog.find((book) => book.id === item.bookId))
     .filter((book): book is Book => book !== undefined);
+}
+
+/* ------------------------------------------------------------------ *
+ * A vitrine "Onde a conversa está" (critério refeito em 28/07)
+ * ------------------------------------------------------------------ */
+
+/** Um livro na vitrine de conversas, com a prévia do que VOCÊ pode ler. */
+export interface SalaNaVitrine {
+  bookId: number;
+  /** Mensagens de conversa (avaliação não conta — ela mora noutra seção). */
+  total: number;
+  liberadas: number;
+  previa: Comment[];
+  /** Você está no meio deste livro — é por isso que ele subiu. */
+  estouOuvindo: boolean;
+}
+
+/** Papo dos últimos 14 dias: é o que separa "está" de "já esteve". */
+const JANELA_DE_AGORA_DIAS = 14;
+
+/**
+ * Os livros da vitrine de conversas da Comunidade — **em ordem de interesse
+ * seu**, não de volume histórico.
+ *
+ * O Matheus perguntou (28/07) qual era o critério, e a resposta expôs o
+ * defeito do antigo (`livrosComConversa`, em `sala.ts`): "os 6 livros com
+ * mais mensagens desde sempre". Não olhava você, não olhava o calendário — e
+ * ainda contava as resenhas, que desde a separação nem moram mais na
+ * conversa. O bloco se chama "onde a conversa **está**", e o critério
+ * respondia onde ela **já esteve**.
+ *
+ * A ordem, ditada pelo Matheus ("os que a gente está ouvindo, os da
+ * biblioteca, depois os últimos temas que você ouviu — um algoritmo mais ou
+ * menos nessa ordem"), do degrau mais forte para o mais fraco:
+ * 1. **Livros que você está ouvindo** — o papo do SEU livro interessa antes
+ *    de qualquer outro (e a trava garante que você só vê o que já pode ler);
+ * 2. **Livros da sua biblioteca** — interesse declarado, ainda sem audição;
+ * 3. **Livros dos gêneros que você ouviu por último** — o tema te acompanha
+ *    mesmo quando o título é outro;
+ * 4. **Papo novo** — mensagens dos últimos 14 dias;
+ * 5. **Volume total**, como desempate.
+ *
+ * A prévia continua com a regra da sala (que é da janela A, reusada por
+ * import): só o que você já pode ler, nunca spoiler, no máximo 2.
+ */
+export function vitrineDeConversas(limite = 6): SalaNaVitrine[] {
+  const progresso = readPlaybackList();
+  const ouvindo = new Set(progresso.map((item) => item.bookId));
+  const naLista = new Set(readLibrary().map((item) => item.id));
+
+  // "Os últimos temas que você ouviu": os gêneros dos 5 livros mais recentes
+  // do seu progresso — a lista já vem do mais novo para o mais velho.
+  const generosRecentes = new Set(
+    progresso
+      .slice(0, 5)
+      .map((item) => catalog.find((book) => book.id === item.bookId)?.genre)
+      .filter((genre): genre is Book["genre"] => genre !== undefined),
+  );
+
+  const corte = new Date();
+  corte.setDate(corte.getDate() - JANELA_DE_AGORA_DIAS);
+  const dataCorte = corte.toISOString().slice(0, 10);
+
+  const porLivro = new Map<number, Comment[]>();
+  for (const item of comments) {
+    // Só conversa de primeiro nível: resenha tem seção própria na ficha.
+    if (item.bookId === undefined || item.parentId || ehAvaliacao(item)) continue;
+    const lista = porLivro.get(item.bookId) ?? [];
+    lista.push(item);
+    porLivro.set(item.bookId, lista);
+  }
+
+  return Array.from(porLivro.entries())
+    .map(([bookId, lista]) => {
+      const { visiveis } = separarSala(lista, posicaoNoLivro(bookId));
+      const recentes = lista.filter((item) => item.date >= dataCorte).length;
+      const genero = catalog.find((book) => book.id === bookId)?.genre;
+      return {
+        bookId,
+        total: lista.length,
+        liberadas: visiveis.length,
+        previa: visiveis.filter((item) => !item.spoiler).slice(0, 2),
+        estouOuvindo: ouvindo.has(bookId),
+        recentes,
+        // Livro da sua lista fica entre "estou dentro" e "estranhos": você
+        // declarou interesse, mas ainda não entrou.
+        naMinhaLista: naLista.has(bookId),
+        doMeuTema: genero !== undefined && generosRecentes.has(genero),
+      };
+    })
+    .sort(
+      (a, b) =>
+        Number(b.estouOuvindo) - Number(a.estouOuvindo) ||
+        Number(b.naMinhaLista) - Number(a.naMinhaLista) ||
+        Number(b.doMeuTema) - Number(a.doMeuTema) ||
+        b.recentes - a.recentes ||
+        b.total - a.total,
+    )
+    .slice(0, limite)
+    .map(({ bookId, total, liberadas, previa, estouOuvindo }) => ({
+      bookId,
+      total,
+      liberadas,
+      previa,
+      estouOuvindo,
+    }));
 }
 
 /** "2026-07-20" → "há 1 dia". Data crua num acontecimento social não diz nada. */
