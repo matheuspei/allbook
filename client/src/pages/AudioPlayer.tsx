@@ -36,6 +36,7 @@ import {
 import { readSettings } from "@/lib/settings";
 import { readPlayback, readPlaying, savePlayback, savePlaying, showMiniPlayer } from "@/lib/playback";
 import { getChapters, chaptersTotalSec, chapterStartSec, chapterAtSec, formatChapterDuration } from "@/lib/chapters";
+import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
@@ -650,15 +651,23 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   const trecho = criarCitacao(book.id, currentTime, MAX_CITACAO_SEC);
                   guardarTrecho(trecho);
                   toast({
-                    title: `Trecho de ${MAX_CITACAO_SEC}s guardado`,
-                    description: `${rotuloDaCitacao(trecho)} — anexe em qualquer conversa pelo clipe, ou abra a Conversa para ajustar o corte.`,
+                    title: "Trecho guardado",
+                    description: `${rotuloDaCitacao(trecho)}. Fica em Minhas notas › Trechos — anexe em qualquer conversa pelo clipe.`,
+                    action: (
+                      <ToastAction altText="Ver os trechos" onClick={() => setLocation("/bookmarks")}>
+                        Ver
+                      </ToastAction>
+                    ),
                   });
                 }}
                 className="flex items-center gap-1 rounded-full bg-white/[0.07] px-2.5 py-1 text-[10px] font-semibold text-white/60 transition-colors hover:bg-white/15 hover:text-white active:scale-95"
                 data-testid="guardar-trecho-rapido"
               >
+                {/* "Guardar trecho", e não "Guardar 40s": quarenta é o **teto**,
+                    não o que a pessoa está guardando — o rótulo antigo anunciava
+                    um limite como se fosse a coisa (ROTEIRO 4.47). */}
                 <Scissors className="h-2.5 w-2.5" />
-                Guardar {MAX_CITACAO_SEC}s
+                Guardar trecho
               </button>
 
               <span className="text-white/50">-{formatTime(chapterDuration - positionInChapter)}</span>

@@ -156,7 +156,7 @@ export default function MarcacoesDoLivro({
                     <textarea
                       value={rascunho}
                       onChange={(evento) => setRascunho(evento.target.value)}
-                      placeholder="O que você quer lembrar deste trecho?"
+                      placeholder="O que você quer lembrar deste ponto?"
                       rows={3}
                       autoFocus
                       className="w-full resize-none rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:border-primary/50 focus:outline-none"

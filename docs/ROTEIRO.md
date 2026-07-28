@@ -4094,6 +4094,43 @@ por extenso fizer falta, voltar é uma linha.
 
 ---
 
+## 4.47 Os trechos ganharam casa — e "40s" era o nome errado (28/07)
+
+Duas correções pedidas pelo Matheus depois de usar, e as duas procedem.
+
+### "Não tô vendo pra onde é que eles estão indo"
+
+**Defeito, não gosto.** Dava para guardar um trecho e não havia **nenhuma tela**
+onde vê-los: o único caminho era o botão de clipe dentro de um campo de escrever.
+Guardar sem ter onde encontrar é beco sem saída — exatamente o que a 4.23 manda
+varrer, e eu deixei passar ao construir a §4.45.
+
+**Os trechos foram morar em `/bookmarks` ("Minhas notas"), numa aba própria**, e
+não numa tela nova: são a mesma família — coisas que você marcou **ouvindo**. A
+diferença entre as duas abas é o destino, e ela vale como definição: **a nota
+guarda um ponto para você; o trecho guarda um pedaço para mostrar aos outros.**
+
+- As abas **só aparecem quando há trechos**: quem nunca cortou um não precisa
+  escolher entre duas coisas sendo que uma está vazia.
+- O aviso ao guardar passou a **dizer onde foi parar** e a trazer um botão
+  **"Ver"** que leva lá. Antes ele só confirmava, o que era metade da informação.
+
+**Colisão de vocabulário, resolvida no caminho:** a tela de notas chamava cada
+marcação de "trecho" ("3 trechos guardados em 2 títulos"), e a caixa de nota
+perguntava "o que você quer lembrar deste trecho?". Com o trecho de áudio
+existindo, a mesma palavra passou a significar duas coisas **na mesma tela**.
+Marcação virou "marcação"; o ponto virou "ponto"; **trecho ficou reservado** para
+o pedaço de áudio.
+
+### "Guardar 40s" nomeia o teto, não a coisa
+
+Palavras dele: *"quarenta segundos, na verdade, é o máximo… essa nomenclatura
+poderia ser mudada"*. Certo — o rótulo anunciava um **limite** como se fosse o
+objeto. Virou **"Guardar trecho"**. O aviso continua dizendo a duração real, que
+é onde essa informação serve: depois de guardar, não antes.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
