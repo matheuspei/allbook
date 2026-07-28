@@ -4,14 +4,12 @@ import { Check, Plus } from "lucide-react";
 
 import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
 import ConversasDeAgora from "@/components/ConversasDeAgora";
+import MuralDaComunidade from "@/components/MuralDaComunidade";
 import { useToast } from "@/hooks/use-toast";
 import {
   ouvindoAgoraNaComunidade,
-  recomendacoesRecentes,
-  relativeDate,
   suggestions,
   type AudicaoDeAgora,
-  type RecomendacaoComDono,
   type Suggestion,
 } from "@/lib/activity";
 import { findMember } from "@/lib/community";
@@ -47,7 +45,6 @@ export default function Community() {
   const { toast } = useToast();
   const [audicoes, setAudicoes] = useState<AudicaoDeAgora[]>([]);
   const [sugestoes, setSugestoes] = useState<Suggestion[]>([]);
-  const [recomendadas, setRecomendadas] = useState<RecomendacaoComDono[]>([]);
   const [following, setFollowing] = useState<string[]>([]);
 
   useEffect(() => {
@@ -59,7 +56,6 @@ export default function Community() {
     setFollowing(readFollowing());
     setAudicoes(ouvindoAgoraNaComunidade());
     setSugestoes(suggestions(readLibrary().map((item) => item.id), 3));
-    setRecomendadas(recomendacoesRecentes(4));
   }
 
   function seguir(slug: string, primeiroNome: string) {
@@ -97,7 +93,14 @@ export default function Community() {
         </p>
       </header>
 
-      {/* 1 — Quem está dentro de qual livro, agora. */}
+      {/*
+        O Mural primeiro: quem abre a aba cai na vida, não na vitrine (28/07).
+        Ele absorveu o bloco "Recomendado pela sua roda" — recomendação virou
+        um tipo do feed, e o mesmo conteúdo em dois blocos era redundância.
+      */}
+      <MuralDaComunidade />
+
+      {/* 2 — Quem está dentro de qual livro, agora. */}
       {audicoes.length > 0 && (
         <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="community-listening-now">
           <h2 className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-white/40">
@@ -192,57 +195,13 @@ export default function Community() {
         </section>
       )}
 
-      {/* 4 — A recomendação com o porquê: o que o "Eu recomendo" das páginas
-          produz é exatamente o que este bloco consome. */}
-      {recomendadas.length > 0 && (
-        <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="community-recommendations">
-          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            {seguindo.length > 0 ? "Recomendado pela sua roda" : "Recomendado na comunidade"}
-          </h2>
+      {/*
+        O bloco "Recomendado pela sua roda" morava aqui e foi ABSORVIDO pelo
+        Mural no mesmo dia em que nasceu (28/07): recomendação virou um tipo do
+        feed, e o mesmo conteúdo em dois blocos era redundância.
+      */}
 
-          <div className="space-y-4">
-            {recomendadas.map(({ member, book, note, date }) => (
-              <div key={`${member.slug}-${book.id}`} className="flex gap-3" data-testid={`rec-${member.slug}-${book.id}`}>
-                <Link href={`/book/${book.id}`} className="shrink-0">
-                  <img
-                    src={book.cover}
-                    alt={book.title}
-                    className="h-[59px] w-11 rounded object-cover"
-                  />
-                </Link>
-                <div className="min-w-0 flex-1">
-                  <Link href={`/book/${book.id}`} className="group">
-                    <p className="line-clamp-1 text-xs font-medium transition-colors group-hover:text-primary">
-                      {book.title}
-                    </p>
-                    <p className="mt-0.5 line-clamp-1 text-[10px] text-white/40">
-                      {book.author} · narra {book.narrator}
-                    </p>
-                  </Link>
-                  {note && (
-                    <p className="mt-1 line-clamp-2 text-[11px] italic leading-snug text-white/55">
-                      “{note}”
-                    </p>
-                  )}
-                  <Link
-                    href={`/user/${member.slug}`}
-                    className="mt-1.5 flex items-center gap-1.5 text-[10px] text-white/30 transition-colors hover:text-white/60"
-                  >
-                    <span
-                      className={`flex h-3.5 w-3.5 items-center justify-center rounded-full bg-gradient-to-br ${member.color} text-[7px] font-bold text-white`}
-                    >
-                      {member.name.charAt(0)}
-                    </span>
-                    {member.name} · {relativeDate(date)}
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* 5 — O compromisso: os clubes (da janela A). */}
+      {/* 4 — O compromisso: os clubes (da janela A). */}
       <ClubesNaComunidade />
 
       {/* Quem você segue, por último: é atalho de volta, não descoberta. */}

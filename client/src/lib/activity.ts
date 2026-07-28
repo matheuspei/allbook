@@ -236,45 +236,12 @@ export function ouvindoAgoraNaComunidade(): AudicaoDeAgora[] {
   });
 }
 
-/** Uma recomendação com dono — a matéria-prima do bloco "Recomendado". */
-export interface RecomendacaoComDono {
-  member: CommunityMember;
-  book: Book;
-  note: string;
-  date: string;
-}
-
-/**
- * As recomendações mais recentes da comunidade, **com o porquê na frente**.
- *
- * Quem você segue vem primeiro — a sua roda pesa mais que estranhos —, e o
- * resto completa a lista, porque no primeiro dia ninguém segue ninguém e o
- * bloco não pode nascer vazio. Recomendações com texto vêm antes das sem:
- * é o motivo escrito que transforma capa em convite.
+/*
+ * Havia aqui um `recomendacoesRecentes` para o bloco "Recomendado pela sua
+ * roda" — criado e absorvido no MESMO dia (28/07): o Mural (`lib/mural.ts`)
+ * mostra as recomendações como um tipo do feed, e o mesmo conteúdo em dois
+ * blocos era redundância. O bloco saiu da Comunidade junto.
  */
-export function recomendacoesRecentes(limit = 5): RecomendacaoComDono[] {
-  const following = new Set(readFollowing());
-
-  return community
-    .flatMap((member) =>
-      member.recommendations.flatMap((item) => {
-        const book = catalog.find((entry) => entry.id === item.bookId);
-        return book
-          ? [{ member, book, note: item.note ?? "", date: item.date }]
-          : [];
-      }),
-    )
-    .sort((a, b) => {
-      const aSeguido = following.has(a.member.slug) ? 1 : 0;
-      const bSeguido = following.has(b.member.slug) ? 1 : 0;
-      if (aSeguido !== bSeguido) return bSeguido - aSeguido;
-      const aTemNota = a.note ? 1 : 0;
-      const bTemNota = b.note ? 1 : 0;
-      if (aTemNota !== bTemNota) return bTemNota - aTemNota;
-      return b.date.localeCompare(a.date);
-    })
-    .slice(0, limit);
-}
 
 function recommendedBooks(member: CommunityMember): Book[] {
   return member.recommendations

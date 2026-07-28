@@ -22,6 +22,12 @@ export interface RecommendationItem {
   id: number;
   /** O porquê da recomendação. Vazio = a pessoa ainda não escreveu nada. */
   note: string;
+  /**
+   * Quando você recomendou (ISO). Entrou em 28/07 para o Mural: linha do
+   * tempo pede data. Itens de antes não têm — continuam valendo em todo
+   * lugar, só não entram no feed (data chutada seria mentira).
+   */
+  date?: string;
 }
 
 /**
@@ -38,7 +44,13 @@ export function readRecommendationItems(): RecommendationItem[] {
         return [{ id: entry, note: "" }];
       }
       if (entry && typeof entry === "object" && Number.isFinite(Number(entry.id))) {
-        return [{ id: Number(entry.id), note: typeof entry.note === "string" ? entry.note : "" }];
+        return [
+          {
+            id: Number(entry.id),
+            note: typeof entry.note === "string" ? entry.note : "",
+            ...(typeof entry.date === "string" ? { date: entry.date } : {}),
+          },
+        ];
       }
       return [];
     });
@@ -69,7 +81,7 @@ export function toggleRecommendation(id: number): number[] {
   const current = readRecommendationItems();
   const next = current.some((item) => item.id === id)
     ? current.filter((item) => item.id !== id)
-    : [...current, { id, note: "" }];
+    : [...current, { id, note: "", date: new Date().toISOString() }];
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   return next.map((item) => item.id);
