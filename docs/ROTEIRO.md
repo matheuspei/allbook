@@ -3545,7 +3545,49 @@ recentes era pobre (*"ela poderia mencionar um livro ou um clube"*). Feito
 
 **Ideia anotada, não construída:** âncora em **gênero** ("me indiquem
 Mistério") cobriria o pedido de indicação sem livro específico — fica para
-quando o uso pedir.
+quando o uso pedir. *(Atualização, mesma noite: o pedido de indicação por tema
+ganhou casa melhor — as Rodas, abaixo.)*
+
+### A cara nova da Comunidade: 4 propostas → a junção → 3 abas (28/07, noite)
+
+O Matheus pediu a reformulação visual da aba. O caminho, com as decisões:
+
+1. **Uma proposta única foi vetada pelo processo**: ele mandou desenhar
+   **"pelo menos 4 propostas completamente diferentes"** para avaliar. Foram
+   desenhadas (folha `_4-propostas-comunidade.html`, fora do git): **A
+   Revista** (editorial), **O Ao Vivo** (transmissão), **Os Salões** (lugar
+   com portas) e **As Pessoas** (gente em primeiro plano).
+2. **A avaliação dele foi a junção**: *"juntar todas essas funções… agrupar
+   numa coisa só"* — com dois cortes ditos: "assunto de hoje" e "frase do
+   dia" fora; "os mais falados da semana" dentro. A junção está na folha
+   `_sintese-comunidade.html`, com a etiqueta de origem de cada peça.
+3. **No meio, o Orkut**: ele lembrou das comunidades com tópicos e pediu.
+   Viraram as **Rodas de conversa** (`lib/rodasDeConversa.ts`, telas
+   `/roda/:id` e `/roda/:id/topico/:topicoId`, commit `dd6b371`): **Roda
+   (assunto) → tópicos → respostas**, com o nome da casa porque "comunidade
+   dentro da Comunidade" confundiria. Completa a escada de conversa: sala =
+   um livro; Roda = um assunto; clube = uma turma com prazo. Entrar é livre;
+   criar tópico entra junto (o gesto já diz a intenção). 5 rodas semeadas com
+   9 tópicos e fios; o seu (participações, tópicos, respostas) no
+   `localStorage`.
+4. **E o excesso foi arrumado a pedido dele** (*"muita coisa solta"*): a tela
+   virou **três abas internas** — **Agora** (fita de capas "ouvindo agora" no
+   estilo stories + Mural com filtros por tipo e cor por verbo), **Conversas**
+   (as "conversas da semana" — fusão do top numerado com as portas, porque
+   apontavam para as MESMAS salas — + Rodas + clubes) e **Gente** (pódio da
+   semana calculado de `hoursListened`, "combina com você" em carrossel com
+   as capas em comum, seguidos numa linha). Commit `8e27bdd`.
+
+**Cortes com motivo:** a fileira "Seguindo" encolheu para uma linha de
+avatares (era o bloco mais redundante); o banner "Em alta" único foi absorvido
+pelo top numerado; a linha-do-tempo-com-hora da proposta B morreu (o mural em
+cartões conta a mesma história); "leitor da semana" single virou pódio de 3.
+**Nada aparece duas vezes na tela.**
+
+**Fica para depois, anotado:** tópico de Roda mencionando um livro (a âncora
+do mural, prometida na folha — pede juntar o seletor de livro ao criar
+tópico); Rodas no perfil público ("as rodas de fulano"); e moderação de
+tópico quando houver gente de verdade.
 
 **Ligado a isso, pendente na janela A:** `ConversaDoTrecho.tsx:168` ("Ver a
 conversa do livro inteiro") ainda aponta para a ficha; o destino certo é a
