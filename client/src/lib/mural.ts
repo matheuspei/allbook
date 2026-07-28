@@ -144,56 +144,47 @@ function livro(bookId: number): Book | undefined {
 }
 
 /**
- * O mural, do acontecimento mais novo para o mais velho.
- *
- * Seguindo alguém: só quem você segue, mais você. Sem seguir ninguém: a
- * comunidade inteira — é o que dá vida ao primeiro dia.
+ * Tudo que UM leitor do esqueleto fez, na língua do mural: recomendou, está
+ * ouvindo, avaliou, comentou (com a trava viajando junto). É a peça que o
+ * feed geral e o perfil da pessoa compartilham — o mesmo acontecimento tem a
+ * mesma cara em qualquer tela (a régua da 4.20).
  */
-export function feedDoMural(limite = 30): ItemDoMural[] {
-  const seguindo = new Set(readFollowing());
-  const filtrar = seguindo.size > 0;
-  const membros = community.filter((member) => !filtrar || seguindo.has(member.slug));
-
+function itensDoMembro(member: CommunityMember): ItemDoMural[] {
   const itens: ItemDoMural[] = [];
 
-  // — o que os leitores do esqueleto andaram fazendo —
-  for (const member of membros) {
-    for (const rec of member.recommendations) {
-      const book = livro(rec.bookId);
-      if (!book) continue;
+  for (const rec of member.recommendations) {
+    const book = livro(rec.bookId);
+    if (!book) continue;
+    itens.push({
+      id: `rec-${member.slug}-${rec.bookId}`,
+      date: rec.date,
+      autor: autorDoMembro(member),
+      book,
+      tipo: "recomendou",
+      note: rec.note ?? "",
+    });
+  }
+
+  if (member.ouvindoAgora) {
+    const book = livro(member.ouvindoAgora.bookId);
+    if (book) {
       itens.push({
-        id: `rec-${member.slug}-${rec.bookId}`,
-        date: rec.date,
+        // "Agora" é presente, não passado: data de hoje para ficar no topo.
+        id: `agora-${member.slug}`,
+        date: new Date().toISOString(),
         autor: autorDoMembro(member),
         book,
-        tipo: "recomendou",
-        note: rec.note ?? "",
+        tipo: "ouvindo",
+        chapter: member.ouvindoAgora.chapter,
       });
-    }
-
-    if (member.ouvindoAgora) {
-      const book = livro(member.ouvindoAgora.bookId);
-      if (book) {
-        itens.push({
-          // "Agora" é presente, não passado: data de hoje para ficar no topo.
-          id: `agora-${member.slug}`,
-          date: new Date().toISOString(),
-          autor: autorDoMembro(member),
-          book,
-          tipo: "ouvindo",
-          chapter: member.ouvindoAgora.chapter,
-        });
-      }
     }
   }
 
-  const membrosPorNome = new Map(community.map((member) => [member.slug, member]));
   for (const comment of comments) {
+    if (comment.authorSlug !== member.slug) continue;
     if (comment.bookId === undefined || comment.parentId) continue;
-    if (filtrar && !seguindo.has(comment.authorSlug)) continue;
-    const member = membrosPorNome.get(comment.authorSlug);
     const book = livro(comment.bookId);
-    if (!member || !book) continue;
+    if (!book) continue;
 
     if (ehAvaliacao(comment) && comment.rating !== undefined) {
       itens.push({
@@ -219,6 +210,42 @@ export function feedDoMural(limite = 30): ItemDoMural[] {
       });
     }
   }
+
+  return itens;
+}
+
+/**
+ * O mural de UMA pessoa — o que o perfil dela mostra (28/07, pedido do
+ * Matheus: o perfil dos membros tinha ficado sem as novidades do mural).
+ * `tipos` filtra: o perfil usa só avaliou/comentou, porque as recomendações
+ * já têm vitrine própria lá e o "ouvindo" tem bloco próprio.
+ */
+export function muralDe(
+  slug: string,
+  tipos?: ItemDoMural["tipo"][],
+  limite = 20,
+): ItemDoMural[] {
+  const member = community.find((item) => item.slug === slug);
+  if (!member) return [];
+  return itensDoMembro(member)
+    .filter((item) => !tipos || tipos.includes(item.tipo))
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, limite);
+}
+
+/**
+ * O mural, do acontecimento mais novo para o mais velho.
+ *
+ * Seguindo alguém: só quem você segue, mais você. Sem seguir ninguém: a
+ * comunidade inteira — é o que dá vida ao primeiro dia.
+ */
+export function feedDoMural(limite = 30): ItemDoMural[] {
+  const seguindo = new Set(readFollowing());
+  const filtrar = seguindo.size > 0;
+  const membros = community.filter((member) => !filtrar || seguindo.has(member.slug));
+
+  // — o que os leitores do esqueleto andaram fazendo —
+  const itens: ItemDoMural[] = membros.flatMap(itensDoMembro);
 
   // — os seus acontecimentos —
   for (const post of readMeusPosts()) {

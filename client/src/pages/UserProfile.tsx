@@ -5,12 +5,13 @@ import { Check, Plus } from "lucide-react";
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import PageHeader from "@/components/PageHeader";
 import SeloDeMedalha from "@/components/SeloDeMedalha";
+import { ItemDoFeed } from "@/components/MuralDaComunidade";
 import { useToast } from "@/hooks/use-toast";
-import { relativeDate } from "@/lib/activity";
-import { commentsByAuthor, bookOf } from "@/lib/comments";
+import { catalog } from "@/lib/books";
 import { findMember, recommendationsOf } from "@/lib/community";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { getAchievementsByIds, melhoresConquistas } from "@/lib/achievements";
+import { muralDe } from "@/lib/mural";
 
 /**
  * Perfil público de outro leitor (`/user/:slug`).
@@ -60,13 +61,19 @@ export default function UserProfile() {
   }
 
   const books = recommendationsOf(member);
-  const comentarios = commentsByAuthor(member.slug);
+  // A atividade na língua do mural: avaliações e comentários, com a trava.
+  // Recomendações ficam de fora — têm a vitrine própria nesta página.
+  const atividade = muralDe(member.slug, ["avaliou", "comentou"]);
   const primeiroNome = member.name.split(" ")[0];
   // Reputação, não coleção: os dois selos mais raros (a mesma regra da sua página).
   const selos = melhoresConquistas(getAchievementsByIds(member.achievementIds));
-  // A capa mais recente que a pessoa indicou dá o fundo do topo — o retrato
-  // dela é o que ela anda recomendando.
-  const capaDoTopo = books[0]?.book.cover;
+  // O que a pessoa está ouvindo agora — o mesmo bloco vivo da sua página.
+  const ouvindo = member.ouvindoAgora
+    ? catalog.find((book) => book.id === member.ouvindoAgora?.bookId)
+    : undefined;
+  // A capa do que ela está ouvindo dá o fundo do topo; sem nada tocando, a
+  // recomendação mais recente — o retrato dela é o que ela anda fazendo.
+  const capaDoTopo = ouvindo?.cover ?? books[0]?.book.cover;
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="user-profile-page">
@@ -170,6 +177,35 @@ export default function UserProfile() {
         </button>
       </div>
 
+      {/* O mesmo bloco vivo da sua página — o dado já existia (`ouvindoAgora`)
+          e o perfil não o mostrava (28/07). */}
+      {ouvindo && member.ouvindoAgora && (
+        <section className="px-5 py-5 border-t border-white/10" data-testid="section-user-now-playing">
+          <h2 className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-40" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+            </span>
+            Ouvindo agora
+          </h2>
+          <Link href={`/book/${ouvindo.id}`} className="flex items-center gap-3 group">
+            <img
+              src={ouvindo.cover}
+              alt={ouvindo.title}
+              className="h-[59px] w-11 shrink-0 rounded object-cover"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium transition-colors group-hover:text-primary">
+                {ouvindo.title}
+              </p>
+              <p className="mt-0.5 text-[11px] text-white/40">
+                {ouvindo.author} · capítulo {member.ouvindoAgora.chapter}
+              </p>
+            </div>
+          </Link>
+        </section>
+      )}
+
       <section className="px-5 py-5 border-t border-white/10" data-testid="section-user-recommendations">
         <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-4">
           {primeiroNome} recomenda
@@ -209,47 +245,25 @@ export default function UserProfile() {
       </section>
 
       {/*
-        O que a pessoa andou comentando. Só existe porque o comentário deixou de
-        morar dentro do livro: agora ele tem dono, e dá para perguntar "o que
-        fulano escreveu" em vez de só "o que disseram deste livro".
+        A atividade da pessoa, na língua do mural (28/07 — o Matheus apontou
+        que o perfil dos membros tinha ficado sem as novidades). Substituiu a
+        lista crua "Comentários de fulano", que misturava resenha com papo e
+        **vazava texto de trecho à frente**: o `ItemDoFeed` traz a separação
+        (estrela na avaliação, cadeado no comentário preso) de graça.
+        Recomendações ficam de fora — têm a vitrine própria logo acima.
       */}
-      <section className="px-5 py-5 border-t border-white/10" data-testid="section-user-comments">
-        <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-4">
-          Comentários de {primeiroNome}
+      <section className="px-5 py-5 border-t border-white/10" data-testid="section-user-activity">
+        <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-1">
+          Atividade de {primeiroNome}
         </h2>
 
-        {comentarios.length === 0 ? (
-          <p className="text-sm text-white/40 py-6">Ainda não comentou em nenhum livro.</p>
+        {atividade.length === 0 ? (
+          <p className="text-sm text-white/40 py-6">Ainda não disse nada nos livros.</p>
         ) : (
-          <div className="space-y-4" data-testid="user-comments-list">
-            {comentarios.map((comment) => {
-              const book = bookOf(comment);
-              if (!book) return null;
-
-              return (
-                <Link
-                  key={comment.id}
-                  href={`/book/${book.id}`}
-                  className="flex gap-3 group"
-                  data-testid={`user-comment-${comment.id}`}
-                >
-                  <img
-                    src={book.cover}
-                    alt={book.title}
-                    className="w-11 h-[59px] rounded object-cover shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-xs font-semibold line-clamp-1 group-hover:text-primary transition-colors">
-                      {book.title}
-                    </h3>
-                    <p className="text-xs text-white/60 leading-relaxed mt-1 line-clamp-3">
-                      {comment.text}
-                    </p>
-                    <p className="text-[10px] text-white/25 mt-1">{relativeDate(comment.date)}</p>
-                  </div>
-                </Link>
-              );
-            })}
+          <div data-testid="user-activity-list">
+            {atividade.map((item) => (
+              <ItemDoFeed key={item.id} item={item} />
+            ))}
           </div>
         )}
       </section>

@@ -176,7 +176,12 @@ function verboDoItem(item: ItemDoMural): { icone: React.ReactNode; verbo: string
   }
 }
 
-function ItemDoFeed({ item }: { item: ItemDoMural }) {
+/**
+ * Um acontecimento do mural, desenhado. Exportado porque o perfil de um
+ * leitor mostra a atividade dele com ESTA mesma peça — o mesmo acontecimento
+ * não pode ter uma cara no feed e outra no perfil (régua da 4.20).
+ */
+export function ItemDoFeed({ item }: { item: ItemDoMural }) {
   const { toast } = useToast();
   const { icone, verbo } = verboDoItem(item);
   const perfil = useMemo(readProfile, []);

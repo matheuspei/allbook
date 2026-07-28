@@ -17,8 +17,17 @@ import {
   type Achievement,
 } from "@/lib/achievements";
 import { playbackPercent, readPlaybackList, type Playback } from "@/lib/playback";
-import { readMyComments, type MyComment } from "@/lib/myComments";
+import { readMyComments } from "@/lib/myComments";
+import { MURAL_EVENT, readMeusPosts } from "@/lib/mural";
 import { catalog, type Book } from "@/lib/books";
+
+/** Uma fala sua — comentário num livro ou post do mural, no mesmo formato. */
+interface FalaMinha {
+  id: string;
+  bookId: number;
+  texto: string;
+  date: string;
+}
 
 /**
  * Perfil (`/profile`) — **a sua página**, a mesma que os outros veem.
@@ -54,7 +63,7 @@ export default function Profile() {
   const [recommendations, setRecommendations] = useState<{ book: Book; note: string }[]>(readRecommendations);
   const [resumo, setResumo] = useState<ResumoDeAudicao | null>(null);
   const [tocando, setTocando] = useState<Playback | null>(null);
-  const [comentarios, setComentarios] = useState<MyComment[]>([]);
+  const [falas, setFalas] = useState<FalaMinha[]>([]);
   const [clubes, setClubes] = useState<Clube[]>([]);
   /** Prévia honesta: esconde tudo que só o dono vê. */
   const [visitante, setVisitante] = useState(false);
@@ -65,16 +74,33 @@ export default function Profile() {
     setRecommendations(readRecommendations());
     setResumo(lerResumo());
     setTocando(readPlaybackList()[0] ?? null);
-    // Só comentários de livro: os de pessoa/editora não têm capa para mostrar
-    // aqui, e um título de seção sem corpo parece defeito.
-    setComentarios(
-      readMyComments()
-        .filter((item) => item.bookId !== undefined)
+    // "O que eu disse" junta as suas duas vozes: comentários nos livros e
+    // posts do mural (28/07) — para quem te visita, é tudo fala sua. Só o que
+    // tem livro: comentário de pessoa/editora não tem capa para mostrar aqui.
+    recarregarFalas();
+    setClubes(meusClubes());
+
+    // Publicou ou apagou um post no mural com a página aberta? A seção relê.
+    window.addEventListener(MURAL_EVENT, recarregarFalas);
+    return () => window.removeEventListener(MURAL_EVENT, recarregarFalas);
+  }, []);
+
+  function recarregarFalas() {
+    const dosComentarios: FalaMinha[] = readMyComments()
+      .filter((item) => item.bookId !== undefined)
+      .map((item) => ({ id: item.id, bookId: item.bookId!, texto: item.text, date: item.date }));
+    const dosPosts: FalaMinha[] = readMeusPosts().map((item) => ({
+      id: item.id,
+      bookId: item.bookId,
+      texto: item.texto,
+      date: item.date,
+    }));
+    setFalas(
+      [...dosComentarios, ...dosPosts]
         .sort((a, b) => b.date.localeCompare(a.date))
         .slice(0, 3),
     );
-    setClubes(meusClubes());
-  }, []);
+  }
 
   const selos = resumo
     ? melhoresConquistas(
@@ -371,14 +397,14 @@ export default function Profile() {
         )}
       </section>
 
-      {comentarios.length > 0 && (
+      {falas.length > 0 && (
         <section className="border-b border-white/10 px-5 py-5" data-testid="section-profile-comments">
           <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-white/40">
             O que eu disse
           </h2>
           <div className="space-y-4">
-            {comentarios.map((item) => {
-              const livro = item.bookId ? catalog.find((b) => b.id === item.bookId) : undefined;
+            {falas.map((item) => {
+              const livro = catalog.find((b) => b.id === item.bookId);
               if (!livro) return null;
               return (
                 <Link
@@ -397,7 +423,7 @@ export default function Profile() {
                       {livro.title}
                     </p>
                     <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/70">
-                      “{item.text}”
+                      “{item.texto}”
                     </p>
                   </div>
                 </Link>
