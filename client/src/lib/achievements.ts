@@ -422,3 +422,25 @@ export function getAchievementsByIds(ids: string[]): DefinicaoDeConquista[] {
     return item ? [item] : [];
   });
 }
+
+/* ------------------------------------------------------------------ *
+ * Selos — as medalhas como reputação, não como coleção
+ * ------------------------------------------------------------------ */
+
+const PESO_DO_TIER: Record<AchievementTier, number> = { lendaria: 3, rara: 2, comum: 1 };
+
+/**
+ * As `n` melhores medalhas de uma lista — as que viram **selo** ao lado do nome
+ * na página pública (ROTEIRO 4.41: "reputação, não coleção"). Melhor = mais
+ * rara; empate resolve pela ordem de definição, que já vai do cedo ao tarde.
+ *
+ * Recebe qualquer coisa com `tier` para servir às duas páginas: a sua (medalhas
+ * calculadas, já filtradas por `unlocked`) e a de um membro da comunidade
+ * (definições vindas de `getAchievementsByIds`).
+ */
+export function melhoresConquistas<T extends { tier: AchievementTier }>(
+  itens: T[],
+  n = 2,
+): T[] {
+  return [...itens].sort((a, b) => PESO_DO_TIER[b.tier] - PESO_DO_TIER[a.tier]).slice(0, n);
+}
