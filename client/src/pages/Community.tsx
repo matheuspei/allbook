@@ -1,50 +1,78 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { MessageSquare, Sparkles } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 
 import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
 import ConversasDeAgora from "@/components/ConversasDeAgora";
 import PageHeader from "@/components/PageHeader";
+import { useToast } from "@/hooks/use-toast";
 import {
-  activityFeed,
+  ouvindoAgoraNaComunidade,
+  recomendacoesRecentes,
   relativeDate,
   suggestions,
-  type ActivityEvent,
+  type AudicaoDeAgora,
+  type RecomendacaoComDono,
   type Suggestion,
 } from "@/lib/activity";
 import { findMember } from "@/lib/community";
-import { readFollowing } from "@/lib/following";
+import { isFollowing, readFollowing, toggleFollow } from "@/lib/following";
 import { readLibrary } from "@/lib/library";
 
 /**
- * Comunidade (`/community`).
+ * Comunidade (`/community`) — refeita em 28/07 (ROTEIRO 4.41).
  *
- * **O que ela deixou de ser:** um diretório de nomes. A primeira versão pedia
- * que você escolhesse uma pessoa *antes* de ter motivo para se importar com
- * ela — e numa lista de estranhos não há motivo nenhum.
+ * **O que mudou de peso:** a Comunidade deixou de ser um apêndice social e
+ * virou a **fundação do clube** — sem um lugar onde se encontra gente, não há
+ * a quem convidar, e o clube nasce vazio. Nas palavras do Matheus: "se você
+ * não tiver uma comunidade com outras pessoas, não vai ter como criar o clube
+ * de livros".
  *
- * **O que ela é:** o que andaram fazendo as pessoas que você segue. Dois tipos
- * de acontecimento e só: recomendou um livro, comentou num livro. Cada linha
- * termina numa capa, porque o destino do app é sempre o audiolivro — a
- * comunidade é o caminho, não o lugar onde se fica. Nada disso aparece no
- * Início: o social é secundário aqui, e se chega a ele pelo Perfil.
+ * A tela anterior era um feed de quem você segue — que no primeiro dia é
+ * ninguém — com uma lista de sugestões por baixo. Esta abre com o que **já
+ * existe** sem seguir ninguém, em ordem de utilidade:
  *
- * Sem seguir ninguém, mostra **sugestões com motivo visível** no lugar do
- * antigo índice alfabético.
+ * 1. **Ouvindo agora** — quem está dentro de qual livro, neste momento. É a
+ *    única vitrine que só um app de audiolivro pode ter.
+ * 2. **Conversas de agora** — os livros onde há conversa (da sala do livro,
+ *    ROTEIRO 4.39 — o livro é o endereço, não a pessoa).
+ * 3. **Combina com você** — gente com motivo medido ("está no mesmo livro",
+ *    "recomenda 2 da sua lista"), com o Seguir ali mesmo.
+ * 4. **Recomendado** — a recomendação com o porquê escrito, de quem você segue
+ *    primeiro.
+ * 5. **Clubes** — o compromisso, para quem quer mais que conversa.
+ *
+ * Os leitores continuam fictícios de propósito (esqueleto até haver servidor).
  */
 export default function Community() {
-  const [events, setEvents] = useState<ActivityEvent[]>([]);
-  const [following, setFollowing] = useState<string[]>([]);
+  const { toast } = useToast();
+  const [audicoes, setAudicoes] = useState<AudicaoDeAgora[]>([]);
   const [sugestoes, setSugestoes] = useState<Suggestion[]>([]);
+  const [recomendadas, setRecomendadas] = useState<RecomendacaoComDono[]>([]);
+  const [following, setFollowing] = useState<string[]>([]);
 
   useEffect(() => {
-    // Relê ao voltar de um perfil, onde a pessoa pode ter seguido alguém.
-    setFollowing(readFollowing());
-    setEvents(activityFeed());
-
-    // Os ids já saem normalizados de lib/library.ts, sem parse manual aqui.
-    setSugestoes(suggestions(readLibrary().map((item) => item.id)));
+    recarregar();
   }, []);
+
+  /** Relê tudo que depende de quem você segue — chamado após cada Seguir. */
+  function recarregar() {
+    setFollowing(readFollowing());
+    setAudicoes(ouvindoAgoraNaComunidade());
+    setSugestoes(suggestions(readLibrary().map((item) => item.id), 3));
+    setRecomendadas(recomendacoesRecentes(4));
+  }
+
+  function seguir(slug: string, primeiroNome: string) {
+    const agora = toggleFollow(slug);
+    recarregar();
+    toast({
+      title: agora ? `Seguindo ${primeiroNome}` : `Você deixou de seguir ${primeiroNome}`,
+      description: agora
+        ? "O que essa pessoa recomendar e comentar aparece aqui."
+        : undefined,
+    });
+  }
 
   const seguindo = following
     .map((slug) => findMember(slug))
@@ -54,22 +82,158 @@ export default function Community() {
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="community-page">
       <PageHeader title="Comunidade" fallback="/profile" />
 
-      {/*
-        **O primeiro bloco deixou de ser gente e passou a ser conversa** (27/07,
-        ROTEIRO 4.39). Antes, quem não seguia ninguém abria a Comunidade e
-        encontrava uma lista de estranhos — sem motivo para se importar com
-        nenhum. Livro é um endereço melhor: você entra pelo assunto. Seguir
-        continua logo abaixo, como extra.
-      */}
+      {/* 1 — Quem está dentro de qual livro, agora. */}
+      {audicoes.length > 0 && (
+        <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="community-listening-now">
+          <h2 className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-40" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+            </span>
+            Ouvindo agora
+          </h2>
+
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+            {audicoes.map(({ member, book, chapter }) => (
+              <Link
+                key={member.slug}
+                href={`/user/${member.slug}`}
+                className="w-[84px] shrink-0 group"
+                data-testid={`listening-${member.slug}`}
+              >
+                <img
+                  src={book.cover}
+                  alt={book.title}
+                  className="h-28 w-[84px] rounded-lg object-cover"
+                />
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <span
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${member.color} text-[8px] font-bold`}
+                  >
+                    {member.name.charAt(0)}
+                  </span>
+                  <span className="truncate text-[10px] text-white/60 transition-colors group-hover:text-white">
+                    {member.name.split(" ")[0]}
+                  </span>
+                </div>
+                <p className="mt-0.5 truncate text-[9px] text-white/30">
+                  cap. {chapter} · {book.title}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 2 — Os livros onde há conversa (sala do livro, da janela A). */}
       <ConversasDeAgora />
 
-      {/* Os clubes entram logo depois da conversa dos livros: a sala é a porta
-          aberta, o clube é o compromisso (ROTEIRO 4.39). */}
+      {/* 3 — Gente, sempre com o motivo medido na frente. */}
+      {sugestoes.length > 0 && (
+        <section className="px-5 pt-5 pb-2 border-b border-white/10" data-testid="community-suggestions">
+          <h2 className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+            Combina com você
+          </h2>
+
+          <div>
+            {sugestoes.map(({ member, reason }) => {
+              const ja = isFollowing(member.slug);
+              return (
+                <div
+                  key={member.slug}
+                  className="flex items-center gap-3 border-b border-white/5 py-3 last:border-b-0"
+                  data-testid={`suggestion-${member.slug}`}
+                >
+                  <Link
+                    href={`/user/${member.slug}`}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${member.color} font-display font-bold`}
+                  >
+                    {member.name.charAt(0)}
+                  </Link>
+
+                  <Link href={`/user/${member.slug}`} className="min-w-0 flex-1 group">
+                    <h3 className="text-sm font-semibold transition-colors group-hover:text-primary">
+                      {member.name}
+                    </h3>
+                    <p className="mt-0.5 text-[11px] leading-snug text-white/40">{reason}</p>
+                  </Link>
+
+                  <button
+                    onClick={() => seguir(member.slug, member.name.split(" ")[0])}
+                    className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                      ja
+                        ? "border border-white/15 text-white/60"
+                        : "bg-primary text-black hover:bg-primary/90"
+                    }`}
+                    data-testid={`follow-${member.slug}`}
+                  >
+                    {ja ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                    {ja ? "Seguindo" : "Seguir"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* 4 — A recomendação com o porquê: o que o "Eu recomendo" das páginas
+          produz é exatamente o que este bloco consome. */}
+      {recomendadas.length > 0 && (
+        <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="community-recommendations">
+          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+            {seguindo.length > 0 ? "Recomendado pela sua roda" : "Recomendado na comunidade"}
+          </h2>
+
+          <div className="space-y-4">
+            {recomendadas.map(({ member, book, note, date }) => (
+              <div key={`${member.slug}-${book.id}`} className="flex gap-3" data-testid={`rec-${member.slug}-${book.id}`}>
+                <Link href={`/book/${book.id}`} className="shrink-0">
+                  <img
+                    src={book.cover}
+                    alt={book.title}
+                    className="h-[59px] w-11 rounded object-cover"
+                  />
+                </Link>
+                <div className="min-w-0 flex-1">
+                  <Link href={`/book/${book.id}`} className="group">
+                    <p className="line-clamp-1 text-xs font-medium transition-colors group-hover:text-primary">
+                      {book.title}
+                    </p>
+                    <p className="mt-0.5 line-clamp-1 text-[10px] text-white/40">
+                      {book.author} · narra {book.narrator}
+                    </p>
+                  </Link>
+                  {note && (
+                    <p className="mt-1 line-clamp-2 text-[11px] italic leading-snug text-white/55">
+                      “{note}”
+                    </p>
+                  )}
+                  <Link
+                    href={`/user/${member.slug}`}
+                    className="mt-1.5 flex items-center gap-1.5 text-[10px] text-white/30 transition-colors hover:text-white/60"
+                  >
+                    <span
+                      className={`flex h-3.5 w-3.5 items-center justify-center rounded-full bg-gradient-to-br ${member.color} text-[7px] font-bold text-white`}
+                    >
+                      {member.name.charAt(0)}
+                    </span>
+                    {member.name} · {relativeDate(date)}
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 5 — O compromisso: os clubes (da janela A). */}
       <ClubesNaComunidade />
 
+      {/* Quem você segue, por último: é atalho de volta, não descoberta. */}
       {seguindo.length > 0 && (
-        <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="following-row">
-          <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-3">
+        <section className="px-5 pt-5 pb-4" data-testid="following-row">
+          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
             Seguindo
           </h2>
           <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-1">
@@ -77,15 +241,15 @@ export default function Community() {
               <Link
                 key={member.slug}
                 href={`/user/${member.slug}`}
-                className="flex flex-col items-center gap-1.5 w-14 shrink-0"
+                className="flex w-14 shrink-0 flex-col items-center gap-1.5"
                 data-testid={`following-${member.slug}`}
               >
                 <span
-                  className={`w-12 h-12 rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center font-display font-bold`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br ${member.color} font-display font-bold`}
                 >
                   {member.name.charAt(0)}
                 </span>
-                <span className="text-[10px] text-white/50 text-center leading-tight line-clamp-1">
+                <span className="line-clamp-1 text-center text-[10px] leading-tight text-white/50">
                   {member.name.split(" ")[0]}
                 </span>
               </Link>
@@ -94,150 +258,10 @@ export default function Community() {
         </section>
       )}
 
-      {events.length > 0 ? (
-        <main className="px-5 py-2" data-testid="activity-list">
-          {events.map((event) => (
-            <EventoDaComunidade key={event.id} event={event} />
-          ))}
-        </main>
-      ) : (
-        <SemAtividade seguindoAlguem={seguindo.length > 0} sugestoes={sugestoes} />
-      )}
-    </div>
-  );
-}
-
-/** Uma linha da atividade: quem, o quê, e a capa que leva ao livro. */
-function EventoDaComunidade({ event }: { event: ActivityEvent }) {
-  const { member, book } = event;
-
-  return (
-    <article className="flex gap-3 py-4 border-b border-white/5" data-testid={`event-${event.id}`}>
-      <Link
-        href={`/user/${member.slug}`}
-        className={`w-9 h-9 rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center text-xs font-bold shrink-0 self-start`}
-        aria-label={`Ver o perfil de ${member.name}`}
-      >
-        {member.name.charAt(0)}
-      </Link>
-
-      <div className="flex-1 min-w-0">
-        <p className="text-sm leading-snug">
-          <Link
-            href={`/user/${member.slug}`}
-            className="font-semibold hover:text-primary transition-colors"
-          >
-            {member.name}
-          </Link>{" "}
-          <span className="text-white/50">
-            {event.recommended && event.comment
-              ? "recomendou e comentou"
-              : event.recommended
-                ? "recomendou"
-                : "comentou em"}
-          </span>{" "}
-          <Link
-            href={`/book/${book.id}`}
-            className="font-medium hover:text-primary transition-colors"
-          >
-            {book.title}
-          </Link>
-        </p>
-
-        {event.comment && (
-          <p className="text-xs text-white/60 leading-relaxed mt-1.5 line-clamp-3 italic">
-            "{event.comment.text}"
-          </p>
-        )}
-
-        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-white/25">
-          <span>{relativeDate(event.date)}</span>
-          {event.recommended && (
-            <span className="flex items-center gap-1">
-              <Sparkles className="w-2.5 h-2.5" />
-              recomendado
-            </span>
-          )}
-        </div>
-      </div>
-
-      <Link href={`/book/${book.id}`} className="shrink-0" data-testid={`event-cover-${book.id}`}>
-        <img src={book.cover} alt={book.title} className="w-11 h-[59px] rounded object-cover" />
-      </Link>
-    </article>
-  );
-}
-
-/**
- * Quando não há atividade. São duas situações diferentes, e a diferença
- * importa: ou você ainda não segue ninguém, ou segue gente que não fez nada.
- */
-function SemAtividade({
-  seguindoAlguem,
-  sugestoes,
-}: {
-  seguindoAlguem: boolean;
-  sugestoes: Suggestion[];
-}) {
-  return (
-    <main className="px-5 py-6" data-testid="community-empty">
-      <div className="flex items-start gap-3 pb-6">
-        <MessageSquare className="w-5 h-5 text-white/25 shrink-0 mt-0.5" strokeWidth={1.75} />
-        <p className="text-sm text-white/50 leading-relaxed">
-          {seguindoAlguem
-            ? "Quem você segue ainda não recomendou nem comentou nada."
-            : "Siga alguém para acompanhar o que essa pessoa recomenda e comenta. O botão fica no perfil dela — dá para chegar lá pelo nome em qualquer comentário de livro."}
-        </p>
-      </div>
-
-      {sugestoes.length > 0 && (
-        <section data-testid="community-suggestions">
-          <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-4">
-            Quem talvez combine com você
-          </h2>
-
-          <div>
-            {sugestoes.map(({ member, reason, books }) => (
-              <Link
-                key={member.slug}
-                href={`/user/${member.slug}`}
-                className="flex items-center gap-3 py-3.5 border-b border-white/5 group"
-                data-testid={`suggestion-${member.slug}`}
-              >
-                <span
-                  className={`w-11 h-11 rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center font-display font-bold shrink-0`}
-                >
-                  {member.name.charAt(0)}
-                </span>
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold group-hover:text-primary transition-colors">
-                    {member.name}
-                  </h3>
-                  {/* O motivo é o que faltava na versão antiga: sem ele, é só um nome. */}
-                  <p className="text-[11px] text-white/40 mt-0.5">{reason}</p>
-                </div>
-
-                <div className="flex gap-1 shrink-0">
-                  {books.slice(0, 3).map((book) => (
-                    <img
-                      key={book.id}
-                      src={book.cover}
-                      alt=""
-                      className="w-7 h-[38px] rounded-sm object-cover"
-                    />
-                  ))}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <p className="pt-6 text-[11px] text-white/25 leading-relaxed">
-        Estes leitores são um esqueleto: existem para dar o que ver enquanto o AllBook
-        não tem contas nem servidor.
+      <p className="px-5 pb-6 pt-2 text-[11px] leading-relaxed text-white/25">
+        Estes leitores são um esqueleto: existem para dar o que ver enquanto o AllBook não tem
+        contas nem servidor.
       </p>
-    </main>
+    </div>
   );
 }

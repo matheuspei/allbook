@@ -16,6 +16,7 @@ import { catalog, type Book } from "@/lib/books";
 import { comments, type Comment } from "@/lib/comments";
 import { community, findMember, type CommunityMember } from "@/lib/community";
 import { readFollowing } from "@/lib/following";
+import { readPlaybackList } from "@/lib/playback";
 
 /**
  * Um acontecimento é **uma pessoa e um livro**, não uma ação solta.
@@ -126,10 +127,38 @@ export function suggestions(libraryIds: number[], limit = 4): Suggestion[] {
       .filter((genre) => genre !== undefined),
   );
 
+  // O que VOCÊ já abriu no player — é o que permite os dois motivos mais
+  // fortes: estar no mesmo livro agora, e recomendar o que você já ouviu.
+  const meusLivros = readPlaybackList();
+  const idsQueOuvi = new Set(meusLivros.map((item) => item.bookId));
+
   const scored = candidates.map((member) => {
     const books = recommendedBooks(member);
     const shared = books.filter((book) => libraryIds.includes(book.id));
+    const jaOuvi = books.filter((book) => idsQueOuvi.has(book.id));
     const sameGenre = books.filter((book) => myGenres.has(book.genre));
+
+    // A coincidência mais forte que existe: vocês dois estão DENTRO do mesmo
+    // livro, agora. Não há motivo melhor para conhecer alguém.
+    const mesmoLivro = member.ouvindoAgora
+      ? meusLivros.find((item) => item.bookId === member.ouvindoAgora?.bookId)
+      : undefined;
+    if (mesmoLivro && member.ouvindoAgora) {
+      const livro = catalog.find((book) => book.id === mesmoLivro.bookId);
+      const delta = member.ouvindoAgora.chapter - mesmoLivro.chapter;
+      const posicao =
+        delta > 0
+          ? `${delta} ${delta === 1 ? "capítulo" : "capítulos"} à sua frente`
+          : delta < 0
+            ? `${-delta} ${delta === -1 ? "capítulo" : "capítulos"} atrás de você`
+            : "no mesmo capítulo que você";
+      return {
+        member,
+        books: livro ? [livro] : books.slice(0, 3),
+        reason: `Está ouvindo ${livro ? `“${livro.title}”` : "o mesmo livro"} — ${posicao}`,
+        weight: 200,
+      };
+    }
 
     if (shared.length > 0) {
       return {
@@ -140,6 +169,20 @@ export function suggestions(libraryIds: number[], limit = 4): Suggestion[] {
             ? "Recomenda um livro que está na sua lista"
             : `Recomenda ${shared.length} livros que estão na sua lista`,
         weight: 100 + shared.length,
+      };
+    }
+
+    // Recomendar o que você JÁ ouviu é afinidade comprovada — mais forte que
+    // gênero, mais fraca que a sua lista (que é desejo seu, declarado).
+    if (jaOuvi.length > 0) {
+      return {
+        member,
+        books: jaOuvi.slice(0, 3),
+        reason:
+          jaOuvi.length === 1
+            ? `Recomenda “${jaOuvi[0].title}”, que você já ouviu`
+            : `Recomenda ${jaOuvi.length} livros que você já ouviu`,
+        weight: 80 + jaOuvi.length,
       };
     }
 
@@ -165,6 +208,70 @@ export function suggestions(libraryIds: number[], limit = 4): Suggestion[] {
     .sort((a, b) => b.weight - a.weight)
     .slice(0, limit)
     .map(({ member, reason, books }) => ({ member, reason, books }));
+}
+
+/* ------------------------------------------------------------------ *
+ * Os blocos da Comunidade refeita (ROTEIRO 4.41)
+ * ------------------------------------------------------------------ */
+
+/** Alguém no meio de um livro, agora — com o livro já resolvido. */
+export interface AudicaoDeAgora {
+  member: CommunityMember;
+  book: Book;
+  chapter: number;
+}
+
+/**
+ * Quem está ouvindo o quê neste momento. É o bloco que abre a Comunidade: a
+ * única coisa que só um app de audiolivro pode mostrar, e que existe antes de
+ * você seguir qualquer pessoa.
+ */
+export function ouvindoAgoraNaComunidade(): AudicaoDeAgora[] {
+  return community.flatMap((member) => {
+    if (!member.ouvindoAgora) return [];
+    const book = catalog.find((entry) => entry.id === member.ouvindoAgora?.bookId);
+    return book ? [{ member, book, chapter: member.ouvindoAgora.chapter }] : [];
+  });
+}
+
+/** Uma recomendação com dono — a matéria-prima do bloco "Recomendado". */
+export interface RecomendacaoComDono {
+  member: CommunityMember;
+  book: Book;
+  note: string;
+  date: string;
+}
+
+/**
+ * As recomendações mais recentes da comunidade, **com o porquê na frente**.
+ *
+ * Quem você segue vem primeiro — a sua roda pesa mais que estranhos —, e o
+ * resto completa a lista, porque no primeiro dia ninguém segue ninguém e o
+ * bloco não pode nascer vazio. Recomendações com texto vêm antes das sem:
+ * é o motivo escrito que transforma capa em convite.
+ */
+export function recomendacoesRecentes(limit = 5): RecomendacaoComDono[] {
+  const following = new Set(readFollowing());
+
+  return community
+    .flatMap((member) =>
+      member.recommendations.flatMap((item) => {
+        const book = catalog.find((entry) => entry.id === item.bookId);
+        return book
+          ? [{ member, book, note: item.note ?? "", date: item.date }]
+          : [];
+      }),
+    )
+    .sort((a, b) => {
+      const aSeguido = following.has(a.member.slug) ? 1 : 0;
+      const bSeguido = following.has(b.member.slug) ? 1 : 0;
+      if (aSeguido !== bSeguido) return bSeguido - aSeguido;
+      const aTemNota = a.note ? 1 : 0;
+      const bTemNota = b.note ? 1 : 0;
+      if (aTemNota !== bTemNota) return bTemNota - aTemNota;
+      return b.date.localeCompare(a.date);
+    })
+    .slice(0, limit);
 }
 
 function recommendedBooks(member: CommunityMember): Book[] {

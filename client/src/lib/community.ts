@@ -39,6 +39,16 @@ export interface CommunityMember {
   /** Ids das conquistas (troféus) desta pessoa — ver `lib/achievements.ts`. */
   achievementIds: string[];
   recommendations: Recommendation[];
+  /**
+   * O que a pessoa está ouvindo **neste momento** — o bloco "Ouvindo agora" da
+   * Comunidade (ROTEIRO 4.41): é a única vitrine que só um app de audiolivro
+   * pode ter, e resolve o vazio do primeiro dia sem exigir que você siga
+   * alguém. Nem todo mundo tem: gente parada também é verdade. Escolhido para
+   * combinar com a bio e **não repetir** o que a pessoa já recomenda — estar no
+   * meio de um livro é diferente de já tê-lo indicado. Quando houver servidor,
+   * vem do progresso real (e com o interruptor de privacidade do painel).
+   */
+  ouvindoAgora?: { bookId: number; chapter: number };
 }
 
 export const community: CommunityMember[] = [
@@ -49,6 +59,7 @@ export const community: CommunityMember[] = [
     color: "from-rose-500 to-pink-600",
     memberSince: "janeiro de 2025",
     hoursListened: 212,
+    ouvindoAgora: { bookId: 313, chapter: 5 },
     achievementIds: ["primeira-escuta", "maratonista", "constante", "coruja", "centenario", "voz-ativa", "recomendador"],
     recommendations: [
       { bookId: 2, date: "2026-07-20", note: "Não consegui parar nas últimas duas horas. O fim me pegou de surpresa." },
@@ -65,6 +76,7 @@ export const community: CommunityMember[] = [
     color: "from-amber-500 to-orange-600",
     memberSince: "março de 2025",
     hoursListened: 148,
+    ouvindoAgora: { bookId: 103, chapter: 9 },
     achievementIds: ["primeira-escuta", "maratonista", "constante", "explorador", "recomendador"],
     recommendations: [
       { bookId: 112, date: "2026-07-18", note: "Ouvi numa viagem de trabalho e mudou como eu penso em decisão." },
@@ -80,6 +92,7 @@ export const community: CommunityMember[] = [
     color: "from-violet-500 to-purple-600",
     memberSince: "novembro de 2024",
     hoursListened: 389,
+    ouvindoAgora: { bookId: 307, chapter: 8 },
     achievementIds: ["primeira-escuta", "maratonista", "centenario", "constante", "coruja", "explorador", "concluido", "ecletico", "voz-ativa", "curtido", "recomendador"],
     recommendations: [
       { bookId: 140, date: "2026-07-15", note: "Um clássico que envelhece bem. Devia ser leitura obrigatória." },
@@ -96,6 +109,7 @@ export const community: CommunityMember[] = [
     color: "from-emerald-500 to-teal-600",
     memberSince: "junho de 2025",
     hoursListened: 96,
+    ouvindoAgora: { bookId: 321, chapter: 3 },
     achievementIds: ["primeira-escuta", "maratonista", "constante"],
     recommendations: [
       { bookId: 107, date: "2026-07-21", note: "Perfeito pra quem tem pouco tempo e quer começar por algo leve." },
@@ -110,6 +124,7 @@ export const community: CommunityMember[] = [
     color: "from-blue-500 to-indigo-600",
     memberSince: "fevereiro de 2025",
     hoursListened: 267,
+    ouvindoAgora: { bookId: 131, chapter: 12 },
     achievementIds: ["primeira-escuta", "maratonista", "centenario", "constante", "explorador", "concluido", "recomendador", "formador-de-roda"],
     recommendations: [
       { bookId: 7, date: "2026-07-13", note: "A melhor ficção científica que já ouvi. Simplesmente épico." },
