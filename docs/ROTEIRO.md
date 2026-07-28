@@ -3488,10 +3488,19 @@ dos seus.
 (criado de manhã na reforma da Comunidade) saiu — recomendação virou um tipo
 do feed, e o mesmo conteúdo em dois blocos era redundância.
 
-**Fora desta rodada, anotado:** posts "disse" ainda não aparecem na página
-pública ("O que eu disse" mostra só comentários — juntar os dois é decisão de
-tela para outra hora); e o tipo "entrou no clube" ficou de fora porque o
-esqueleto não tem data de entrada em clube.
+**Fora desta rodada, anotado:** ~~posts "disse" ainda não aparecem na página
+pública~~ — **feito na sequência, no mesmo dia** (o Matheus apontou que o
+perfil dos membros tinha ficado sem as novidades): "O que eu disse" da sua
+página junta comentários **e** posts do mural; o perfil de um leitor ganhou o
+bloco **"Ouvindo agora"** (o dado existia e a tela não mostrava), o fundo do
+topo passou a ser a capa do que a pessoa está ouvindo, e a lista crua
+"Comentários de fulano" virou **"Atividade de fulano" na língua do mural**
+(`ItemDoFeed` exportado + `muralDe(slug, tipos)`) — o que trouxe de graça a
+separação (estrela na avaliação) e **fechou um vazamento**: a lista antiga
+mostrava texto de comentário de trecho à frente da sua posição, sem trava.
+Recomendações continuam como vitrine própria na página (o feed da pessoa não
+as repete). Segue de fora: o tipo "entrou no clube", porque o esqueleto não
+tem data de entrada em clube.
 
 **Ligado a isso, pendente na janela A:** `ConversaDoTrecho.tsx:168` ("Ver a
 conversa do livro inteiro") ainda aponta para a ficha; o destino certo é a
