@@ -49,7 +49,11 @@ export default function ConversasDeAgora() {
           return (
             <Link
               key={sala.bookId}
-              href={`/book/${sala.bookId}`}
+              /* Direto NA conversa, não na ficha (28/07): o cartão promete
+                 conversa, e antes entregava a sinopse — a pessoa tinha que
+                 rolar a ficha até achar a sala. A ficha continua a um toque,
+                 pelo cabeçalho da própria página da conversa. */
+              href={`/book/${sala.bookId}/conversa`}
               className="block rounded-xl border border-white/5 bg-white/[0.04] p-3.5 transition-colors hover:bg-white/[0.07]"
               data-testid={`sala-card-${sala.bookId}`}
             >

@@ -28,6 +28,7 @@ import Bookmarks from "@/pages/Bookmarks";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
+import Conversa from "@/pages/Conversa";
 import PersonProfile from "@/pages/PersonProfile";
 import PublisherProfile from "@/pages/PublisherProfile";
 import Studio from "@/pages/Studio";
@@ -125,6 +126,10 @@ function Router() {
             <Route path="/downloads" component={Downloads} />
             <Route path="/bookmarks" component={Bookmarks} />
             <Route path="/notifications" component={Notifications} />
+            {/* A conversa do livro com endereço próprio (28/07): quem clica
+                numa conversa cai NA conversa, não na ficha. Antes de /book/:id
+                pela regra deste Switch — a rota mais curta capturaria esta. */}
+            <Route path="/book/:id/conversa" component={Conversa} />
             <Route path="/book/:id" component={BookDetails} />
             <Route path="/person/:slug" component={PersonProfile} />
             <Route path="/publisher/:slug" component={PublisherProfile} />
