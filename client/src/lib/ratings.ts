@@ -20,7 +20,7 @@
  * tem portão.
  */
 
-import { commentsForBook } from "@/lib/comments";
+import { notasDoLivro } from "@/lib/comments";
 import { playbackPercent, readPlaybackList } from "@/lib/playback";
 
 const STORAGE_KEY = "allbook_ratings";
@@ -172,9 +172,11 @@ export function notaDaComunidade(bookId: number): {
   total: number;
   suficiente: boolean;
 } {
-  const dosLeitores = commentsForBook(bookId)
-    .map((comentario) => comentario.rating)
-    .filter((nota): nota is number => typeof nota === "number");
+  // `notasDoLivro` traz TODAS as notas de primeiro nível — das avaliações e
+  // dos comentários ancorados que têm estrela. A separação de 28/07 tirou a
+  // avaliação da lista da conversa (`commentsForBook`), e usar aquela lista
+  // aqui faria a média perder justamente as resenhas.
+  const dosLeitores = notasDoLivro(bookId);
 
   const minha = myRatingOf(bookId);
   const minhasNotas = minha ? [minha.historia, minha.narracao].filter((n): n is number => !!n) : [];

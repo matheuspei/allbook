@@ -256,13 +256,57 @@ export function engagementOf(comment: Comment): number {
 }
 
 /**
- * Os comentários de primeiro nível de um livro, **do mais engajado para o
+ * **Avaliação ou conversa?** A régua da separação de 28/07 (ROTEIRO 4.41):
+ * *nota = avaliação; âncora = conversa* — e a âncora ganha da nota. Quem
+ * escreveu preso a um ponto do áudio está conversando sobre o trecho, mesmo
+ * que tenha pendurado estrelas junto (3 comentários semeados são assim); quem
+ * deu nota sem âncora está julgando o livro inteiro: é resenha.
+ *
+ * Antes disso, tudo era uma lista só, e o Matheus apontou o sintoma: *"você
+ * não sabe o que é conversa, o que é comentário"* — resenha com estrela
+ * aparecia no meio do papo. A causa era histórica: a estrela entrou (26/07)
+ * quando a seção era uma lista de comentários, e no dia seguinte a lista virou
+ * sala de conversa sem separar os gêneros.
+ */
+export function ehAvaliacao(item: Comment): boolean {
+  return item.rating !== undefined && item.positionSec === undefined;
+}
+
+/**
+ * As **avaliações** de um livro — nota sem âncora, do mais engajado para o
+ * menos. É o que a seção "Avaliações" da ficha mostra, junto da nota média.
+ */
+export function avaliacoesDoLivro(bookId: number): Comment[] {
+  return comments
+    .filter((item) => item.bookId === bookId && !item.parentId && ehAvaliacao(item))
+    .sort((a, b) => engagementOf(b) - engagementOf(a) || byNewest(a, b));
+}
+
+/**
+ * **Todas** as notas de primeiro nível do livro — das avaliações e dos
+ * híbridos ancorados. A média da comunidade (`ratings.ts`) soma daqui: a nota
+ * de quem falou de um trecho vale igual; só a **exibição** dela é que não
+ * polui a conversa.
+ */
+export function notasDoLivro(bookId: number): number[] {
+  return comments
+    .filter((item) => item.bookId === bookId && !item.parentId)
+    .map((item) => item.rating)
+    .filter((nota): nota is number => typeof nota === "number");
+}
+
+/**
+ * A **conversa** de primeiro nível de um livro, **do mais engajado para o
  * menos**. Empate desfaz pela data, para o mais recente aparecer antes. As
  * respostas não entram aqui: elas vêm por `repliesTo`, dentro de cada conversa.
+ *
+ * Desde 28/07 as avaliações (nota sem âncora) **não** saem por aqui — vêm por
+ * `avaliacoesDoLivro`. Todos os consumidores desta função são a conversa: a
+ * sala do livro, as marcas na barra do player e o painel do trecho.
  */
 export function commentsForBook(bookId: number): Comment[] {
   return comments
-    .filter((item) => item.bookId === bookId && !item.parentId)
+    .filter((item) => item.bookId === bookId && !item.parentId && !ehAvaliacao(item))
     .sort((a, b) => engagementOf(b) - engagementOf(a) || byNewest(a, b));
 }
 

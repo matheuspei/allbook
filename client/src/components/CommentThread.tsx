@@ -125,25 +125,18 @@ export default function CommentThread({
       <AutorDoComentario slug={comment.authorSlug} />
 
       {/*
-        **A estrela voltou em 26/07, a pedido do Matheus** — no formato da
-        Amazon: a nota que a pessoa deu aparece junto do que ela escreveu, senão
-        a frase sozinha não diz se ela amou ou detestou.
-        Ela tinha sido removida (ROTEIRO 4.5) por dois motivos, e os dois
-        mudaram de estado:
-        1. *"No app não há como avaliar nada ainda"* — **caducou**: a avaliação
-           foi construída em 25/07 (4.15, `AvaliarLivro.tsx`). A própria decisão
-           antiga guardou o campo `Comment.rating` no dado dizendo "quando
-           existir avaliação de verdade, ele já está lá". É este momento.
-        2. *"Colada no nome, lia-se como pontuação do usuário"* — **continua
-           valendo**, e é por isso que ela **não** fica na linha do nome: fica
-           encostada no texto do comentário (o texto vem logo abaixo, com
-           `mt-1`), de modo que pertence à frase, não à pessoa.
-        Só em comentário de livro: em perfil de gente e nas respostas, não —
-        mesma regra descrita em `comments.ts` (Comment.rating).
+        **A estrela saiu do fio em 28/07 — mudou de casa, não morreu.** Ela
+        tinha voltado em 26/07 no formato Amazon (nota junto da frase), quando
+        esta lista ERA a seção de comentários do livro. No dia seguinte a lista
+        virou a sala de conversa (4.39), e a resenha estrelada no meio do papo
+        foi o que fez o Matheus apontar: "você não sabe o que é conversa, o que
+        é comentário". A separação (4.41): **nota = avaliação; âncora =
+        conversa** — comentário com nota e sem âncora agora mora na seção
+        "Avaliações" da ficha (`AvaliacoesDoLivro`, onde a estrela continua no
+        formato Amazon), e este fio mostra só papo. Os 3 híbridos semeados
+        (nota + âncora) ficam aqui COMO conversa, sem exibir a estrela — a nota
+        deles segue valendo na média (`notasDoLivro`).
       */}
-      {bookId !== undefined && comment.rating !== undefined && (
-        <NotaDoComentario nota={comment.rating} />
-      )}
 
       {/*
         O carimbo da âncora: em que ponto do áudio a pessoa estava. Tocar nele
@@ -515,14 +508,17 @@ function BotaoDeDenuncia({
  * prometer uma tela vazia.
  */
 /**
- * As cinco estrelas que a pessoa deu ao livro, dentro do comentário dela.
+ * As cinco estrelas que a pessoa deu ao livro, junto do que ela escreveu.
  *
  * Cheias em âmbar, vazias em branco apagado — o mesmo par de cores das estrelas
  * de avaliar (`AvaliarLivro`), para as duas telas falarem a mesma língua. O
  * `aria-label` diz "avaliou este livro", que é o que o desenho quer dizer e o
  * leitor de tela não tem como adivinhar.
+ *
+ * Exportada porque desde 28/07 quem a desenha é a seção **Avaliações**
+ * (`AvaliacoesDoLivro`) — no fio de conversa ela não aparece mais.
  */
-function NotaDoComentario({ nota }: { nota: number }) {
+export function NotaDoComentario({ nota }: { nota: number }) {
   return (
     <div
       className="mt-3 flex items-center gap-0.5"

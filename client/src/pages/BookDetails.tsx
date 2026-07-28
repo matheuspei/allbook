@@ -23,6 +23,7 @@ import { publisherOfBook } from "@/lib/publishers";
 import { STUDIO_NAME, narratorKind } from "@/lib/studio";
 import PublisherMark from "@/components/PublisherMark";
 import SalaDoLivro from "@/components/SalaDoLivro";
+import AvaliacoesDoLivro from "@/components/AvaliacoesDoLivro";
 import FaixaDoClubeNoLivro from "@/components/clube/FaixaDoClubeNoLivro";
 import AvaliarLivro from "@/components/AvaliarLivro";
 import SeletorDeNarracao from "@/components/SeletorDeNarracao";
@@ -723,8 +724,15 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           </div>
         </section>
 
+        {/*
+          "O que as pessoas dizem" virou DUAS seções em 28/07 (ROTEIRO 4.41):
+          **Avaliações** (o veredito sobre o livro inteiro — nota média, a sua
+          nota e as resenhas com estrela) e **Conversa** (o papo de quem está
+          dentro, com âncora e trava de spoiler). Era uma seção só, e resenha
+          estrelada no meio do papo fazia as duas coisas parecerem a mesma.
+        */}
         <section className="space-y-6">
-          <h2 className="text-lg font-bold font-display" data-testid="heading-reviews">O que as pessoas dizem</h2>
+          <h2 className="text-lg font-bold font-display" data-testid="heading-reviews">Avaliações</h2>
           <div className="flex items-center gap-6 py-4 px-6 rounded-xl bg-white/5 border border-white/5">
             <div className="flex-1 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
@@ -756,12 +764,20 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               informação, não botão. A regra e o porquê estão no componente. */}
           <AvaliarLivro bookId={Number(params.id)} />
 
+          {/* As resenhas escritas — só nota sem âncora, sem caixa de escrever
+              e sem responder: os formulários não se cruzam (4.41). */}
+          <AvaliacoesDoLivro bookId={Number(params.id)} />
+        </section>
+
+        <section className="space-y-6">
           {/*
             A lista solta de comentários virou a **sala do livro** em 27/07
             (ROTEIRO 4.39): mesma conversa, agora com cada mensagem podendo estar
             presa a um ponto do áudio — e o que está à frente de onde a pessoa
             chegou não aparece. A caixa de escrever continua dentro dela, pelo
             motivo de sempre: sem caixa, livro sem comentário semeado fica mudo.
+            Desde 28/07 ela recebe SÓ conversa — as resenhas moram na seção
+            Avaliações, acima. O título "Conversa" vem de dentro da sala.
           */}
           {/* Se algum clube está lendo este livro agora, o convite aparece
               aqui — a pessoa já está olhando o título (ROTEIRO 4.39). */}
