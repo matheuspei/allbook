@@ -38,8 +38,16 @@ import { formatarPosicao } from "@/lib/sala";
  */
 export const MAX_CITACAO_SEC = 40;
 
-/** As durações oferecidas. Quarenta é o padrão por ser o teto útil. */
-export const DURACOES = [10, 20, 30, 40];
+/**
+ * O mínimo. Um trecho de um segundo não é citação, é acidente de arraste.
+ *
+ * (As durações fixas de 10/20/30/40s que existiam aqui saíram: viraram um
+ * **cortador com as duas pontas móveis**, a pedido do Matheus — *"cortar
+ * exatamente o local onde ele quer citar"*. Escolher entre quatro comprimentos a
+ * partir de um início fixo servia para "guardei por aqui", não para "é esta
+ * frase".)
+ */
+export const MIN_CITACAO_SEC = 3;
 
 export interface Citacao {
   bookId: number;

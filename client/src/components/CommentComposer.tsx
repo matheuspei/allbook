@@ -3,7 +3,8 @@ import { EyeOff, Headphones, Quote, Star, Trash2 } from "lucide-react";
 
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { useToast } from "@/hooks/use-toast";
-import { DURACOES, MAX_CITACAO_SEC, criarCitacao } from "@/lib/citacoes";
+import CortadorDeTrecho from "@/components/CortadorDeTrecho";
+import { MAX_CITACAO_SEC, criarCitacao } from "@/lib/citacoes";
 import { initialOf, readProfile } from "@/lib/profile";
 import {
   addComment,
@@ -75,11 +76,13 @@ export default function CommentComposer({
       : undefined;
   const [prender, setPrender] = useState(ancoraInicial !== undefined);
   /*
-   * A citação (ROTEIRO 4.43): `undefined` = comentário de texto puro. Ela só é
-   * oferecida quando há âncora, porque um trecho **começa** na âncora — citar
-   * sem dizer de onde não quer dizer nada.
+   * A citação (ROTEIRO 4.43): `null` = comentário de texto puro. Ela é um **par
+   * de pontas**, e não mais um comprimento a partir da âncora — o Matheus pediu
+   * corte de verdade, *"exatamente o local onde ele quer citar"*, e para isso o
+   * início também precisa andar. A âncora do comentário passa a ser o **início
+   * do trecho**, que é o que faz sentido: é dali que a citação fala.
    */
-  const [duracao, setDuracao] = useState<number | undefined>(undefined);
+  const [trecho, setTrecho] = useState<{ inicio: number; fim: number } | null>(null);
   const [spoiler, setSpoiler] = useState(false);
 
   // A sua nota deste livro, para estampar no seu comentário. Reage ao evento de
@@ -99,15 +102,16 @@ export default function CommentComposer({
     const limpo = texto.trim();
     if (!limpo) return;
 
-    const ancora = prender && pontoAtual !== undefined ? pontoAtual : undefined;
-    /* Sem âncora não há trecho: o começo da citação é a âncora. */
-    const citado = ancora !== undefined ? duracao : undefined;
+    /* Com trecho cortado, a âncora é o início dele: é de lá que a citação fala. */
+    const ancora =
+      trecho !== null ? trecho.inicio : prender && pontoAtual !== undefined ? pontoAtual : undefined;
+    const citado = trecho !== null ? trecho.fim - trecho.inicio : undefined;
     addComment(alvo, limpo, { positionSec: ancora, spoiler, duracaoSec: citado });
 
     setMeus(myCommentsFor(alvo));
     setTexto("");
     setSpoiler(false);
-    setDuracao(undefined);
+    setTrecho(null);
     toast({
       title: citado ? `Trecho de ${citado}s citado` : "Comentário publicado",
       description:
@@ -192,40 +196,38 @@ export default function CommentComposer({
             */}
             {prender && pontoAtual !== undefined && (
               <Interruptor
-                ligado={duracao !== undefined}
-                onToggle={() => setDuracao((v) => (v === undefined ? MAX_CITACAO_SEC : undefined))}
+                ligado={trecho !== null}
+                onToggle={() =>
+                  setTrecho((v) =>
+                    v === null
+                      ? { inicio: pontoAtual, fim: pontoAtual + MAX_CITACAO_SEC }
+                      : null,
+                  )
+                }
                 icone={<Quote className="h-3 w-3" />}
                 testid="comment-citacao-toggle"
-                titulo={duracao !== undefined ? `Citando ${duracao}s` : "Citar o trecho"}
+                titulo={trecho !== null ? `Cortando ${trecho.fim - trecho.inicio}s` : "Citar o trecho"}
               />
             )}
           </div>
         )}
 
         {/*
-          As durações só aparecem depois de a citação ser ligada: quatro pastilhas
-          permanentes numa tela que quase sempre é só texto seriam ruído.
+          O cortador só aparece depois de a citação ser ligada: uma faixa de onda
+          permanente numa caixa que quase sempre recebe só texto seria ruído.
         */}
-        {bookId !== undefined && prender && pontoAtual !== undefined && duracao !== undefined && (
+        {bookId !== undefined && trecho !== null && (
           <div className="space-y-2">
-            <div className="flex gap-1.5">
-              {DURACOES.map((valor) => (
-                <button
-                  key={valor}
-                  type="button"
-                  onClick={() => setDuracao(valor)}
-                  className={`flex-1 rounded-lg py-1.5 text-[11.5px] font-semibold transition-colors ${
-                    duracao === valor
-                      ? "bg-primary/15 text-primary ring-1 ring-inset ring-primary/40"
-                      : "bg-white/[0.05] text-white/45 hover:text-white/80"
-                  }`}
-                  data-testid={`citacao-duracao-${valor}`}
-                >
-                  {valor}s
-                </button>
-              ))}
-            </div>
-            <CitacaoDeAudio citacao={criarCitacao(bookId, pontoAtual, duracao)} compacto />
+            <CortadorDeTrecho
+              bookId={bookId}
+              inicio={trecho.inicio}
+              fim={trecho.fim}
+              onChange={(inicio, fim) => setTrecho({ inicio, fim })}
+            />
+            <CitacaoDeAudio
+              citacao={criarCitacao(bookId, trecho.inicio, trecho.fim - trecho.inicio)}
+              compacto
+            />
           </div>
         )}
 

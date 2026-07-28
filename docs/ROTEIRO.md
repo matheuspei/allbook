@@ -3914,6 +3914,35 @@ sala, na conversa do trecho e no player.
   citação tem a mesma fidelidade do resto do player: leva ao ponto e percorre os
   40 segundos.
 
+### O cortador de trecho, logo depois
+
+A primeira versão fixava o início no ponto em que a folha abriu e só deixava
+escolher o comprimento (10/20/30/40s). O Matheus apontou o buraco: *"seria
+interessante que ele pudesse cortar exatamente o local onde ele quer citar, como
+se fosse aqueles aplicativos de corte de áudio mesmo… e que ele pudesse
+reproduzir onde é que ele está falando"*. Escolher entre quatro comprimentos
+serve para "guardei por aqui"; não serve para "é **esta** frase".
+
+`components/CortadorDeTrecho.tsx`: faixa com as duas pontas arrastáveis, seleção
+destacada, ajuste fino de ±1s e ±5s em cada ponta, e prévia com cursor.
+
+- **A limitação está dita, no código e aqui:** sem áudio, cortar é mirar pelo
+  **relógio**, não pelo ouvido — num cortador de verdade a pessoa ouve e acha o
+  ponto. A ferramenta está correta e é a que vai ser necessária quando o som
+  existir. O Matheus confirmou o motivo: *"ele não toca áudio porque isso é uma
+  maquete, ainda não tem servidor"*.
+- **Arraste E botõezinhos, e não um ou outro.** Arrastar acha a região depressa;
+  o dedo num celular cobre 4 a 6 segundos nesta escala, então sem o ajuste fino
+  "exatamente" seria promessa vazia. Os apps de corte têm os dois pela mesma razão.
+- **Defeito achado testando, e consertado:** com a seleção já nos 40s (o teto),
+  "Início −5s" não fazia **nada** — recuar estouraria o máximo, e a trava
+  silenciosa parecia botão quebrado. Agora a seleção **desliza**: o início recua e
+  o fim vem junto, mantendo o comprimento. Vale igual no arraste.
+- **A janela da faixa é congelada na montagem.** Se ela seguisse a seleção,
+  arrastar uma ponta moveria o fundo junto e o gesto viraria areia movediça.
+- **A âncora do comentário passou a ser o início do trecho** — é de lá que a
+  citação fala.
+
 **Pendente da ideia dele, e é da janela B:** o feed em si, o cartão do livro
 mencionado num post, e as sugestões de quem seguir.
 
