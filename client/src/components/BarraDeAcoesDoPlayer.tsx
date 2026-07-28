@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, BookmarkPlus, Car, Check, MessageSquare, Timer } from "lucide-react";
+import { Bookmark, BookmarkPlus, Check, MessageSquare, Timer } from "lucide-react";
 
 /**
  * A barra de ações do tocador — velocidade, modo carro, temporizador, marcar e
@@ -72,7 +72,6 @@ export default function BarraDeAcoesDoPlayer({
   totalDeMarcacoes,
   falasNoTrecho,
   onVelocidade,
-  onModoCarro,
   onTemporizador,
   onMarcar,
   onVerMarcacoes,
@@ -88,7 +87,6 @@ export default function BarraDeAcoesDoPlayer({
    */
   falasNoTrecho: number;
   onVelocidade: () => void;
-  onModoCarro: () => void;
   onTemporizador: () => void;
   /** Guarda o ponto atual. Devolve se a marcação era nova. */
   onMarcar: () => boolean;
@@ -152,7 +150,17 @@ export default function BarraDeAcoesDoPlayer({
         rotulo="Veloc."
         onClick={onVelocidade}
       />
-      <Acao testid="action-car" icone={<Car className="h-5 w-5" />} rotulo="Carro" onClick={onModoCarro} />
+      {/*
+        **"Carro" saiu daqui em 28/07 e foi para o menu de "…".** Pedido do
+        Matheus — *"para não ficar com muitas informações aqui"* — e a barra
+        estava mesmo apertada: seis alvos, e o rótulo "Velocidade" já vinha
+        abreviado por falta de espaço (ver acima).
+
+        **O critério é frequência, não importância.** Modo carro se liga **uma
+        vez, antes de dirigir**, e não durante — é ação rara, e ação rara mora no
+        menu. Marcar, Conversa e Notas são do uso corrente, tocadas com o livro
+        andando, e por isso ficam à mão.
+      */}
       <Acao
         testid="action-timer"
         icone={<Timer className="h-5 w-5" />}

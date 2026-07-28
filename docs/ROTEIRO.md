@@ -4233,6 +4233,30 @@ novo bater exatamente num trecho que já existe, o duplicado sai.
 
 ---
 
+## 4.50 Modo carro sai da barra e vai para o "…" (28/07)
+
+Pedido do Matheus: *"vamos tirar ele daqui da parte de baixo, para não ficar com
+muitas informações aqui, e a gente joga ele nos três pontinhos"*. Feito, e a
+barra estava mesmo apertada — seis alvos, com "Velocidade" já abreviado para
+"Veloc." por falta de espaço desde que a Conversa entrou (§4.39).
+
+**O critério que ficou registrado: frequência, não importância.** O modo carro é
+o item mais "importante" da barra em termos de segurança, e mesmo assim é o certo
+a sair — porque se liga **uma vez, antes de dirigir**, e não durante. Marcar,
+Conversa e Notas são tocadas com o livro andando, e por isso ficam à mão. Ação
+rara mora no menu; ação corrente mora na barra.
+
+Fica em **primeiro** no menu, acima de "Marcar como concluído": é o único item
+dali que muda o modo de uso na hora — os outros levam a outra tela ou marcam um
+estado.
+
+**Medido depois de tirar:** sobraram 5 alvos de 67px (com "Notas") e nenhum
+rótulo trunca. **"Veloc." continua abreviado**, e não é esquecimento: "VELOCIDADE"
+em maiúsculas ocupa quase os 67px inteiros, e num aparelho estreito (320px) o
+alvo cai para ~60 e volta a cortar.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

@@ -792,7 +792,6 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
         temporizadorLigado={selectedTimer !== "Desligado"}
         totalDeMarcacoes={totalDeMarcacoes}
         onVelocidade={() => setShowSpeedMenu(true)}
-        onModoCarro={handleCarModeClick}
         onTemporizador={() => setShowTimerMenu(true)}
         onMarcar={marcarEAnotar}
         onVerMarcacoes={() => setShowMarcacoes(true)}
@@ -1029,6 +1028,25 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col py-2">
+              {/*
+                **Modo carro veio da barra de baixo em 28/07** (ROTEIRO 4.50), a
+                pedido do Matheus: *"tirar ele daqui da parte de baixo, para não
+                ficar com muitas informações"*. Fica em **primeiro** no menu
+                porque é o único item daqui que muda o modo de uso na hora — os
+                outros levam a outra tela ou marcam um estado.
+              */}
+              <button
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  handleCarModeClick();
+                }}
+                className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
+                data-testid="menu-modo-carro"
+              >
+                <Car className="w-5 h-5 text-white/50 group-hover:text-white" />
+                <span className="text-sm font-medium">Modo carro</span>
+              </button>
+
               {/* "Detalhes do título" saiu em 27/07: era um segundo caminho para
                   o mesmo lugar — tocar no título do livro, ali no meio do
                   player, já abre a ficha, e é o gesto que a pessoa tenta
