@@ -19,6 +19,7 @@ import {
 import { playbackPercent, readPlaybackList, type Playback } from "@/lib/playback";
 import { readMyComments } from "@/lib/myComments";
 import { MURAL_EVENT, readMeusPosts } from "@/lib/mural";
+import { readSettings } from "@/lib/settings";
 import { catalog, type Book } from "@/lib/books";
 
 /** Uma fala sua — comentário num livro ou post do mural, no mesmo formato. */
@@ -67,6 +68,8 @@ export default function Profile() {
   const [clubes, setClubes] = useState<Clube[]>([]);
   /** Prévia honesta: esconde tudo que só o dono vê. */
   const [visitante, setVisitante] = useState(false);
+  /** Os interruptores de privacidade do painel — a vitrine obedece. */
+  const [privacidade, setPrivacidade] = useState(() => readSettings());
 
   useEffect(() => {
     // Relê ao voltar das telas de edição.
@@ -74,6 +77,8 @@ export default function Profile() {
     setRecommendations(readRecommendations());
     setResumo(lerResumo());
     setTocando(readPlaybackList()[0] ?? null);
+    // Relê os interruptores ao voltar do painel — é lá que eles moram.
+    setPrivacidade(readSettings());
     // "O que eu disse" junta as suas duas vozes: comentários nos livros e
     // posts do mural (28/07) — para quem te visita, é tudo fala sua. Só o que
     // tem livro: comentário de pessoa/editora não tem capa para mostrar aqui.
@@ -108,7 +113,12 @@ export default function Profile() {
       )
     : [];
 
-  const livroTocando = tocando ? catalog.find((b) => b.id === tocando.bookId) : undefined;
+  // O interruptor desliga a vitrine inteira do "ouvindo": o bloco E o fundo
+  // do topo — a capa desfocada também entrega o que está tocando.
+  const livroTocando =
+    privacidade.mostrarOuvindoAgora && tocando
+      ? catalog.find((b) => b.id === tocando.bookId)
+      : undefined;
   const desde = resumo ? ouvindoDesde(resumo) : null;
 
   /**
@@ -433,7 +443,7 @@ export default function Profile() {
         </section>
       )}
 
-      {clubes.length > 0 && (
+      {privacidade.mostrarMeusClubes && clubes.length > 0 && (
         <section className="border-b border-white/10 px-5 py-5" data-testid="section-profile-clubs">
           <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-white/40">
             Meus clubes

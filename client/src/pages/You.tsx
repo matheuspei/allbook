@@ -6,11 +6,13 @@ import {
   Bookmark,
   ChevronRight,
   Download,
+  Headphones,
   HelpCircle,
   LogIn,
   Medal,
   Settings,
   Share2,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -26,12 +28,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import PageHeader from "@/components/PageHeader";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile } from "@/lib/profile";
 import { totalBookmarks } from "@/lib/bookmarks";
 import { readDownloads } from "@/lib/library";
 import { achievements, unlockedCountFor } from "@/lib/achievements";
+import { readSettings, saveSettings, type Settings as AppSettings } from "@/lib/settings";
 import { lerDadosDeConquista, lerResumo } from "@/lib/stats";
 
 /**
@@ -104,6 +108,19 @@ export default function You() {
   const [bookmarkTotal, setBookmarkTotal] = useState(0);
   const [downloadCount, setDownloadCount] = useState(0);
   const [ganhas, setGanhas] = useState(0);
+  const [ajustes, setAjustes] = useState<AppSettings>(readSettings);
+
+  /**
+   * Os interruptores da vitrine: a página só mostra o que você deixar.
+   * Parte do que está gravado (e não do estado da tela): dois toques no
+   * mesmo instante com base no estado antigo faziam o segundo desfazer o
+   * primeiro — apareceu no teste automatizado, que clica mais rápido que dedo.
+   */
+  function alternarPrivacidade(chave: "mostrarOuvindoAgora" | "mostrarMeusClubes", ligado: boolean) {
+    const next = { ...readSettings(), [chave]: ligado };
+    setAjustes(next);
+    saveSettings(next);
+  }
 
   useEffect(() => {
     // Relê ao voltar da edição — e as contagens, que mudam em uso.
@@ -217,6 +234,57 @@ export default function You() {
       </section>
 
       <GrupoDoPainel titulo="Seu conteúdo" items={conteudo} />
+
+      {/*
+        Privacidade — pedido do Matheus (28/07): o que a sua página pública
+        mostra tem que ser escolha sua. "Ouvindo agora" governa o bloco E o
+        fundo do topo (a capa desfocada também entrega o que está tocando);
+        "meus clubes" esconde só a vitrine — dentro do clube a turma continua
+        te vendo, que é outro contrato.
+      */}
+      <section className="px-5" data-testid="you-group-privacidade">
+        <h2 className="pt-5 pb-1 text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+          Privacidade
+        </h2>
+        <div className="border-b border-white/10">
+          <div className="flex items-center gap-4 py-3.5">
+            <div className="w-9 h-9 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
+              <Headphones className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm">Mostrar o que estou ouvindo</p>
+              <p className="text-[11px] text-white/35 mt-0.5">
+                Aparece na sua página, para quem te visita.
+              </p>
+            </div>
+            <Switch
+              checked={ajustes.mostrarOuvindoAgora}
+              onCheckedChange={(ligado) => alternarPrivacidade("mostrarOuvindoAgora", ligado)}
+              aria-label="Mostrar o que estou ouvindo"
+              data-testid="switch-ouvindo-agora"
+            />
+          </div>
+
+          <div className="flex items-center gap-4 py-3.5">
+            <div className="w-9 h-9 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
+              <UsersRound className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm">Mostrar meus clubes</p>
+              <p className="text-[11px] text-white/35 mt-0.5">
+                A lista de clubes na sua página. Dentro deles, a turma sempre te vê.
+              </p>
+            </div>
+            <Switch
+              checked={ajustes.mostrarMeusClubes}
+              onCheckedChange={(ligado) => alternarPrivacidade("mostrarMeusClubes", ligado)}
+              aria-label="Mostrar meus clubes"
+              data-testid="switch-meus-clubes"
+            />
+          </div>
+        </div>
+      </section>
+
       <GrupoDoPainel titulo="Conta" items={conta} />
 
       <div className="px-5">
