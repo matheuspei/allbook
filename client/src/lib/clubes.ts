@@ -453,6 +453,67 @@ export function meuClubeDoLivro(bookId: number): Clube | undefined {
   return meusClubes().find((clube) => clube.ciclo.bookId === bookId && !estaComecando(clube));
 }
 
+/* ------------------------------------------------------------------ *
+ * Achar um clube no meio de muitos (ROTEIRO 4.42).
+ *
+ * **Por que isto passou a existir.** A tela dos clubes tinha duas gavetas —
+ * "seus clubes" e "clubes em andamento" — e o Matheus viu o problema antes de
+ * ele acontecer: *"imagina que a gente vai ter uma tela que tenha centenas de
+ * clubes de livros; da forma como está estruturada hoje não está muito legal"*.
+ * Uma lista corrida de 300 clubes não se lê; ela precisa de **busca** e de
+ * **assunto**, que foi a saída que ele mesmo sugeriu ("talvez colocar por
+ * tópicos, por exemplo").
+ * ------------------------------------------------------------------ */
+
+/** Tira acento e caixa: buscar "misterio" tem de achar "Mistério". */
+function normalizar(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Os assuntos que **existem de fato**, com quantos clubes cada um tem.
+ *
+ * Sai dos clubes, não da lista de gêneros do catálogo: um filtro "Romance" que
+ * devolve zero clubes é o botão morto que a 4.23 mandou varrer. A ordem é por
+ * quantidade — o assunto com mais gente é o que mais serve a quem chega.
+ */
+export function topicosDeClube(): { genero: string; total: number }[] {
+  const contagem = new Map<string, number>();
+  for (const clube of todosOsClubes()) {
+    contagem.set(clube.genero, (contagem.get(clube.genero) ?? 0) + 1);
+  }
+  return Array.from(contagem.entries())
+    .map(([genero, total]) => ({ genero, total }))
+    .sort((a, b) => b.total - a.total || a.genero.localeCompare(b.genero));
+}
+
+/**
+ * Busca por nome do clube, descrição, **título do livro e autor**.
+ *
+ * O livro entra na busca de propósito: quem procura clube quase sempre procura
+ * pelo que quer ouvir ("tem alguém lendo Duna?"), não pelo nome que a turma deu
+ * a si mesma. Procurar só pelo nome do clube devolveria vazio na pergunta mais
+ * comum que existe.
+ */
+export function buscarClubes(clubes: Clube[], texto: string, topico?: string): Clube[] {
+  const termo = normalizar(texto);
+
+  return clubes.filter((clube) => {
+    if (topico && clube.genero !== topico) return false;
+    if (!termo) return true;
+
+    const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+    const palheiro = normalizar(
+      `${clube.nome} ${clube.descricao} ${clube.genero} ${livro?.title ?? ""} ${livro?.author ?? ""}`,
+    );
+    return palheiro.includes(termo);
+  });
+}
+
 /**
  * Os clubes que estão lendo este livro **agora**.
  *

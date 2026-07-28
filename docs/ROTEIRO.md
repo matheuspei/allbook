@@ -3268,51 +3268,6 @@ enxugar dela vale para qualquer uma das outras.
   PDF](https://…)`. Vêm da Open Library via `npm run catalogo`. Num app cuja
   identidade é PT-BR, é a mancha mais visível da ficha.
 
----
-
-## 4.41 A comunidade é pré-requisito do clube — e o Perfil é duas coisas ao mesmo tempo (28/07)
-
-Conversa com o Matheus na janela B, no mesmo dia em que a A avaliava o clube.
-**Nada construído ainda; o que segue é decisão de rumo e o que foi rejeitado.**
-
-**As três propostas de Perfil da folha `_comparacao-perfil.html` foram
-rejeitadas** — e não pelo visual: *"até o design e o layout estão bonitos, não é
-essa a questão"*. O defeito é conceitual, e ele apontou na proposta B: **a mesma
-tela é vitrine e menu ao mesmo tempo**. "Comunidade", "Estatísticas", "Minhas
-notas" são portas do **seu** uso; não têm sentido nenhum numa página feita para
-**outra pessoa** ver. Estavam ali só porque hoje o Perfil é a única porta que
-leva à Comunidade — herança, não desenho.
-
-**A regra que fica: separar por dono, não por tela.**
-1. **Sua página** (pública) — só o que faz sentido alguém ver: o que você ouve,
-   o que recomenda e por quê, o que você disse, seus selos, seus clubes.
-2. **Painel** (privado) — notas, downloads, estatísticas, ajustes, sair. Atrás
-   da engrenagem; não é vitrine.
-3. **Comunidade** — lugar próprio, não item dentro do Perfil.
-
-**A Comunidade tem que ser refeita inteira** (*"está horrível, muito ruim e não
-tem função nenhuma"*), e o motivo dela mudou de peso. Nas palavras do Matheus:
-**sem comunidade não existe clube** — *"se você não tiver uma interação, uma
-comunidade com outras pessoas, […] não vai ter como ser possível você criar o
-clube de livros"*. Você precisa **encontrar** gente antes de ter a quem
-convidar. A Comunidade deixa de ser apêndice social e vira **infraestrutura do
-clube**: descobrir pessoas por afinidade, ver o que elas ouvem e recomendam,
-interagir, e convidar.
-
-**Contradição a resolver, e é decisão do Matheus.** A decisão de 21/07 (seção
-"Decisões da Comunidade") diz: *"o social é secundário e fica escondido,
-alcançado pelo Perfil"*, e rejeita comunidade no Início. **É essa decisão que
-hoje impede o clube de existir.** Ou o social ganha porta própria (o candidato
-óbvio é o `BottomNav`, hoje Início · Biblioteca · Pedir · Buscar · Perfil), ou o
-clube continua sem gente para encher. A recomendação registrada aqui: dar porta
-própria à Comunidade; manter o Início limpo de social, que era o coração
-daquela decisão.
-
-**O que "Recomendo" passa a ser.** Hoje é uma seção do Perfil que **ninguém vê**
-— o rótulo diz "Visível para a comunidade" e ela vive no `localStorage`. Na
-arquitetura acima, a recomendação com motivo é o **conteúdo que alimenta a
-Comunidade**: é ela que dá o que ver quando você abre a página de alguém.
-
 ### O que o Matheus decidiu em 28/07, e o que foi construído
 
 Vistas as três propostas, ele decidiu: **fazer as três**, e acrescentou um pedido
@@ -3375,6 +3330,133 @@ marcada" virou **"A rodada"**, porque como cabeçalho lia como defeito.
 
 **Ainda não feito:** a fase 3 (a conversa capítulo a capítulo) e as sinopses em
 inglês.
+
+---
+
+## 4.41 A comunidade é pré-requisito do clube — e o Perfil é duas coisas ao mesmo tempo (28/07)
+
+Conversa com o Matheus na janela B, no mesmo dia em que a A avaliava o clube.
+**Nada construído ainda; o que segue é decisão de rumo e o que foi rejeitado.**
+
+**As três propostas de Perfil da folha `_comparacao-perfil.html` foram
+rejeitadas** — e não pelo visual: *"até o design e o layout estão bonitos, não é
+essa a questão"*. O defeito é conceitual, e ele apontou na proposta B: **a mesma
+tela é vitrine e menu ao mesmo tempo**. "Comunidade", "Estatísticas", "Minhas
+notas" são portas do **seu** uso; não têm sentido nenhum numa página feita para
+**outra pessoa** ver. Estavam ali só porque hoje o Perfil é a única porta que
+leva à Comunidade — herança, não desenho.
+
+**A regra que fica: separar por dono, não por tela.**
+1. **Sua página** (pública) — só o que faz sentido alguém ver: o que você ouve,
+   o que recomenda e por quê, o que você disse, seus selos, seus clubes.
+2. **Painel** (privado) — notas, downloads, estatísticas, ajustes, sair. Atrás
+   da engrenagem; não é vitrine.
+3. **Comunidade** — lugar próprio, não item dentro do Perfil.
+
+**A Comunidade tem que ser refeita inteira** (*"está horrível, muito ruim e não
+tem função nenhuma"*), e o motivo dela mudou de peso. Nas palavras do Matheus:
+**sem comunidade não existe clube** — *"se você não tiver uma interação, uma
+comunidade com outras pessoas, […] não vai ter como ser possível você criar o
+clube de livros"*. Você precisa **encontrar** gente antes de ter a quem
+convidar. A Comunidade deixa de ser apêndice social e vira **infraestrutura do
+clube**: descobrir pessoas por afinidade, ver o que elas ouvem e recomendam,
+interagir, e convidar.
+
+**Contradição a resolver, e é decisão do Matheus.** A decisão de 21/07 (seção
+"Decisões da Comunidade") diz: *"o social é secundário e fica escondido,
+alcançado pelo Perfil"*, e rejeita comunidade no Início. **É essa decisão que
+hoje impede o clube de existir.** Ou o social ganha porta própria (o candidato
+óbvio é o `BottomNav`, hoje Início · Biblioteca · Pedir · Buscar · Perfil), ou o
+clube continua sem gente para encher. A recomendação registrada aqui: dar porta
+própria à Comunidade; manter o Início limpo de social, que era o coração
+daquela decisão.
+
+**O que "Recomendo" passa a ser.** Hoje é uma seção do Perfil que **ninguém vê**
+— o rótulo diz "Visível para a comunidade" e ela vive no `localStorage`. Na
+arquitetura acima, a recomendação com motivo é o **conteúdo que alimenta a
+Comunidade**: é ela que dá o que ver quando você abre a página de alguém.
+
+---
+
+## 4.42 O moderador manda de verdade, e a tela de clubes aguenta quantidade (28/07)
+
+Terceira rodada com o Matheus no mesmo dia, olhando o clube já reformulado.
+**Construído**, nos commits `62c7f87` e no seguinte.
+
+### "Os botõezinhos eram uma camisa de força que eu mesmo pus"
+
+O diagnóstico dele foi preciso e a lista, específica: o moderador *"não tem muita
+autonomia para dizer quando é que o clube começa"* (só hoje / 3 dias / 1 semana);
+*"se ele quiser colocar 14 pessoas, ele também não consegue"*; *"nas semanas
+também, ele não consegue dizer qual é o dia que ele quer que acabe"*; e, o mais
+importante, *"na questão dos capítulos… ele poderia também editar quando é que
+cada um começa e acaba; ele também não tem essa autonomia hoje"*. A conclusão
+dele é a tese do recurso inteiro: **"o moderador é a chave principal disso aqui.
+Ele tem que ter muita autonomia de como ele quer gerir o clube dele."**
+
+**A ressalva técnica que ele levantou tem resposta, e é "não custa nada".** Ele
+perguntou *"se não for complicar na questão de servidores… de algoritmos"*. Não
+complica: uma data continua sendo uma data, um número continua sendo um número, e
+uma lista de marcos é mais simples de guardar do que a fórmula que a gerava. **A
+limitação era de interface, não de arquitetura** — presets escolhidos por
+comodidade minha na primeira versão, que viraram regra de produto sem ninguém
+decidir isso.
+
+**O que ficou:** estreia e encontro são **campos de data**; vagas é um **campo de
+número**; e o ritmo virou um **editor de marcos** (capítulo + data por linha, com
+acrescentar, tirar e "refazer sugestão"). Os botõezinhos continuam — quase todo
+clube é 4 semanas e 6 pessoas —, mas agora **preenchem os campos** em vez de
+serem as únicas opções.
+
+Decisões que apareceram fazendo:
+
+- **A sugestão de marcos se refaz ao trocar livro ou datas, e não ao editar um
+  marco.** Recalcular sobre a edição desfaria o trabalho do moderador no desenho
+  seguinte; trocar de livro é mudar a premissa, e aí refazer é o certo.
+- **O último marco sugerido é sempre o livro inteiro.** Um ciclo que para no
+  capítulo 12 de 13 deixa o final fora do combinado — e é o final que a turma
+  quer discutir junta.
+- **O capítulo de um marco não pode ser menor que o do anterior.** "Até o 6 dia 10,
+  até o 4 dia 17" não é ritmo, é erro de digitação.
+- **A estreia deixa de ser editável depois que o clube começa.** Mudar o passado
+  não significa nada: quem ouviu, ouviu. Em formação, ela abre — é aí que adiar
+  para juntar gente faz sentido.
+- **Editar o ciclo em Gerenciar existe porque o combinado muda no meio.** Antes o
+  moderador só podia refazer o clube do zero, perdendo o mural.
+
+### A tela de clubes tinha duas gavetas e nenhuma escala
+
+Preocupação dele, antes de o problema existir: *"imagina que a gente vai ter uma
+tela que tenha centenas de clubes de livros… da forma como está estruturada hoje
+não está muito legal"*. Estava certo — "seus clubes" + "clubes em andamento" é
+uma lista corrida, e lista corrida não se lê com trezentos itens.
+
+**O que entrou, e por quê:**
+
+- **Carrossel de estreias** (pedido direto dele). Substituiu o destaque grande
+  fixo: com muitos clubes estreando, o destaque **escolhia um por você e escondia
+  os outros**. No carrossel o primeiro cartão é o maior — a estreia mais próxima,
+  a que some antes —, e todos ficam ao alcance do polegar.
+- **Busca por nome, descrição, livro e autor.** O livro entra de propósito: a
+  pergunta real de quem procura clube é *"tem alguém lendo Duna?"*, não o nome que
+  a turma deu a si mesma. Buscar só pelo nome devolveria vazio na pergunta mais
+  comum que existe.
+- **Tópicos** (sugestão dele: *"talvez colocar por tópicos"*). Pastilhas de gênero
+  **montadas a partir dos clubes que existem**, com a contagem — nunca da lista de
+  gêneros do catálogo, senão haveria filtro "Romance · 0", que é o botão morto da
+  4.23.
+- **Buscando, a vitrine sai da frente** e a busca varre **tudo**, inclusive
+  estreias e os seus clubes: quem digita "Duna" quer o clube de Duna, não quer
+  saber em que gaveta ele estava.
+
+### Registrado porque ele levantou e descartou sozinho
+
+O Matheus cogitou *"colocar em votação um livro… quando tiver perto do fim"* e
+concluiu na mesma frase que **já existe** (a votação do próximo livro fecha o
+ciclo). Fica escrito para ninguém propor de novo. Ele também gostou do que já
+estava pronto e pediu para explorar mais: a **pauta com frases pré-prontas** —
+*"principalmente você já deixar as frases pré-prontas, isso também é muito
+legal"*.
 
 ---
 
