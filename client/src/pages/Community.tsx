@@ -26,9 +26,9 @@ import { catalog } from "@/lib/books";
  * resposta é a divisão por assunto, nas pílulas que a Biblioteca já usa:
  *
  * - **Mural** — o vivo: quem está ouvindo (fita de capas) e o Mural.
- * - **Grupos** — o assunto: as conversas da semana (fusão do "top da
- *   semana" com as portas — apontavam para as mesmas salas), os Grupos
- *   (Orkut: grupo → tópico → respostas, com CRIAR) e os clubes.
+ * - **Fóruns** — o assunto: as conversas da semana (fusão do "top da
+ *   semana" com as portas — apontavam para as mesmas salas), os fóruns
+ *   (Orkut: fórum → tópico → respostas, com CRIAR) e os clubes.
  * - **Pessoas** — combina com você, a lista de todo mundo, seguindo.
  *   (O pódio nasceu e morreu no mesmo dia — "não está legal", disse ele.)
  *
@@ -40,10 +40,11 @@ import { catalog } from "@/lib/books";
 type Aba = "agora" | "grupos" | "pessoas";
 
 const ABAS: { key: Aba; label: string }[] = [
-  // "Mural" nomeia o coração; "Grupos" é a palavra que todo mundo entende
+  // "Mural" nomeia o coração; "Fóruns" diz o que a aba é sem confundir com o
+  // clube de leitura — a troca de 28/07 (ROTEIRO 4.44).
   // hoje (28/07 — "Conversas" e "Rodas de conversa" caíram por pedido).
   { key: "agora", label: "Mural" },
-  { key: "grupos", label: "Grupos" },
+  { key: "grupos", label: "Fóruns" },
   { key: "pessoas", label: "Pessoas" },
 ];
 
@@ -151,7 +152,7 @@ function AbaAgora() {
 }
 
 /* ------------------------------------------------------------------ *
- * Grupos — o assunto: salas da semana, Grupos, clubes
+ * Fóruns — o assunto: salas da semana, fóruns, clubes
  * ------------------------------------------------------------------ */
 
 function AbaGrupos() {
@@ -177,7 +178,7 @@ function AbaGrupos() {
       setEmoji("");
       setDescricao("");
       setCriando(false);
-      toast({ title: `Grupo "${novo.nome}" criado`, description: "Você já participa — crie o primeiro tópico." });
+      toast({ title: `Fórum "${novo.nome}" criado`, description: "Você já participa — crie o primeiro tópico." });
     }
   }
 
@@ -189,7 +190,7 @@ function AbaGrupos() {
       <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="community-grupos-lista">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            Grupos
+            Fóruns
           </h2>
           {/* O que faltava (28/07): criar grupo é de quem usa, não só do app. */}
           <button
@@ -198,7 +199,7 @@ function AbaGrupos() {
             data-testid="button-create-group"
           >
             <Plus className="h-3.5 w-3.5" />
-            Criar grupo
+            Criar fórum
           </button>
         </div>
 
@@ -210,13 +211,13 @@ function AbaGrupos() {
                 onChange={(event) => setEmoji(event.target.value.slice(0, 4))}
                 placeholder="💬"
                 className="w-12 rounded-lg border border-white/10 bg-transparent py-2 text-center text-base focus:outline-none focus:border-primary/50"
-                aria-label="Ícone do grupo (um emoji)"
+                aria-label="Ícone do fórum (um emoji)"
                 data-testid="group-emoji"
               />
               <input
                 value={nome}
                 onChange={(event) => setNome(event.target.value.slice(0, 40))}
-                placeholder="Nome do grupo…"
+                placeholder="Nome do fórum…"
                 autoFocus
                 className="min-w-0 flex-1 rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
                 data-testid="group-name"
@@ -246,7 +247,7 @@ function AbaGrupos() {
           {grupos.map(({ grupo, totalTopicos, totalPessoas, participo }) => (
             <Link
               key={grupo.id}
-              href={`/grupo/${grupo.id}`}
+              href={`/forum/${grupo.id}`}
               className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06]"
               data-testid={`grupo-card-${grupo.id}`}
             >

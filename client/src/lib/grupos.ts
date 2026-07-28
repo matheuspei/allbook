@@ -1,24 +1,29 @@
 /**
- * As Grupos — a ideia do Orkut, com o nome da casa (28/07).
+ * Os **fóruns** — comunidade → tópicos → respostas, a estrutura do Orkut.
  *
- * O Matheus lembrou das comunidades do Orkut: você entrava numa comunidade,
- * dentro dela havia **tópicos**, e cada tópico tinha o seu fio de respostas.
- * Aqui a estrutura é a mesma — **Grupo → tópicos → respostas** — com o nome
- * "Grupo" porque "comunidade dentro da Comunidade" confundiria, e a palavra já
- * é do app ("Formador de Grupo", "a suo grupo").
+ * **Na tela chama-se "Fórum"; no código, `grupo`.** A troca de nome é de 28/07
+ * (ROTEIRO 4.44) e não é cosmética: o Matheus tinha pedido um "grupo" com dono,
+ * privacidade e expulsão, e a janela A mostrou que isso era, funcionalmente, **o
+ * clube de leitura sem livro** — dois produtos convergindo para o mesmo ponto.
+ * Ele então corrigiu o rumo: *"a ideia do grupo talvez seja ruim, mas a ideia do
+ * fórum é boa"*. Fórum e clube não competem, porque **um fórum de 300 pessoas
+ * funciona melhor que um de 8, e um clube de 300 não funciona**.
  *
- * **O nível que faltava:** a sala do livro conversa sobre UM livro; o clube é
- * uma turma com prazo; o Grupo conversa sobre UM ASSUNTO ("Suspense &
- * Mistério", "Quem ouve no trânsito") — é a casa do pedido de indicação por
- * tema, que estava anotado no roteiro esperando lugar.
+ * Os identificadores continuam `grupo` porque renomeá-los mexeria em chaves do
+ * `localStorage` de quem já usa, sem nada mudar para quem vê. Se um dia forem
+ * renomeados, a tela não muda — ela já diz Fórum.
  *
- * **Quem pode o quê:** entrar é livre (um toque); criar tópico e responder é
- * para quem entrou. Como tudo no app: as grupos e os fios dos leitores
- * fictícios são o esqueleto semeado; o que VOCÊ faz mora no `localStorage`
- * (participações, tópicos e respostas) e sobrevive a recarregar.
+ * **O nível que faltava:** a sala do livro conversa sobre UM livro; o clube é uma
+ * turma com prazo; o fórum conversa sobre UM ASSUNTO ("Suspense & Mistério",
+ * "Quem ouve no trânsito"), sem fim e sem compromisso.
  *
- * O arquivo se chama `grupos` e não `grupos` porque `lib/grupos.ts` já
- * existe — é a **grupoda** do clube, da janela A, outra coisa.
+ * **Quem pode o quê:** entrar é livre (um toque); criar tópico e responder é para
+ * quem entrou; **quem criou o fórum modera o conteúdo** (esconder, fixar, cobrir
+ * spoiler) mas não pode apagá-lo depois que outras pessoas escreveram lá — ver a
+ * seção de moderação, mais abaixo.
+ *
+ * Como tudo no app: os fóruns e os fios dos leitores fictícios são o esqueleto
+ * semeado; o que VOCÊ faz mora no `localStorage` e sobrevive a recarregar.
  */
 
 import { type Citacao } from "@/lib/citacoes";

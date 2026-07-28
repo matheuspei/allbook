@@ -4003,9 +4003,26 @@ de exclusão real), `pages/Grupo.tsx` e `pages/Topico.tsx`.
   absolutos no canto); e a folga do título (`pr-6`) não cabia dois ícones, então
   o texto passava por baixo do alfinete.
 
-**Pendente:** renomear "Grupo" para "Fórum" na tela. O código chama grupo em 72
-lugares; a troca é de rótulo, não de estrutura — mas é ela que mata a confusão
-com o clube para quem usa.
+### A troca de nome, feita
+
+**Na tela é "Fórum"; no código continua `grupo`.** A troca cobriu o rótulo da aba
+da Comunidade, o título das telas, os botões ("Criar fórum", "Apagar este
+fórum"), os avisos e **a rota** (`/grupo/:id` → `/forum/:id`).
+
+**Os identificadores ficaram como estavam, e isso é decisão, não preguiça:**
+renomeá-los mexeria nas chaves do `localStorage` de quem já usa o app — jogando
+fora fóruns, participações e tópicos guardados — sem mudar nada para quem vê. O
+cabeçalho de `lib/grupos.ts` explica a diferença, para ninguém tropeçar nela
+depois.
+
+**Cuidado que a troca exigiu:** "grupo" aparece em vários outros lugares do
+código com **outro sentido** — o grupo de membros do clube ("a régua do grupo"),
+o agrupamento de conquistas, os grupos de perguntas da Ajuda. Uma substituição
+cega teria renomeado tudo isso. A troca foi feita string por string, só nos três
+arquivos do fórum.
+
+**Bônus:** consertou o "Esso grupo não existe" (erro de digitação) para "Este
+fórum não existe".
 
 ---
 

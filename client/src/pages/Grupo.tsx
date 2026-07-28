@@ -24,7 +24,9 @@ import {
 } from "@/lib/grupos";
 
 /**
- * A tela de um Grupo (`/grupo/:id`) — a "comunidade" do Orkut, por dentro.
+ * A tela de um **fórum** (`/forum/:id`) — a "comunidade" do Orkut, por dentro.
+ *
+ * Na tela é "Fórum"; no código, `grupo` (o porquê está em `lib/grupos.ts`).
  *
  * Cabeçalho com o assunto, botão de participar, e a lista de **tópicos** —
  * cada um com autor, contagem de respostas e última atividade. Criar tópico é
@@ -62,9 +64,9 @@ export default function Grupo() {
   if (!grupo) {
     return (
       <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="grupo-missing">
-        <PageHeader title="Grupo" fallback="/community" />
+        <PageHeader title="Fórum" fallback="/community" />
         <div className="px-8 py-20 text-center space-y-4">
-          <p className="text-sm text-white/50">Esso grupo não existe.</p>
+          <p className="text-sm text-white/50">Este fórum não existe.</p>
           <Link href="/community" className="inline-block text-sm font-bold text-primary">
             Voltar à Comunidade
           </Link>
@@ -92,13 +94,13 @@ export default function Grupo() {
     if (novo) {
       setTitulo("");
       setCriando(false);
-      toast({ title: "Tópico criado", description: "Ele já está no topo da lista do grupo." });
+      toast({ title: "Tópico criado", description: "Ele já está no topo da lista do fórum." });
     }
   }
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="grupo-page">
-      <PageHeader title="Grupo" fallback="/community" />
+      <PageHeader title="Fórum" fallback="/community" />
 
       <header className="px-5 pt-6 pb-5 border-b border-white/10">
         <div className="flex items-center gap-3.5">
@@ -151,14 +153,14 @@ export default function Grupo() {
           <button
             onClick={() => {
               apagarMeuGrupo(grupo.id);
-              toast({ title: `Grupo "${grupo.nome}" apagado` });
+              toast({ title: `Fórum "${grupo.nome}" apagado` });
               setLocation("/community");
             }}
             className="mt-3 flex w-full items-center justify-center gap-1.5 py-2 text-xs text-white/30 transition-colors hover:text-white/60"
             data-testid="grupo-delete"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Apagar este grupo
+            Apagar este fórum
           </button>
         )}
 
@@ -167,7 +169,7 @@ export default function Grupo() {
             <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
             <span>
               <b className="text-white/70">Você modera aqui.</b> Dá para fixar e esconder tópicos e
-              respostas. Apagar o grupo inteiro não — já tem conversa de outras pessoas dentro.
+              respostas. Apagar o fórum inteiro não — já tem conversa de outras pessoas dentro.
             </span>
           </p>
         )}
@@ -183,7 +185,7 @@ export default function Grupo() {
                   key={id}
                   onClick={() => {
                     alternarTopicoEscondido(grupo.id, id);
-                    toast({ title: "Tópico devolvido ao grupo" });
+                    toast({ title: "Tópico devolvido ao fórum" });
                   }}
                   className="flex w-full items-center gap-1.5 text-left text-[11px] font-semibold text-primary"
                   data-testid={`devolver-topico-${id}`}
@@ -229,7 +231,7 @@ export default function Grupo() {
         {topicos.map((topico) => (
           <div key={topico.id} className="group relative" data-testid={`topico-${topico.id}`}>
             <Link
-              href={`/grupo/${grupo.id}/topico/${topico.id}`}
+              href={`/forum/${grupo.id}/topico/${topico.id}`}
               className="block rounded-xl border border-white/5 bg-white/[0.03] p-3.5 mb-2.5 transition-colors hover:bg-white/[0.06]"
             >
               {/* A folga da direita tem de caber os DOIS botões de moderação

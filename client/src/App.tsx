@@ -114,8 +114,8 @@ function Router() {
             <Route path="/community" component={Community} />
             {/* Os Grupos (Orkut: comunidade → tópico → respostas).
                 A mais específica primeiro, regra deste Switch. */}
-            <Route path="/grupo/:id/topico/:topicoId" component={Topico} />
-            <Route path="/grupo/:id" component={Grupo} />
+            <Route path="/forum/:id/topico/:topicoId" component={Topico} />
+            <Route path="/forum/:id" component={Grupo} />
             {/* `/clubes/novo` antes de `/clubes` e de `/clube/:id`: rota mais
                 específica primeiro é a regra deste Switch (ver o cabeçalho). */}
             <Route path="/clubes/novo" component={NovoClube} />

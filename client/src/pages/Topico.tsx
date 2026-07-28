@@ -25,7 +25,7 @@ import {
 } from "@/lib/grupos";
 
 /**
- * O fio de um tópico (`/grupo/:id/topico/:topicoId`) — as respostas em
+ * O fio de um tópico (`/forum/:id/topico/:topicoId`) — as respostas em
  * sequência, como no Orkut. A caixa de responder fica no fim, onde a leitura
  * termina; resposta sua tem lixeira.
  */
@@ -78,7 +78,7 @@ export default function Topico() {
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="topico-page">
-      <PageHeader title={grupo.nome} fallback={`/grupo/${grupo.id}`} />
+      <PageHeader title={grupo.nome} fallback={`/forum/${grupo.id}`} />
 
       <header className="px-5 pt-5 pb-4 border-b border-white/10">
         <h1 className="font-display text-lg font-bold leading-snug tracking-tight">
