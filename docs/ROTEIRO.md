@@ -3609,6 +3609,84 @@ tópico); Grupos no perfil público; e moderação de tópico quando houver gent
 conversa do livro inteiro") ainda aponta para a ficha; o destino certo é a
 página `/book/:id/conversa`. Pedido registrado no quadro da COORDENACAO.
 
+### Segunda avaliação da Comunidade, e um quadro novo de 6 propostas (28/07, noite)
+
+O Matheus pediu para **avaliar a aba já reformulada** e desenhar um quadro
+**"completamente diferente"** do anterior. Folha: `client/public/_quadro-comunidade-v3.html`
+(fora do git). **Nada construído; nada decidido ainda.**
+
+**Os oito defeitos apurados na tela rodando** (vale registrar porque três deles
+são de *mecanismo*, não de aparência — quem for reformar de novo tropeça neles):
+
+1. **Seguir uma pessoa colapsa o mural nela.** `feedDoMural` filtra por
+   seguidos; com 8 leitores no esqueleto, 1 "seguir" fez o feed virar doze
+   cartões seguidos da Carla Lima. O recurso principal da tela é o que a
+   esvazia.
+2. **O mesmo fato aparece duas vezes** — "recomendou Duna" e "avaliou Duna
+   5,0" em cartões colados. Nada agrupa por pessoa + livro + dia.
+3. **A aba Grupos tem três listas visualmente idênticas** (conversas da semana,
+   grupos, clubes). A escada livro → assunto → turma existe no ROTEIRO e **não
+   existe na tela**.
+4. Nenhum cartão aceita responder ou reagir: **a tela é de ler, não de fazer**.
+5. **Os contadores anunciam o vazio** ("3 pessoas · 1 tópico") — onze deles,
+   todos abaixo de seis.
+6. **A aba Pessoas acaba em um minuto**: são 8 de 8 leitores com "Seguir", e
+   seguir ainda piora o item 1.
+7. **Nada vence e ninguém te chama** — não há razão para voltar amanhã.
+8. **Não existe "convidar" em lugar nenhum**, embora a razão declarada da aba
+   (acima, nesta seção) seja achar gente para o clube.
+
+**As seis propostas do quadro novo**, cada uma com uma tese diferente sobre o
+que a Comunidade *é*: **1 A Margem** (o social ancorado no ponto do áudio, sem
+feed), **2 O Balcão** (pergunta e indicação; a resposta é sempre um livro),
+**3 A Agenda** (encontro com data e contagem regressiva), **4 A Parede de
+Trechos** (a moeda social é o áudio, 30–60 s ouvidos ali mesmo), **5 A
+Dissolução** (a aba deixa de existir; sobra uma caixa de entrada) e **6 A
+Estante Coletiva** (capas com assinatura humana). Recomendação registrada:
+**Balcão como espinha, Margem como segundo andar** — o Balcão é o único que
+funciona com pouquíssima gente (uma resposta resolve uma pergunta) e liga o
+social à alma do app (pergunta sem resposta no acervo = pedido de narração).
+
+**O desafio dos protótipos (28/07, noite).** O Matheus mandou **B e C construírem,
+cada uma, um protótipo da Comunidade fora do app**, para comparar e escolher — e
+pediu que a junção partisse dos **grupos com tópicos, no estilo Orkut**, que já
+existem no app. O protótipo da B é `client/public/_prototipo-comunidade-B.html`
+(navegável de verdade): espinha **tema → grupo → sala → tópico → fio**, com três
+tipos de post (conversa, **pergunta** com melhor resposta, **trecho** de áudio),
+abas Tópicos/Trechos/Estante/Turma dentro do grupo, caixa de entrada no topo e um
+botão de **raio-x** que etiqueta na tela de qual proposta veio cada bloco.
+
+**Como funciona marcar um trecho — o desenho, com os porquês** (a pergunta do
+Matheus; está construído no protótipo e vale para quando virar código):
+
+- **Marca-se para trás.** O botão no player pega os **últimos 40 s que já
+  passaram** — ninguém sabe que um trecho é bom *antes* de ele acontecer. Só
+  depois você ajusta as pontas (−5 s/+5 s de cada lado), com prévia antes de
+  publicar. Acima de 1 minuto o app avisa: trecho longo ninguém escuta até o fim.
+- **A frase do "por quê" é obrigatória** — é o que separa recorte de
+  recomendação. Sem ela o publicar recusa.
+- **O app não copia áudio: guarda um ponteiro** (livro + segundo de início +
+  duração + a frase). Tocar o trecho é tocar **o próprio arquivo do livro**,
+  começando ali. Não nasce arquivo novo, não pesa, e o trecho não sai do app.
+- **Cuidado que isso cria:** se o arquivo do livro for trocado por outra
+  masterização, os segundos deslocam e todo trecho aponta para o lugar errado —
+  o ponteiro precisa guardar **qual versão do arquivo**, e a troca precisa
+  remapear ou marcar os trechos como de uma edição antiga.
+- **Spoiler:** o trecho sai carimbado com o capítulo. Quem **tem o livro e está
+  atrás** vê o cartão fechado, com o motivo e "ouvir mesmo assim"; quem **não
+  tem o livro** ouve normalmente — para essa pessoa é vitrine, não spoiler.
+- **Destino é escolha:** a parede de um grupo seu, um fio (como resposta), ou
+  "só para mim".
+- **Ainda falso no protótipo:** não há áudio de verdade — a onda é desenhada e o
+  play é animação, porque o app não tem arquivos ainda. A onda real sai do
+  arquivo, calculada uma vez e guardada como uma lista de alturas.
+
+**Duas desenhadas e descartadas por mim, com motivo:** **O Time** (metas
+coletivas — vira número enfeitando número, e mede quantidade de escuta quando
+o app quer escuta certa) e **A Sessão** (audição sincronizada ao vivo — não
+funciona nem em maquete sem gente simultânea; a parte boa dela, *estar junto no
+mesmo ponto*, sobrevive dentro da Margem).
+
 ---
 
 ## 4.42 O moderador manda de verdade, e a tela de clubes aguenta quantidade (28/07)
@@ -3713,6 +3791,97 @@ ciclo). Fica escrito para ninguém propor de novo. Ele também gostou do que já
 estava pronto e pediu para explorar mais: a **pauta com frases pré-prontas** —
 *"principalmente você já deixar as frases pré-prontas, isso também é muito
 legal"*.
+
+---
+
+## 4.43 Rota de colisão: o Clube e o Grupo estão virando a mesma coisa (28/07)
+
+**Nada construído. Isto é um alerta e uma decisão em aberto**, escrito pela
+janela A no minuto em que o problema apareceu, porque ele custa caro se for
+descoberto depois de construído.
+
+### O que o Matheus pediu
+
+Terceira conversa do dia, sobre reformular a Comunidade:
+
+1. **Citar 40 segundos de áudio.** Marcar um trecho no player e compartilhá-lo no
+   feed, e *"só poder reproduzir isso"* — a citação toca o trecho e para.
+2. **Feed com o seu perfil ao lado** e **sugestões de quem seguir**, no formato de
+   rede social ("no Facebook e no Instagram aparecem pessoas sugeridas, porque
+   você não vai seguir todas as pessoas").
+3. **Grupos**, com uma diferença que ele fez questão de isolar: *"o dono do grupo
+   pode privar, e essa é a grande diferença. Ele pode privar esse grupo e pode
+   inclusive excluir pessoas."* Mais **tópicos** dentro do grupo.
+4. **Temas de livro no grupo:** *"você tem temas dos livros, e o que é que esse
+   grupo fala? Você pode selecionar temas de um livro."*
+
+### A colisão, em uma tabela
+
+A janela B **já construiu** os Grupos (`lib/grupos.ts`, commits `2ea6aec` e
+`ea576db`): nome, emoji, descrição, membros, **tópicos → respostas**, e entrar é
+livre. A janela A **já construiu** o Clube com dono, remover membro, limite de
+vagas e pauta. Com o pedido acima, os dois convergem:
+
+| | Sala do livro (A) | Clube (A) | Grupo (B) | Grupo **pedido** |
+|---|---|---|---|---|
+| Sobre o quê | um livro | um livro **com prazo** | um assunto | um assunto **+ temas** |
+| Tem dono | não | **sim** | não | **sim** |
+| Entrar | — | livre / link | livre | **dono controla** |
+| Privado | não | não | não | **sim** |
+| Expulsar | não | **sim** | não | **sim** |
+| Conversa | ancorada no **segundo** | mural por **capítulo** | **tópicos** | tópicos |
+
+Medido no código hoje: `grupos.ts` tem **zero** ocorrências de dono, privado,
+remover ou excluir. `clubes.ts` tem as quatro funções prontas (`souDono`,
+`removerMembro`, `definirLimite`, `clubeCheio`).
+
+**O grupo pedido é, funcionalmente, um clube sem livro e sem prazo.**
+
+### Por que isto é sério, e não preciosismo
+
+A §4.39 já decidiu exatamente contra isto — *"escreve-se **um** mecanismo de
+mensagens; o clube vira camada fina de regras"* — e a §4.40 registrou o preço de
+ter ignorado a decisão: sala e clube viraram dois sistemas que não se falam, o
+mural virou um chat que qualquer app tem, e o clube passou a jogar fora o próprio
+diferencial. **Construir agora um terceiro sistema de conversa, com a terceira
+moderação e o terceiro armazenamento, é repetir o mesmo erro pela terceira vez** —
+e desta vez com duas janelas construindo em paralelo.
+
+### A recomendação da janela A
+
+**Um mecanismo, três formatos.** Um "espaço" com quatro chaves independentes:
+tem dono ou não · é aberto ou privado · gira em torno de um livro, de um assunto,
+ou de nada · a conversa é ancorada no áudio ou em tópicos. Com elas:
+**sala** = sem dono, aberta, um livro. **Clube** = com dono, um livro, com prazo.
+**Grupo** = com dono, um assunto, sem prazo.
+
+Na prática e sem refazer nada: **o Grupo herda a moderação do Clube** em vez de
+ganhar a sua própria — as quatro funções de `clubes.ts` não dependem de livro nem
+de ciclo, e sobem para um lugar comum.
+
+**Os temas do grupo devem usar o vocabulário que já existe.** O `genero` do clube
+já alimenta as pastilhas de tópico de `/clubes` (`topicosDeClube`). Um segundo
+vocabulário de temas faria "Suspense" existir duas vezes, com contagens
+diferentes, e a busca de um não acharia o outro.
+
+**A decisão é do Matheus**, e é uma só: *Clube e Grupo são a mesma coisa com
+ajustes, ou são dois produtos?* Enquanto não for respondida, as duas janelas
+constroem em direção ao mesmo ponto.
+
+### A citação de 40 segundos: a rejeição da §4.39 NÃO se aplica
+
+Registrado para ninguém barrar a ideia com o argumento errado. A §4.39 descartou
+**áudio gravado por leitor** por privacidade e moderação: a voz identifica a
+pessoa, grava o fundo junto, e ninguém modera 400 áudios. **Nada disso vale
+aqui:** a citação não é a voz de quem posta, é um trecho do próprio audiolivro —
+não há voz de terceiro, não há fundo de casa, não há áudio novo para moderar.
+
+**E ela é barata**, porque a peça já existe: o comentário da sala já carrega uma
+**âncora em segundos**. Uma citação é essa âncora **com fim** (início + 40s). A
+marca na barra do player, a trava de spoiler e o carimbo "cap. 7 · 12:40" passam a
+valer para ela sem uma linha nova de regra. É, de novo, a coisa que só um app de
+audiolivro pode fazer — e desta vez sem depender do feed para existir: uma
+citação cabe na sala do livro no dia em que for escrita.
 
 ---
 
