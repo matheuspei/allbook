@@ -7,6 +7,8 @@ import {
   capituloCombinado,
   capituloDaRoda,
   dataCurta,
+  estaComecando,
+  estreiaEmTexto,
   marcoAtual,
   meuCapitulo,
   prazoEmTexto,
@@ -36,6 +38,7 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
   const roda = capituloDaRoda(clube);
   const marco = marcoAtual(clube);
   const combinado = capituloCombinado(clube);
+  const comecando = estaComecando(clube);
 
   const pct = (valor: number) => `${Math.min(100, (valor / totalCapitulos) * 100)}%`;
 
@@ -60,13 +63,29 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
           <p className="truncate text-xs text-white/45">{livro.author}</p>
           <p className="mt-2 flex items-center gap-1.5 text-[11px] text-white/55">
             <Calendar className="h-3 w-3" />
-            Encontro em {dataCurta(clube.ciclo.encontro)} · {prazoEmTexto(clube.ciclo.encontro)}
+            {comecando ? (
+              <>
+                <b className="text-[#f59e0b]">{estreiaEmTexto(clube)}</b> · {dataCurta(clube.ciclo.inicio)}
+              </>
+            ) : (
+              <>
+                Encontro em {dataCurta(clube.ciclo.encontro)} · {prazoEmTexto(clube.ciclo.encontro)}
+              </>
+            )}
           </p>
         </div>
       </div>
 
       {/* A régua: você contra a roda. */}
       <div className="px-4 pb-4">
+        {comecando && (
+          <p className="mb-3 rounded-lg bg-black/25 px-3 py-2 text-[11px] leading-relaxed text-white/60">
+            Este clube ainda não começou — <b className="text-white/85">todo mundo entra no mesmo
+            ponto</b>. Dá para ouvir antes, mas a conversa e os prazos começam em{" "}
+            {dataCurta(clube.ciclo.inicio)}.
+          </p>
+        )}
+
         <div className="flex items-center justify-between text-[11px]">
           <span className="text-white/55">
             Você: {meu === 0 ? "não começou" : `capítulo ${meu}`}

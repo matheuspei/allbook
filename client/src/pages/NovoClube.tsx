@@ -6,10 +6,17 @@ import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
 import { getChapters } from "@/lib/chapters";
-import { criarClube, marcosSemanais, hojeIso, dataCurta } from "@/lib/clubes";
+import { criarClube, marcosSemanais, hojeIso, dataCurta, somarDiasIso } from "@/lib/clubes";
 
 /** Quantas semanas o ciclo pode ter. Quatro é o padrão de clube de leitura. */
 const SEMANAS = [2, 3, 4, 6];
+
+/** Quando o clube estreia. Uma semana é o teto: mais que isso, a turma esquece. */
+const ESTREIAS = [
+  { dias: 0, rotulo: "Hoje" },
+  { dias: 3, rotulo: "Em 3 dias" },
+  { dias: 7, rotulo: "Em 1 semana" },
+];
 
 /**
  * Criar um clube — e, com ele, virar moderador.
@@ -32,6 +39,7 @@ export default function NovoClube() {
   const [busca, setBusca] = useState("");
   const [bookId, setBookId] = useState<number | null>(null);
   const [semanas, setSemanas] = useState(4);
+  const [comecaEm, setComecaEm] = useState(0);
 
   const encontrados = busca.trim()
     ? catalog
@@ -42,7 +50,10 @@ export default function NovoClube() {
     : [];
 
   const escolhido = bookId !== null ? catalog.find((livro) => livro.id === bookId) : undefined;
-  const marcos = bookId !== null ? marcosSemanais(bookId, semanas, hojeIso()) : [];
+  // Os marcos saem da data de estreia, não de hoje: marcar "em 1 semana" tem de
+  // empurrar todos os prazos junto, senão a prévia mentiria.
+  const inicio = comecaEm === 0 ? hojeIso() : somarDiasIso(hojeIso(), comecaEm);
+  const marcos = bookId !== null ? marcosSemanais(bookId, semanas, inicio) : [];
   const podeCriar = nome.trim().length >= 3 && bookId !== null;
 
   return (
@@ -135,6 +146,38 @@ export default function NovoClube() {
           )}
         </Campo>
 
+        {/*
+          **Quando começa** vem antes de "em quantas semanas" de propósito: é a
+          decisão que muda o clube de figura. Começar hoje serve a quem já vai
+          ouvir; marcar para daqui a alguns dias é o que dá tempo de **juntar
+          gente** — o clube aparece em "Começando em breve" e todo mundo entra
+          no mesmo ponto, em vez de chegar com a turma no capítulo 6.
+        */}
+        <Campo titulo="Quando começa">
+          <div className="flex gap-2">
+            {ESTREIAS.map((opcao) => (
+              <button
+                key={opcao.dias}
+                type="button"
+                onClick={() => setComecaEm(opcao.dias)}
+                className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors ${
+                  comecaEm === opcao.dias
+                    ? "bg-white text-black"
+                    : "bg-white/[0.06] text-white/60 hover:bg-white/10"
+                }`}
+                data-testid={`clube-estreia-${opcao.dias}`}
+              >
+                {opcao.rotulo}
+              </button>
+            ))}
+          </div>
+          {comecaEm > 0 && (
+            <p className="mt-2 text-[11px] leading-relaxed text-white/40">
+              O clube fica na vitrine de estreias até lá — quem entrar antes começa junto com você.
+            </p>
+          )}
+        </Campo>
+
         <Campo titulo="Em quantas semanas">
           <div className="flex gap-2">
             {SEMANAS.map((valor) => (
@@ -174,10 +217,13 @@ export default function NovoClube() {
         <button
           onClick={() => {
             if (!podeCriar || bookId === null) return;
-            const clube = criarClube({ nome, descricao, bookId, semanas });
+            const clube = criarClube({ nome, descricao, bookId, semanas, comecaEm });
             toast({
-              title: "Clube criado",
-              description: "Você é o moderador: pode abrir rodadas e cuidar do combinado.",
+              title: comecaEm === 0 ? "Clube criado" : "Clube criado — estreia marcada",
+              description:
+                comecaEm === 0
+                  ? "Você é o moderador: pode abrir rodadas e cuidar do combinado."
+                  : `Ele já aparece em "Começando em breve". Convide gente pelo botão do clube.`,
             });
             navegar(`/clube/${clube.id}`);
           }}

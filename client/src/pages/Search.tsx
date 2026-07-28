@@ -7,6 +7,7 @@ import { catalog, genres, getBooksByGenre, genreSlug, type Genre, type Book } fr
 import SearchResults from "@/components/SearchResults";
 import RequestBanner from "@/components/RequestBanner";
 import CategoryCard from "@/components/CategoryCard";
+import ClubesComecando from "@/components/clube/ClubesComecando";
 
 /**
  * Tela de Busca — a aba "Buscar" do menu de baixo (`/search`), no modelo da
@@ -181,6 +182,14 @@ function SearchSuggestions() {
       <RequestBanner variante="discreto" />
 
       <GenreGrid onSelect={(genero) => navegar(`/category/${genreSlug(genero)}`)} />
+
+      {/*
+        Clubes que vão estrear entram no **Catálogo** (28/07): é aqui que a
+        pessoa está escolhendo o que ouvir, e "uma turma começa Duna sexta" é
+        exatamente o tipo de coisa que ajuda a escolher. Na Início não — lá a
+        decisão de 21/07 continua valendo: o foco é o audiolivro.
+      */}
+      <ClubesComecando limite={2} titulo="Clubes começando" />
 
       <EmAltaRow books={emAlta} />
     </div>

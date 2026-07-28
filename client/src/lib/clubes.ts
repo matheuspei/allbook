@@ -107,6 +107,11 @@ export function dataCurta(iso: string): string {
   return `${dia}/${mes}`;
 }
 
+/** `somarDias` com nome público — a tela de criar clube precisa dela. */
+export function somarDiasIso(iso: string, dias: number): string {
+  return somarDias(iso, dias);
+}
+
 function somarDias(iso: string, dias: number): string {
   const data = new Date(`${iso}T12:00:00`);
   data.setDate(data.getDate() + dias);
@@ -142,6 +147,8 @@ export function marcosSemanais(bookId: number, semanas: number, inicio: string):
  * escritos à mão: um ciclo com data fixa envelheceria em uma semana e o app
  * abriria mostrando encontro vencido, régua parada e prazo negativo — o tipo de
  * esqueleto que passa por app quebrado.
+ *
+ * `diasDesdeOInicio` **negativo** = clube que ainda vai começar.
  */
 function cicloSemeado(bookId: number, diasDesdeOInicio: number, semanas: number): Ciclo {
   const inicio = somarDias(hojeIso(), -diasDesdeOInicio);
@@ -188,6 +195,24 @@ export const clubesSemeados: Clube[] = [
     ciclo: cicloSemeado(105, 20, 5),
     estante: [{ bookId: 104, terminadoEm: "2026-06-05" }],
     genero: "Terror",
+  },
+  /*
+   * Um clube que **ainda não começou** — e ele existe por um pedido direto do
+   * Matheus (27/07): *"deveria ter uma parte onde as pessoas pudessem ver: está
+   * tendo um clube de tal livro, vai começar tal dia"*. Sem pelo menos um clube
+   * em estreia, a seção "começando em breve" nasceria vazia e ninguém entenderia
+   * para que ela serve.
+   */
+  {
+    id: "duna-domingo",
+    nome: "Duna, do começo",
+    descricao:
+      "Uma leitura guiada de Duna para quem sempre quis começar e travou nas primeiras cem páginas. Sem pressa, do primeiro capítulo ao fim.",
+    donoSlug: "carla-lima",
+    membros: ["carla-lima", "felipe-g", "juliana-s"],
+    ciclo: cicloSemeado(7, -4, 6),
+    estante: [],
+    genero: "Ficção Científica",
   },
 ];
 
@@ -283,7 +308,9 @@ export function clubesParaDescobrir(): Clube[] {
   );
 
   return todosOsClubes()
-    .filter((clube) => !souMembro(clube))
+    // Os que ainda vão estrear têm vitrine própria ("Começando em breve") — sem
+    // este filtro, o mesmo clube apareceria duas vezes na mesma tela.
+    .filter((clube) => !souMembro(clube) && !estaComecando(clube))
     .sort((a, b) => {
       const pesoA = generosOuvidos.has(a.genero) ? 0 : 1;
       const pesoB = generosOuvidos.has(b.genero) ? 0 : 1;
@@ -300,6 +327,56 @@ export function clubesParaDescobrir(): Clube[] {
  */
 export function clubesDoLivro(bookId: number): Clube[] {
   return todosOsClubes().filter((clube) => clube.ciclo.bookId === bookId);
+}
+
+/* ------------------------------------------------------------------ *
+ * Estreia: o clube que ainda vai começar.
+ * ------------------------------------------------------------------ */
+
+/**
+ * O clube ainda não começou — está **em formação**.
+ *
+ * Existe porque entrar num clube que já vai no capítulo 6 é constrangedor: ou
+ * você maratona para alcançar, ou fica lendo mensagem coberta. Um clube que
+ * estreia daqui a três dias começa com todo mundo no mesmo lugar, e é isso que
+ * faz alguém entrar. Foi o pedido do Matheus em 27/07: *"as pessoas poderiam ver
+ * que está tendo um clube de tal livro e que vai começar tal dia"*.
+ */
+export function estaComecando(clube: Clube): boolean {
+  return diasAte(clube.ciclo.inicio) > 0;
+}
+
+/** "começa amanhã", "estreia em 4 dias" — o texto do cartão de estreia. */
+export function estreiaEmTexto(clube: Clube): string {
+  const dias = diasAte(clube.ciclo.inicio);
+  if (dias <= 0) return "já começou";
+  if (dias === 1) return "começa amanhã";
+  return `começa em ${dias} dias`;
+}
+
+/**
+ * Os clubes que ainda vão começar, do mais próximo ao mais distante.
+ *
+ * Inclui os seus: quem criou um clube para estrear semana que vem quer vê-lo na
+ * vitrine tanto quanto os outros — é assim que ele junta gente.
+ */
+export function clubesComecando(): Clube[] {
+  return todosOsClubes()
+    .filter(estaComecando)
+    .sort((a, b) => a.ciclo.inicio.localeCompare(b.ciclo.inicio));
+}
+
+/**
+ * O endereço do clube para mandar a alguém.
+ *
+ * **É um convite de verdade, mesmo sem servidor:** quem abrir o link cai na
+ * página do clube, vê o livro, o ritmo e o combinado, e tem o botão de entrar
+ * ali. Não existe "convite pendente" porque não existem contas para receber
+ * convite — e um botão que finge mandar e-mail seria o teatro que este app
+ * varre desde a 4.23.
+ */
+export function linkDoClube(id: string): string {
+  return `${window.location.origin}/clube/${id}`;
 }
 
 export function entrarNoClube(id: string): void {
@@ -331,9 +408,17 @@ export function criarClube(dados: {
   descricao: string;
   bookId: number;
   semanas: number;
+  /**
+   * Daqui a quantos dias o clube estreia. `0` = começa hoje.
+   *
+   * Marcar estreia para a semana que vem é o que dá **tempo de juntar gente**:
+   * o clube aparece em "começando em breve" e as pessoas entram antes do
+   * primeiro capítulo, todas no mesmo ponto.
+   */
+  comecaEm?: number;
 }): Clube {
   const estado = readEstado();
-  const inicio = hojeIso();
+  const inicio = somarDias(hojeIso(), dados.comecaEm ?? 0);
   const livro = catalog.find((book) => book.id === dados.bookId);
 
   const clube: Clube = {
@@ -443,6 +528,9 @@ export function progressoDosMembros(clube: Clube): { slug: string; capitulo: num
 
   return clube.membros.map((slug) => {
     if (slug === EU) return { slug, capitulo: meuCapitulo(clube) };
+    // Clube que ainda vai estrear: ninguém começou, e mostrar "capítulo 1"
+    // faria a régua mentir logo na tela que serve para atrair gente.
+    if (estaComecando(clube)) return { slug, capitulo: 0 };
     const fracao = Math.min(1, Math.max(0, decorrido + desvioEstavel(slug, clube.id)));
     return { slug, capitulo: Math.max(1, Math.round(fracao * capitulos)) };
   });

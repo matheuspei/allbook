@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { BookOpen, LogOut, Shield, UserPlus, Users } from "lucide-react";
+import { BookOpen, LogOut, Share2, Shield, UserPlus, Users } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import CartaoDoCiclo from "@/components/clube/CartaoDoCiclo";
@@ -13,13 +13,46 @@ import {
   CLUBES_EVENT,
   clubePorId,
   corDoMembro,
+  dataCurta,
   entrarNoClube,
+  estaComecando,
+  linkDoClube,
   nomeDoMembro,
   sairDoClube,
   souDono,
   souMembro,
   type Clube as ClubeTipo,
 } from "@/lib/clubes";
+
+/**
+ * Copiar texto com plano B.
+ *
+ * `navigator.clipboard` é o caminho bom, mas recusa em situações comuns (aba
+ * sem foco, permissão negada, página fora de contexto seguro). O `textarea`
+ * escondido com `execCommand("copy")` é obsoleto e funciona em todas elas —
+ * fica como rede, não como primeira escolha.
+ */
+async function copiarParaAreaDeTransferencia(texto: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(texto);
+    return true;
+  } catch {
+    try {
+      const campo = document.createElement("textarea");
+      campo.value = texto;
+      campo.setAttribute("readonly", "");
+      campo.style.position = "fixed";
+      campo.style.opacity = "0";
+      document.body.appendChild(campo);
+      campo.select();
+      const deuCerto = document.execCommand("copy");
+      document.body.removeChild(campo);
+      return deuCerto;
+    } catch {
+      return false;
+    }
+  }
+}
 
 /**
  * A tela de um clube.
@@ -65,6 +98,44 @@ export default function Clube({ params }: { params: { id: string } }) {
   const membro = souMembro(clube);
   const dono = souDono(clube);
 
+  /**
+   * Convidar: a folha nativa do celular quando existe, copiar o link quando
+   * não. É o mesmo caminho que o compartilhar do livro já usa — inclusive o
+   * fallback, porque no computador `navigator.share` não existe.
+   */
+  /* Arrow e não `function`: declaração de função é içada para o topo, e o
+     TypeScript deixa de enxergar que `clube` já foi checado acima. */
+  const convidar = async () => {
+    const link = linkDoClube(clube.id);
+    const texto = estaComecando(clube)
+      ? `Vou entrar no ${clube.nome} no AllBook — começa em ${dataCurta(clube.ciclo.inicio)}. Vem?`
+      : `Estou no ${clube.nome} no AllBook. Vem ouvir junto?`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: clube.nome, text: texto, url: link });
+      } catch {
+        // Fechar a folha nativa cai aqui: é desistência, não erro.
+      }
+      return;
+    }
+
+    /*
+     * **O convite nunca pode ficar sem retorno.** A primeira versão chamava
+     * `clipboard.writeText` dentro de um `try` mudo — e quando o navegador
+     * recusa a cópia (aba sem foco, permissão negada, `http` sem `localhost`)
+     * o botão simplesmente não fazia nada, que é o defeito que este app já
+     * varreu em outros cantos. Agora há um plano B (o `textarea` de sempre) e,
+     * se nem ele funcionar, o link aparece no aviso para copiar à mão.
+     */
+    const copiou = await copiarParaAreaDeTransferencia(`${texto} ${link}`);
+    toast(
+      copiou
+        ? { title: "Convite copiado", description: "Agora é só colar onde quiser." }
+        : { title: "O link do clube é este", description: link },
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="clube-page">
       <PageHeader title={clube.nome} fallback="/clubes" />
@@ -108,22 +179,45 @@ export default function Clube({ params }: { params: { id: string } }) {
             </p>
           )}
 
-          {!membro && (
+          <div className="flex gap-2">
+            {!membro && (
+              <button
+                onClick={() => {
+                  entrarNoClube(clube.id);
+                  toast({
+                    title: `Você entrou no ${clube.nome}`,
+                    description: estaComecando(clube)
+                      ? `A conversa começa em ${dataCurta(clube.ciclo.inicio)} — todo mundo do mesmo ponto.`
+                      : "O combinado da roda passa a valer para você.",
+                  });
+                }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-black transition-colors hover:bg-primary/90"
+                data-testid="button-entrar-clube"
+              >
+                <UserPlus className="h-4 w-4" />
+                {estaComecando(clube) ? "Quero entrar na estreia" : "Entrar no clube"}
+              </button>
+            )}
+
+            {/*
+              Convidar é **compartilhar o endereço** — e isso funciona de
+              verdade hoje: quem abrir o link cai aqui, vê o livro, o ritmo e o
+              combinado, e tem o botão de entrar. Um "convidar por e-mail" sem
+              contas seria botão que finge (ROTEIRO 4.23).
+            */}
             <button
-              onClick={() => {
-                entrarNoClube(clube.id);
-                toast({
-                  title: `Você entrou no ${clube.nome}`,
-                  description: "O combinado da roda passa a valer para você.",
-                });
-              }}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-black transition-colors hover:bg-primary/90"
-              data-testid="button-entrar-clube"
+              onClick={convidar}
+              className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-colors ${
+                membro
+                  ? "w-full bg-white/[0.08] text-white hover:bg-white/15"
+                  : "px-4 bg-white/[0.08] text-white hover:bg-white/15"
+              }`}
+              data-testid="button-convidar-clube"
             >
-              <UserPlus className="h-4 w-4" />
-              Entrar no clube
+              <Share2 className="h-4 w-4" />
+              {membro ? "Convidar alguém para o clube" : "Convidar"}
             </button>
-          )}
+          </div>
         </header>
 
         <CartaoDoCiclo clube={clube} />

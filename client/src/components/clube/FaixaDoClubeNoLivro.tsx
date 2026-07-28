@@ -7,6 +7,8 @@ import {
   capituloDaRoda,
   clubesDoLivro,
   dataCurta,
+  estaComecando,
+  estreiaEmTexto,
   souMembro,
   type Clube,
 } from "@/lib/clubes";
@@ -47,11 +49,24 @@ export default function FaixaDoClubeNoLivro({ bookId }: { bookId: number }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-bold">
-          {membro ? `Seu clube está lendo este livro` : `Este é o livro do ${clube.nome}`}
+          {estaComecando(clube)
+            ? `${clube.nome} vai ouvir este livro`
+            : membro
+              ? "Seu clube está lendo este livro"
+              : `Este é o livro do ${clube.nome}`}
         </span>
         <span className="block truncate text-[11px] text-white/45">
-          {clube.membros.length} pessoas ouvindo junto · a roda está no capítulo{" "}
-          {capituloDaRoda(clube)} · encontro em {dataCurta(clube.ciclo.encontro)}
+          {estaComecando(clube) ? (
+            <>
+              <b className="text-[#f59e0b]">{estreiaEmTexto(clube)}</b> ·{" "}
+              {dataCurta(clube.ciclo.inicio)} · {clube.membros.length} inscritos, todos do começo
+            </>
+          ) : (
+            <>
+              {clube.membros.length} pessoas ouvindo junto · a roda está no capítulo{" "}
+              {capituloDaRoda(clube)} · encontro em {dataCurta(clube.ciclo.encontro)}
+            </>
+          )}
         </span>
       </span>
       <ChevronRight className="h-4 w-4 shrink-0 text-white/25" />

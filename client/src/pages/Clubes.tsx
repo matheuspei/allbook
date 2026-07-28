@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Calendar, MessageSquare, Plus, Users } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
+import ClubesComecando from "@/components/clube/ClubesComecando";
 import { catalog } from "@/lib/books";
 import {
   CLUBES_EVENT,
@@ -67,6 +68,10 @@ export default function Clubes() {
             ))}
           </section>
         )}
+
+        {/* As estreias vêm antes do "para descobrir": entrar num clube que já
+            está no capítulo 6 é constrangedor; num que estreia sexta, não. */}
+        <ClubesComecando verTodos={false} limite={4} />
 
         <Link
           href="/clubes/novo"

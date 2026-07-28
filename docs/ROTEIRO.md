@@ -3136,6 +3136,38 @@ spoiler alheio, esconder) existem e funcionam, mas num clube recém-criado **nã
 há mensagem de outra pessoa para moderar** — só haverá quando existirem contas.
 Não se encenou um grupo cheio para dar o que ver.
 
+### Como as pessoas ACHAM um clube e como se convidam (28/07)
+
+Pedido do Matheus, no dia seguinte à construção: *"como é que as pessoas têm
+acesso aos clubes? Deveria ter uma parte onde pudessem convidar umas às outras,
+e ver: está tendo um clube de tal livro, vai começar tal dia."* O que entrou:
+
+- **Clube com data de estreia.** O ciclo pode começar hoje, em 3 dias ou em 1
+  semana; até lá o clube fica **em formação**. O motivo é de uso, não de
+  calendário: **entrar num clube que já está no capítulo 6 é constrangedor** —
+  ou a pessoa maratona para alcançar, ou fica lendo mensagem coberta. Um clube
+  que estreia sexta começa com todo mundo no mesmo ponto, e é isso que faz
+  alguém topar. Marcar estreia também é o que dá **tempo de juntar gente**.
+- **Vitrine "Começando em breve"**, na tela de clubes **e na aba Catálogo** — é
+  ali que a pessoa está escolhendo o que ouvir, e "uma turma começa Duna sexta"
+  ajuda a escolher. **Na Início continua não entrando**: a decisão de 21/07
+  (nada de comunidade na Início) segue de pé.
+- **Convidar = compartilhar o endereço do clube**, pela folha nativa do celular
+  ou copiando o link. **Funciona de verdade hoje:** quem abre o link cai na
+  página do clube, vê livro, ritmo e combinado, e tem o botão de entrar. Um
+  "convidar por e-mail" sem contas seria botão que finge (4.23). Convite
+  pendente e lista de convidados só existirão com servidor.
+- A faixa na ficha do livro passou a dizer **"vai ouvir este livro · começa em 4
+  dias · 3 inscritos, todos do começo"** quando o clube ainda não estreou.
+- **Defeito consertado no caminho:** o botão de convidar chamava
+  `clipboard.writeText` dentro de um `try` mudo — quando o navegador recusa a
+  cópia, o botão não fazia nada. Agora tem plano B (`textarea` +
+  `execCommand`) e, se nem isso funcionar, o link aparece no aviso para copiar
+  à mão. Botão sem retorno é o defeito que a 4.23 mandou varrer.
+
+**Ficou pendente (o Matheus mandou a frase cortada):** *"a pessoa que está
+criando um clube, ela deveria…"* — falta o fim.
+
 ### Quatro ajustes do parecer da Janela A (a fazer antes de codar)
 
 1. **Âncora em segundos, não em capítulo.** Os capítulos aqui têm 50–85 minutos —
