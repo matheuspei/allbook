@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Bell, Search, User } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import BuscaSobreposta from "@/components/BuscaSobreposta";
 import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notifications";
+import { initialOf, readProfile } from "@/lib/profile";
 
 export default function TopNav() {
   const [location] = useLocation();
@@ -12,6 +13,14 @@ export default function TopNav() {
   // Quantos avisos ainda não lidos: respostas "responderam você" + avisos de
   // sistema. É o que acende e conta a marca do sino. Zero = sino limpo.
   const [unread, setUnread] = useState(0);
+  // A sua cara no topo — desde que o Perfil saiu do menu de baixo (28/07,
+  // ROTEIRO 4.41), o avatar é a porta da sua página. Relido a cada troca de
+  // rota: quem salva uma foto nova em /profile/edit a vê aqui na volta.
+  const [perfil, setPerfil] = useState(readProfile);
+
+  useEffect(() => {
+    setPerfil(readProfile());
+  }, [location]);
 
   useEffect(() => {
     const refresh = () => setUnread(unreadNotificationCount());
@@ -117,10 +126,16 @@ export default function TopNav() {
           <Link
             href="/profile"
             data-testid="button-profile"
-            aria-label="Perfil"
-            className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary/30 transition-colors"
+            aria-label="Sua página"
+            className="w-8 h-8 rounded-full overflow-hidden border border-primary/40 flex items-center justify-center bg-[#1e1e1e] hover:border-primary transition-colors"
           >
-            <User className="w-4 h-4" />
+            {perfil.photo ? (
+              <img src={perfil.photo} alt={perfil.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs font-bold font-display text-primary">
+                {initialOf(perfil.name)}
+              </span>
+            )}
           </Link>
         </div>
       </div>

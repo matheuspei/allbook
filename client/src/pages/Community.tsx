@@ -4,7 +4,6 @@ import { Check, Plus } from "lucide-react";
 
 import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
 import ConversasDeAgora from "@/components/ConversasDeAgora";
-import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import {
   ouvindoAgoraNaComunidade,
@@ -80,7 +79,23 @@ export default function Community() {
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="community-page">
-      <PageHeader title="Comunidade" fallback="/profile" />
+      {/* Aba do menu de baixo desde 28/07 (4.41): título de lugar, como a
+          Biblioteca — não mais o cabeçalho com seta de tela interna. */}
+      <header className="relative overflow-hidden px-5 pt-7 pb-5">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-28 left-1/2 h-56 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
+        />
+        <h1
+          className="relative font-display text-3xl font-bold tracking-tight"
+          data-testid="text-community-title"
+        >
+          Comunidade
+        </h1>
+        <p className="relative mt-1.5 text-sm text-white/45">
+          Quem está ouvindo, conversando e recomendando
+        </p>
+      </header>
 
       {/* 1 — Quem está dentro de qual livro, agora. */}
       {audicoes.length > 0 && (

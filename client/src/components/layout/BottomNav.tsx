@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Bookmark, LayoutGrid, User, Mic } from "lucide-react";
+import { Home, Bookmark, LayoutGrid, Users, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -28,6 +28,12 @@ import { cn } from "@/lib/utils";
  * item do menu do player que leva até ela é "Explorar o catálogo". O ícone
  * acompanhou: a lupa saiu (foi para o topo da Início, onde a busca começa) e
  * entrou a grade, que é o desenho de um catálogo.
+ *
+ * **"Perfil" saiu e "Comunidade" entrou (28/07, ROTEIRO 4.41).** A Comunidade
+ * era alcançada só por dentro do Perfil — e é a fundação do clube: sem um lugar
+ * onde se encontra gente, não há a quem convidar. O Perfil não sumiu: virou o
+ * **avatar no topo** (`TopNav`), que é onde ele mora em todo app cujo perfil é
+ * uma página pública. O Início continua limpo de social, como decidido em 21/07.
  */
 export default function BottomNav() {
   const [location] = useLocation();
@@ -37,7 +43,7 @@ export default function BottomNav() {
     { name: "Biblioteca", path: "/library", icon: Bookmark },
     { name: "Pedir", path: "/request", icon: Mic, acao: true },
     { name: "Catálogo", path: "/search", icon: LayoutGrid },
-    { name: "Perfil", path: "/profile", icon: User },
+    { name: "Comunidade", path: "/community", icon: Users },
   ];
 
   return (
