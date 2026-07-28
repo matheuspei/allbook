@@ -3165,8 +3165,22 @@ e ver: está tendo um clube de tal livro, vai começar tal dia."* O que entrou:
   `execCommand`) e, se nem isso funcionar, o link aparece no aviso para copiar
   à mão. Botão sem retorno é o defeito que a 4.23 mandou varrer.
 
-**Ficou pendente (o Matheus mandou a frase cortada):** *"a pessoa que está
-criando um clube, ela deveria…"* — falta o fim.
+**A tela de clubes foi redesenhada no mesmo dia** — o Matheus disse que estava
+"seca", e estava: uma fileira de cartõezinhos com capa de 56px, numa tela cujo
+trabalho é **convencer alguém a assumir um compromisso**. O que entrou não é
+enfeite, e a distinção importa porque este app corta cor decorativa:
+**um destaque no topo** (a estreia mais próxima, com a arte do livro desfocada
+ao fundo — o mesmo recurso do player e da ficha), **capas grandes** em vez de
+miniaturas, **a régua do seu ritmo** dentro do cartão do seu clube, e o "criar
+clube" deixando de ser uma linha tracejada cinza (desenho de área vazia) para
+virar um cartão com o mesmo peso dos outros. A hierarquia responde à pergunta de
+quem chega: o que vai começar, onde eu já estou, o que mais existe, como faço o
+meu.
+
+**Uma frase se perdeu, e fica registrado que se perdeu:** o Matheus começou
+*"a pessoa que está criando um clube, ela deveria…"*, a mensagem cortou, e no
+dia seguinte ele não lembrava mais o que ia dizer. Se a ideia voltar, entra
+aqui — não vale inventar o que ele quis dizer.
 
 ### Quatro ajustes do parecer da Janela A (a fazer antes de codar)
 
