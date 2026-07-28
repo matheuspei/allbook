@@ -4050,6 +4050,31 @@ mesma ideia, chegando pelos dois lados.
 guardei, abri um tópico do fórum, anexei pelo clipe e publiquei — o cartão do
 trecho aparece na resposta, com capa, carimbo e o botão que toca só ele.
 
+### Guardar num toque: o caminho era longo demais
+
+O Matheus viu logo depois: *"a pessoa vai ter que citar o trecho e só depois abre
+a parte onde ela pode guardar… a gente poderia colocar um caminho mais fácil"*.
+Ele estava certo — eram **três toques** (Conversa → Citar o trecho → Guardar), e
+guardar tinha virado **sub-ação de comentar** quando na verdade é irmã de marcar
+uma nota.
+
+**O conserto tem dois princípios:**
+
+- **Padrão primeiro, ajuste depois.** Um toque guarda **40 segundos a partir de
+  onde você está**, e o aviso oferece ajustar. Abrir o cortador para só então
+  guardar era pedágio; quem quer o corte exato ainda o tem, agora como
+  refinamento e não como caminho obrigatório.
+- **O botão fica na linha dos tempos**, sob a barra de progresso, porque o
+  assunto dele é **posição** — é onde o olho já está quando se pensa "esse pedaço
+  aqui". **Não deu para pôr na barra de ações:** ela já tem seis alvos e o código
+  abrevia "Velocidade" para "Veloc." por causa disso (§4.40); um sétimo truncaria
+  os outros.
+
+**Efeito colateral, e ele é bom:** o botão tomou o lugar de "36m 35s restantes",
+que dizia **exatamente o mesmo** que o "-36:32" logo ao lado, em outro formato. A
+troca eliminou uma redundância que a régua do próprio app condena — e se o rótulo
+por extenso fizer falta, voltar é uma linha.
+
 ---
 
 ## 5. Backlog de faxina técnica (não urgente)

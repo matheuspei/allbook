@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, RotateCcw, RotateCw, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Search as SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Search as SearchIcon } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -14,7 +14,9 @@ import BarraDeAcoesDoPlayer from "@/components/BarraDeAcoesDoPlayer";
 import ConversaDoTrecho from "@/components/ConversaDoTrecho";
 import MarcasDaConversa from "@/components/MarcasDaConversa";
 import FaixaDaTurmaNoPlayer from "@/components/clube/FaixaDaTurmaNoPlayer";
+import { MAX_CITACAO_SEC, criarCitacao, rotuloDaCitacao } from "@/lib/citacoes";
 import { CLUBES_EVENT, meuClubeDoLivro } from "@/lib/clubes";
+import { guardarTrecho } from "@/lib/trechosGuardados";
 import { commentsForBook } from "@/lib/comments";
 import { myCommentsFor } from "@/lib/myComments";
 import { comentariosNoTrecho } from "@/lib/sala";
@@ -622,9 +624,43 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:bg-primary [&_[role=slider]]:border-none [&_.relative]:h-1 [&_.bg-secondary]:bg-white/15 cursor-pointer"
               />
             </div>
-            <div className="flex justify-between text-[10px] font-medium tracking-tight">
+            <div className="flex items-center justify-between text-[10px] font-medium tracking-tight">
               <span className="text-white/50">{formatTime(positionInChapter)}</span>
-              <span className="text-white/80">{formatRemaining(chapterDuration, positionInChapter)}</span>
+
+              {/*
+                **Guardar 40s daqui, num toque** (ROTEIRO 4.46).
+
+                Antes eram três: Conversa → "Citar o trecho" → Guardar. O Matheus
+                apontou: *"a pessoa vai ter que citar o trecho e só depois abre a
+                parte onde ela pode guardar"* — guardar era sub-ação de comentar,
+                quando na verdade é irmã de marcar uma nota.
+
+                **Fica na linha dos tempos** porque o assunto dele é posição, e é
+                onde o olho já está quando se pensa "esse pedaço aqui". Não deu
+                para pôr na barra de ações: ela já tem seis alvos e o código
+                abrevia "Velocidade" por isso — um sétimo truncaria os outros.
+
+                **Padrão primeiro, ajuste depois:** o toque guarda 40 segundos na
+                hora e o aviso oferece ajustar. Abrir o cortador para depois
+                guardar era pedágio; quem quer o corte exato ainda o tem, agora
+                como refinamento e não como caminho obrigatório.
+              */}
+              <button
+                onClick={() => {
+                  const trecho = criarCitacao(book.id, currentTime, MAX_CITACAO_SEC);
+                  guardarTrecho(trecho);
+                  toast({
+                    title: `Trecho de ${MAX_CITACAO_SEC}s guardado`,
+                    description: `${rotuloDaCitacao(trecho)} — anexe em qualquer conversa pelo clipe, ou abra a Conversa para ajustar o corte.`,
+                  });
+                }}
+                className="flex items-center gap-1 rounded-full bg-white/[0.07] px-2.5 py-1 text-[10px] font-semibold text-white/60 transition-colors hover:bg-white/15 hover:text-white active:scale-95"
+                data-testid="guardar-trecho-rapido"
+              >
+                <Scissors className="h-2.5 w-2.5" />
+                Guardar {MAX_CITACAO_SEC}s
+              </button>
+
               <span className="text-white/50">-{formatTime(chapterDuration - positionInChapter)}</span>
             </div>
           </div>
