@@ -3451,6 +3451,48 @@ sozinhos. Decisões dentro da decisão:
   próprio `CommentThread`, porque a estrela no fio tinha sido pedido do
   Matheus em 26/07, e a decisão nova substitui aquela com contexto.
 
+### O Mural: a decisão de 21/07 foi revisitada de propósito (28/07)
+
+O Matheus pediu *"um mural, como se fosse um feed de notícias das pessoas que
+você segue… uma atualização constante"* e que a pessoa *"possa falar sobre
+coisas que está ouvindo"*. Isso **contraria o registro de 21/07** ("não é um
+feed tipo Instagram/Facebook") — a contradição foi mostrada a ele, e ele
+manteve o pedido. **Motivo da virada:** aquela decisão foi tomada quando a
+Comunidade era um diretório; o defeito real de agora era outro — *seguir não
+alimentava nada* e não havia voz própria fora da ficha de livro.
+
+**O que sobrevive da decisão antiga:** nada de social no Início; e **nada de
+post solto** — a régua nova que segura tudo é *"todo post nasce amarrado a um
+livro"*. A caixa de publicar anexa o livro em reprodução (troca entre os 5
+recentes); quem nunca ouviu nada vê um convite, não uma caixa de texto. É o
+que separa o Mural de um Twitter e mantém a moderação do tamanho do app.
+
+**O desenho construído** (`lib/mural.ts` + `MuralDaComunidade`, commit
+`d886de7`): feed cronológico com **tipos fechados, todos nascidos da audição**
+— está ouvindo, terminou, avaliou, comentou, recomendou, e o novo **"disse"**
+(texto até 280, livro anexado, apagável). A trava de spoiler **viaja com o
+comentário**: no feed ele aparece fechado com o motivo e o atalho "Abrir a
+conversa". Meus acontecimentos entram com datas reais (conclusões, avaliações,
+posts); **recomendações minhas passaram a nascer com data** por isso — as
+antigas, sem carimbo, ficam fora do feed (data chutada seria mentira).
+
+**Nome:** a aba continua **Comunidade** (lugar-guarda-chuva); o feed dentro
+chama **Mural** — mesma palavra do clube, virando vocabulário da casa: mural =
+onde a turma escreve.
+
+**Sem seguir ninguém, o mural mostra a comunidade inteira** — feed vazio no
+primeiro dia era exatamente o defeito da tela antiga; seguindo, ele vira só
+dos seus.
+
+**Absorvido no mesmo dia em que nasceu:** o bloco "Recomendado pela sua roda"
+(criado de manhã na reforma da Comunidade) saiu — recomendação virou um tipo
+do feed, e o mesmo conteúdo em dois blocos era redundância.
+
+**Fora desta rodada, anotado:** posts "disse" ainda não aparecem na página
+pública ("O que eu disse" mostra só comentários — juntar os dois é decisão de
+tela para outra hora); e o tipo "entrou no clube" ficou de fora porque o
+esqueleto não tem data de entrada em clube.
+
 **Ligado a isso, pendente na janela A:** `ConversaDoTrecho.tsx:168` ("Ver a
 conversa do livro inteiro") ainda aponta para a ficha; o destino certo é a
 página `/book/:id/conversa`. Pedido registrado no quadro da COORDENACAO.
