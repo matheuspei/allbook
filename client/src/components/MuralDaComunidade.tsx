@@ -60,6 +60,17 @@ function quando(iso: string): string {
   return relativeDate(iso.slice(0, 10));
 }
 
+/** Os filtros do feed: cada um mapeia para um tipo do mural. */
+type Filtro = "tudo" | "disse" | "recomendou" | "avaliou" | "comentou";
+
+const FILTROS: { key: Filtro; label: string }[] = [
+  { key: "tudo", label: "Tudo" },
+  { key: "disse", label: "Posts" },
+  { key: "recomendou", label: "Recomendações" },
+  { key: "avaliou", label: "Avaliações" },
+  { key: "comentou", label: "Conversas" },
+];
+
 export default function MuralDaComunidade() {
   const { toast } = useToast();
   const [itens, setItens] = useState<ItemDoMural[]>([]);
@@ -67,6 +78,7 @@ export default function MuralDaComunidade() {
   const [alvo, setAlvo] = useState<AlvoDoPost | null>(null);
   const [buscandoLivro, setBuscandoLivro] = useState(false);
   const [termo, setTermo] = useState("");
+  const [filtro, setFiltro] = useState<Filtro>("tudo");
   const perfil = useMemo(readProfile, []);
 
   // Os atalhos de âncora: os últimos livros do seu progresso e os seus clubes.
@@ -262,18 +274,46 @@ export default function MuralDaComunidade() {
         </div>
       </div>
 
+      {/* Os filtros por tipo — parte da arrumação pedida em 28/07. */}
+      <div className="mt-3 flex gap-1.5 overflow-x-auto scrollbar-hide" data-testid="mural-filters">
+        {FILTROS.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => setFiltro(item.key)}
+            className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-semibold transition-colors ${
+              filtro === item.key
+                ? "bg-white text-black"
+                : "border border-white/10 text-white/45 hover:text-white/80"
+            }`}
+            data-testid={`mural-filter-${item.key}`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
       {/* O feed. */}
       <div className="mt-1">
-        {itens.map((item) => (
-          <ItemDoFeed key={item.id} item={item} />
-        ))}
+        {itens
+          .filter((item) => filtro === "tudo" || item.tipo === filtro)
+          .map((item) => (
+            <ItemDoFeed key={item.id} item={item} />
+          ))}
       </div>
     </section>
   );
 }
 
-/** O verbo e o ícone de cada tipo — o vocabulário fechado do mural. */
-function verboDoItem(item: ItemDoMural): { icone: React.ReactNode; verbo: string } {
+/**
+ * O verbo, o ícone e a COR de cada tipo — o vocabulário fechado do mural.
+ * Cor própria por verbo (28/07, da reformulação): verde para o vivo, a marca
+ * para recomendação, âmbar para nota, azul para a sua voz, lilás para papo.
+ */
+function verboDoItem(item: ItemDoMural): {
+  icone: React.ReactNode;
+  verbo: string;
+  cor: string;
+} {
   switch (item.tipo) {
     case "disse":
       // Post no clube fala "no clube"; nos livros, "sobre" — desde que a
@@ -281,17 +321,34 @@ function verboDoItem(item: ItemDoMural): { icone: React.ReactNode; verbo: string
       return {
         icone: <MessageCircle className="h-3 w-3" />,
         verbo: item.clube ? "disse, no clube" : "disse, sobre",
+        cor: "text-[#5b9dff]",
       };
     case "recomendou":
-      return { icone: <BookmarkPlus className="h-3 w-3" />, verbo: "recomendou" };
+      return {
+        icone: <BookmarkPlus className="h-3 w-3" />,
+        verbo: "recomendou",
+        cor: "text-primary/90",
+      };
     case "comentou":
-      return { icone: <MessageCircle className="h-3 w-3" />, verbo: "comentou em" };
+      return {
+        icone: <MessageCircle className="h-3 w-3" />,
+        verbo: "comentou em",
+        cor: "text-[#c084fc]",
+      };
     case "avaliou":
-      return { icone: <Star className="h-3 w-3" />, verbo: "avaliou" };
+      return { icone: <Star className="h-3 w-3" />, verbo: "avaliou", cor: "text-[#f59e0b]" };
     case "ouvindo":
-      return { icone: <Headphones className="h-3 w-3" />, verbo: "está ouvindo" };
+      return {
+        icone: <Headphones className="h-3 w-3" />,
+        verbo: "está ouvindo",
+        cor: "text-green-400/90",
+      };
     case "terminou":
-      return { icone: <CheckCircle2 className="h-3 w-3" />, verbo: "terminou" };
+      return {
+        icone: <CheckCircle2 className="h-3 w-3" />,
+        verbo: "terminou",
+        cor: "text-green-400/90",
+      };
   }
 }
 
@@ -302,7 +359,7 @@ function verboDoItem(item: ItemDoMural): { icone: React.ReactNode; verbo: string
  */
 export function ItemDoFeed({ item }: { item: ItemDoMural }) {
   const { toast } = useToast();
-  const { icone, verbo } = verboDoItem(item);
+  const { icone, verbo, cor } = verboDoItem(item);
   const perfil = useMemo(readProfile, []);
 
   const nome = item.autor.souEu ? "Você" : item.autor.nome;
@@ -332,7 +389,7 @@ export function ItemDoFeed({ item }: { item: ItemDoMural }) {
           <Link href={linkDoAutor} className="font-semibold transition-colors hover:text-primary">
             {nome}
           </Link>{" "}
-          <span className="inline-flex items-center gap-1 text-white/45">
+          <span className={`inline-flex items-center gap-1 ${cor}`}>
             {icone}
             {verbo}
           </span>{" "}

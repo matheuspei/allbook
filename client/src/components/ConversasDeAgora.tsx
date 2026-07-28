@@ -8,24 +8,18 @@ import { findMember } from "@/lib/community";
 import { PLAYBACK_EVENT } from "@/lib/playback";
 
 /**
- * "Onde a conversa está acontecendo" — o topo da Comunidade.
+ * "As conversas da semana" — o topo da aba Conversas da Comunidade.
  *
- * **A troca de eixo que isto faz:** a Comunidade mostrava *gente* (siga alguém
- * para ver o que ela anda dizendo), e quem não seguia ninguém encontrava uma
- * lista de estranhos. Agora ela mostra **livros com conversa**: você entra
- * porque o assunto interessa, não porque conhece quem está falando. Seguir
- * continua existindo, logo abaixo — deixou de ser a porta e virou um extra.
+ * **Duas peças viraram uma (28/07):** a junção das quatro propostas tinha um
+ * "top da semana" numerado (da Revista) E cartazes-porta das salas (dos
+ * Salões) — e os dois apontavam para as mesmas conversas. Na arrumação que o
+ * Matheus pediu ("muita coisa solta"), fundiram: a lista numerada ganhou a
+ * alma da porta — o selo 🔥 no mais quente, o "ouvindo" explicando por que
+ * subiu, as caras de quem está falando.
  *
- * **Quais livros, e em que ordem (28/07):** a fonte é `vitrineDeConversas`
- * (`lib/activity.ts`), com o algoritmo que o Matheus ditou — os que você está
- * ouvindo, os da sua biblioteca, os dos seus últimos temas, o papo novo, o
- * volume. Antes era `livrosComConversa` (volume desde sempre), que não olhava
- * você nem o calendário — e ainda contava resenha como conversa.
- *
- * **A trava vale aqui também.** A prévia só traz o que você já pode ler naquele
- * livro, e nunca um comentário marcado como spoiler: numa vitrine ninguém
- * escolheu abrir nada. Quando há mensagem presa, o cartão diz **quantas** — é o
- * que transforma "não tenho o que ver" em "tem coisa esperando por mim ali".
+ * A ordem vem de `vitrineDeConversas` (o algoritmo que o Matheus ditou:
+ * ouvindo → biblioteca → temas → papo novo), o toque cai NA conversa
+ * (`/book/:id/conversa`), e a prévia respeita a trava de spoiler.
  */
 export default function ConversasDeAgora() {
   const [salas, setSalas] = useState(() => vitrineDeConversas());
@@ -41,77 +35,79 @@ export default function ConversasDeAgora() {
   if (salas.length === 0) return null;
 
   return (
-    <section className="border-b border-white/10 px-5 pb-5 pt-5" data-testid="conversas-de-agora">
+    <section className="border-b border-white/10 px-5 pb-5 pt-1" data-testid="conversas-de-agora">
       <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-        Onde a conversa está
+        As conversas da semana
       </h2>
 
-      <div className="space-y-3">
-        {salas.map((sala) => {
+      <div className="space-y-2.5">
+        {salas.map((sala, indice) => {
           const book = catalog.find((item) => item.id === sala.bookId);
           if (!book) return null;
           const presas = sala.total - sala.liberadas;
+          // As caras de quem está falando — os autores da prévia liberada.
+          // `Array.from` e não spread: o alvo do TS deste projeto não itera
+          // Set direto (TS2802) — a mesma nota que `sala.ts` já carrega.
+          const caras = Array.from(new Set(sala.previa.map((comment) => comment.authorSlug)))
+            .map((slug) => findMember(slug))
+            .filter((member): member is NonNullable<typeof member> => member !== undefined)
+            .slice(0, 2);
 
           return (
             <Link
               key={sala.bookId}
-              /* Direto NA conversa, não na ficha (28/07): o cartão promete
-                 conversa, e antes entregava a sinopse — a pessoa tinha que
-                 rolar a ficha até achar a sala. A ficha continua a um toque,
-                 pelo cabeçalho da própria página da conversa. */
               href={`/book/${sala.bookId}/conversa`}
-              className="block rounded-xl border border-white/5 bg-white/[0.04] p-3.5 transition-colors hover:bg-white/[0.07]"
+              className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06]"
               data-testid={`sala-card-${sala.bookId}`}
             >
-              <div className="flex items-start gap-3">
-                <img
-                  src={book.cover}
-                  alt={book.title}
-                  className="h-12 w-12 shrink-0 rounded-lg object-cover"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold">{book.title}</p>
-                  <p className="mt-0.5 flex items-center gap-2 text-[11px] text-white/40">
-                    {/* Por que ESTE livro subiu: você está dentro dele. */}
-                    {sala.estouOuvindo && (
-                      <span className="flex items-center gap-1 font-medium text-primary/90">
-                        <Headphones className="h-3 w-3" />
-                        ouvindo
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <MessageSquare className="h-3 w-3" />
-                      {sala.total} {sala.total === 1 ? "mensagem" : "mensagens"}
+              <span className="w-5 shrink-0 text-center font-display text-base font-bold text-primary tabular-nums">
+                {indice + 1}
+              </span>
+              <img
+                src={book.cover}
+                alt={book.title}
+                className="h-[52px] w-10 shrink-0 rounded-md object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">
+                  {book.title}
+                  {indice === 0 && (
+                    <span className="ml-2 rounded-full border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-primary">
+                      🔥 quente
                     </span>
-                    {presas > 0 && (
-                      <span className="flex items-center gap-1 text-white/30">
-                        <Lock className="h-2.5 w-2.5" />
-                        {presas} {presas === 1 ? "presa" : "presas"}
-                      </span>
-                    )}
-                  </p>
-                </div>
+                  )}
+                </p>
+                <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-white/40">
+                  {sala.estouOuvindo && (
+                    <span className="flex items-center gap-1 font-medium text-primary/90">
+                      <Headphones className="h-3 w-3" />
+                      ouvindo
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <MessageSquare className="h-3 w-3" />
+                    {sala.total} {sala.total === 1 ? "mensagem" : "mensagens"}
+                  </span>
+                  {presas > 0 && (
+                    <span className="flex items-center gap-1 text-white/30">
+                      <Lock className="h-2.5 w-2.5" />
+                      {presas}
+                    </span>
+                  )}
+                </p>
               </div>
-
-              {sala.previa.length > 0 && (
-                <div className="mt-2.5 space-y-1.5 border-l-2 border-white/10 pl-3">
-                  {sala.previa.map((comment) => (
-                    <p key={comment.id} className="text-xs leading-relaxed text-white/50">
-                      <span className="font-semibold text-white/70">
-                        {findMember(comment.authorSlug)?.name ?? "Alguém"}:
-                      </span>{" "}
-                      {comment.text.length > 90
-                        ? `${comment.text.slice(0, 90).trimEnd()}…`
-                        : comment.text}
-                    </p>
+              {caras.length > 0 && (
+                <div className="flex shrink-0">
+                  {caras.map((member) => (
+                    <span
+                      key={member.slug}
+                      title={member.name}
+                      className={`-ml-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#141414] bg-gradient-to-br ${member.color} text-[9px] font-bold first:ml-0`}
+                    >
+                      {member.name.charAt(0)}
+                    </span>
                   ))}
                 </div>
-              )}
-
-              {sala.previa.length === 0 && presas > 0 && (
-                <p className="mt-2.5 border-l-2 border-white/10 pl-3 text-xs leading-relaxed text-white/35">
-                  Tudo o que disseram aqui está preso em trechos que você ainda não ouviu.
-                </p>
               )}
             </Link>
           );
