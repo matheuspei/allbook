@@ -117,6 +117,18 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     const n = Number(parametros.get("t"));
     return Number.isFinite(n) && n >= 0 ? Math.min(n, durationSeconds) : null;
   })();
+  /**
+   * `?ate=` — o fim de uma **citação** (ROTEIRO 4.43).
+   *
+   * É o que separa "ouvir o trecho" de "abrir o livro por aqui". Sem ele, quem
+   * tocasse uma citação de 40 segundos entraria no livro e seguiria capítulo
+   * adentro — e a condição que o Matheus pôs era justamente *"só poder
+   * reproduzir isso"*.
+   */
+  const ateParam = (() => {
+    const n = Number(parametros.get("ate"));
+    return Number.isFinite(n) && n > 0 ? Math.min(n, durationSeconds) : null;
+  })();
 
   const initialPosition =
     timeParam ??
@@ -138,15 +150,32 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const positionInChapter = Math.min(Math.max(currentTime - chapterStart, 0), chapterDuration);
   const chapterProgress = (positionInChapter / chapterDuration) * 100;
 
+  /**
+   * Enquanto uma citação está tocando, o fim dela é uma parede.
+   *
+   * Some assim que a pessoa **sai do trecho por vontade própria** (arrasta a
+   * barra, pula de capítulo): a citação é uma porta de entrada, não uma cerca —
+   * quem gostou do trecho e quer continuar o livro tem de poder, e ficar sendo
+   * pausado a cada volta seria o app teimando com quem já decidiu.
+   */
+  const [limiteDaCitacao, setLimiteDaCitacao] = useState<number | null>(ateParam);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlaying) {
       interval = setInterval(() => {
-        setCurrentTime(prev => Math.min(prev + 1, durationSeconds));
+        setCurrentTime((prev) => {
+          if (limiteDaCitacao !== null && prev + 1 >= limiteDaCitacao) {
+            setIsPlaying(false);
+            setLimiteDaCitacao(null);
+            return limiteDaCitacao;
+          }
+          return Math.min(prev + 1, durationSeconds);
+        });
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, durationSeconds]);
+  }, [isPlaying, durationSeconds, limiteDaCitacao]);
 
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.floor(Math.abs(seconds));
@@ -584,6 +613,8 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 value={[chapterProgress]}
                 onValueChange={(val) => {
                   // Arrastar move só dentro do capítulo atual.
+                  // Arrastar é decidir continuar: a cerca da citação cai aqui.
+                  setLimiteDaCitacao(null);
                   setCurrentTime(chapterStart + (val[0] / 100) * chapterDuration);
                 }}
                 max={100}

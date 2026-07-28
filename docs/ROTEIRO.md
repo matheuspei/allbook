@@ -3883,6 +3883,40 @@ valer para ela sem uma linha nova de regra. É, de novo, a coisa que só um app 
 audiolivro pode fazer — e desta vez sem depender do feed para existir: uma
 citação cabe na sala do livro no dia em que for escrita.
 
+### Construída no mesmo dia — e o que foi decidido fazendo
+
+O Matheus escolheu começar por aqui enquanto a decisão clube×grupo espera.
+`lib/citacoes.ts`, `components/CitacaoDeAudio.tsx`, e o gancho no compositor, na
+sala, na conversa do trecho e no player.
+
+- **A citação é um valor solto, não um campo do comentário.** Ela é
+  `{bookId, inicioSec, duracaoSec}` e vale igual na sala e no **feed da
+  Comunidade**, que é da janela B — *"a gente coloca essa parte do áudio de 40
+  segundos dentro desse feed também"*. O cartão `CitacaoDeAudio` está pronto para
+  ser importado; escrever duas versões dele seria o erro que a §4.40 cobrou caro.
+- **No comentário, guarda-se só a duração.** O começo já é a âncora
+  (`positionSec`) que existia. Guardar o par inteiro faria o mesmo início existir
+  em dois lugares, podendo divergir.
+- **`?ate=` no player é o que separa "ouvir o trecho" de "abrir o livro aqui".**
+  Sem ele, tocar uma citação levaria a pessoa livro adentro — e a condição do
+  Matheus era *"só poder reproduzir isso"*. Testado: em `?t=1234&ate=1240` o
+  player pára exatamente em 20:40.
+- **A cerca cai quando a pessoa arrasta a barra.** A citação é porta de entrada,
+  não cadeado: quem gostou do trecho e quer seguir o livro tem de poder, e ser
+  pausado a cada volta seria o app teimando com quem já decidiu.
+- **O trecho fica atrás do véu de spoiler junto com o texto.** 40 segundos do
+  capítulo 9 entregam tanto quanto a frase que os acompanha.
+- **A onda no cartão é desenhada, não medida** — e isso é declarado no código.
+  Não há forma de onda para ler enquanto não houver áudio; ela diz "isto é som",
+  que é o trabalho dela, sem fingir representar este trecho.
+- **Sem som, e tudo bem.** O player não toca áudio (é `setInterval`, não
+  `<audio>`) porque o servidor ainda não existe — confirmado pelo Matheus. A
+  citação tem a mesma fidelidade do resto do player: leva ao ponto e percorre os
+  40 segundos.
+
+**Pendente da ideia dele, e é da janela B:** o feed em si, o cartão do livro
+mencionado num post, e as sugestões de quem seguir.
+
 ---
 
 ## 5. Backlog de faxina técnica (não urgente)

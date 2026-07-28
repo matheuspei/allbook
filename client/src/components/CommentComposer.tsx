@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { EyeOff, Headphones, Star, Trash2 } from "lucide-react";
+import { EyeOff, Headphones, Quote, Star, Trash2 } from "lucide-react";
 
+import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { useToast } from "@/hooks/use-toast";
+import { DURACOES, MAX_CITACAO_SEC, criarCitacao } from "@/lib/citacoes";
 import { initialOf, readProfile } from "@/lib/profile";
 import {
   addComment,
@@ -72,6 +74,12 @@ export default function CommentComposer({
       ? ancoraInicial ?? posicaoNoLivro(bookId)
       : undefined;
   const [prender, setPrender] = useState(ancoraInicial !== undefined);
+  /*
+   * A citação (ROTEIRO 4.43): `undefined` = comentário de texto puro. Ela só é
+   * oferecida quando há âncora, porque um trecho **começa** na âncora — citar
+   * sem dizer de onde não quer dizer nada.
+   */
+  const [duracao, setDuracao] = useState<number | undefined>(undefined);
   const [spoiler, setSpoiler] = useState(false);
 
   // A sua nota deste livro, para estampar no seu comentário. Reage ao evento de
@@ -92,16 +100,21 @@ export default function CommentComposer({
     if (!limpo) return;
 
     const ancora = prender && pontoAtual !== undefined ? pontoAtual : undefined;
-    addComment(alvo, limpo, { positionSec: ancora, spoiler });
+    /* Sem âncora não há trecho: o começo da citação é a âncora. */
+    const citado = ancora !== undefined ? duracao : undefined;
+    addComment(alvo, limpo, { positionSec: ancora, spoiler, duracaoSec: citado });
 
     setMeus(myCommentsFor(alvo));
     setTexto("");
     setSpoiler(false);
+    setDuracao(undefined);
     toast({
-      title: "Comentário publicado",
+      title: citado ? `Trecho de ${citado}s citado` : "Comentário publicado",
       description:
         ancora !== undefined && bookId !== undefined
-          ? `Preso em ${rotuloDaAncora(bookId, ancora)} — só quem chegou aí vai ler.`
+          ? citado
+            ? `Quem tocar ouve de ${rotuloDaAncora(bookId, ancora)} e para no fim do trecho.`
+            : `Preso em ${rotuloDaAncora(bookId, ancora)} — só quem chegou aí vai ler.`
           : undefined,
     });
   }
@@ -170,6 +183,49 @@ export default function CommentComposer({
               titulo="Contém spoiler"
               cor="ambar"
             />
+
+            {/*
+              **Citar um trecho** (ROTEIRO 4.43). Só aparece com a âncora ligada,
+              e não como um terceiro interruptor solto: citar é uma variação de
+              "preso aqui", não uma opção paralela. Desligado por padrão — a
+              maioria dos comentários é texto.
+            */}
+            {prender && pontoAtual !== undefined && (
+              <Interruptor
+                ligado={duracao !== undefined}
+                onToggle={() => setDuracao((v) => (v === undefined ? MAX_CITACAO_SEC : undefined))}
+                icone={<Quote className="h-3 w-3" />}
+                testid="comment-citacao-toggle"
+                titulo={duracao !== undefined ? `Citando ${duracao}s` : "Citar o trecho"}
+              />
+            )}
+          </div>
+        )}
+
+        {/*
+          As durações só aparecem depois de a citação ser ligada: quatro pastilhas
+          permanentes numa tela que quase sempre é só texto seriam ruído.
+        */}
+        {bookId !== undefined && prender && pontoAtual !== undefined && duracao !== undefined && (
+          <div className="space-y-2">
+            <div className="flex gap-1.5">
+              {DURACOES.map((valor) => (
+                <button
+                  key={valor}
+                  type="button"
+                  onClick={() => setDuracao(valor)}
+                  className={`flex-1 rounded-lg py-1.5 text-[11.5px] font-semibold transition-colors ${
+                    duracao === valor
+                      ? "bg-primary/15 text-primary ring-1 ring-inset ring-primary/40"
+                      : "bg-white/[0.05] text-white/45 hover:text-white/80"
+                  }`}
+                  data-testid={`citacao-duracao-${valor}`}
+                >
+                  {valor}s
+                </button>
+              ))}
+            </div>
+            <CitacaoDeAudio citacao={criarCitacao(bookId, pontoAtual, duracao)} compacto />
           </div>
         )}
 

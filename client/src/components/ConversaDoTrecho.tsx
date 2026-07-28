@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { ChevronRight, MessageSquare, X } from "lucide-react";
 
+import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import CommentComposer from "@/components/CommentComposer";
+import { citacaoDoComentario, type Citacao } from "@/lib/citacoes";
 import { meuClubeDoLivro } from "@/lib/clubes";
 import { commentsForBook } from "@/lib/comments";
 import { findMember } from "@/lib/community";
@@ -148,6 +150,7 @@ export default function ConversaDoTrecho({
                   quando={rotuloDaAncora(bookId, comment.positionSec ?? ponto)}
                   texto={comment.text}
                   spoiler={comment.spoiler}
+                  citacao={citacaoDoComentario({ ...comment, bookId })}
                 />
               ))}
               {meusDoTrecho.map((meu) => (
@@ -157,6 +160,7 @@ export default function ConversaDoTrecho({
                   quando={rotuloDaAncora(bookId, meu.positionSec ?? ponto)}
                   texto={meu.text}
                   spoiler={meu.spoiler}
+                  citacao={citacaoDoComentario({ ...meu, bookId })}
                   ehSeu
                 />
               ))}
@@ -220,12 +224,14 @@ function FalaDoTrecho({
   quando,
   texto,
   spoiler,
+  citacao,
   ehSeu,
 }: {
   nome: string;
   quando: string;
   texto: string;
   spoiler?: boolean;
+  citacao?: Citacao;
   ehSeu?: boolean;
 }) {
   return (
@@ -240,6 +246,8 @@ function FalaDoTrecho({
         )}
       </div>
       <p className="mt-1.5 text-sm italic leading-relaxed text-white/70">"{texto}"</p>
+      {/* Compacto: dentro do player já se sabe de que livro é o trecho. */}
+      {citacao && <CitacaoDeAudio citacao={citacao} compacto />}
     </div>
   );
 }

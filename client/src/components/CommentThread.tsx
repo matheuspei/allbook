@@ -10,6 +10,8 @@ import { denunciar, type MotivoDaDenuncia } from "@/lib/moderacao";
 import { addNotification } from "@/lib/notifications";
 import { savePlaying } from "@/lib/playback";
 import { initialOf, readProfile } from "@/lib/profile";
+import CitacaoDeAudio from "@/components/CitacaoDeAudio";
+import { citacaoDoComentario } from "@/lib/citacoes";
 import { rotuloDaAncora } from "@/lib/sala";
 import {
   addIncomingReply,
@@ -151,7 +153,18 @@ export default function CommentThread({
       {comment.spoiler && !revelado ? (
         <VeuDeSpoiler onRevelar={() => setRevelado(true)} />
       ) : (
-        <p className="text-sm text-white/70 leading-relaxed italic mt-1">"{comment.text}"</p>
+        <>
+          <p className="text-sm text-white/70 leading-relaxed italic mt-1">"{comment.text}"</p>
+          {/*
+            O trecho citado fica **atrás do véu de spoiler** junto com o texto, e
+            não ao lado dele: um trecho de 40 segundos do capítulo 9 entrega tanto
+            quanto a frase que o acompanha (ROTEIRO 4.43).
+          */}
+          {(() => {
+            const citacao = citacaoDoComentario({ ...comment, bookId });
+            return citacao ? <CitacaoDeAudio citacao={citacao} compacto /> : null;
+          })()}
+        </>
       )}
 
       <Acoes

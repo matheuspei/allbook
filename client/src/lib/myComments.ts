@@ -49,12 +49,23 @@ export interface MyComment {
   positionSec?: number;
   /** Você marcou como spoiler: o texto fica atrás de um toque para os outros. */
   spoiler?: boolean;
+  /**
+   * Quantos segundos do áudio o comentário **cita** (ROTEIRO 4.43).
+   *
+   * Presente = o comentário carrega um trecho, que começa na âncora
+   * (`positionSec`) e dura isto. Ausente = comentário de texto, como sempre.
+   * Guardar só a duração — e não um objeto de citação inteiro — evita que o
+   * mesmo início exista em dois lugares e possa divergir.
+   */
+  duracaoSec?: number;
 }
 
 /** O que se pode prender a um comentário na hora de publicar. */
 export interface OpcoesDoComentario {
   positionSec?: number;
   spoiler?: boolean;
+  /** Citar um trecho: a duração, em segundos (o início é a âncora). */
+  duracaoSec?: number;
 }
 
 /** Quanto cabe num comentário. Curto de propósito: comentário, não resenha. */
@@ -123,6 +134,7 @@ export function addComment(
     // `positionSec: undefined` para o JSON.
     ...(opcoes.positionSec !== undefined ? { positionSec: opcoes.positionSec } : {}),
     ...(opcoes.spoiler ? { spoiler: true } : {}),
+    ...(opcoes.duracaoSec !== undefined ? { duracaoSec: opcoes.duracaoSec } : {}),
   };
 
   return save([...readMyComments(), comment]);

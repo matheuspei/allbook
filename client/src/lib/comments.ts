@@ -87,6 +87,11 @@ export interface Comment {
    * esta marcação e a denúncia. O texto fica escondido atrás de um toque.
    */
   spoiler?: boolean;
+  /**
+   * Quantos segundos do áudio este comentário **cita** (ROTEIRO 4.43). O trecho
+   * começa em `positionSec` e dura isto, no máximo 40s. Ausente = só texto.
+   */
+  duracaoSec?: number;
   text: string;
   /** ISO. Serve para ordenar a atividade de quem você segue. */
   date: string;
@@ -192,7 +197,8 @@ export const comments: Comment[] = [
   { id: "s6", authorSlug: "luciana", bookId: 102, positionSec: 900, rating: 5, likes: 14, dislikes: 0, date: "2026-07-20", text: "Essa parte do 1% por dia é onde a ficha cai. Parei o áudio e fui anotar." },
   { id: "s7", authorSlug: "felipe-g", bookId: 102, positionSec: 5400, likes: 8, dislikes: 2, date: "2026-07-16", text: "Aqui ele repete o que já disse na introdução. Dá para acelerar sem perder nada." },
 
-  { id: "s8", authorSlug: "marcos-v", bookId: 106, positionSec: 1200, likes: 11, dislikes: 0, date: "2026-07-15", text: "Comecei desconfiando da narradora já nesta primeira sessão de terapia." },
+  { id: "s8", authorSlug: "marcos-v", bookId: 106, positionSec: 1200, duracaoSec: 40, likes: 11, dislikes: 0, date: "2026-07-15", text: "Comecei desconfiando da narradora já nesta primeira sessão de terapia. Ouçam esses 40 segundos — é tudo o que ela não diz." },
+  { id: "s10", authorSlug: "carla-lima", bookId: 1, positionSec: 1450, duracaoSec: 30, likes: 27, dislikes: 1, date: "2026-07-22", text: "Guardei esse pedaço. A pausa antes da porta abrir vale o livro inteiro." },
   { id: "s9", authorSlug: "ana-paula", bookId: 106, positionSec: 8200, spoiler: true, likes: 19, dislikes: 2, date: "2026-07-17", text: "O detalhe do diário aqui entrega mais do que parece na primeira escuta." },
 
   // — comentários sobre PESSOAS (autor/narrador). Sem nota, sem bookId. —
