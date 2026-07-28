@@ -3584,10 +3584,26 @@ pelo top numerado; a linha-do-tempo-com-hora da proposta B morreu (o mural em
 cartões conta a mesma história); "leitor da semana" single virou pódio de 3.
 **Nada aparece duas vezes na tela.**
 
-**Fica para depois, anotado:** tópico de Roda mencionando um livro (a âncora
+**Fica para depois, anotado:** tópico de Grupo mencionando um livro (a âncora
 do mural, prometida na folha — pede juntar o seletor de livro ao criar
-tópico); Rodas no perfil público ("as rodas de fulano"); e moderação de
-tópico quando houver gente de verdade.
+tópico); Grupos no perfil público; e moderação de tópico quando houver gente.
+
+### Três reparos do Matheus, na mesma noite (commit `2ea6aec`)
+
+1. **"Eu não posso criar uma roda?"** — podia não; agora pode. **Criar grupo**
+   entrou na aba (nome + emoji + descrição), o grupo seu abre no topo da
+   lista, aceita tópicos como qualquer outro, e tem "apagar este grupo" (leva
+   os seus tópicos junto). Quem cria já entra participando.
+2. **Os nomes caíram:** "Rodas de conversa" → **Grupos** (a palavra que todo
+   mundo entende hoje); as abas viraram **Mural · Grupos · Pessoas**. Os
+   arquivos acompanharam (`lib/grupos.ts`, `pages/Grupo.tsx`, rotas
+   `/grupo/:id`) — "roda" agora só existe no app como a *rodada* do clube, da
+   janela A, que é outra coisa.
+3. **O pódio nasceu e morreu no mesmo dia** ("não está legal, tem que ser
+   totalmente reformulado"). No lugar, a aba Pessoas ganhou **"Todo mundo"**:
+   a lista completa dos leitores com bio, o que cada um está ouvindo agora e
+   o Seguir na linha — gente como gente, não como ranking. "Combina com você"
+   (cartões com motivo) continua abrindo a aba.
 
 **Ligado a isso, pendente na janela A:** `ConversaDoTrecho.tsx:168` ("Ver a
 conversa do livro inteiro") ainda aponta para a ficha; o destino certo é a
