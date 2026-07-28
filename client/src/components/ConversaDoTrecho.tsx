@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { ChevronRight, MessageSquare, X } from "lucide-react";
 
 import CommentComposer from "@/components/CommentComposer";
+import { meuClubeDoLivro } from "@/lib/clubes";
 import { commentsForBook } from "@/lib/comments";
 import { findMember } from "@/lib/community";
 import { myCommentsFor } from "@/lib/myComments";
@@ -42,13 +43,31 @@ export default function ConversaDoTrecho({
    */
   const [ponto] = useState(posicaoSec);
 
-  const doTrecho = comentariosNoTrecho(commentsForBook(bookId), ponto);
+  const todosDoTrecho = comentariosNoTrecho(commentsForBook(bookId), ponto);
   const meusDoTrecho = myCommentsFor({ bookId }).filter(
     (item) =>
       item.positionSec !== undefined &&
       item.positionSec <= ponto + 1 &&
       item.positionSec >= ponto - 300,
   );
+
+  /*
+   * O clube entra aqui como **filtro**, não como conversa separada (ROTEIRO
+   * 4.40). É a decisão que junta a sala e o clube num mecanismo só: a mensagem é
+   * a mesma, presa ao mesmo segundo; a aba escolhe se você quer ouvir a turma ou
+   * a casa inteira. Escrever um segundo sistema de mensagens só para o clube foi
+   * o que fez o mural virar um chat que qualquer app tem.
+   */
+  const clube = useMemo(() => meuClubeDoLivro(bookId), [bookId]);
+  const [aba, setAba] = useState<"turma" | "todos">("turma");
+
+  const daTurma = clube
+    ? todosDoTrecho.filter((item) => clube.membros.includes(item.authorSlug))
+    : [];
+
+  /* Sem clube não há o que escolher: a folha continua sendo a de sempre. */
+  const temAbas = clube !== undefined;
+  const doTrecho = temAbas && aba === "turma" ? daTurma : todosDoTrecho;
 
   return (
     <div
@@ -76,6 +95,26 @@ export default function ConversaDoTrecho({
           </button>
         </div>
 
+        {/*
+          As abas só nascem quando existe turma. Num livro sem clube elas seriam
+          duas pastilhas com o mesmo conteúdo — o tipo de escolha falsa que a
+          4.23 mandou varrer.
+        */}
+        {temAbas && clube && (
+          <div className="mb-4 flex gap-2" data-testid="abas-conversa-trecho">
+            <Aba
+              ligada={aba === "turma"}
+              onClick={() => setAba("turma")}
+              testid="aba-turma"
+            >
+              {clube.nome} · {daTurma.length + meusDoTrecho.length}
+            </Aba>
+            <Aba ligada={aba === "todos"} onClick={() => setAba("todos")} testid="aba-todos">
+              De todos · {todosDoTrecho.length + meusDoTrecho.length}
+            </Aba>
+          </div>
+        )}
+
         <CommentComposer
           alvo={{ bookId }}
           ancoraInicial={ponto}
@@ -85,8 +124,17 @@ export default function ConversaDoTrecho({
         <div className="mt-4 space-y-3">
           {doTrecho.length === 0 && meusDoTrecho.length === 0 ? (
             <p className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-xs leading-relaxed text-white/45">
-              Ninguém parou para comentar por aqui ainda. O que você escrever fica preso neste
-              ponto — só aparece para quem chegar até ele.
+              {temAbas && aba === "turma" ? (
+                <>
+                  Ninguém da sua turma parou por aqui ainda. O que você escrever fica preso neste
+                  ponto — e alguém do clube encontra quando chegar.
+                </>
+              ) : (
+                <>
+                  Ninguém parou para comentar por aqui ainda. O que você escrever fica preso neste
+                  ponto — só aparece para quem chegar até ele.
+                </>
+              )}
             </p>
           ) : (
             <>
@@ -129,6 +177,34 @@ export default function ConversaDoTrecho({
         </Link>
       </div>
     </div>
+  );
+}
+
+/** Pastilha de aba. Laranja da marca quando ligada — sem cor nova (ROTEIRO 4.40). */
+function Aba({
+  ligada,
+  onClick,
+  children,
+  testid,
+}: {
+  ligada: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  testid: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`max-w-[52%] truncate rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition-colors ${
+        ligada
+          ? "bg-primary/15 text-primary ring-1 ring-inset ring-primary/40"
+          : "bg-white/5 text-white/50 ring-1 ring-inset ring-white/8 hover:text-white/80"
+      }`}
+      data-testid={testid}
+    >
+      {children}
+    </button>
   );
 }
 

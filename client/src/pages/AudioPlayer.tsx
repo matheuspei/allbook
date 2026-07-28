@@ -13,6 +13,8 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import BarraDeAcoesDoPlayer from "@/components/BarraDeAcoesDoPlayer";
 import ConversaDoTrecho from "@/components/ConversaDoTrecho";
 import MarcasDaConversa from "@/components/MarcasDaConversa";
+import FaixaDaTurmaNoPlayer from "@/components/clube/FaixaDaTurmaNoPlayer";
+import { CLUBES_EVENT, meuClubeDoLivro } from "@/lib/clubes";
 import { commentsForBook } from "@/lib/comments";
 import { myCommentsFor } from "@/lib/myComments";
 import { comentariosNoTrecho } from "@/lib/sala";
@@ -231,6 +233,19 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     ).length;
     return dosOutros + meus;
   }, [book.id, janelaDeConversa]);
+
+  /*
+   * O clube dentro do player (ROTEIRO 4.40). Recalculado quando o clube muda
+   * (entrar, sair, encerrar ciclo) e não a cada segundo de áudio: `CLUBES_EVENT`
+   * é o mesmo aviso que as telas de clube já escutam.
+   */
+  const [clubeDoLivro, setClubeDoLivro] = useState(() => meuClubeDoLivro(book.id));
+  useEffect(() => {
+    const atualizar = () => setClubeDoLivro(meuClubeDoLivro(book.id));
+    atualizar();
+    window.addEventListener(CLUBES_EVENT, atualizar);
+    return () => window.removeEventListener(CLUBES_EVENT, atualizar);
+  }, [book.id]);
 
   useEffect(() => {
     showMiniPlayer();
@@ -543,6 +558,13 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             <ChevronDown className="w-4 h-4 opacity-60" />
           </button>
 
+          {/*
+            O clube, enquanto o livro toca (ROTEIRO 4.40). Fica aqui — colado na
+            barra de progresso — porque o assunto dele é ritmo: "você no cap. 3,
+            a roda no 4" só faz sentido ao lado de onde você está no áudio.
+          */}
+          {clubeDoLivro && <FaixaDaTurmaNoPlayer clube={clubeDoLivro} />}
+
           {/* Progress Section */}
           <div className="w-full space-y-2 px-2 shrink-0">
             <div className="relative pt-1">
@@ -552,6 +574,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 chapterStart={chapterStart}
                 chapterDuration={chapterDuration}
                 currentTime={currentTime}
+                slugsDaTurma={clubeDoLivro?.membros}
                 onAbrir={(posicao) => {
                   setCurrentTime(posicao);
                   setShowConversa(true);

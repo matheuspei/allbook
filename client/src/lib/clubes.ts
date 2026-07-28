@@ -319,6 +319,22 @@ export function clubesParaDescobrir(): Clube[] {
 }
 
 /**
+ * O **seu** clube que está lendo este livro agora — a peça que faz o clube
+ * existir dentro do player.
+ *
+ * **Por que isto precisou existir** (ROTEIRO 4.40): até 28/07 o clube aparecia em
+ * cinco telas e em **nenhum** momento no `AudioPlayer` ou no `MiniPlayer`. A
+ * pessoa passava dez horas ouvindo o livro do ciclo sem o clube existir ali — que
+ * é exatamente onde ele tem algo a dizer, e a razão de ele parecer invisível.
+ *
+ * **Clube que ainda não estreou fica de fora:** ninguém da turma começou, então a
+ * faixa só teria "a roda está no capítulo 0". Informação que não informa.
+ */
+export function meuClubeDoLivro(bookId: number): Clube | undefined {
+  return meusClubes().find((clube) => clube.ciclo.bookId === bookId && !estaComecando(clube));
+}
+
+/**
  * Os clubes que estão lendo este livro **agora**.
  *
  * É o que permite a ficha do livro avisar "este é o livro do ciclo do Clube do
