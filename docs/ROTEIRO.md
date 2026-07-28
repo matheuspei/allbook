@@ -3523,6 +3523,30 @@ vitrine. E um detalhe de código que o teste pegou: dois toques no mesmo
 instante se sobrescreviam (estado velho no fechamento) — o gravar passou a
 partir do storage, não do estado da tela.
 
+### O post do mural abriu o leque: qualquer livro, ou um clube (28/07)
+
+Dois reparos do Matheus na caixa de publicar, no mesmo dia em que ela nasceu:
+o convite *"diga algo sobre o que você está ouvindo"* fechava usos legítimos
+(*"a pessoa pode estar pedindo uma recomendação"*), e o anexo preso aos
+recentes era pobre (*"ela poderia mencionar um livro ou um clube"*). Feito
+(commit `2887a7d`):
+
+- O convite virou **"Fale com a comunidade — uma opinião, um pedido de
+  indicação…"**.
+- A âncora é escolha: os recentes como atalho, **busca no catálogo inteiro**
+  (título/autor, sem acento) e **os seus clubes** como chips. Post de clube
+  aparece como "disse, no clube X", com a capa do livro da vez e a porta
+  levando ao clube.
+- **A trava não mudou:** post sem âncora nenhuma continua não existindo — é o
+  que separa o Mural de uma rede social genérica.
+- A caixa deixou de sumir para quem nunca ouviu nada: agora sempre há o que
+  anexar (o catálogo). Publicar segue desabilitado até ter âncora e texto.
+- Testado de ponta a ponta os dois caminhos (busca + clube) e apagado depois.
+
+**Ideia anotada, não construída:** âncora em **gênero** ("me indiquem
+Mistério") cobriria o pedido de indicação sem livro específico — fica para
+quando o uso pedir.
+
 **Ligado a isso, pendente na janela A:** `ConversaDoTrecho.tsx:168` ("Ver a
 conversa do livro inteiro") ainda aponta para a ficha; o destino certo é a
 página `/book/:id/conversa`. Pedido registrado no quadro da COORDENACAO.
