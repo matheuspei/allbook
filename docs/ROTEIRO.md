@@ -4131,6 +4131,52 @@ objeto. Virou **"Guardar trecho"**. O aviso continua dizendo a duração real, q
 
 ---
 
+## 4.48 Trecho não é nota: cada um com seu endereço (28/07)
+
+**A decisão anterior durou um dia, e o Matheus derrubou com razão.** Na §4.47 eu
+tinha posto os trechos como **aba** de "Minhas notas", com o argumento de que
+nascem do mesmo gesto: ouvindo, você marca. Ele desconfiou — *"acho que talvez
+os meus trechos deviam estar separados das minhas notas"* — e o argumento dele
+vence. Agora são **`/trechos`**, tela própria.
+
+**Por que separar (o raciocínio, para ninguém refazer):**
+
+1. **O dono é outro.** A nota é privada: guarda um ponto para *você* voltar. O
+   trecho é a única coisa que o app guarda **para os outros** — existe para ser
+   anexado numa conversa. Juntar por origem ("os dois nascem ouvindo") é agrupar
+   pelo critério errado; o que manda é o destino.
+2. **A forma é outra, e isso apareceu no código.** As notas se organizam **por
+   livro** (é ao livro que você volta); o trecho circula solto e chega no meio de
+   assunto alheio, por isso o cartão carrega a própria capa. As duas abas **não
+   conseguiam compartilhar layout** — quando duas abas da mesma tela não têm a
+   mesma forma, em geral não têm a mesma natureza.
+3. **A palavra colidiu.** Para caberem juntas, eu tive de trocar "trecho" por
+   "marcação" *dentro* das notas (a própria §4.47 registra isso como conserto).
+   **Renomear para caber é sintoma:** era remendo num encaixe errado.
+
+**O que mudou na prática:** a aba saiu de `/bookmarks`; nasceu `pages/Trechos.tsx`;
+o painel **Você** ganhou a linha "Meus trechos" (com tesoura, contador, e **só
+quando existe algum**); o aviso ao guardar aponta para `/trechos`. A instrução de
+**onde se corta** virou um componente único (`ComoCortarUmTrecho`), porque vivia
+duplicada na folha de anexar e ia envelhecer torto num dos dois lugares.
+
+**A ordem aqui é a mais recente primeiro, e não por livro:** isto é uma
+prancheta, não um arquivo — o que você acabou de cortar é o que vai anexar. É a
+mesma ordem da folha de anexar, de propósito: o que você vê aqui é o que vai ver
+na hora de escolher.
+
+### O ícone de aspas saiu do cartão de citação
+
+No mesmo dia, olhando a lista: *"o ícone de conversa está muito solto e não dá
+para entender o que ele é exatamente"*. Era o `Quote` (aspas) antes de
+"TRECHO · 40S". Dois defeitos somados: a **10px** ele vira dois riscos laranja
+sem forma legível, e aspas dizem **citação de texto** quando a coisa é áudio.
+Removido — o rótulo já nomeia, a onda ao lado já diz "isto é som", e um terceiro
+sinal para o mesmo recado é o ruído que a 4.23 manda varrer. **Não** foi
+substituído por um ícone de áudio, pelo mesmo motivo.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

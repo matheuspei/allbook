@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
-import { Headphones, Paperclip, Trash2, X } from "lucide-react";
+import { Paperclip, Trash2, X } from "lucide-react";
 
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
+import ComoCortarUmTrecho from "@/components/ComoCortarUmTrecho";
 import { useToast } from "@/hooks/use-toast";
 import { type Citacao } from "@/lib/citacoes";
 import {
@@ -132,26 +132,7 @@ function FolhaDeTrechos({
         </div>
 
         {lista.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-            <p className="flex items-start gap-2.5 text-xs leading-relaxed text-white/50">
-              <Headphones className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <span>
-                Trecho se corta <b className="text-white/80">ouvindo</b>, não daqui — é ouvindo que
-                você sabe onde a frase começa. No player, abra <b className="text-white/80">
-                  Conversa
-                </b>{" "}
-                e toque em <b className="text-white/80">Citar o trecho</b>; ali dá para cortar e
-                guardar para usar depois, em qualquer lugar.
-              </span>
-            </p>
-            <Link
-              href="/library"
-              onClick={onFechar}
-              className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-white/[0.07] py-2.5 text-xs font-bold transition-colors hover:bg-white/12"
-            >
-              Ir para a sua biblioteca
-            </Link>
-          </div>
+          <ComoCortarUmTrecho onNavegar={onFechar} />
         ) : (
           <div className="space-y-2.5">
             {lista.map((trecho) => (

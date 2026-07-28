@@ -10,6 +10,7 @@ import {
   HelpCircle,
   LogIn,
   Medal,
+  Scissors,
   Settings,
   Share2,
   UsersRound,
@@ -33,6 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile } from "@/lib/profile";
 import { totalBookmarks } from "@/lib/bookmarks";
+import { TRECHOS_EVENT, trechosGuardados } from "@/lib/trechosGuardados";
 import { readDownloads } from "@/lib/library";
 import { achievements, unlockedCountFor } from "@/lib/achievements";
 import { readSettings, saveSettings, type Settings as AppSettings } from "@/lib/settings";
@@ -106,6 +108,7 @@ export default function You() {
   const [session, setSession] = useState<Session | null>(readSession);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [bookmarkTotal, setBookmarkTotal] = useState(0);
+  const [totalTrechos, setTotalTrechos] = useState(0);
   const [downloadCount, setDownloadCount] = useState(0);
   const [ganhas, setGanhas] = useState(0);
   const [ajustes, setAjustes] = useState<AppSettings>(readSettings);
@@ -129,6 +132,15 @@ export default function You() {
     setBookmarkTotal(totalBookmarks());
     setDownloadCount(readDownloads().length);
     setGanhas(unlockedCountFor(lerDadosDeConquista(lerResumo())));
+  }, []);
+
+  /* Os trechos mudam com o app aberto (cortar acontece no player), então este
+     ouve o evento em vez de contar uma vez só na montagem. */
+  useEffect(() => {
+    const atualizar = () => setTotalTrechos(trechosGuardados().length);
+    atualizar();
+    window.addEventListener(TRECHOS_EVENT, atualizar);
+    return () => window.removeEventListener(TRECHOS_EVENT, atualizar);
   }, []);
 
   /**
@@ -181,6 +193,23 @@ export default function You() {
       hint: bookmarkTotal > 0 ? String(bookmarkTotal) : undefined,
       href: "/bookmarks",
     },
+    /*
+      Logo abaixo das notas, e não junto delas (ROTEIRO 4.48): são vizinhos —
+      os dois nascem ouvindo — mas não são a mesma coisa. A nota guarda um ponto
+      para você; o trecho guarda um pedaço para mostrar aos outros. Só aparece
+      quando existe algum: linha "Meus trechos" a zero seria o beco sem saída
+      que a §4.23 mandou varrer.
+    */
+    ...(totalTrechos > 0
+      ? [
+          {
+            icon: Scissors,
+            label: "Meus trechos",
+            hint: String(totalTrechos),
+            href: "/trechos",
+          },
+        ]
+      : []),
     {
       icon: Download,
       label: "Downloads",

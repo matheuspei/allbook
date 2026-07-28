@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Play, Quote } from "lucide-react";
+import { Play } from "lucide-react";
 
 import {
   fimDaCitacao,
@@ -56,8 +56,15 @@ export default function CitacaoDeAudio({
       )}
 
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-primary">
-          <Quote className="h-2.5 w-2.5" />
+        {/*
+          **Sem ícone aqui, de propósito.** Havia um par de aspas (`Quote`) antes
+          do rótulo; a 10px ele virava dois riscos laranja soltos, e aspas dizem
+          *citação de texto* quando isto é áudio. O Matheus apontou em 28/07:
+          *"não dá para entender o que ele é exatamente, está meio solto"*. O
+          rótulo já nomeia a coisa e a onda ao lado já diz "isto é som" — um
+          terceiro sinal para o mesmo recado é o ruído que a §4.23 manda varrer.
+        */}
+        <span className="block text-[10px] font-bold uppercase tracking-[0.12em] text-primary">
           Trecho · {citacao.duracaoSec}s
         </span>
         {!compacto && (

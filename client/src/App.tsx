@@ -27,6 +27,7 @@ import UserProfile from "@/pages/UserProfile";
 import You from "@/pages/You";
 import Achievements from "@/pages/Achievements";
 import Bookmarks from "@/pages/Bookmarks";
+import Trechos from "@/pages/Trechos";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
@@ -131,6 +132,10 @@ function Router() {
             <Route path="/achievements" component={Achievements} />
             <Route path="/downloads" component={Downloads} />
             <Route path="/bookmarks" component={Bookmarks} />
+            {/* Os trechos de áudio têm endereço próprio, e não uma aba dentro
+                das notas: a nota é privada e por livro, o trecho é para mostrar
+                e circula solto (ROTEIRO 4.48). */}
+            <Route path="/trechos" component={Trechos} />
             <Route path="/notifications" component={Notifications} />
             {/* A conversa do livro com endereço próprio (28/07): quem clica
                 numa conversa cai NA conversa, não na ficha. Antes de /book/:id

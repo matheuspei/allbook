@@ -652,9 +652,9 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   guardarTrecho(trecho);
                   toast({
                     title: "Trecho guardado",
-                    description: `${rotuloDaCitacao(trecho)}. Fica em Minhas notas › Trechos — anexe em qualquer conversa pelo clipe.`,
+                    description: `${rotuloDaCitacao(trecho)}. Fica em Meus trechos — anexe em qualquer conversa pelo clipe.`,
                     action: (
-                      <ToastAction altText="Ver os trechos" onClick={() => setLocation("/bookmarks")}>
+                      <ToastAction altText="Ver os trechos" onClick={() => setLocation("/trechos")}>
                         Ver
                       </ToastAction>
                     ),

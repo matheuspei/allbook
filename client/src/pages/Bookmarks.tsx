@@ -2,15 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Bookmark, Pencil, Play, Trash2 } from "lucide-react";
 
-import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import PageHeader from "@/components/PageHeader";
-import {
-  TRECHOS_EVENT,
-  comoCitacao,
-  esquecerTrecho,
-  trechosGuardados,
-  type TrechoGuardado,
-} from "@/lib/trechosGuardados";
 import {
   BOOKMARK_EVENT,
   bookmarksByBook,
@@ -48,31 +40,12 @@ export default function Bookmarks() {
   const [livros, setLivros] = useState<LivroComMarcacoes[]>([]);
   const [editando, setEditando] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState("");
-  /*
-   * **Os trechos ganharam casa aqui** (ROTEIRO 4.47). O Matheus guardou vários e
-   * perguntou: *"eu não tô vendo pra onde é que eles estão indo"* — e tinha
-   * razão: o único caminho até eles era o clipe dentro de um campo de escrever.
-   * Guardar sem ter onde ver é beco sem saída, que é o que a 4.23 manda varrer.
-   *
-   * Ficam **nesta tela**, e não numa nova, porque são a mesma família: coisas que
-   * você marcou **ouvindo**. A nota guarda um ponto para você; o trecho guarda um
-   * pedaço para mostrar aos outros.
-   */
-  const [aba, setAba] = useState<"notas" | "trechos">("notas");
-  const [trechos, setTrechos] = useState<TrechoGuardado[]>([]);
 
   useEffect(() => {
     const atualizar = () => setLivros(bookmarksByBook());
     atualizar();
     window.addEventListener(BOOKMARK_EVENT, atualizar);
     return () => window.removeEventListener(BOOKMARK_EVENT, atualizar);
-  }, []);
-
-  useEffect(() => {
-    const atualizar = () => setTrechos(trechosGuardados());
-    atualizar();
-    window.addEventListener(TRECHOS_EVENT, atualizar);
-    return () => window.removeEventListener(TRECHOS_EVENT, atualizar);
   }, []);
 
   const total = livros.reduce((soma, item) => soma + item.marcacoes.length, 0);
@@ -89,52 +62,13 @@ export default function Bookmarks() {
           certa desde que "Marcar" passou a abrir a caixa de escrita. */}
       <PageHeader title="Minhas notas" fallback="/profile" />
 
-      {/* As duas abas só aparecem quando há trechos: quem nunca cortou um não
-          precisa escolher entre duas coisas, sendo que uma está vazia. */}
-      {trechos.length > 0 && (
-        <div className="flex gap-2 px-5 pt-3">
-          {(["notas", "trechos"] as const).map((qual) => (
-            <button
-              key={qual}
-              onClick={() => setAba(qual)}
-              className={`rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
-                aba === qual
-                  ? "bg-primary/15 text-primary ring-1 ring-inset ring-primary/40"
-                  : "bg-white/[0.06] text-white/55 ring-1 ring-inset ring-white/8 hover:text-white/85"
-              }`}
-              data-testid={`aba-${qual}`}
-            >
-              {qual === "notas" ? `Notas · ${total}` : `Trechos · ${trechos.length}`}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {aba === "trechos" && (
-        <main className="px-5 pt-4" data-testid="lista-de-trechos">
-          <p className="mb-3 text-xs leading-relaxed text-white/40">
-            Pedaços que você cortou para mostrar a alguém. Anexe em qualquer conversa pelo botão de
-            clipe, ou toque para ouvir só o trecho.
-          </p>
-          <div className="space-y-2.5">
-            {trechos.map((trecho) => (
-              <div key={trecho.id} className="relative">
-                <CitacaoDeAudio citacao={comoCitacao(trecho)} />
-                <button
-                  onClick={() => esquecerTrecho(trecho.id)}
-                  className="absolute right-1.5 top-1.5 rounded-full p-1.5 text-white/20 transition-colors hover:bg-white/10 hover:text-red-300"
-                  aria-label="Esquecer este trecho"
-                  data-testid={`esquecer-${trecho.id}`}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </main>
-      )}
-
-      <main className={`px-5 pt-2 ${aba === "trechos" ? "hidden" : ""}`}>
+      {/*
+        **Só notas aqui** (ROTEIRO 4.48). Por um dia esta tela teve uma segunda
+        aba com os trechos de áudio; o Matheus desconfiou da mistura e tinha
+        razão. A nota é privada e se organiza por livro; o trecho existe para ser
+        mostrado e circula solto. Foram para `/trechos`, com endereço próprio.
+      */}
+      <main className="px-5 pt-2">
         {total === 0 ? (
           <div className="pt-16 text-center">
             <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-white/[0.06]">
