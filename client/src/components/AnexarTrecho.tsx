@@ -148,6 +148,14 @@ function FolhaDeTrechos({
                   <span className="pointer-events-none block">
                     <CitacaoDeAudio citacao={comoCitacao(trecho)} />
                   </span>
+                  {/* A sua nota aparece **aqui**, fora do cartão: é ela que faz
+                      você reconhecer qual trecho é qual, e continua não indo
+                      junto quando o trecho é publicado (ROTEIRO 4.49). */}
+                  {trecho.nota && (
+                    <span className="mt-1.5 block border-l-2 border-white/15 pl-2.5 text-[11px] leading-relaxed text-white/40">
+                      {trecho.nota}
+                    </span>
+                  )}
                 </button>
                 <button
                   type="button"

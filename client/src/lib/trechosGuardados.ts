@@ -27,16 +27,34 @@ export const TRECHOS_EVENT = "allbook:trechos";
 
 const CHAVE = "allbook_trechos_guardados";
 
+/** Nota do trecho: um lembrete, não uma legenda. Curto de propósito. */
+export const MAX_NOTA_TRECHO = 140;
+
 export interface TrechoGuardado extends Citacao {
   id: string;
   /** ISO completo — a lista mostra o mais recente primeiro. */
   guardadoEm: string;
+  /**
+   * O que você escreveu sobre este trecho — **e que só você lê** (ROTEIRO 4.49).
+   *
+   * Pedido do Matheus: *"era para a pessoa poder escrever uma coisa no trecho
+   * que ela salvou, ainda que seja uma coisa pequena"*. Ela responde "por que
+   * guardei isto", que é o que se perde entre cortar e usar.
+   *
+   * **Privada por construção:** `comoCitacao()` devolve só a `Citacao`, sem a
+   * nota, e é a `Citacao` que vai para o mural, o fórum e a sala. Assim não há
+   * como um lembrete seu vazar publicado por descuido de uma tela — o texto que
+   * as pessoas leem continua sendo o que você escreve no campo da conversa.
+   */
+  nota?: string;
 }
 
 function ler(): TrechoGuardado[] {
   try {
     const guardado = JSON.parse(localStorage.getItem(CHAVE) || "[]");
     if (!Array.isArray(guardado)) return [];
+    /* `nota` fica fora da validação de propósito: trecho guardado antes de ela
+       existir continua válido, só sem nota. */
     return guardado.filter(
       (item): item is TrechoGuardado =>
         item &&
@@ -101,6 +119,45 @@ export function guardarTrecho(citacao: Citacao): TrechoGuardado {
 
 export function esquecerTrecho(id: string): void {
   gravar(ler().filter((item) => item.id !== id));
+}
+
+/**
+ * Reapara o corte de um trecho já guardado — **no lugar**, sem criar outro.
+ *
+ * É o que faz o "guardar num toque" (§4.46) não ser uma decisão final: o toque
+ * leva 40 segundos na hora, ouvindo, e o ajuste fino vem depois, com calma. Se o
+ * corte novo bater exatamente num trecho que já existe, o outro sai — senão a
+ * lista acumularia dois cartões idênticos, que é o que `guardarTrecho` já evita.
+ */
+export function ajustarTrecho(id: string, inicioSec: number, duracaoSec: number): void {
+  const lista = ler();
+  const alvo = lista.find((item) => item.id === id);
+  if (!alvo) return;
+
+  const corte = criarCitacao(alvo.bookId, inicioSec, duracaoSec);
+  gravar(
+    lista
+      .filter(
+        (item) =>
+          item.id === id ||
+          !(
+            item.bookId === corte.bookId &&
+            item.inicioSec === corte.inicioSec &&
+            item.duracaoSec === corte.duracaoSec
+          ),
+      )
+      .map((item) => (item.id === id ? { ...item, ...corte } : item)),
+  );
+}
+
+/** Escreve (ou apaga, com texto vazio) a nota do trecho. */
+export function anotarTrecho(id: string, nota: string): void {
+  const limpo = nota.trim().slice(0, MAX_NOTA_TRECHO);
+  gravar(
+    ler().map((item) =>
+      item.id === id ? { ...item, nota: limpo || undefined } : item,
+    ),
+  );
 }
 
 /** Só a citação, sem o embrulho — o que as telas anexam de fato. */

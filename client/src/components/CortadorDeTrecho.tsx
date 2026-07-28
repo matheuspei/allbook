@@ -36,11 +36,21 @@ export default function CortadorDeTrecho({
   inicio,
   fim,
   onChange,
+  permitirGuardar = true,
 }: {
   bookId: number;
   inicio: number;
   fim: number;
   onChange: (inicio: number, fim: number) => void;
+  /**
+   * O botão "Guardar para usar em outra conversa", aqui dentro.
+   *
+   * Faz sentido quando o cortador nasce **dentro de um comentário** (o corte
+   * serve ali e, de quebra, pode ser guardado). Some quando o cortador é aberto
+   * para **editar um trecho que já está guardado**: ali quem salva é a folha,
+   * e um segundo "guardar" criaria uma cópia em vez de corrigir o original.
+   */
+  permitirGuardar?: boolean;
 }) {
   const { toast } = useToast();
   const trilhoRef = useRef<HTMLDivElement>(null);
@@ -233,23 +243,25 @@ export default function CortadorDeTrecho({
         agora — e o pedido do Matheus era poder citar também no fórum e no clube,
         que são outra tela e outro momento. Cortar é ouvindo; anexar é depois.
       */}
-      <button
-        type="button"
-        onClick={() => {
-          guardarTrecho(criarCitacao(bookId, inicio, fim - inicio));
-          toast({
-            title: "Trecho guardado",
-            description: "Dá para anexar em qualquer conversa pelo botão de clipe.",
-          });
-        }}
-        className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-lg bg-primary/12 py-2.5 text-xs font-bold text-primary ring-1 ring-inset ring-primary/30 transition-colors hover:bg-primary/20"
-        data-testid="guardar-trecho"
-      >
-        <Bookmark className="h-3.5 w-3.5" />
-        {jaGuardado(criarCitacao(bookId, inicio, fim - inicio))
-          ? "Guardado — usar em outra conversa"
-          : "Guardar para usar em outra conversa"}
-      </button>
+      {permitirGuardar && (
+        <button
+          type="button"
+          onClick={() => {
+            guardarTrecho(criarCitacao(bookId, inicio, fim - inicio));
+            toast({
+              title: "Trecho guardado",
+              description: "Dá para anexar em qualquer conversa pelo botão de clipe.",
+            });
+          }}
+          className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-lg bg-primary/12 py-2.5 text-xs font-bold text-primary ring-1 ring-inset ring-primary/30 transition-colors hover:bg-primary/20"
+          data-testid="guardar-trecho"
+        >
+          <Bookmark className="h-3.5 w-3.5" />
+          {jaGuardado(criarCitacao(bookId, inicio, fim - inicio))
+            ? "Guardado — usar em outra conversa"
+            : "Guardar para usar em outra conversa"}
+        </button>
+      )}
 
       <p className="mt-2 text-[10.5px] leading-relaxed text-white/25">
         Arraste as pontas ou use os botões de 1 e 5 segundos. Máximo de{" "}

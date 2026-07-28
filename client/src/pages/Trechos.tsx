@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import ComoCortarUmTrecho from "@/components/ComoCortarUmTrecho";
+import EditarTrecho from "@/components/EditarTrecho";
 import PageHeader from "@/components/PageHeader";
-import { useToast } from "@/hooks/use-toast";
 import {
   TRECHOS_EVENT,
   comoCitacao,
-  esquecerTrecho,
   trechosGuardados,
   type TrechoGuardado,
 } from "@/lib/trechosGuardados";
@@ -39,8 +38,8 @@ import {
  * exatamente o que vai ver na hora de escolher.
  */
 export default function Trechos() {
-  const { toast } = useToast();
   const [trechos, setTrechos] = useState<TrechoGuardado[]>([]);
+  const [editando, setEditando] = useState<string | null>(null);
 
   useEffect(() => {
     const atualizar = () => setTrechos(trechosGuardados());
@@ -48,6 +47,10 @@ export default function Trechos() {
     window.addEventListener(TRECHOS_EVENT, atualizar);
     return () => window.removeEventListener(TRECHOS_EVENT, atualizar);
   }, []);
+
+  /* Guardado por id, e não o objeto: assim a folha continua vendo o trecho
+     atualizado depois de salvar, em vez de uma cópia velha. */
+  const emEdicao = trechos.find((item) => item.id === editando);
 
   return (
     <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="trechos-page">
@@ -75,25 +78,32 @@ export default function Trechos() {
               clipe ao escrever e escolha daqui.
             </p>
 
-            <div className="mt-4 space-y-2.5">
+            <div className="mt-4 space-y-4">
               {trechos.map((trecho) => (
-                <div key={trecho.id} className="relative">
+                <div key={trecho.id}>
                   <CitacaoDeAudio citacao={comoCitacao(trecho)} />
+
+                  {/* A nota fica **fora** do cartão de citação, de propósito: o
+                      cartão é a peça que vai publicada, e a nota é só sua. */}
+                  {trecho.nota && (
+                    <p className="mt-2 border-l-2 border-primary/60 pl-3 text-xs leading-relaxed text-white/70">
+                      {trecho.nota}
+                    </p>
+                  )}
+
                   {/*
-                    Esquecer fica na base do cartão, não sobre a capa. Sobreposto
-                    ele encostava na arte e ficava a 20% de branco, quase
-                    invisível — alvo pequeno e escondido para uma ação que apaga.
+                    Um alvo só, e não "ajustar" e "esquecer" lado a lado: apagar
+                    fica dentro da folha, onde já se está olhando o trecho. Um
+                    botão de apagar a um toque, ao lado de um de editar, erra
+                    fácil — e aqui não há desfazer.
                   */}
                   <button
-                    onClick={() => {
-                      esquecerTrecho(trecho.id);
-                      toast({ title: "Trecho esquecido" });
-                    }}
-                    className="mt-1 flex items-center gap-1.5 px-1 py-1 text-[11px] font-semibold text-white/30 transition-colors hover:text-red-300"
-                    data-testid={`esquecer-${trecho.id}`}
+                    onClick={() => setEditando(trecho.id)}
+                    className="mt-1.5 flex items-center gap-1.5 px-1 py-1 text-[11px] font-semibold text-white/35 transition-colors hover:text-white/80"
+                    data-testid={`ajustar-${trecho.id}`}
                   >
-                    <Trash2 className="h-3 w-3" />
-                    Esquecer
+                    <Pencil className="h-3 w-3" />
+                    {trecho.nota ? "Ajustar ou editar a nota" : "Ajustar o corte ou anotar"}
                   </button>
                 </div>
               ))}
@@ -101,6 +111,8 @@ export default function Trechos() {
           </>
         )}
       </main>
+
+      {emEdicao && <EditarTrecho trecho={emEdicao} onFechar={() => setEditando(null)} />}
     </div>
   );
 }

@@ -4177,6 +4177,62 @@ substituído por um ícone de áudio, pelo mesmo motivo.
 
 ---
 
+## 4.49 O trecho ganha nota, e o corte ganha volta (28/07)
+
+Dois pedidos do Matheus depois de usar a tela nova. **O segundo é dívida
+minha:** o comentário do código, desde a §4.46, dizia que *"o toque guarda 40
+segundos na hora **e o aviso oferece ajustar**"* — e a segunda metade nunca foi
+implementada. O aviso só tinha "Ver". Ele cobrou pelo que faltava: *"ela poderia
+ter, como tem aqui em conversas, a opção de selecionar a parte que ela quer
+gravar; ali não dá essa opção"*.
+
+### A nota do trecho é privada — e isso é decisão, não detalhe
+
+Pedido: *"era para a pessoa poder escrever uma coisa no trecho que ela salvou,
+ainda que seja uma coisa pequena"*. Cabem 140 caracteres, e ela responde **"por
+que guardei isto"** — o que se perde entre cortar (ouvindo) e usar (dias depois).
+
+**Ela não vai junto quando o trecho é publicado.** As duas leituras possíveis
+eram: (a) lembrete só seu; (b) legenda que acompanha o trecho na conversa. Ficou
+(a), por dois motivos: no mural, no fórum e na sala **você já escreve um texto**
+— a legenda seria um segundo campo dizendo a mesma coisa, e ninguém saberia qual
+dos dois as pessoas leem; e uma nota escrita para si mesma ("ver se combina com
+o que a Bia falou") vira constrangimento se publicar sozinha.
+
+Garantido **por construção**, não por disciplina: `comoCitacao()` devolve só a
+`Citacao`, sem a nota, e é a `Citacao` que viaja. Nenhuma tela consegue publicar
+a nota por descuido. Na interface isso é dito na hora — *"Só você vê. Não vai
+junto quando você anexa numa conversa"* — em vez de virar surpresa depois.
+
+**Ficou de fora, e é candidata boa:** oferecer a nota como **texto sugerido** ao
+anexar (o campo vazio se oferece para começar com ela). Mexeria em três telas de
+escrita ao mesmo tempo; melhor depois de ver a nota em uso.
+
+### Guardar em um toque **e** poder corrigir
+
+Não desfiz a §4.46 — foi ele mesmo quem reclamou dos três toques. O que faltava
+era a volta. Agora existe a folha **"Ajustar o trecho"** (`EditarTrecho`), com o
+cortador de duas pontas e o campo de nota **juntos**: são as duas coisas que se
+quer fazer depois de guardar, e no mesmo instante.
+
+Ela abre por **dois caminhos**, e o segundo nasceu de um defeito achado testando:
+
+1. o botão **"Ajustar"** no aviso, logo depois de guardar;
+2. **o próprio botão da linha do tempo, que vira "Ajustar o corte" por 8
+   segundos.**
+
+O caminho 2 existe porque o 1 é frágil: **o aviso some sozinho em cinco
+segundos**. No teste, o clique chegou depois e não abriu nada — e "escolher a
+parte", que é justamente o pedido, não pode depender de reagir a tempo. O
+segundo toque agora cai **no mesmo lugar do primeiro**, que é onde o dedo já
+está. É o mesmo raciocínio que já tinha posto a confirmação de "Marcar" dentro
+do próprio botão (`BarraDeAcoesDoPlayer`), em vez de confiar no aviso.
+
+`ajustarTrecho()` corrige **no lugar**, sem criar um segundo cartão; se o corte
+novo bater exatamente num trecho que já existe, o duplicado sai.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

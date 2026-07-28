@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Search as SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, Pencil, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Search as SearchIcon } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -16,7 +16,8 @@ import MarcasDaConversa from "@/components/MarcasDaConversa";
 import FaixaDaTurmaNoPlayer from "@/components/clube/FaixaDaTurmaNoPlayer";
 import { MAX_CITACAO_SEC, criarCitacao, rotuloDaCitacao } from "@/lib/citacoes";
 import { CLUBES_EVENT, meuClubeDoLivro } from "@/lib/clubes";
-import { guardarTrecho } from "@/lib/trechosGuardados";
+import { guardarTrecho, type TrechoGuardado } from "@/lib/trechosGuardados";
+import EditarTrecho from "@/components/EditarTrecho";
 import { commentsForBook } from "@/lib/comments";
 import { myCommentsFor } from "@/lib/myComments";
 import { comentariosNoTrecho } from "@/lib/sala";
@@ -243,6 +244,20 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    */
   const [totalDeMarcacoes, setTotalDeMarcacoes] = useState(0);
   const [showConversa, setShowConversa] = useState(false);
+  /** O trecho recém-guardado que está sendo aparado na folha de ajuste. */
+  const [ajustandoTrecho, setAjustandoTrecho] = useState<TrechoGuardado | null>(null);
+  /**
+   * O trecho guardado há poucos segundos — enquanto ele existe, o botão de
+   * guardar oferece **ajustar** aquele corte em vez de guardar outro.
+   */
+  const [recemGuardado, setRecemGuardado] = useState<TrechoGuardado | null>(null);
+  const janelaDeAjuste = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (janelaDeAjuste.current) clearTimeout(janelaDeAjuste.current);
+    };
+  }, []);
   const { toast } = useToast();
 
   /**
@@ -645,29 +660,70 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 hora e o aviso oferece ajustar. Abrir o cortador para depois
                 guardar era pedágio; quem quer o corte exato ainda o tem, agora
                 como refinamento e não como caminho obrigatório.
+
+                **E o próprio botão vira "Ajustar o corte" por 8 segundos**
+                (ROTEIRO 4.49). Deixar o ajuste só no aviso era frágil: ele some
+                sozinho em cinco segundos — apareceu testando, quando o clique
+                chegou depois e não abriu nada. Aqui o segundo toque cai **no
+                mesmo lugar** do primeiro, que é onde o dedo já está; é o mesmo
+                motivo pelo qual o botão "Marcar" confirma em si mesmo em vez de
+                confiar no aviso (ver `BarraDeAcoesDoPlayer`).
               */}
               <button
                 onClick={() => {
-                  const trecho = criarCitacao(book.id, currentTime, MAX_CITACAO_SEC);
-                  guardarTrecho(trecho);
+                  if (recemGuardado) {
+                    setAjustandoTrecho(recemGuardado);
+                    setRecemGuardado(null);
+                    return;
+                  }
+                  const guardado = guardarTrecho(criarCitacao(book.id, currentTime, MAX_CITACAO_SEC));
+                  setRecemGuardado(guardado);
+                  if (janelaDeAjuste.current) clearTimeout(janelaDeAjuste.current);
+                  janelaDeAjuste.current = setTimeout(() => setRecemGuardado(null), 8000);
                   toast({
                     title: "Trecho guardado",
-                    description: `${rotuloDaCitacao(trecho)}. Fica em Meus trechos — anexe em qualquer conversa pelo clipe.`,
+                    description: `${rotuloDaCitacao(guardado)}. Fica em Meus trechos — anexe em qualquer conversa pelo clipe.`,
+                    /*
+                      **"Ajustar", e não "Ver"** (ROTEIRO 4.49). O comentário
+                      abaixo prometia desde a §4.46 que "o aviso oferece
+                      ajustar", e isso nunca existiu — o Matheus cobrou: *"ela
+                      poderia ter, como tem em conversas, a opção de selecionar
+                      a parte que ela quer gravar; ali não dá essa opção"*.
+                      Ajustar só serve aqui, no calor do momento; ver a lista já
+                      tem caminho próprio (Você › Meus trechos), e a descrição
+                      acima diz onde o trecho foi parar.
+                    */
                     action: (
-                      <ToastAction altText="Ver os trechos" onClick={() => setLocation("/trechos")}>
-                        Ver
+                      <ToastAction
+                        altText="Ajustar o corte"
+                        onClick={() => setAjustandoTrecho(guardado)}
+                      >
+                        Ajustar
                       </ToastAction>
                     ),
                   });
                 }}
-                className="flex items-center gap-1 rounded-full bg-white/[0.07] px-2.5 py-1 text-[10px] font-semibold text-white/60 transition-colors hover:bg-white/15 hover:text-white active:scale-95"
+                className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-colors active:scale-95 ${
+                  recemGuardado
+                    ? "bg-primary/15 text-primary ring-1 ring-inset ring-primary/40"
+                    : "bg-white/[0.07] text-white/60 hover:bg-white/15 hover:text-white"
+                }`}
                 data-testid="guardar-trecho-rapido"
               >
                 {/* "Guardar trecho", e não "Guardar 40s": quarenta é o **teto**,
                     não o que a pessoa está guardando — o rótulo antigo anunciava
                     um limite como se fosse a coisa (ROTEIRO 4.47). */}
-                <Scissors className="h-2.5 w-2.5" />
-                Guardar trecho
+                {recemGuardado ? (
+                  <>
+                    <Pencil className="h-2.5 w-2.5" />
+                    Ajustar o corte
+                  </>
+                ) : (
+                  <>
+                    <Scissors className="h-2.5 w-2.5" />
+                    Guardar trecho
+                  </>
+                )}
               </button>
 
               <span className="text-white/50">-{formatTime(chapterDuration - positionInChapter)}</span>
@@ -752,6 +808,12 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           posicaoSec={currentTime}
           onFechar={() => setShowConversa(false)}
         />
+      )}
+
+      {/* O segundo tempo do "guardar num toque": aparar as pontas e escrever a
+          nota, sem sair do player (ROTEIRO 4.49). */}
+      {ajustandoTrecho && (
+        <EditarTrecho trecho={ajustandoTrecho} onFechar={() => setAjustandoTrecho(null)} />
       )}
 
       {/* Salva o ponto e já pergunta o que a pessoa quis guardar dele. */}
