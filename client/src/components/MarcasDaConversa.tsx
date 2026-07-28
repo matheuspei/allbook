@@ -1,10 +1,11 @@
 import { useMemo } from "react";
+import { MessageSquare } from "lucide-react";
 
 import { commentsForBook } from "@/lib/comments";
 import { myCommentsFor } from "@/lib/myComments";
 
 /**
- * Os pontinhos sobre a barra do player: **onde tem gente falando**.
+ * O trilho da conversa: **onde tem gente falando** neste capítulo.
  *
  * É a peça mais visível do que a sala do livro tem de diferente (ROTEIRO 4.39).
  * Ouvindo, você vê que alguém parou para dizer algo no minuto 12 — e toca ali
@@ -20,12 +21,66 @@ import { myCommentsFor } from "@/lib/myComments";
  * **A marca da turma é a mesma laranja, com um anel — e não uma cor nova**
  * (ROTEIRO 4.40). A maquete tinha um verde só para o clube; foi descartado por
  * duas razões: a barra já tem dois tipos de marca, e um terceiro **tom** em
- * pontinhos de 8px não se distingue de verdade — vira cor decorativa, que este
- * app corta. Um anel se lê num relance e não inventa vocabulário de cor.
+ * pontinhos pequenos não se distingue de verdade — vira cor decorativa, que
+ * este app corta. Um anel se lê num relance e não inventa vocabulário de cor.
  *
- * Ficam **acima** da trilha, e não sobre ela, para não roubar o arraste do
- * dedo: no celular a barra inteira é área de toque para buscar no áudio.
+ * ---
+ *
+ * **Por que isto virou um trilho próprio, fora da barra (28/07, ROTEIRO 4.52).**
+ *
+ * Antes as marcas ficavam **sobre** a barra de progresso. O comentário deste
+ * arquivo garantia que ficavam "acima da trilha, para não roubar o arraste" — e
+ * a medição no navegador desmentiu: a marca tinha **5×5 px em y=267** e a alça
+ * do slider **17×17 px em y=266**. Estavam na mesma faixa, com a marca dentro
+ * da área de arraste. Um dedo cobre ~34px: sete vezes o alvo.
+ *
+ * O defeito que isso causava é o que o Matheus descreveu: *"é muito fácil, em
+ * vez de ela clicar no trecho, ela acabar clicando e voltar o player… e ela não
+ * sabe onde ela está"*. Errar a marca não é errar para o vazio — é **mover o
+ * áudio**, perdendo o lugar onde se estava.
+ *
+ * A regra que ficou: **um pixel, um dono.** Nada que se toca pode morar em cima
+ * de um controle de arrastar. Agora o trilho é uma faixa só sua, com alvo de
+ * 44×28 px, e marcas que ficariam a menos disso uma da outra **viram um alvo
+ * só, com o número** — porque duas bolinhas grudadas o dedo não separa mesmo.
  */
+
+/**
+ * Distância mínima entre dois alvos, em % da largura da faixa.
+ *
+ * 12% de uma faixa de ~312px dá ~37px, o que garante que dois alvos vizinhos
+ * não se sobreponham (cada um tem 44px de área, centrada). Mais perto que isso,
+ * eles viram um grupo.
+ */
+const DISTANCIA_MINIMA_PCT = 12;
+
+interface Grupo {
+  /** Onde o alvo fica na faixa, em % — a média do grupo. */
+  posicaoPct: number;
+  /** O segundo que o toque abre: sempre o primeiro do grupo. */
+  sec: number;
+  quantas: number;
+  turma: boolean;
+}
+
+/** Junta marcas coladas num alvo só. Recebe já ordenado por segundo. */
+function agrupar(itens: { sec: number; turma: boolean; pct: number }[]): Grupo[] {
+  const grupos: Grupo[] = [];
+  for (const item of itens) {
+    const ultimo = grupos[grupos.length - 1];
+    if (ultimo && item.pct - ultimo.posicaoPct < DISTANCIA_MINIMA_PCT) {
+      /* A posição do grupo continua sendo a da primeira marca: assim o alvo não
+         "anda" enquanto novas falas entram, e o toque cai onde a conversa
+         começa. */
+      ultimo.quantas += 1;
+      ultimo.turma = ultimo.turma || item.turma;
+      continue;
+    }
+    grupos.push({ posicaoPct: item.pct, sec: item.sec, quantas: 1, turma: item.turma });
+  }
+  return grupos;
+}
+
 export default function MarcasDaConversa({
   bookId,
   chapterStart,
@@ -70,38 +125,82 @@ export default function MarcasDaConversa({
       .sort((a, b) => a.sec - b.sec);
   }, [bookId, chapterStart, chapterDuration, daTurma]);
 
+  /*
+   * Liberadas e adiante são agrupadas **em separado**: um alvo misto teria de
+   * decidir se abre ou não, e o que ele mostra ("3") mentiria sobre quanta
+   * conversa você pode ler agora.
+   */
+  const { liberados, adiante } = useMemo(() => {
+    const emPct = (sec: number) => ((sec - chapterStart) / chapterDuration) * 100;
+    const liberadas = ancoras
+      .filter((item) => item.sec <= currentTime + 1)
+      .map((item) => ({ ...item, pct: emPct(item.sec) }));
+    const naFrente = ancoras
+      .filter((item) => item.sec > currentTime + 1)
+      .map((item) => ({ ...item, pct: emPct(item.sec) }));
+    return { liberados: agrupar(liberadas), adiante: agrupar(naFrente) };
+  }, [ancoras, chapterStart, chapterDuration, currentTime]);
+
   if (ancoras.length === 0) return null;
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 -top-1.5 h-2" data-testid="marcas-conversa">
-      {ancoras.map(({ sec, turma }) => {
-        const liberada = sec <= currentTime + 1;
-        const esquerda = ((sec - chapterStart) / chapterDuration) * 100;
+    /* `mt-4` não é respiro estético: a alça do slider tem 20px e transborda 8px
+       para baixo do trilho dele, encostando na área de toque daqui. Medido: com
+       o `space-y-2` do player (8px) a folga real era **zero**, e o defeito da
+       §4.52 voltaria pela borda de cima. 16px menos os 8 do transbordo deixam
+       8px livres entre um alvo e o outro. */
+    <div className="relative mt-4 h-7" data-testid="marcas-conversa">
+      {/* A linha fininha liga os alvos e diz que a faixa é uma régua de tempo,
+          e não uma fileira de botões soltos. */}
+      <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-white/[0.07]" aria-hidden />
 
-        return liberada ? (
-          <button
-            key={`${sec}-${turma}`}
-            type="button"
-            onClick={() => onAbrir(sec)}
-            style={{ left: `${esquerda}%` }}
-            className={`pointer-events-auto absolute top-0 h-2 w-2 -translate-x-1/2 rounded-full bg-primary shadow-[0_0_6px_rgba(255,106,0,0.7)] transition-transform hover:scale-150 ${
-              turma ? "ring-2 ring-white/70" : ""
-            }`}
-            aria-label={
-              turma ? "Abrir a conversa deste ponto (alguém da sua turma)" : "Abrir a conversa deste ponto"
-            }
-            data-testid={turma ? "marca-turma" : "marca-liberada"}
-          />
-        ) : (
-          <span
-            key={`${sec}-${turma}`}
-            style={{ left: `${esquerda}%` }}
-            className="absolute top-[3px] h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-white/25"
-            aria-label="Há conversa mais adiante"
-            data-testid="marca-adiante"
-          />
-        );
-      })}
+      {adiante.map((grupo) => (
+        <span
+          key={`adiante-${grupo.sec}`}
+          style={{ left: `${grupo.posicaoPct}%` }}
+          className="absolute top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/25"
+          aria-label="Há conversa mais adiante"
+          data-testid="marca-adiante"
+        />
+      ))}
+
+      {liberados.map((grupo) => (
+        <button
+          key={`liberada-${grupo.sec}`}
+          type="button"
+          onClick={() => onAbrir(grupo.sec)}
+          style={{ left: `${grupo.posicaoPct}%` }}
+          /* 44×28: o alvo é a caixa inteira, invisível; o pontinho é só o
+             desenho. Nada mais disputa esta faixa, então área generosa aqui não
+             atrapalha ninguém. */
+          className="group absolute top-1/2 flex h-7 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+          aria-label={
+            grupo.quantas > 1
+              ? `Abrir ${grupo.quantas} falas deste ponto`
+              : grupo.turma
+                ? "Abrir a conversa deste ponto (alguém da sua turma)"
+                : "Abrir a conversa deste ponto"
+          }
+          data-testid={grupo.turma ? "marca-turma" : "marca-liberada"}
+        >
+          {grupo.quantas > 1 ? (
+            <span
+              className={`flex h-4 items-center gap-0.5 rounded-full bg-primary px-1.5 text-[9px] font-bold leading-none text-black shadow-[0_0_8px_rgba(255,106,0,0.55)] transition-transform group-hover:scale-110 ${
+                grupo.turma ? "ring-2 ring-white/70" : ""
+              }`}
+            >
+              <MessageSquare className="h-2 w-2" strokeWidth={3} />
+              {grupo.quantas}
+            </span>
+          ) : (
+            <span
+              className={`h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(255,106,0,0.7)] transition-transform group-hover:scale-125 ${
+                grupo.turma ? "ring-2 ring-white/70" : ""
+              }`}
+            />
+          )}
+        </button>
+      ))}
     </div>
   );
 }

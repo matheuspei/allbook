@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, Pencil, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Search as SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, Pencil, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Undo2, Search as SearchIcon } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -253,9 +253,15 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [recemGuardado, setRecemGuardado] = useState<TrechoGuardado | null>(null);
   const janelaDeAjuste = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /** O ponto de onde a pessoa saltou, oferecido de volta por alguns segundos. */
+  const [voltarPara, setVoltarPara] = useState<number | null>(null);
+  const ondeEuEstavaRef = useRef<number | null>(null);
+  const relogioDoVoltar = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     return () => {
       if (janelaDeAjuste.current) clearTimeout(janelaDeAjuste.current);
+      if (relogioDoVoltar.current) clearTimeout(relogioDoVoltar.current);
     };
   }, []);
   const { toast } = useToast();
@@ -615,31 +621,78 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           {/* Progress Section */}
           <div className="w-full space-y-2 px-2 shrink-0">
             <div className="relative pt-1">
-              {/* Onde tem gente falando neste capítulo (ROTEIRO 4.39). */}
-              <MarcasDaConversa
-                bookId={book.id}
-                chapterStart={chapterStart}
-                chapterDuration={chapterDuration}
-                currentTime={currentTime}
-                slugsDaTurma={clubeDoLivro?.membros}
-                onAbrir={(posicao) => {
-                  setCurrentTime(posicao);
-                  setShowConversa(true);
-                }}
-              />
               <Slider
                 value={[chapterProgress]}
+                /* Guarda de onde a pessoa saiu, **antes** de o arraste começar a
+                   mover o áudio — é este valor que o "voltar" devolve. */
+                onPointerDown={() => {
+                  ondeEuEstavaRef.current = currentTime;
+                }}
                 onValueChange={(val) => {
                   // Arrastar move só dentro do capítulo atual.
                   // Arrastar é decidir continuar: a cerca da citação cai aqui.
                   setLimiteDaCitacao(null);
                   setCurrentTime(chapterStart + (val[0] / 100) * chapterDuration);
                 }}
+                /*
+                  **A rede de segurança do toque errado** (ROTEIRO 4.52). A barra
+                  é o alvo mais fácil de acertar sem querer no player, e errar
+                  nela custa caro: o áudio pula e a pessoa perde onde estava —
+                  *"ela não sabe onde ela está"*. Passou de 15 segundos, o
+                  caminho de volta aparece por 8. Abaixo disso é ajuste fino de
+                  quem quis mesmo mover, e um aviso ali só atrapalharia.
+                */
+                onValueCommit={(val) => {
+                  const antes = ondeEuEstavaRef.current;
+                  ondeEuEstavaRef.current = null;
+                  if (antes === null) return;
+                  const agora = chapterStart + (val[0] / 100) * chapterDuration;
+                  if (Math.abs(agora - antes) < 15) return;
+                  setVoltarPara(antes);
+                  if (relogioDoVoltar.current) clearTimeout(relogioDoVoltar.current);
+                  relogioDoVoltar.current = setTimeout(() => setVoltarPara(null), 8000);
+                }}
                 max={100}
                 step={0.1}
                 className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:bg-primary [&_[role=slider]]:border-none [&_.relative]:h-1 [&_.bg-secondary]:bg-white/15 cursor-pointer"
               />
+
+              {voltarPara !== null && (
+                <button
+                  onClick={() => {
+                    setCurrentTime(voltarPara);
+                    setVoltarPara(null);
+                  }}
+                  /* **Acima** da barra, e não abaixo: embaixo fica o trilho da
+                     conversa, e cobrir os alvos de toque por 8 segundos seria
+                     trocar um estorvo por outro — ainda mais para quem acabou
+                     de pular e talvez queira justamente tocar numa marca. */
+                  className="absolute bottom-full left-1/2 z-20 mb-1 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[11px] font-bold text-black shadow-lg animate-in fade-in slide-in-from-bottom-1 duration-200"
+                  data-testid="voltar-para-onde-eu-estava"
+                >
+                  <Undo2 className="h-3 w-3" />
+                  Voltar para {formatTime(voltarPara - chapterStart)}
+                </button>
+              )}
             </div>
+
+            {/*
+              **O trilho da conversa, fora da barra** (ROTEIRO 4.52). Ficava por
+              cima do slider, com 5px de alvo dentro da área de arraste: quem
+              errava a bolinha movia o áudio. Aqui embaixo é faixa só dele, e
+              errar o toque não custa nada.
+            */}
+            <MarcasDaConversa
+              bookId={book.id}
+              chapterStart={chapterStart}
+              chapterDuration={chapterDuration}
+              currentTime={currentTime}
+              slugsDaTurma={clubeDoLivro?.membros}
+              onAbrir={(posicao) => {
+                setCurrentTime(posicao);
+                setShowConversa(true);
+              }}
+            />
             <div className="flex items-center justify-between text-[10px] font-medium tracking-tight">
               <span className="text-white/50">{formatTime(positionInChapter)}</span>
 

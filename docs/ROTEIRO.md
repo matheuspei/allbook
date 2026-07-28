@@ -4283,6 +4283,56 @@ da frase ("Fulano avaliou *X*") continua levando à ficha — ali o link é o
 
 ---
 
+## 4.52 Um pixel, um dono: as marcas saem de cima da barra (28/07)
+
+Problema trazido pelo Matheus, e ele é de ergonomia, não de gosto: *"quando você
+clica nessa bolinha… é muito fácil, em vez de clicar no trecho, ela acabar
+clicando e voltar o player, e ela não sabe onde ela está. É muito pequeno e o
+dedo da pessoa é muito grande."*
+
+**A medição, antes da solução.** No navegador: a marca tinha **5×5 px em y=267**;
+a alça do slider, **17×17 px em y=266** (na moldura da prévia; num celular real,
+20px). Ou seja, a marca estava **dentro** da área de arraste — apesar de o
+comentário do componente afirmar, desde a §4.39, que ficava "acima da trilha,
+para não roubar o arraste". Um dedo cobre ~34px: **sete vezes o alvo**.
+
+E errar ali não é errar para o vazio: **o toque vira arraste e o áudio pula**.
+O custo do erro é perder o lugar onde se estava — o que ele descreveu.
+
+### A regra que ficou: nada que se toca mora em cima de um controle de arrastar
+
+**As marcas ganharam trilho próprio, abaixo da barra.** Alvo de **44×28 px**
+(era 5×5), com o pontinho como desenho e a caixa inteira como área de toque —
+ali embaixo nada mais disputa o espaço, então área generosa não atrapalha
+ninguém. Entre o trilho e a barra ficam 8px livres: medido, o `space-y-2` do
+player dava **zero** de folga, porque a alça de 20px transborda 8px para baixo
+da trilha e encostava na borda de cima do novo alvo.
+
+**Marcas coladas viram um alvo só, com o número** (`💬 2`). Duas bolinhas a
+menos de 44px o dedo não separa mesmo — fingir que separa é o defeito de novo,
+só que menor. Liberadas e adiante são agrupadas **em separado**: um alvo misto
+teria de decidir se abre ou não, e o número mentiria sobre quanta conversa se
+pode ler agora.
+
+### A rede de segurança: "Voltar para 12:31"
+
+A separação reduz o erro, mas a barra continua sendo o alvo mais fácil de
+acertar sem querer. Então o **custo** do erro também foi atacado: um salto de
+mais de 15 segundos faz aparecer, por 8 segundos, um botão branco largo com o
+ponto de onde você saiu. Abaixo de 15s é ajuste fino de quem quis mover, e um
+aviso ali só atrapalharia.
+
+Ele fica **acima** da barra, e não abaixo: embaixo está o trilho da conversa, e
+cobrir alvos de toque por 8 segundos seria trocar um estorvo por outro — ainda
+mais para quem acabou de pular e talvez queira justamente tocar numa marca.
+
+**Verificado por medição** (a captura de tela da extensão parou de funcionar no
+meio): alvos de 38×24 na moldura (≙ 44×28 no aparelho), 7px de folga para a
+alça, duas falas coladas agrupadas em "2", e o toque no grupo levando o áudio a
+`cap. 1 · 20:00` com a conversa daquele ponto aberta.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
