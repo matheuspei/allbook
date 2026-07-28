@@ -26,6 +26,7 @@
  */
 
 import { catalog, type Book } from "@/lib/books";
+import { clubePorId } from "@/lib/clubes";
 import { comments, ehAvaliacao } from "@/lib/comments";
 import { community, type CommunityMember } from "@/lib/community";
 import { readFollowing } from "@/lib/following";
@@ -44,10 +45,18 @@ export const MURAL_EVENT = "allbook:mural";
 /** Curto de propósito: mural é conversa de corredor, não resenha. */
 export const MAX_POST = 280;
 
-/** Um post seu, guardado no navegador. */
+/**
+ * Um post seu, guardado no navegador. A âncora é **um livro OU um clube** —
+ * o Matheus abriu o leque em 28/07: *"a pessoa pode estar pedindo uma
+ * recomendação… poderia mencionar um livro ou um clube"*. O que não existe é
+ * post sem âncora nenhuma: essa é a trava que fica.
+ */
 export interface MeuPost {
   id: string;
-  bookId: number;
+  /** Um livro do catálogo… */
+  bookId?: number;
+  /** …ou um clube. Sempre exatamente um dos dois. */
+  clubeId?: string;
   texto: string;
   /** ISO completo. */
   date: string;
@@ -70,7 +79,13 @@ export type ItemDoMural = {
   autor: AutorDoMural;
   book: Book;
 } & (
-  | { tipo: "disse"; texto: string; meuPostId?: string }
+  | {
+      tipo: "disse";
+      texto: string;
+      meuPostId?: string;
+      /** Post ancorado num clube: o `book` é o livro da vez do clube. */
+      clube?: { id: string; nome: string };
+    }
   | { tipo: "recomendou"; note: string }
   | { tipo: "comentou"; texto: string; estado: EstadoNaSala }
   | { tipo: "avaliou"; nota: number; texto?: string }
@@ -92,7 +107,8 @@ export function readMeusPosts(): MeuPost[] {
         typeof item.id === "string" &&
         typeof item.texto === "string" &&
         typeof item.date === "string" &&
-        Number.isFinite(Number(item.bookId)),
+        // A âncora: um livro ou um clube — post solto não passa nem por aqui.
+        (Number.isFinite(Number(item.bookId)) || typeof item.clubeId === "string"),
     );
   } catch {
     return [];
@@ -104,15 +120,21 @@ function gravar(lista: MeuPost[]): void {
   window.dispatchEvent(new Event(MURAL_EVENT));
 }
 
-/** Publica. Devolve a lista nova; texto vazio ou livro inexistente não entram. */
-export function publicarNoMural(texto: string, bookId: number): MeuPost[] {
+/** A âncora de um post: um livro do catálogo ou um clube seu. */
+export type AlvoDoPost = { bookId: number } | { clubeId: string };
+
+/** Publica. Devolve a lista nova; texto vazio ou âncora inexistente não entram. */
+export function publicarNoMural(texto: string, alvo: AlvoDoPost): MeuPost[] {
   const clean = texto.trim().slice(0, MAX_POST);
-  const existe = catalog.some((book) => book.id === bookId);
+  const existe =
+    "bookId" in alvo
+      ? catalog.some((book) => book.id === alvo.bookId)
+      : clubePorId(alvo.clubeId) !== undefined;
   if (!clean || !existe) return readMeusPosts();
 
   const post: MeuPost = {
     id: `post-${Date.now()}`,
-    bookId,
+    ...alvo,
     texto: clean,
     date: new Date().toISOString(),
   };
@@ -249,7 +271,25 @@ export function feedDoMural(limite = 30): ItemDoMural[] {
 
   // — os seus acontecimentos —
   for (const post of readMeusPosts()) {
-    const book = livro(post.bookId);
+    if (post.clubeId !== undefined) {
+      // Post no clube: a capa vem do livro da vez, o link vai para o clube.
+      const clube = clubePorId(post.clubeId);
+      const daVez = clube ? livro(clube.ciclo.bookId) : undefined;
+      if (!clube || !daVez) continue; // clube apagado leva os posts junto
+      itens.push({
+        id: post.id,
+        date: post.date,
+        autor: eu(),
+        book: daVez,
+        tipo: "disse",
+        texto: post.texto,
+        meuPostId: post.id,
+        clube: { id: clube.id, nome: clube.nome },
+      });
+      continue;
+    }
+
+    const book = post.bookId !== undefined ? livro(post.bookId) : undefined;
     if (!book) continue;
     itens.push({
       id: post.id,

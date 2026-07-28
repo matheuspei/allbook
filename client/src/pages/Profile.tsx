@@ -8,7 +8,7 @@ import SeloDeMedalha from "@/components/SeloDeMedalha";
 import { useToast } from "@/hooks/use-toast";
 import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
 import { readRecommendations } from "@/lib/recommendations";
-import { meusClubes, souDono, type Clube } from "@/lib/clubes";
+import { clubePorId, meusClubes, souDono, type Clube } from "@/lib/clubes";
 import { formatarDuracao } from "@/lib/listening";
 import { lerDadosDeConquista, lerResumo, type ResumoDeAudicao } from "@/lib/stats";
 import {
@@ -22,12 +22,17 @@ import { MURAL_EVENT, readMeusPosts } from "@/lib/mural";
 import { readSettings } from "@/lib/settings";
 import { catalog, type Book } from "@/lib/books";
 
-/** Uma fala sua — comentário num livro ou post do mural, no mesmo formato. */
+/**
+ * Uma fala sua — comentário num livro ou post do mural (de livro ou de
+ * clube), já resolvida para a tela: capa, rótulo e destino.
+ */
 interface FalaMinha {
   id: string;
-  bookId: number;
   texto: string;
   date: string;
+  capa: string;
+  rotulo: string;
+  href: string;
 }
 
 /**
@@ -91,15 +96,39 @@ export default function Profile() {
   }, []);
 
   function recarregarFalas() {
-    const dosComentarios: FalaMinha[] = readMyComments()
-      .filter((item) => item.bookId !== undefined)
-      .map((item) => ({ id: item.id, bookId: item.bookId!, texto: item.text, date: item.date }));
-    const dosPosts: FalaMinha[] = readMeusPosts().map((item) => ({
-      id: item.id,
-      bookId: item.bookId,
-      texto: item.texto,
-      date: item.date,
-    }));
+    const doLivro = (id: number): { capa: string; rotulo: string; href: string } | null => {
+      const book = catalog.find((b) => b.id === id);
+      return book ? { capa: book.cover, rotulo: book.title, href: `/book/${book.id}` } : null;
+    };
+
+    const dosComentarios: FalaMinha[] = readMyComments().flatMap((item) => {
+      if (item.bookId === undefined) return [];
+      const alvo = doLivro(item.bookId);
+      return alvo ? [{ id: item.id, texto: item.text, date: item.date, ...alvo }] : [];
+    });
+
+    const dosPosts: FalaMinha[] = readMeusPosts().flatMap((item) => {
+      // Post de clube: a capa é o livro da vez, o destino é o clube.
+      if (item.clubeId !== undefined) {
+        const clube = clubePorId(item.clubeId);
+        const daVez = clube ? catalog.find((b) => b.id === clube.ciclo.bookId) : undefined;
+        if (!clube || !daVez) return [];
+        return [
+          {
+            id: item.id,
+            texto: item.texto,
+            date: item.date,
+            capa: daVez.cover,
+            rotulo: `No clube ${clube.nome}`,
+            href: `/clube/${clube.id}`,
+          },
+        ];
+      }
+      if (item.bookId === undefined) return [];
+      const alvo = doLivro(item.bookId);
+      return alvo ? [{ id: item.id, texto: item.texto, date: item.date, ...alvo }] : [];
+    });
+
     setFalas(
       [...dosComentarios, ...dosPosts]
         .sort((a, b) => b.date.localeCompare(a.date))
@@ -413,32 +442,28 @@ export default function Profile() {
             O que eu disse
           </h2>
           <div className="space-y-4">
-            {falas.map((item) => {
-              const livro = catalog.find((b) => b.id === item.bookId);
-              if (!livro) return null;
-              return (
-                <Link
-                  key={item.id}
-                  href={`/book/${livro.id}`}
-                  className="flex gap-3 group"
-                  data-testid={`profile-comment-${item.id}`}
-                >
-                  <img
-                    src={livro.cover}
-                    alt={livro.title}
-                    className="h-[45px] w-[34px] shrink-0 rounded object-cover"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] text-white/40 transition-colors group-hover:text-primary">
-                      {livro.title}
-                    </p>
-                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/70">
-                      “{item.texto}”
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
+            {falas.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className="flex gap-3 group"
+                data-testid={`profile-comment-${item.id}`}
+              >
+                <img
+                  src={item.capa}
+                  alt=""
+                  className="h-[45px] w-[34px] shrink-0 rounded object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] text-white/40 transition-colors group-hover:text-primary">
+                    {item.rotulo}
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/70">
+                    “{item.texto}”
+                  </p>
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
       )}
