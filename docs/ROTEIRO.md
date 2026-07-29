@@ -4769,6 +4769,106 @@ não está em clube nenhum.
 
 ---
 
+## 4.58 O plano da Comunidade — tudo o que foi decidido em 29/07, num lugar só
+
+> **Para ler com calma antes de construir.** O dia rendeu seis seções (§4.53 a
+> §4.58) e as decisões ficaram espalhadas. Isto aqui é o consolidado: o que está
+> fechado, o que foi rejeitado, **o que ainda falta bater o martelo**, e em que
+> ordem construir. Pedido do Matheus: *"primeiro a gente vai refletir sobre as
+> coisas e depois a gente começa a construir"*.
+>
+> **Nada da Comunidade foi construído.** O que foi ao código em 29/07 é só o que
+> já estava fechado e é independente dela: conta privada, `/seguidores`,
+> `/privacidade`, "Meus clubes" no painel.
+
+### O princípio, em uma frase
+
+**Um post é uma fala com um objeto do AllBook dentro** — a capa grande de um
+livro, um trecho de 40s que toca, um clube com prazo e vagas. Não é "post de
+rede social": é o livro circulando pela voz das pessoas. É isso que resolve o
+"muito cru" e o que faz esta tentativa ser diferente das onze anteriores (§4.53).
+
+### Decidido
+
+| # | Decisão | Quem |
+| --- | --- | --- |
+| 1 | A Comunidade **tem objeto próprio**: o post. Não vira só "lugares" | Matheus (§4.53) |
+| 2 | **Feed** = o que as pessoas escreveram · **Seguindo** = o que elas fizeram | Matheus (§4.53) |
+| 3 | **O post aparece nos dois; a atividade, só no Seguindo** | Matheus (§4.53) |
+| 4 | **Conta privada** protege a atividade, nunca o post | Matheus (§4.54) |
+| 5 | **App pago é o filtro** de conteúdo impróprio (custo de reentrada) | Matheus (§4.53) |
+| 6 | Sem fileira de quadradinhos no topo | Matheus (§4.57) |
+| 7 | Sem clube/fórum enterrados na gaveta — eles aparecem **como cartões no feed** | eu, aceito (§4.57) |
+| 8 | O "…" só leva ao que é **da comunidade**; o que é seu mora no avatar | os dois (§4.57) |
+| 9 | O **cartão de trecho ganha capa grande** no feed | Matheus (29/07, capturas) |
+| 10 | O perfil passa a girar em torno dos **posts**, com ícones no topo | Matheus (§4.56) |
+
+### Rejeitado (para ninguém propor de novo)
+
+- **Feed sobre pessoas** ("fulano avaliou", "fulano está ouvindo" como itens de
+  lista) — é o que falhou onze vezes: texto sem corpo.
+- **Encolher a Comunidade até sobrar só lugares** (minha folha `A × B`) — ficou
+  obsoleta quando apareceu a saída de dar objeto a ela.
+- **Fileira de ícones no topo** — "parece menu de banco", não dá riqueza.
+- **Itens pessoais dentro do menu da Comunidade** (perfil, trechos, privacidade,
+  recomendados) — já existem no painel; duplicar dá duas respostas para a mesma
+  pergunta.
+- **Interruptor para "o que eu recomendo"** — recomendar já é ato público.
+- **Upload de imagem pelo usuário** — a capa entrega o efeito visual sem custo
+  de servidor nem moderação de imagem (revisível: o pagamento muda o cálculo).
+
+### Avaliado hoje, a partir das cinco capturas
+
+1. **"Marcos perguntou no seu clube"** — minha recomendação: **sino, não feed**.
+   A regra proposta: *o que te diz respeito e pede ação vai para a notificação; o
+   que é vida dos outros vai para o Seguindo.* **Falta bater o martelo.**
+2. **Pergunta com resposta em forma de livro** ("Terminei Duna, sigo na série?",
+   respondida com capa + "melhor resposta") — **a melhor das cinco.** Encaixa no
+   princípio: a resposta carrega um objeto. Minha recomendação: **um tipo de
+   post**, não uma aba separada. **Falta bater o martelo.**
+3. **"3 pessoas falaram deste trecho"** — já existe (sala do livro, §4.39). E o
+   pedido de *"dar play e abrir exatamente naquele minuto"* **também já está
+   construído**: `CitacaoDeAudio` leva a `/player/:id?t=…&ate=…` e o player para
+   no fim do trecho. Nada a fazer.
+4. **Convite para clube pela página da pessoa** — aprovado pelos dois. Falta
+   definir o **como** (abaixo).
+5. **Cartão de áudio com a capa grande** — aprovado. É item 9 da tabela.
+
+### Em aberto — o que precisa da sua palavra antes de construir
+
+1. **Atividade de clube: sino ou Seguindo?** (recomendo: sino para o que pede
+   ação sua; Seguindo só para a vida de quem você segue).
+2. **"Pergunta" é um tipo de post ou uma aba própria?** (recomendo: tipo de post).
+3. **Convite para clube — as regras.** Quem pode convidar: só o dono, ou
+   qualquer membro? O que acontece se o clube estiver cheio? O convite expira
+   quando o ciclo começa? (recomendo: qualquer membro convida, o dono é quem
+   remove; convite morre quando o clube enche ou o ciclo começa).
+4. **O post tem curtir e comentar?** As maquetes mostram ❤ e 💬. Se tiver,
+   comentário de post é uma conversa nova — e já existem duas (a do livro e a do
+   clube). (recomendo: curtir sim, comentar sim, mas **raso**: um nível, como
+   nas respostas do fórum).
+5. **O post pode ser só texto, sem objeto?** (recomendo: pode, mas o compositor
+   abre com os três anexos à mão — texto puro é a exceção, não o padrão).
+6. **O nome do botão que você mencionou e ainda não batemos.**
+7. **O que morre da Comunidade de hoje**: mural, "ouvindo agora", "combina com
+   você", lista de todo mundo, "seguindo". (recomendo: todos morrem; o que
+   sobrevive vira cartão no feed).
+8. **"Trechos quentes da semana" e "quem está no seu trecho agora"** (da 3ª
+   captura) entram? Não foram comentados.
+
+### Ordem de construção proposta
+
+1. **O cartão do post**, nas três formas (com livro · com trecho · com clube) —
+   sozinho, sem tela. Se ele não sair do cru, nada em volta salva.
+2. **O compositor**: escrever + anexar (livro, trecho, clube).
+3. **O feed** com as duas lentes (Feed · Seguindo) e os cartões de clube/fórum
+   intercalados.
+4. **Convite para clube** pela página da pessoa, com aceitar no sino.
+5. **O perfil girando em torno dos posts** (§4.56) — depende de 1 e 2.
+6. **Capa grande no cartão de trecho** — pode entrar junto de 1, é a mesma peça.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
