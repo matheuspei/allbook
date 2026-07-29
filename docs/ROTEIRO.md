@@ -4958,6 +4958,26 @@ pessoa não sabe onde pode reagir sem tentar.
 8. **"Trechos quentes da semana" e "quem está no seu trecho agora"** (da 3ª
    captura) entram? Não foram comentados.
 
+### Menção dentro do texto (29/07) — decidido, a construir com o compositor
+
+Ideia do Matheus: *"que tal ela mencionar um livro, narrador ou coisa, como
+acontece hoje no Facebook?"*. **Aprovada, com escopo restrito.**
+
+**O argumento a favor, que ele não chegou a dizer:** o post carrega **um** objeto
+(§4.58), mas às vezes a fala precisa de dois — *"terminei Duna e me lembrou
+Fundação"*. Sem menção, o segundo livro é texto morto.
+
+- **Mencionar livro, autor e narrador: sim.**
+- **Mencionar pessoas (@fulano): não por ora.** Traz notificação, traz
+  quem-pode-mencionar-quem e traz moderação — menção é a porta de entrada de
+  importunação em toda rede. Depois, se fizer falta.
+- **A menção é texto com link, não um segundo cartão.** Preserva o "um objeto por
+  post": o cartão continua sendo um só, e a menção é uma palavra clicável.
+- **Nada de detecção automática de títulos no texto.** O catálogo tem *It: A
+  Coisa* — "it" apareceria em qualquer frase; "Duna" em qualquer frase sobre
+  deserto. O certo é o padrão do Facebook: **digitar `@` abre a lista** de
+  livros, autores e narradores, e escolher insere o nome já como link.
+
 ### Ordem de construção (com as oito já decididas)
 
 1. **O cartão do post**, nas três formas (com livro · com trecho · com clube) —
