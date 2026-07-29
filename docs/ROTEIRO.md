@@ -4640,6 +4640,66 @@ torno de uma peça que ainda vai mudar de forma é construir para refazer.
 
 ---
 
+## 4.57 O Clube reorganizado: quatro modos desenhados, decisão em aberto (29/07)
+
+**O pedido do Matheus:** *"a página do Clube de Leitura… ela vai ter muitos livros
+e muitos clubes, e a forma como está não tá bem organizada"*. Pediu **pelo menos
+três propostas clicáveis** para escolher — e **sem tocar no código** antes da
+escolha.
+
+**Onde ver:** `client/public/_propostas-clube.html` (fora do git, temporária) —
+cinco versões navegáveis: *como está hoje* + as quatro propostas, cada uma com a
+**lista de clubes** e a **tela de dentro do clube**, mais um modo "as 5 lado a
+lado".
+
+### O que foi medido no app antes de desenhar
+
+Isto é apuração, não opinião — vale mesmo que nenhuma das propostas vingue:
+
+1. **A tela de um clube tem ~4,5 telas de rolagem**, com cinco assuntos empilhados
+   de peso igual: ciclo, rodada, mural, votação, estante.
+2. **A conversa fica no meio da pilha — e é ela que cresce sem fim.** Hoje o mural
+   do Clube do Mistério tem 4 mensagens, e é *só por isso* que a votação e a
+   estante ainda são alcançáveis. Com 200 mensagens elas ficam a dezenas de
+   rolagens. **É o defeito de escala mais grave, e piora sozinho com o uso.**
+3. **3 das 4 falas do mural apareceram como placa de spoiler**, não como texto: a
+   conversa vira pilha de aviso cinza. Quanto mais gente adiantada, pior.
+4. **"Seus clubes · 7" mostra 3**, e todos os cartões têm o mesmo peso — nada diz
+   **qual precisa de você**, que é a pergunta de quem está em sete.
+5. **A memória do clube não tem endereço:** a estante leva à ficha do livro, então
+   **a conversa daquele ciclo se perde** quando o livro muda.
+
+### As quatro filosofias (e o preço de cada uma)
+
+- **A · O fio da conversa** — o clube é uma conversa; o resto é estado numa barra
+  fina no topo. Lista vira caixa de entrada com não lidas. *Preço:* perde a cara
+  de livro (vira mensageiro), votação e estante a dois toques — e, achado ao ver a
+  maquete de pé, **a prévia da última fala vaza spoiler na própria lista**.
+- **B · O clube tem cômodos** — abas *Conversa · Rodada · Ritmo · Estante*, com
+  bolinha no que espera por você. *Preço:* o que está atrás de aba deixa de ser
+  visto; mais toques no dia a dia.
+- **C · A linha do ciclo** — o livro dá a estrutura: a conversa mora **em cada
+  trecho combinado**, e o que está à frente vem fechado. **Troca a placa de
+  spoiler por estrutura.** *Preço:* com pouca gente cada trecho fica vazio; exige
+  ritmo parecido; é a mais cara (mexe no modelo de dados da conversa); conversa
+  solta não tem onde morar.
+- **D · O painel** — abre com **uma** coisa a fazer; o resto em gavetas; lista
+  agrupada por urgência. *Preço:* fica administrativo — clube é lazer, e abrir
+  numa lista de pendências parece cobrança.
+
+### A recomendação registrada (não é decisão)
+
+**Nenhuma das quatro inteira.** A **B** resolve o defeito mais grave e é a mais
+barata (o conteúdo já existe, só muda de lugar). A ideia mais valiosa é a da **C**:
+hoje o app *tapa* o texto; ali ele *organiza* por trecho — e isso **só o AllBook
+consegue fazer, porque o player sabe onde cada um parou**. A junção proposta:
+esqueleto de abas da B + linha do ciclo da C dentro da aba *Conversa* + lista por
+urgência da D + a barra de estado fina da A.
+
+**Decisão: em aberto, com o Matheus.** Nada foi construído.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
