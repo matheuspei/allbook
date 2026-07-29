@@ -245,18 +245,39 @@ function CartaoDoClube({ clubeId }: { clubeId: string }) {
       className="mt-3 overflow-hidden rounded-xl ring-1 ring-inset ring-white/10"
       data-testid="post-clube"
     >
-      <div className="relative h-36">
-        {livro && <img src={livro.cover} alt="" className="h-full w-full object-cover" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10" />
+      {/*
+        **Mesmo formato dos outros dois** (29/07): capa **inteira**, em retrato, e
+        o fundo é ela mesma desfocada. A versão anterior recortava a capa numa
+        faixa de 144px — o defeito que eu já tinha consertado no cartão de livro e
+        que o Matheus cobrou nos outros: se cortar a arte é ruim num, é ruim nos
+        três. Três cartões, uma gramática.
+      */}
+      <div className="relative flex items-start gap-3.5 p-3.5">
+        <div aria-hidden className="absolute inset-0">
+          {livro && (
+            <img src={livro.cover} alt="" className="h-full w-full scale-125 object-cover blur-2xl" />
+          )}
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
 
-        {/* Diz o que é antes de qualquer outra coisa — era o que faltava. */}
-        <span className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-black">
-          Clube de leitura
-        </span>
+        {livro && (
+          <Link href={`/book/${livro.id}`} className="relative shrink-0">
+            <img
+              src={livro.cover}
+              alt={livro.title}
+              className="h-[120px] w-20 rounded-lg object-cover shadow-lg shadow-black/50 ring-1 ring-white/10"
+            />
+          </Link>
+        )}
 
-        <div className="absolute inset-x-0 bottom-0 p-3">
-          <Link href={`/clube/${clube.id}`} className="block">
-            <span className="block truncate font-display text-[16px] font-bold hover:text-primary">
+        <div className="relative min-w-0 flex-1">
+          {/* Diz o que é antes de qualquer outra coisa — era o que faltava. */}
+          <span className="inline-block rounded-full bg-primary px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-black">
+            Clube de leitura
+          </span>
+
+          <Link href={`/clube/${clube.id}`} className="mt-1.5 block">
+            <span className="line-clamp-2 font-display text-[15px] font-bold leading-tight hover:text-primary">
               {clube.nome}
             </span>
           </Link>
@@ -266,7 +287,7 @@ function CartaoDoClube({ clubeId }: { clubeId: string }) {
               era um link só e tudo caía no clube — o livro citado ali ficava
               sendo informação morta. */}
           {livro && (
-            <p className="mt-0.5 truncate text-[11.5px] text-white/65">
+            <p className="mt-1 truncate text-[11.5px] text-white/65">
               lendo{" "}
               <Link
                 href={`/book/${livro.id}`}
@@ -307,7 +328,7 @@ function CartaoDoClube({ clubeId }: { clubeId: string }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between bg-white/[0.06] px-3 py-2.5">
+      <div className="relative flex items-center justify-between border-t border-white/[0.07] bg-black/25 px-3 py-2.5">
         <span className="min-w-0 flex-1 truncate text-[11.5px] text-white/50">
           {meu ? (
             "seu clube"

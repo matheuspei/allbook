@@ -158,27 +158,41 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
       data-testid="citacao-de-audio"
     >
       {/*
-        **Cada parte leva ao seu lugar** (29/07, pedido do Matheus para os três
-        cartões): a capa e o título abrem a ficha; o autor e o narrador abrem a
-        página deles, que já existe (`/person/:slug`). Antes o bloco inteiro era
-        um link só, e o nome do narrador — que neste app é motivo de escolha de
-        livro — ficava sendo texto morto.
+        **Capa inteira, e o fundo é ela mesma desfocada** — o formato unificado
+        dos três cartões do feed (29/07). A versão anterior recortava a capa numa
+        faixa: capa de livro é retrato, e cortar come a arte. O Matheus cobrou
+        que eu tinha consertado isso só no cartão de livro; se o corte é ruim num,
+        é ruim nos três.
+
+        **Cada parte leva ao seu lugar**: a capa e o título abrem a ficha; o autor
+        e o narrador abrem a página deles (`/person/:slug`). Antes o bloco inteiro
+        era um link só, e o nome do narrador — que neste app é motivo de escolha
+        de livro — ficava sendo texto morto.
       */}
-      <div className="relative h-32">
-        <Link href={`/book/${livro.id}`} className="block h-full">
-          <img src={livro.cover} alt={livro.title} className="h-full w-full object-cover" />
+      <div className="relative flex items-center gap-3.5 p-3.5">
+        <div aria-hidden className="absolute inset-0">
+          <img src={livro.cover} alt="" className="h-full w-full scale-125 object-cover blur-2xl" />
+          <div className="absolute inset-0 bg-black/55" />
+        </div>
+
+        <Link href={`/book/${livro.id}`} className="relative shrink-0">
+          <img
+            src={livro.cover}
+            alt={livro.title}
+            className="h-[120px] w-20 rounded-lg object-cover shadow-lg shadow-black/50 ring-1 ring-white/10"
+          />
         </Link>
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/50 to-transparent"
-        />
-        <div className="absolute inset-x-0 bottom-0 p-3">
-          <Link href={`/book/${livro.id}`} className="block">
-            <span className="block truncate font-display text-[15px] font-bold hover:text-primary">
+
+        <div className="relative min-w-0 flex-1">
+          <span className="block text-[9.5px] font-bold uppercase tracking-[0.14em] text-primary">
+            Trecho · {citacao.duracaoSec}s
+          </span>
+          <Link href={`/book/${livro.id}`} className="mt-1 block">
+            <span className="line-clamp-2 font-display text-[15px] font-bold leading-tight hover:text-primary">
               {livro.title}
             </span>
           </Link>
-          <p className="mt-0.5 truncate text-[11px] text-white/55">
+          <p className="mt-1.5 text-[11px] leading-relaxed text-white/55">
             <Link
               href={`/person/${slugify(livro.author)}`}
               className="underline-offset-2 hover:text-white hover:underline"
@@ -186,7 +200,8 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
             >
               {livro.author}
             </Link>
-            {" · narra "}
+            <br />
+            narra{" "}
             <Link
               href={`/person/${slugify(livro.narrator)}`}
               className="underline-offset-2 hover:text-white hover:underline"
@@ -198,7 +213,7 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
         </div>
       </div>
 
-      <div className="flex items-center gap-3 px-3 py-2.5">
+      <div className="flex items-center gap-3 border-t border-white/[0.07] bg-black/25 px-3 py-2.5">
         <button
           onClick={() => setTocando((valor) => !valor)}
           className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-black transition-transform active:scale-95"
