@@ -13,6 +13,7 @@ import {
   Scissors,
   Settings,
   Share2,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -32,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile } from "@/lib/profile";
 import { totalBookmarks } from "@/lib/bookmarks";
+import { meusClubes } from "@/lib/clubes";
 import { TRECHOS_EVENT, trechosGuardados } from "@/lib/trechosGuardados";
 import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
 import { readDownloads } from "@/lib/library";
@@ -109,6 +111,7 @@ export default function You() {
   const [bookmarkTotal, setBookmarkTotal] = useState(0);
   const [totalTrechos, setTotalTrechos] = useState(0);
   const [pedidos, setPedidos] = useState(0);
+  const [totalClubes, setTotalClubes] = useState(0);
   const [downloadCount, setDownloadCount] = useState(0);
   const [ganhas, setGanhas] = useState(0);
 
@@ -119,6 +122,7 @@ export default function You() {
     setBookmarkTotal(totalBookmarks());
     setDownloadCount(readDownloads().length);
     setGanhas(unlockedCountFor(lerDadosDeConquista(lerResumo())));
+    setTotalClubes(meusClubes().length);
   }, []);
 
   /* Os trechos mudam com o app aberto (cortar acontece no player), então este
@@ -203,6 +207,23 @@ export default function You() {
             label: "Meus trechos",
             hint: String(totalTrechos),
             href: "/trechos",
+          },
+        ]
+      : []),
+    /*
+      **Meus clubes faltava aqui** (ROTEIRO 4.57), e quem notou foi o Matheus:
+      *"será que não seria interessante colocar, quando você clica na foto, o
+      ícone clube do livro?"*. Faltava mesmo — o clube só se achava pela
+      Comunidade, e é conteúdo seu tanto quanto uma nota ou um download. Some
+      quando você não está em nenhum: linha a zero é beco sem saída (§4.23).
+    */
+    ...(totalClubes > 0
+      ? [
+          {
+            icon: UsersRound,
+            label: "Meus clubes",
+            hint: String(totalClubes),
+            href: "/clubes",
           },
         ]
       : []),
