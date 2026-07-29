@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { ArrowRight, CalendarClock, Users } from "lucide-react";
 
+import AcoesDoPost from "@/components/comunidade/AcoesDoPost";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { catalog, slugify } from "@/lib/books";
 import { EU, clubePorId, corDoMembro, nomeDoMembro, souDono, vagasRestantes, type Clube } from "@/lib/clubes";
@@ -125,6 +126,8 @@ export default function CartaoDePost({ post }: { post: Post }) {
         </div>
       )}
       {post.objeto?.tipo === "clube" && <CartaoDoClube clubeId={post.objeto.clubeId} />}
+
+      <AcoesDoPost post={post} />
     </article>
   );
 }
@@ -448,9 +451,18 @@ function QuemEstaNoClube({ clube, onFechar }: { clube: Clube; onFechar: () => vo
   );
 }
 
-/** "há 2 h", "ontem" — a mesma escala das notificações. */
+/**
+ * "há 2 h", "ontem", "12 jul" — a mesma escala das notificações, com uma
+ * diferença no fim.
+ *
+ * **Passada uma semana, vira data absoluta.** "Há 3 semanas" obriga a pessoa a
+ * fazer conta para saber quando foi; "12 jul" ela lê. O relativo serve para o
+ * que é recente (é a informação útil: "isto acabou de acontecer"), e o absoluto
+ * para o que já saiu do calor do momento.
+ */
 function quando(iso: string): string {
-  const minutos = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
+  const data = new Date(iso);
+  const minutos = Math.floor((Date.now() - data.getTime()) / 60_000);
   if (minutos < 1) return "agora";
   if (minutos < 60) return `há ${minutos} min`;
   const horas = Math.floor(minutos / 60);
@@ -458,5 +470,5 @@ function quando(iso: string): string {
   const dias = Math.floor(horas / 24);
   if (dias === 1) return "ontem";
   if (dias < 7) return `há ${dias} dias`;
-  return `há ${Math.floor(dias / 7)} sem`;
+  return data.toLocaleDateString("pt-BR", { day: "numeric", month: "short" }).replace(".", "");
 }
