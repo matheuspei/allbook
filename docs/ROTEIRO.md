@@ -4872,6 +4872,43 @@ adiante, com as recomendações, para se entender de onde cada decisão veio.**
    - **Anotado sobre a reciprocidade:** ela pressiona a ligar (quem não liga
      fica cego). É bom mecanismo, mas não é neutro — por isso **nasce desligada**.
 
+### As cinco últimas dúvidas, respondidas (29/07, à noite)
+
+1. **Um objeto por post.** Nada de trecho + clube no mesmo post: dois anexos
+   brigam pelo mesmo espaço e o cartão perde a forma.
+2. **Ordem cronológica pura**, o mais recente primeiro. Sem "melhores", sem
+   algoritmo: com pouca gente, algoritmo é teatro — finge escolher entre dez
+   coisas. **E o Matheus acrescentou o que faltava: ser notificado das
+   interações** (curtiram, comentaram, responderam ao seu comentário).
+   - **Curtidas chegam agrupadas** — *"Ana e mais 3 curtiram seu post"*, nunca
+     um aviso por curtida: sino em enxurrada é sino que se ignora.
+   - **Descurtida: recomendo não notificar** (em aberto, decisão dele). É a
+     única da lista que não gera ação nenhuma — não dá para responder,
+     corrigir nem conversar com ela. Só machuca.
+3. **Editar o próprio post: pode** — o Matheus discordou de mim e venceu com a
+   prática das grandes plataformas. **Condição que ficou: selo "editado"**, que
+   resolve a objeção original (sem ele, o autor vira o sentido do texto e faz os
+   comentários anteriores parecerem loucos). **Apagar** também.
+4. **Os três pontinhos no post**: editar · apagar · compartilhar · denunciar
+   (o último só nos posts dos outros).
+5. **Botão "seguir" no cartão do post: entra** — eu era contra por poluição, ele
+   discordou. **Refinamento aceito:** aparece **só se você ainda não segue**, e
+   some depois — não vira "Seguindo ✓" ocupando espaço para sempre.
+6. **A caixa de escrever fica no topo do feed** (e a mesma no perfil, §4.56).
+   Sem botão flutuante, que tapa conteúdo. *(Termo "compositor" era jargão meu;
+   ele pediu para explicar, e está explicado aqui.)*
+
+### O curtir existe pela metade — e precisa existir no app inteiro
+
+Desconfiança do Matheus, **medida e confirmada** em 29/07: `lib/reactions.ts`
+(curtir **e** descurtir) está ligado só na **conversa do livro** —
+`CommentThread`, `SalaDoLivro`, `BookDetails`, `Conversa`, `ProfileComments`.
+
+**Falta em:** mural do clube (`MuralDoClube`), fórum (`Grupo`/`Topico`) e mural
+da Comunidade. **A construir**, junto com o feed: se o post tem curtir e a
+resposta do fórum não tem, a mesma ação existe em metade dos lugares — e a
+pessoa não sabe onde pode reagir sem tentar.
+
 ### Decisões de clube tomadas na mesma conversa
 
 - **O fim do ciclo já estava resolvido, e o Matheus redescobriu:** a **votação do

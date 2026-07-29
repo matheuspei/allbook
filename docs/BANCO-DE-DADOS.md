@@ -292,6 +292,22 @@ O app já promete estas coisas na tela. Nenhuma funciona sem servidor:
 - [ ] **Não existe chave para "o que eu recomendo"**, por decisão do Matheus
       (recomendar é público por natureza). Não inventar uma no backend.
 
+**Da Comunidade (ROTEIRO §4.53–§4.58), quando ela existir:**
+
+- [ ] **Notificação de interação**: curtiram seu post, comentaram nele,
+      responderam ao seu comentário. **Curtidas agrupadas** ("Ana e mais 3") —
+      um evento por curtida vira enxurrada e mata o valor do sino.
+- [ ] **Post editado guarda o histórico** o bastante para exibir o selo
+      "editado". Sem ele, o autor vira o sentido do texto e os comentários
+      anteriores ficam sem pé.
+- [ ] **Curtir precisa valer no app inteiro** — hoje só a conversa do livro
+      usa `reactions.ts`. Ao migrar, a tabela de reações é uma só, com o tipo do
+      alvo (comentário · post · resposta de fórum · mensagem de clube).
+- [ ] **Presença por capítulo** ("está no cap. 12"), se for construída: opt-in
+      **recíproco** (quem não mostra, não vê), só entre quem se segue, **nunca
+      em tempo real** — granularidade de capítulo, porque presença ao vivo
+      revela rotina.
+
 ---
 
 ## 4. Ordem sugerida
