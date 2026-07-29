@@ -4333,6 +4333,129 @@ alça, duas falas coladas agrupadas em "2", e o toque no grupo levando o áudio 
 
 ---
 
+## 4.53 A Comunidade ganha um objeto: o post com coisa dentro (29/07)
+
+**Nada construído — isto é decisão de rumo, e o rumo mudou duas vezes na mesma
+conversa.** Registrado por isso: a segunda virada foi do Matheus, contra a minha
+tese, e ele estava certo.
+
+### O diagnóstico que continua valendo
+
+Onze maquetes de Comunidade em `client/public/`, nenhuma aceita. O Matheus
+descreveu o padrão sem nomear: *"o que me agrada é uma coisa solta, outra coisa
+solta… mas o todo, o conjunto, não me agrada"*.
+
+**A causa: a Comunidade era a única tela do app sem objeto próprio.** Toda outra
+tela é *sobre* alguma coisa — um livro, um clube, um trecho, uma pessoa. A
+Comunidade era "o resto que é social": definida **por exclusão**. E conteúdo
+definido por exclusão não tem todo possível — qualquer coisa cabe, nada exige
+estar lá. Onze desenhos diferentes falharam no mesmo ponto porque o layout nunca
+foi o problema.
+
+### A saída que eu propus (e que ficou obsoleta no mesmo dia)
+
+Encolher a aba até sobrar só **lugares**: clubes e fóruns. Duas variantes na
+folha `_comunidade-A-vs-B.html` — **A**, a aba vira "Rodas"; **B**, a aba morre e
+sobra "Clubes" no menu, com o fórum indo para o Catálogo. **Nenhuma das duas foi
+escolhida**, e a folha perdeu a razão de existir quando apareceu a saída melhor.
+Fica registrada porque o raciocínio dela (o que morre, o que custa) segue válido
+se um dia a ideia abaixo não vingar.
+
+### A saída do Matheus: dar um objeto, em vez de tirar
+
+**O post não é "post de rede social" — é uma fala com um objeto do AllBook
+dentro:** a capa grande e clicável de um livro, um trecho de 40s que toca, um
+clube com prazo e vagas para entrar.
+
+É por isso que ele funciona onde os onze feeds falharam: **aqueles eram sobre
+pessoas** ("fulano avaliou", "fulano está ouvindo") — texto sem corpo. Este é
+**o livro circulando pela voz das pessoas**, a mesma forma das peças que
+sobreviveram (conversa presa ao minuto, trecho que circula, clube com prazo).
+
+**E resolve a queixa do "muito cru", que era o sintoma mais repetido:** o que dá
+corpo visual ao post não é foto de gente, **é a capa**. Cru era o texto solto.
+
+### Feed × Seguindo: são duas coisas, e a diferença é a natureza do conteúdo
+
+Eu tinha errado aqui, tratando as duas como a mesma lista com filtro diferente. O
+Matheus corrigiu:
+
+- **Feed** = o que as pessoas **escreveram** (posts).
+- **Seguindo** = o que as pessoas **fizeram** — está ouvindo, comentou,
+  recomendou, avaliou, entrou num clube. *"Se a Carla está ouvindo Admirável
+  Mundo Novo, ela não vai pro feed."*
+
+A separação resolve, por outro caminho, o problema que eu tinha levantado:
+**atividade automática nunca tem corpo** (é sempre uma linha de texto), e por
+isso não pode disputar espaço com um post que traz capa. A solução dele é melhor
+que a minha (agrupar a atividade numa faixa fina dentro do feed): ela ganha o
+lugar onde é o **conteúdo principal**, e não penduricalho. O formato de hoje
+continua, com mais ênfase na capa.
+
+**Decidido pelo Matheus na mesma conversa** — a regra é assimétrica, e é ela que
+dá sentido a seguir alguém:
+
+> **O post aparece nos dois. A atividade, só no Seguindo.**
+> *"Atividade é uma coisa que você vai ter que realmente seguir aquela pessoa
+> para ver."*
+
+Ou seja: **o que você escreve é público** (vai para a comunidade inteira e
+também para quem te segue); **o que você faz é para quem escolheu te
+acompanhar**. Seguir deixa de ser um filtro de volume e passa a **destravar
+conteúdo que não existe em outro lugar** — é o que faz o botão "seguir" valer
+alguma coisa. E é também a resposta de privacidade: ninguém vê o que você está
+ouvindo por acaso, passando pelo feed.
+
+Consequência de desenho: no Seguindo convivem dois formatos — **atividade em
+linha, com capinha**, e **post com o cartão inteiro**.
+
+### Imagem enviada pelo usuário: decisão tomada, com o mecanismo nomeado
+
+Eu levantei o custo (servidor, armazenamento, moderação de imagem). **O Matheus
+decidiu que o app pago já é o filtro**, e o argumento é bom o bastante para ficar
+escrito: *"a pessoa pagou para estar ali, e ela não quer arriscar perder a conta
+dela"*.
+
+**O mecanismo tem nome: custo de reentrada.** O que segura não é o preço, é o
+fato de que ser expulso queima dinheiro e voltar exige pagar de novo. É o que faz
+comunidade paga ser limpa e rede aberta não ser — e é mais forte que qualquer
+filtro automático que escreveríamos.
+
+Três precisões que ficam como condições, não como objeções:
+
+1. **Pagamento pune, não previne** — quem viu, viu. Continuam necessários
+   **denúncia e "esconder" rápidos**, que já existem no clube e no fórum. Com o
+   pagamento, esses bastam; sem ele, não bastariam.
+2. **A punição precisa ser real** para o cálculo funcionar: se ninguém nunca
+   perde a conta, o filtro é teórico. Regra de conta, para quando houver servidor
+   (ver `docs/BANCO-DE-DADOS.md`).
+3. **O post é a única parte do app sem dono.** Clube tem moderador, fórum tem
+   criador — o feed é de todos, ou seja, de ninguém. **Quem julga a denúncia
+   ali?** Decisão em aberto, sem urgência.
+
+### Desenho: três correções minhas, aceitas ou pendentes
+
+- **O hub de quadradinhos custa um toque e não informa nada.** Tela só de ícones
+  é menu. Como o próprio Matheus disse que o post é *o principal*, a
+  recomendação é a Comunidade **abrir direto no feed**, com clubes e fóruns como
+  atalhos no topo.
+- **Uma fileira de pílulas carrega um critério só.** Apareceu na maquete: `Tudo ·
+  Meus · Clubes · Fóruns` misturava escopo com tipo — "meus fóruns" era
+  impossível de pedir. Escopo ("de quem é") vira **ordem**; estado ("estreando")
+  vira **seção**; a pílula fica só com o tipo.
+- **O risco que sobra:** clube funciona com 8 pessoas, fórum com 30, **feed
+  precisa de centenas**. Se o app abrir com pouca gente, o feed é a única tela
+  que parece abandonada — e é a primeira que se quer mostrar. Mitigação
+  registrada: enquanto houver pouca gente, o que enche a tela é o que o **app
+  produz** (trechos guardados, clubes estreando, conversa quente de um livro). O
+  feed começa cheio de livro e vai ficando cheio de gente.
+
+**Próximo passo combinado:** desenhar **só o cartão do post**, nas três formas
+(com livro, com trecho, com clube), antes de qualquer tela — se o cartão não sai
+do cru, a tela em volta não salva.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
