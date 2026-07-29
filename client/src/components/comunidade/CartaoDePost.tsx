@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { ArrowRight, CalendarClock, Users } from "lucide-react";
 
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
-import { catalog } from "@/lib/books";
+import { catalog, slugify } from "@/lib/books";
 import { clubePorId, vagasRestantes } from "@/lib/clubes";
 import { findMember } from "@/lib/community";
 import { isFollowing, toggleFollow } from "@/lib/following";
@@ -130,35 +130,82 @@ export default function CartaoDePost({ post }: { post: Post }) {
 }
 
 /**
- * O livro citado, com a capa **grande**.
+ * O livro citado — **capa inteira, sem corte** (refeito em 29/07).
  *
- * A regra que veio das capturas de 29/07: *"você consegue ver o ícone maior da
- * capa; isso é bem mais interessante"*. Miniatura de 40px é informação; capa de
- * meia tela é presença — e presença é o que faltava ao feed.
+ * **O defeito que isto conserta era meu.** A primeira versão punha a capa numa
+ * faixa de 160px com `object-cover`: capa de livro é **retrato** (2:3), então o
+ * recorte comia a arte — no cartão do Duna, o título do livro sumia e sobrava a
+ * chuva de estrelas. Num app onde **a capa é a peça de design mais cuidada do
+ * produto**, usá-la como textura de fundo é desperdício.
+ *
+ * Agora ela aparece **inteira**, e quem preenche o resto é **ela mesma,
+ * desfocada** — o mesmo truque que o topo do player usa, então não é invenção:
+ * é a identidade da casa aplicada aqui.
+ *
+ * **Três links, não um** (pedido do Matheus): título → a ficha; autor → a página
+ * dele; narrador → a página dele. A tela `/person/:slug` já serve autor **e**
+ * narrador desde sempre — não usá-la aqui era jogar fora o que existe.
  */
 function CapaDoLivro({ bookId }: { bookId: number }) {
   const livro = catalog.find((item) => item.id === bookId);
   if (!livro) return null;
 
   return (
-    <Link
-      href={`/book/${livro.id}`}
-      className="mt-3 block overflow-hidden rounded-xl"
+    <div
+      className="relative mt-3 flex items-center gap-3.5 overflow-hidden rounded-xl p-3.5"
       data-testid="post-livro"
     >
-      <span className="relative block h-40">
-        <img src={livro.cover} alt={livro.title} className="h-full w-full object-cover" />
-        {/* O escurecido existe para o texto ser legível sobre qualquer arte —
-            capa clara e capa escura têm de servir igual. */}
-        <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-        <span className="absolute inset-x-0 bottom-0 p-3">
-          <span className="block truncate font-display text-[15.5px] font-bold">{livro.title}</span>
-          <span className="mt-0.5 block truncate text-[11.5px] text-white/60">
-            {livro.author} · narra {livro.narrator}
+      {/* A própria capa, desfocada e escurecida, é o fundo. Nada de cor nova. */}
+      <div aria-hidden className="absolute inset-0">
+        <img src={livro.cover} alt="" className="h-full w-full scale-125 object-cover blur-2xl" />
+        <div className="absolute inset-0 bg-black/55" />
+      </div>
+
+      <Link href={`/book/${livro.id}`} className="relative shrink-0">
+        {/* `object-contain` e proporção 2:3: a arte aparece **inteira**. */}
+        <img
+          src={livro.cover}
+          alt={livro.title}
+          className="h-[132px] w-[88px] rounded-lg object-cover shadow-lg shadow-black/50 ring-1 ring-white/10"
+        />
+      </Link>
+
+      <div className="relative min-w-0 flex-1">
+        <Link href={`/book/${livro.id}`} className="block">
+          <span className="line-clamp-2 font-display text-[15.5px] font-bold leading-tight">
+            {livro.title}
           </span>
-        </span>
-      </span>
-    </Link>
+        </Link>
+
+        <p className="mt-1.5 text-[11.5px] leading-relaxed text-white/55">
+          por{" "}
+          <Link
+            href={`/person/${slugify(livro.author)}`}
+            className="font-semibold text-white/85 underline-offset-2 hover:underline"
+            data-testid="post-livro-autor"
+          >
+            {livro.author}
+          </Link>
+          <br />
+          narrado por{" "}
+          <Link
+            href={`/person/${slugify(livro.narrator)}`}
+            className="font-semibold text-white/85 underline-offset-2 hover:underline"
+            data-testid="post-livro-narrador"
+          >
+            {livro.narrator}
+          </Link>
+        </p>
+
+        <Link
+          href={`/book/${livro.id}`}
+          className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/12 px-3 py-1.5 text-[11.5px] font-bold transition-colors hover:bg-white/20"
+        >
+          Ver o livro
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+    </div>
   );
 }
 
