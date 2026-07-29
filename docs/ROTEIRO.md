@@ -4700,6 +4700,75 @@ urgência da D + a barra de estado fina da A.
 
 ---
 
+## 4.57 O menu da Comunidade: um lugar, um dono (29/07)
+
+Conversa sobre como a Comunidade se organiza no topo. **Decisão tomada; a tela
+só será construída com a reformulação da §4.53.**
+
+### O que foi rejeitado, e por quem
+
+**A fileira de quadradinhos no topo** (feed · fóruns · clubes) — rejeitada pelo
+Matheus: *"em vez de a gente ter esses quadradinhos separando… acho que daria
+mais riqueza"*. Ele tem razão: fileira de ícones parece menu de aplicativo de
+banco, é genérica, e não acrescenta nada ao conteúdo.
+
+**Levar clube e fórum para dentro dos três pontinhos** — rejeitado por mim, e ele
+concordou. Dois argumentos:
+
+1. **Gaveta é para quem tem muita coisa.** No Instagram e no Facebook o "…" e o
+   hambúrguer guardam ajustes e ações secundárias; os destinos principais ficam
+   sempre à vista. O Facebook tem Grupos na gaveta, mas o Facebook tem dezenas de
+   destinos. A Comunidade do AllBook tem três.
+2. **Contradiz o medo que originou tudo.** Em 28/07 (§4.40) o Matheus disse:
+   *"tenho medo dele ficar um pouco invisível, o clube de leitura"*. Enterrar
+   clube e fórum num menu é o jeito mais eficiente de torná-los invisíveis.
+
+### A regra que ficou
+
+> **O "…" da Comunidade só leva ao que é da comunidade. O que é seu mora no
+> avatar.**
+
+Nasceu de uma lista que o Matheus propôs para o menu — feed, fóruns, clubes,
+**meu perfil, meus trechos, privacidade, meus recomendados**. Os quatro últimos
+**já existem**, todos no painel `/you` (ou no perfil). Pô-los também na
+Comunidade daria duas respostas para "onde eu acho meus trechos", que é o mesmo
+defeito que ele próprio derrubou horas antes, quando a pílula "Meus" repetia a
+seção logo abaixo (§4.53).
+
+Mais de fundo: é a **separação por dono** da §4.41 — a Comunidade é o lugar dos
+outros, o painel é o seu lugar. Misturar desfaz o que organizou o app.
+
+Ele fechou assim: *"eu acho que você tem razão; talvez não caiba misturar o que é
+de comunidade com o que é do perfil da pessoa"*.
+
+**Alternativa registrada e não escolhida:** levar os itens pessoais para o menu
+da Comunidade **e tirá-los do painel** — seria coerente (cada coisa num lugar
+só), mas desfaz a separação por dono. O que não pode existir é o meio-termo: os
+mesmos itens nos dois lugares.
+
+### Como fica, então
+
+- A Comunidade **abre no feed**, sem fileira de ícones no topo.
+- **Feed · Seguindo** são as únicas coisas fixas ali — e não são destinos: são
+  duas lentes do mesmo conteúdo (§4.53).
+- O **"…"** guarda o que é da comunidade e é secundário: criar um clube, criar um
+  fórum, todos os clubes, todos os fóruns, quem te segue / quem você segue.
+- **Clube e fórum aparecem também no feed, como cartões** ("Clube do Mistério
+  estreia segunda — 5 vagas", com a capa). Estar no menu não impede de estar no
+  feed: **o menu é para quem procura, o cartão é para quem só está passando**. E
+  esses cartões são a mitigação já registrada na §4.53 para o feed não nascer
+  vazio.
+
+### Construído no mesmo dia: "Meus clubes" no painel
+
+Lacuna que o Matheus achou no meio da conversa: *"será que não seria interessante
+colocar, quando você clica na foto, o ícone clube do livro?"*. Faltava mesmo — o
+clube só se achava pela Comunidade, e é conteúdo seu tanto quanto uma nota ou um
+download. Entrou em **Você › Seu conteúdo**, com a contagem, e some quando você
+não está em clube nenhum.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
