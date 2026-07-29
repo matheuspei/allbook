@@ -29,6 +29,7 @@ import Achievements from "@/pages/Achievements";
 import Bookmarks from "@/pages/Bookmarks";
 import Trechos from "@/pages/Trechos";
 import Seguidores from "@/pages/Seguidores";
+import Privacidade from "@/pages/Privacidade";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
@@ -113,6 +114,9 @@ function Router() {
             <Route path="/profile/recommendations" component={RecommendationsEdit} />
             <Route path="/profile" component={Profile} />
             <Route path="/settings" component={SettingsPage} />
+            {/* Privacidade tem tela própria desde 29/07: no painel ela é uma
+                linha como as outras (ROTEIRO 4.55). */}
+            <Route path="/privacidade" component={Privacidade} />
             <Route path="/community" component={Community} />
             {/* Os Grupos (Orkut: comunidade → tópico → respostas).
                 A mais específica primeiro, regra deste Switch. */}

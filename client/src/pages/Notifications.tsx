@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   Bell,
   CalendarClock,
+  Check,
   Flame,
   Gift,
   MessageCircleQuestion,
@@ -10,6 +11,7 @@ import {
   Sparkles,
   Tag,
   Vote,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
@@ -17,7 +19,10 @@ import PageHeader from "@/components/PageHeader";
 import { avisosDeClube } from "@/lib/avisosDeClube";
 import { catalog, getBooksByIds } from "@/lib/books";
 import { CLUBES_EVENT } from "@/lib/clubes";
-import { findMember } from "@/lib/community";
+import { findMember, type CommunityMember } from "@/lib/community";
+import { useToast } from "@/hooks/use-toast";
+import { SEGUIDORES_EVENT, aceitarPedido, pedidosPendentes, recusarPedido } from "@/lib/seguidores";
+import { readSettings } from "@/lib/settings";
 import { PLAYBACK_EVENT } from "@/lib/playback";
 import { RODADAS_EVENT } from "@/lib/rodadas";
 import {
@@ -61,8 +66,14 @@ type Faixa = "Hoje" | "Esta semana" | "Antes";
  */
 type Aviso = {
   id: string;
-  /** De onde veio: muda o desenho (avatar de gente x quadradinho de ícone). */
-  tipo: "resposta" | "sistema";
+  /**
+   * De onde veio: muda o desenho (avatar de gente x quadradinho de ícone) e,
+   * no caso do **pedido**, muda a natureza do cartão — ele não leva a lugar
+   * nenhum, ele **pede uma resposta** e traz os dois botões (ROTEIRO 4.55).
+   */
+  tipo: "resposta" | "sistema" | "pedido";
+  /** Só em "pedido": quem está pedindo, para aceitar ou recusar daqui. */
+  slug?: string;
   titulo: string;
   corpo: string;
   /** ISO. É o que ordena e agrupa — por isso os exemplos também têm data real. */
@@ -179,6 +190,40 @@ function deResposta(item: ReplyNotification): Aviso {
   };
 }
 
+/**
+ * Os pedidos para te seguir, no formato da tela.
+ *
+ * Pergunta do Matheus (29/07): *"como é que você vê isso no ícone de
+ * notificação e você aceita a pessoa por aquele ícone?"*. É aqui — e o cartão
+ * traz os dois botões, porque um aviso que só diz "fulano quer te seguir" e
+ * obriga a caçar a tela de seguidores é meia notificação.
+ *
+ * **As datas são fixas e relativas** (2h e 1 dia), como os avisos de exemplo:
+ * não há servidor que registre quando o pedido chegou, e datar tudo de "agora"
+ * empilharia os dois no mesmo minuto a cada abertura da tela.
+ */
+function avisosDePedido(pendentes: CommunityMember[]): Aviso[] {
+  return pendentes.map((pessoa, i) => ({
+    id: `pedido-${pessoa.slug}`,
+    tipo: "pedido" as const,
+    slug: pessoa.slug,
+    titulo: `${pessoa.name} quer te seguir`,
+    corpo: pessoa.bio,
+    data: i === 0 ? horasAtras(2) : diasAtras(1),
+    cor: pessoa.color,
+    inicial: pessoa.name.charAt(0),
+    /* Pedido nunca nasce lido: é pendência, não recado. Some quando você
+       responde, e é isso que apaga a marca do sino. */
+    lida: false,
+  }));
+}
+
+function horasAtras(horas: number): string {
+  const d = new Date();
+  d.setHours(d.getHours() - horas);
+  return d.toISOString();
+}
+
 function faixaDe(iso: string): Faixa {
   const dias = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
   if (dias < 1) return "Hoje";
@@ -225,13 +270,21 @@ export default function Notifications() {
     avisosDoSistema().map((a) => ({ ...a, lida: isSystemRead(a.id) })),
   );
   const [respostas, setRespostas] = useState<ReplyNotification[]>([]);
+  const [pedidos, setPedidos] = useState<CommunityMember[]>([]);
 
   useEffect(() => {
     setRespostas(readNotifications());
   }, []);
 
-  const avisos = [...sistema, ...respostas.map(deResposta)].sort((a, b) =>
-    b.data.localeCompare(a.data),
+  useEffect(() => {
+    const atualizar = () => setPedidos(pedidosPendentes(readSettings().contaPrivada));
+    atualizar();
+    window.addEventListener(SEGUIDORES_EVENT, atualizar);
+    return () => window.removeEventListener(SEGUIDORES_EVENT, atualizar);
+  }, []);
+
+  const avisos = [...sistema, ...respostas.map(deResposta), ...avisosDePedido(pedidos)].sort(
+    (a, b) => b.data.localeCompare(a.data),
   );
   const naoLidas = avisos.filter((item) => !item.lida).length;
 
@@ -324,15 +377,80 @@ export default function Notifications() {
                   {faixa}
                 </h2>
                 <div className="space-y-2">
-                  {daFaixa.map((aviso, i) => (
-                    <Cartao key={aviso.id} aviso={aviso} indice={i} onAbrir={abrir} />
-                  ))}
+                  {daFaixa.map((aviso, i) =>
+                    aviso.tipo === "pedido" ? (
+                      <CartaoDePedido key={aviso.id} aviso={aviso} />
+                    ) : (
+                      <Cartao key={aviso.id} aviso={aviso} indice={i} onAbrir={abrir} />
+                    ),
+                  )}
                 </div>
               </section>
             );
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * O pedido para te seguir — o único cartão que **pede resposta** em vez de
+ * levar a algum lugar (ROTEIRO 4.55).
+ *
+ * Por isso ele não é um `<button>` inteiro como os outros: os dois botões
+ * moram dentro dele, e botão dentro de botão nem é HTML válido. Tocar no nome
+ * abre a página da pessoa — é como se decide se aceita.
+ */
+function CartaoDePedido({ aviso }: { aviso: Aviso }) {
+  const { toast } = useToast();
+  const slug = aviso.slug ?? "";
+
+  return (
+    <div
+      className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-primary/10 to-transparent p-3 ring-1 ring-primary/15"
+      data-testid={`aviso-pedido-${slug}`}
+    >
+      <Link href={`/user/${slug}`} className="flex min-w-0 flex-1 items-center gap-3">
+        <span
+          className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br ${aviso.cor} font-display text-base font-bold`}
+        >
+          {aviso.inicial}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold">{aviso.titulo}</span>
+          <span className="mt-0.5 block truncate text-[11.5px] text-white/40">{aviso.corpo}</span>
+          <span className="mt-0.5 block text-[10px] text-white/25">{quandoFoi(aviso.data)}</span>
+        </span>
+      </Link>
+
+      <div className="flex shrink-0 gap-1.5">
+        <button
+          onClick={() => {
+            aceitarPedido(slug);
+            toast({
+              title: "Aceito",
+              description: "Agora essa pessoa vê o que você ouve, comenta e avalia.",
+            });
+          }}
+          className="grid h-9 w-9 place-items-center rounded-full bg-primary text-black transition-transform active:scale-95"
+          aria-label="Aceitar"
+          data-testid={`aviso-aceitar-${slug}`}
+        >
+          <Check className="h-4 w-4" strokeWidth={3} />
+        </button>
+        <button
+          onClick={() => {
+            recusarPedido(slug);
+            toast({ title: "Pedido recusado", description: "Ela não é avisada disso." });
+          }}
+          className="grid h-9 w-9 place-items-center rounded-full bg-white/[0.07] text-white/60 transition-colors hover:text-white"
+          aria-label="Recusar"
+          data-testid={`aviso-recusar-${slug}`}
+        >
+          <X className="h-4 w-4" strokeWidth={3} />
+        </button>
+      </div>
     </div>
   );
 }

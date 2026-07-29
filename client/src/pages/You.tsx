@@ -6,7 +6,6 @@ import {
   Bookmark,
   ChevronRight,
   Download,
-  Headphones,
   HelpCircle,
   LogIn,
   Lock,
@@ -14,8 +13,6 @@ import {
   Scissors,
   Settings,
   Share2,
-  UserCheck,
-  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -31,7 +28,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import PageHeader from "@/components/PageHeader";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile } from "@/lib/profile";
@@ -40,7 +36,7 @@ import { TRECHOS_EVENT, trechosGuardados } from "@/lib/trechosGuardados";
 import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
 import { readDownloads } from "@/lib/library";
 import { achievements, unlockedCountFor } from "@/lib/achievements";
-import { readSettings, saveSettings, type Settings as AppSettings } from "@/lib/settings";
+import { readSettings } from "@/lib/settings";
 import { lerDadosDeConquista, lerResumo } from "@/lib/stats";
 
 /**
@@ -115,22 +111,6 @@ export default function You() {
   const [pedidos, setPedidos] = useState(0);
   const [downloadCount, setDownloadCount] = useState(0);
   const [ganhas, setGanhas] = useState(0);
-  const [ajustes, setAjustes] = useState<AppSettings>(readSettings);
-
-  /**
-   * Os interruptores da vitrine: a página só mostra o que você deixar.
-   * Parte do que está gravado (e não do estado da tela): dois toques no
-   * mesmo instante com base no estado antigo faziam o segundo desfazer o
-   * primeiro — apareceu no teste automatizado, que clica mais rápido que dedo.
-   */
-  function alternarPrivacidade(
-    chave: "mostrarOuvindoAgora" | "mostrarMeusClubes" | "contaPrivada",
-    ligado: boolean,
-  ) {
-    const next = { ...readSettings(), [chave]: ligado };
-    setAjustes(next);
-    saveSettings(next);
-  }
 
   useEffect(() => {
     // Relê ao voltar da edição — e as contagens, que mudam em uso.
@@ -150,14 +130,11 @@ export default function You() {
     return () => window.removeEventListener(TRECHOS_EVENT, atualizar);
   }, []);
 
-  /* A fila de pedidos depende do interruptor logo abaixo: ligar a conta privada
-     tem de fazer o número aparecer na hora, sem sair da tela. */
-  useEffect(() => {
-    setPedidos(pedidosPendentes(ajustes.contaPrivada).length);
-  }, [ajustes.contaPrivada]);
-
+  /* Os pedidos pendentes viram a etiqueta da linha "Privacidade". Relê ao
+     montar (quem volta de lá pode ter ligado a tranca) e no evento. */
   useEffect(() => {
     const atualizar = () => setPedidos(pedidosPendentes(readSettings().contaPrivada).length);
+    atualizar();
     window.addEventListener(SEGUIDORES_EVENT, atualizar);
     return () => window.removeEventListener(SEGUIDORES_EVENT, atualizar);
   }, []);
@@ -246,6 +223,15 @@ export default function You() {
 
   const conta: LinhaDoPainel[] = [
     { icon: Bell, label: "Notificações", href: "/notifications" },
+    /* Uma linha como as outras, e não uma seção aberta (ROTEIRO 4.55). O número
+       de pedidos aparece aqui porque é a única pendência do painel que espera
+       resposta sua — o resto é ajuste, não fila. */
+    {
+      icon: Lock,
+      label: "Privacidade",
+      hint: pedidos > 0 ? `${pedidos} pedido${pedidos === 1 ? "" : "s"}` : undefined,
+      href: "/privacidade",
+    },
     { icon: Settings, label: "Reprodução e download", href: "/settings" },
     { icon: Share2, label: "Convidar amigos", onSelect: convidarAmigos },
     { icon: HelpCircle, label: "Ajuda e suporte", href: "/help" },
@@ -284,116 +270,15 @@ export default function You() {
       <GrupoDoPainel titulo="Seu conteúdo" items={conteudo} />
 
       {/*
-        Privacidade — pedido do Matheus (28/07): o que a sua página pública
-        mostra tem que ser escolha sua. "Ouvindo agora" governa o bloco E o
-        fundo do topo (a capa desfocada também entrega o que está tocando);
-        "meus clubes" esconde só a vitrine — dentro do clube a turma continua
-        te vendo, que é outro contrato.
+        **A privacidade virou uma linha** (ROTEIRO 4.55). Os interruptores viviam
+        expandidos aqui, e o Matheus apontou a inconsistência: todas as outras
+        entradas do painel são uma linha com seta que abre outra tela — só esta
+        estava aberta no meio, empurrando o resto para baixo. Foram para
+        `/privacidade`.
+
+        "Quem te segue" também saiu daqui: foi para a **sua página**, que é onde
+        se procura seguidor (mesmo pedido, mesmo dia).
       */}
-      <section className="px-5" data-testid="you-group-privacidade">
-        <h2 className="pt-5 pb-1 text-[11px] font-semibold text-white/40 uppercase tracking-wider">
-          Privacidade
-        </h2>
-        <div className="border-b border-white/10">
-          <div className="flex items-center gap-4 py-3.5">
-            <div className="w-9 h-9 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
-              <Headphones className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm">Mostrar o que estou ouvindo</p>
-              <p className="text-[11px] text-white/35 mt-0.5">
-                Aparece na sua página, para quem te visita.
-              </p>
-            </div>
-            <Switch
-              checked={ajustes.mostrarOuvindoAgora}
-              onCheckedChange={(ligado) => alternarPrivacidade("mostrarOuvindoAgora", ligado)}
-              aria-label="Mostrar o que estou ouvindo"
-              data-testid="switch-ouvindo-agora"
-            />
-          </div>
-
-          <div className="flex items-center gap-4 py-3.5">
-            <div className="w-9 h-9 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
-              <UsersRound className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm">Mostrar meus clubes</p>
-              <p className="text-[11px] text-white/35 mt-0.5">
-                A lista de clubes na sua página. Dentro deles, a turma sempre te vê.
-              </p>
-            </div>
-            <Switch
-              checked={ajustes.mostrarMeusClubes}
-              onCheckedChange={(ligado) => alternarPrivacidade("mostrarMeusClubes", ligado)}
-              aria-label="Mostrar meus clubes"
-              data-testid="switch-meus-clubes"
-            />
-          </div>
-
-          {/*
-            **Conta privada** (ROTEIRO 4.54). Entra aqui, e não numa tela de
-            configuração nova: privacidade já tem seção, e criar lugar próprio
-            para cada coisa nova é o erro que a §4.53 acabou de condenar.
-
-            A frase de apoio diz o que a tranca **não** faz — o post continua
-            público —, porque essa é a parte que surpreende depois. Escrever já é
-            o ato de tornar público; o que se protege é o que o app registra
-            sozinho.
-          */}
-          <div className="flex items-center gap-4 py-3.5">
-            <div className="w-9 h-9 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
-              <Lock className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm">Conta privada</p>
-              <p className="text-[11px] text-white/35 mt-0.5">
-                Você aprova quem te segue. Seus posts continuam no feed de todos.
-              </p>
-            </div>
-            <Switch
-              checked={ajustes.contaPrivada}
-              onCheckedChange={(ligado) => {
-                alternarPrivacidade("contaPrivada", ligado);
-                toast({
-                  title: ligado ? "Conta privada" : "Conta pública",
-                  description: ligado
-                    ? "Novos seguidores passam pela sua aprovação. Quem já te segue continua."
-                    : "Qualquer pessoa pode te seguir a partir de agora.",
-                });
-              }}
-              aria-label="Conta privada"
-              data-testid="switch-conta-privada"
-            />
-          </div>
-
-          {/* Quem te segue mora ao lado da tranca: é onde ela tem efeito. O
-              contador de pedidos só aparece com a conta privada — com a conta
-              pública não existe fila. */}
-          <Link
-            href="/seguidores"
-            className="flex items-center gap-4 py-3.5 transition-colors hover:bg-white/[0.02]"
-            data-testid="you-seguidores"
-          >
-            <div className="w-9 h-9 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
-              <UserCheck className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm">Quem te segue</p>
-              <p className="text-[11px] text-white/35 mt-0.5">
-                Ver a lista e remover quem quiser.
-              </p>
-            </div>
-            {pedidos > 0 && (
-              <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-black">
-                {pedidos}
-              </span>
-            )}
-            <ChevronRight className="w-4 h-4 text-white/25" />
-          </Link>
-        </div>
-      </section>
-
       <GrupoDoPainel titulo="Conta" items={conta} />
 
       <div className="px-5">

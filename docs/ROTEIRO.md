@@ -4555,6 +4555,91 @@ Agora a aba volta sozinha para a lista quando a fila esvazia.
 
 ---
 
+## 4.55 Privacidade vira tela, seguidores vão para o perfil, e o pedido chega no sino (29/07)
+
+Quatro correções do Matheus depois de usar o que a §4.54 construiu. **Todas
+procedem, e a segunda é uma inconsistência que eu mesmo criei.**
+
+### 1. "Como é que eu vejo e aceito o pedido?"
+
+Não havia caminho: a fila só existia dentro de `/seguidores`, e nada avisava.
+Agora o pedido é **um aviso no sino**, e o cartão traz **os dois botões**
+(aceitar e recusar) — um aviso que só diz "fulano quer te seguir" e obriga a
+caçar outra tela é meia notificação. Aceitar dali some com o aviso e baixa o
+contador do sino na hora (medido: 6 → 5).
+
+**Detalhe de implementação que evita problema:** o pedido é somado ao contador
+**no TopNav**, e não dentro de `unreadNotificationCount()`. Assim
+`seguidores.ts` e `notifications.ts` continuam sem saber uma da outra — quem
+junta é a tela, e não há import circular.
+
+### 2. A privacidade estava expandida no painel; virou uma linha
+
+Palavras dele: *"essa aba de privacidade está muito grande… nas outras,
+notificações e configurações, ela não está expandida"*. Ele está certo, e o
+defeito é meu: **todas as outras entradas do painel são uma linha com seta** que
+abre outra tela — só a privacidade estava aberta ali no meio, empurrando o resto
+para baixo. Agora é `/privacidade`, e no painel sobra a linha (com o número de
+pedidos como etiqueta, porque é a única pendência do painel que espera resposta).
+
+### 3. Seguidores são assunto de perfil, não de configuração
+
+*"Você deveria ver, clicando no seu perfil, quem são as pessoas que te seguem —
+não faz sentido nenhum [estar na privacidade]."* Correto. O contador entrou **na
+linha de números do perfil** (horas · títulos · recomendações · **seguidores**),
+e é o único deles que leva a algum lugar. Pedido pendente aparece como `+1` em
+laranja ao lado.
+
+### 4. Mais controle sobre a vitrine — e um que ele mesmo descartou
+
+Novo interruptor **"O que eu disse"** (comentários e posts reunidos na sua
+página). Tira da **vitrine**; dentro do livro e do clube as falas continuam onde
+foram ditas — o mesmo contrato de "mostrar meus clubes".
+
+**"O que eu recomendo" NÃO ganhou interruptor, por decisão dele:** *"a parte do
+recomenda a gente pode excluir, porque já que ela está recomendando, ela quer que
+as pessoas vejam"*. Recomendar é um ato deliberadamente público; um botão para
+escondê-lo desfaria o gesto. **Registrado para ninguém propor de novo.**
+
+A tela `/privacidade` fica com dois títulos, e a divisão é o princípio da §4.54
+em forma de layout: **"Quem pode te seguir"** (a conta privada — governa *quem*
+vê) e **"O que aparece na sua página"** (ouvindo · o que eu disse · meus clubes —
+governam *o quê*).
+
+---
+
+## 4.56 O perfil precisa girar em torno dos posts (29/07) — decidido, não construído
+
+**Guardado aqui a pedido do Matheus, para entrar junto com a reformulação da
+Comunidade da §4.53.** Ele foi explícito: *"essa parte você não coloca agora,
+porque vai entrar naquela questão da reformulação da comunidade — você só deixa
+registrado no roteiro"*.
+
+**O diagnóstico dele:** *"os posts que a pessoa escreveu têm que estar aqui no
+perfil, e não estão hoje. Isso é um erro gravíssimo."* Hoje a página mostra as
+falas dentro de um bloco "O que eu disse" que mistura comentário de livro com
+post do mural, limitado a três — não existe "os posts dela".
+
+**O que fica decidido para quando o post existir:**
+
+1. **A prioridade do perfil é o post.** Quem abre a página de alguém quer ler o
+   que a pessoa escreveu — é o conteúdo, e vem primeiro.
+2. **Recomendações, comentários e clubes saem da rolagem e viram ícones no
+   topo**, cada um abrindo a sua página: *"talvez a gente poderia colocar um
+   ícone na parte superior onde a pessoa pudesse ver o que essa pessoa
+   recomenda… você abre ali e leva para uma página"*. Isso resolve o mesmo
+   defeito da §4.55 (bloco expandido onde bastava uma porta), agora na vitrine.
+3. **Publicar direto do perfil.** *"Ela não precisaria necessariamente clicar no
+   ícone de comunidade e colocar os posts; ela pode simplesmente ir no perfil
+   dela e publicar aqui."* O post nasce no perfil e **vai para o feed geral** —
+   coerente com a regra assimétrica da §4.53 (o que se escreve é público).
+
+**Por que não foi construído hoje:** o post ainda não existe no formato novo (a
+fala com objeto dentro — capa grande, trecho, clube). Reorganizar o perfil em
+torno de uma peça que ainda vai mudar de forma é construir para refazer.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

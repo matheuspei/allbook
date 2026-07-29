@@ -20,6 +20,7 @@ import { playbackPercent, readPlaybackList, type Playback } from "@/lib/playback
 import { readMyComments } from "@/lib/myComments";
 import { MURAL_EVENT, readMeusPosts } from "@/lib/mural";
 import { readSettings } from "@/lib/settings";
+import { SEGUIDORES_EVENT, meusSeguidores, pedidosPendentes } from "@/lib/seguidores";
 import { catalog, type Book } from "@/lib/books";
 
 /**
@@ -75,6 +76,8 @@ export default function Profile() {
   const [visitante, setVisitante] = useState(false);
   /** Os interruptores de privacidade do painel — a vitrine obedece. */
   const [privacidade, setPrivacidade] = useState(() => readSettings());
+  const [totalSeguidores, setTotalSeguidores] = useState(0);
+  const [pedidos, setPedidos] = useState(0);
 
   useEffect(() => {
     // Relê ao voltar das telas de edição.
@@ -93,6 +96,18 @@ export default function Profile() {
     // Publicou ou apagou um post no mural com a página aberta? A seção relê.
     window.addEventListener(MURAL_EVENT, recarregarFalas);
     return () => window.removeEventListener(MURAL_EVENT, recarregarFalas);
+  }, []);
+
+  /* Seguidores e pedidos: leem na montagem e a cada mudança, porque aceitar ou
+     remover acontece em outra tela e o número aqui não pode ficar velho. */
+  useEffect(() => {
+    const atualizar = () => {
+      setTotalSeguidores(meusSeguidores().length);
+      setPedidos(pedidosPendentes(readSettings().contaPrivada).length);
+    };
+    atualizar();
+    window.addEventListener(SEGUIDORES_EVENT, atualizar);
+    return () => window.removeEventListener(SEGUIDORES_EVENT, atualizar);
   }, []);
 
   function recarregarFalas() {
@@ -340,6 +355,26 @@ export default function Profile() {
               {recommendations.length === 1 ? "recomendação" : "recomendações"}
             </p>
           </div>
+
+          {/*
+            **Seguidores moram aqui** (ROTEIRO 4.55). Estavam atrás do painel, na
+            seção de privacidade, e o Matheus apontou: *"você deveria ver,
+            clicando no seu perfil, quem são as pessoas que te seguem — não faz
+            sentido nenhum"*. Está certo: seguidor é assunto de perfil, como em
+            qualquer app onde isso existe. Entra na mesma linha dos números,
+            porque é um número — e é o único deles que leva a algum lugar.
+          */}
+          {!visitante && (
+            <Link href="/seguidores" className="group" data-testid="profile-seguidores">
+              <p className="font-display text-base font-bold leading-none transition-colors group-hover:text-primary">
+                {totalSeguidores}
+              </p>
+              <p className="mt-1 text-[10px] text-white/40">
+                {totalSeguidores === 1 ? "seguidor" : "seguidores"}
+                {pedidos > 0 && <span className="ml-1 font-semibold text-primary">+{pedidos}</span>}
+              </p>
+            </Link>
+          )}
         </section>
       )}
 
@@ -436,7 +471,10 @@ export default function Profile() {
         )}
       </section>
 
-      {falas.length > 0 && (
+      {/* O interruptor "O que eu disse" (ROTEIRO 4.55) tira da **vitrine** o
+          histórico de falas; dentro do livro e do clube elas continuam onde
+          foram ditas — o mesmo contrato de "mostrar meus clubes". */}
+      {privacidade.mostrarMeusComentarios && falas.length > 0 && (
         <section className="border-b border-white/10 px-5 py-5" data-testid="section-profile-comments">
           <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-white/40">
             O que eu disse

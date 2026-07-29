@@ -276,6 +276,22 @@ O app já promete estas coisas na tela. Nenhuma funciona sem servidor:
 `allbook_seguidores` — `{aceitos[], recusados[], removidos[]}`, slugs de
 `community.ts`. **Vira relação entre contas; não migrar como está.**
 
+**Acrescentado em 29/07 (§4.55 do ROTEIRO), e também é contrato:**
+
+- [ ] **O pedido chega como notificação**, com aceitar/recusar no próprio aviso
+      (`/notifications`). O servidor precisa emitir dois eventos distintos:
+      `pediu_para_seguir` (só com conta privada) e `comecou_a_seguir` (conta
+      pública). **Recusar e remover não emitem nada.**
+- [ ] **O contador do sino soma os pedidos pendentes.** Hoje o TopNav faz a soma
+      no cliente para evitar import circular; com API, é um número só vindo do
+      servidor.
+- [ ] **Três chaves de vitrine em `allbook_settings`** governam o que a página
+      pública mostra: `mostrarOuvindoAgora`, `mostrarMeusComentarios` (novo) e
+      `mostrarMeusClubes`. **Elas filtram a API, não a tela** — o mesmo
+      raciocínio da atividade: filtrar no front seria mandar e depois esconder.
+- [ ] **Não existe chave para "o que eu recomendo"**, por decisão do Matheus
+      (recomendar é público por natureza). Não inventar uma no backend.
+
 ---
 
 ## 4. Ordem sugerida

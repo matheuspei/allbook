@@ -4,6 +4,8 @@ import { Bell, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import BuscaSobreposta from "@/components/BuscaSobreposta";
 import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notifications";
+import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
+import { readSettings } from "@/lib/settings";
 import { initialOf, readProfile } from "@/lib/profile";
 
 export default function TopNav() {
@@ -11,7 +13,12 @@ export default function TopNav() {
   const [scrolled, setScrolled] = useState(false);
   const [buscando, setBuscando] = useState(false);
   // Quantos avisos ainda não lidos: respostas "responderam você" + avisos de
-  // sistema. É o que acende e conta a marca do sino. Zero = sino limpo.
+  // sistema + **pedidos para te seguir** (ROTEIRO 4.55). É o que acende e conta
+  // a marca do sino. Zero = sino limpo.
+  //
+  // O pedido é somado **aqui**, e não dentro de `unreadNotificationCount()`,
+  // para não criar import circular: `seguidores.ts` e `notifications.ts` ficam
+  // sem saber uma da outra, e quem junta é a tela.
   const [unread, setUnread] = useState(0);
   // A sua cara no topo — desde que o Perfil saiu do menu de baixo (28/07,
   // ROTEIRO 4.41), o avatar é a porta da sua página. Relido a cada troca de
@@ -23,15 +30,20 @@ export default function TopNav() {
   }, [location]);
 
   useEffect(() => {
-    const refresh = () => setUnread(unreadNotificationCount());
+    const refresh = () =>
+      setUnread(
+        unreadNotificationCount() + pedidosPendentes(readSettings().contaPrivada).length,
+      );
     refresh();
     // O evento cobre a mesma aba (você respondeu → chegou aviso; abriu a tela e
     // leu → some). O `storage` cobre a outra aba: o localStorage é compartilhado,
     // então ler numa aba apaga a marca na outra.
     window.addEventListener(NOTIFICATIONS_EVENT, refresh);
+    window.addEventListener(SEGUIDORES_EVENT, refresh);
     window.addEventListener("storage", refresh);
     return () => {
       window.removeEventListener(NOTIFICATIONS_EVENT, refresh);
+      window.removeEventListener(SEGUIDORES_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
   }, []);

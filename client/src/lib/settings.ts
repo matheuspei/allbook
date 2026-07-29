@@ -44,6 +44,22 @@ export interface Settings {
    * **atividade** (está ouvindo, comentou, avaliou, entrou num clube).
    */
   contaPrivada: boolean;
+  /**
+   * A sua página pública mostra **o que você disse** (comentários nos livros e
+   * posts do mural)?
+   *
+   * Pedido do Matheus em 29/07: *"se ela quer que as pessoas vejam o que ela
+   * disse"*. Ligado por padrão — quem comenta num livro já está falando em
+   * público; o interruptor serve para tirar da **vitrine** o histórico, não para
+   * apagar as falas de onde elas foram ditas (dentro do livro elas continuam,
+   * que é outro contrato — o mesmo raciocínio de "mostrar meus clubes").
+   *
+   * **Não existe interruptor para "o que eu recomendo", e é decisão dele:**
+   * *"a parte do recomenda a gente pode excluir, porque já que ela está
+   * recomendando, ela quer que as pessoas vejam"*. Recomendar é um ato
+   * deliberadamente público — esconder seria desfazer o gesto.
+   */
+  mostrarMeusComentarios: boolean;
 }
 
 /** Os mesmos degraus oferecidos dentro do player, para não haver duas escalas. */
@@ -54,6 +70,7 @@ export const defaultSettings: Settings = {
   mostrarOuvindoAgora: true,
   mostrarMeusClubes: true,
   contaPrivada: false,
+  mostrarMeusComentarios: true,
 };
 
 export function readSettings(): Settings {
@@ -77,6 +94,10 @@ export function readSettings(): Settings {
         typeof stored.contaPrivada === "boolean"
           ? stored.contaPrivada
           : defaultSettings.contaPrivada,
+      mostrarMeusComentarios:
+        typeof stored.mostrarMeusComentarios === "boolean"
+          ? stored.mostrarMeusComentarios
+          : defaultSettings.mostrarMeusComentarios,
     };
   } catch {
     return defaultSettings;
