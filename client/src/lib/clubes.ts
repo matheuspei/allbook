@@ -1086,41 +1086,25 @@ export function capituloDaRoda(clube: Clube): number {
  * São **figurantes declarados**: aparecem como membros e na régua do grupo, e a
  * tela do clube já diz, no rodapé, que os outros membros são fictícios.
  * ------------------------------------------------------------------ */
-const figurantes: { slug: string; nome: string; cor: string }[] = [
-  { slug: "tereza-m", nome: "Tereza M.", cor: "from-emerald-500 to-teal-600" },
-  { slug: "gustavo-a", nome: "Gustavo A.", cor: "from-sky-500 to-blue-600" },
-  { slug: "nara", nome: "Nara", cor: "from-fuchsia-500 to-purple-600" },
-  { slug: "elias", nome: "Elias", cor: "from-amber-500 to-orange-600" },
-  { slug: "bia-costa", nome: "Bia Costa", cor: "from-rose-400 to-red-500" },
-  { slug: "hugo-p", nome: "Hugo P.", cor: "from-lime-500 to-green-600" },
-  { slug: "sandra-l", nome: "Sandra L.", cor: "from-violet-500 to-indigo-600" },
-  { slug: "caio", nome: "Caio", cor: "from-cyan-500 to-sky-600" },
-  { slug: "renata-v", nome: "Renata V.", cor: "from-pink-500 to-rose-600" },
-  { slug: "otavio", nome: "Otávio", cor: "from-orange-500 to-amber-600" },
-  { slug: "lia-f", nome: "Lia F.", cor: "from-teal-500 to-emerald-600" },
-  { slug: "dani-r", nome: "Dani R.", cor: "from-indigo-500 to-violet-600" },
-  { slug: "paulo-s", nome: "Paulo S.", cor: "from-red-500 to-rose-600" },
-  { slug: "iara", nome: "Iara", cor: "from-green-500 to-lime-600" },
-  { slug: "vitor-h", nome: "Vitor H.", cor: "from-blue-500 to-cyan-600" },
-  { slug: "marina-t", nome: "Marina T.", cor: "from-purple-500 to-fuchsia-600" },
-];
+/*
+ * A lista de figurantes que ficava aqui **foi promovida a gente de verdade** em
+ * 29/07: os 16 estão em `community.ts`, com bio e página própria. O defeito que
+ * motivou a mudança apareceu no cartão de clube do feed — *"moderado por Elias"*
+ * não era clicável, porque o Elias não existia como pessoa em lugar nenhum.
+ *
+ * **A regra que fica: quem aparece no app tem página.** E o nome de cada um
+ * passa a viver num lugar só, em vez de duplicado em duas listas que podiam
+ * divergir.
+ */
 
 /** O nome de um membro, resolvido — `EU` vira "Você". */
 export function nomeDoMembro(slug: string): string {
   if (slug === EU) return "Você";
-  return (
-    community.find((membro) => membro.slug === slug)?.name ??
-    figurantes.find((membro) => membro.slug === slug)?.nome ??
-    "Alguém"
-  );
+  return community.find((membro) => membro.slug === slug)?.name ?? "Alguém";
 }
 
 /** A cor do avatar de um membro (a mesma de `community.ts`). */
 export function corDoMembro(slug: string): string {
   if (slug === EU) return "from-primary to-[#f59e0b]";
-  return (
-    community.find((membro) => membro.slug === slug)?.color ??
-    figurantes.find((membro) => membro.slug === slug)?.cor ??
-    "from-white/20 to-white/10"
-  );
+  return community.find((membro) => membro.slug === slug)?.color ?? "from-white/20 to-white/10";
 }

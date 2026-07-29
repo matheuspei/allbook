@@ -178,8 +178,38 @@ export const community: CommunityMember[] = [
       { bookId: 201, date: "2026-06-08" },
     ],
   },
+  /* ------------------------------------------------------------------ *
+   * Os 16 que vieram dos clubes (promovidos em 29/07)
+   *
+   * Eles nasceram como "figurantes" dentro de `clubes.ts` — só slug, nome e
+   * cor — para encher as turmas semeadas. O Matheus achou o defeito disso pelo
+   * uso: no cartão de um clube, *"moderado por Elias"* não era clicável, porque
+   * o Elias não existia como pessoa em lugar nenhum.
+   *
+   * **A regra que fica: quem aparece no app tem página.** Um nome que a
+   * interface mostra e não deixa abrir é um beco sem saída (§4.23).
+   *
+   * Entram com **bio e nada mais inventado** — sem horas fabricadas em massa,
+   * sem conquistas, sem recomendações. O que a página deles mostra é o que é
+   * verdade: quem são e em que clubes estão.
+   * ------------------------------------------------------------------ */
+  { slug: "tereza-m", name: "Tereza M.", bio: "Leio devagar e releio. Clube é o jeito de eu não abandonar no meio.", color: "from-emerald-500 to-teal-600", memberSince: "março de 2025", hoursListened: 64, achievementIds: ["primeira-escuta"], recommendations: [] },
+  { slug: "gustavo-a", name: "Gustavo A.", bio: "Ficção científica e história. Se tiver mapa no começo, eu topo.", color: "from-sky-500 to-blue-600", memberSince: "maio de 2025", hoursListened: 88, achievementIds: ["primeira-escuta"], recommendations: [] },
+  { slug: "nara", name: "Nara", bio: "Ouço cozinhando. Livro bom é o que me faz queimar o arroz.", color: "from-fuchsia-500 to-purple-600", memberSince: "fevereiro de 2025", hoursListened: 121, achievementIds: ["primeira-escuta", "constante"], recommendations: [] },
+  { slug: "elias", name: "Elias", bio: "Modero dois clubes. Gosto mais de discutir livro do que de ler sozinho.", color: "from-amber-500 to-orange-600", memberSince: "novembro de 2024", hoursListened: 190, achievementIds: ["primeira-escuta", "voz-ativa"], recommendations: [] },
+  { slug: "bia-costa", name: "Bia Costa", bio: "Terror só de dia. Aprendi do jeito difícil.", color: "from-rose-400 to-red-500", memberSince: "junho de 2025", hoursListened: 45, achievementIds: ["primeira-escuta"], recommendations: [] },
+  { slug: "hugo-p", name: "Hugo P.", bio: "Corro e ouço. Meia hora de rua, meia hora de capítulo.", color: "from-lime-500 to-green-600", memberSince: "abril de 2025", hoursListened: 133, achievementIds: ["primeira-escuta", "maratonista"], recommendations: [] },
+  { slug: "sandra-l", name: "Sandra L.", bio: "Clássicos, sem pressa. Já reli Austen inteira duas vezes.", color: "from-violet-500 to-indigo-600", memberSince: "janeiro de 2025", hoursListened: 176, achievementIds: ["primeira-escuta", "constante"], recommendations: [] },
+  { slug: "caio", name: "Caio", bio: "Entro em todo clube que abre. Termino uns dois de cada três.", color: "from-cyan-500 to-sky-600", memberSince: "julho de 2025", hoursListened: 39, achievementIds: ["primeira-escuta"], recommendations: [] },
+  { slug: "renata-v", name: "Renata V.", bio: "Narração me decide mais que sinopse. Voz errada, livro morto.", color: "from-pink-500 to-rose-600", memberSince: "março de 2025", hoursListened: 97, achievementIds: ["primeira-escuta"], recommendations: [] },
+  { slug: "otavio", name: "Otávio", bio: "Não ficção pesada e podcast leve. Equilíbrio.", color: "from-orange-500 to-amber-600", memberSince: "agosto de 2025", hoursListened: 58, achievementIds: ["primeira-escuta"], recommendations: [] },
+  { slug: "lia-f", name: "Lia F.", bio: "Só termino livro que me deixa com raiva ou com saudade.", color: "from-teal-500 to-emerald-600", memberSince: "maio de 2025", hoursListened: 72, achievementIds: ["primeira-escuta"], recommendations: [] },
+  { slug: "dani-r", name: "Dani R.", bio: "Romance sem culpa nenhuma. E fantasia quando o mundo aperta.", color: "from-indigo-500 to-violet-600", memberSince: "fevereiro de 2025", hoursListened: 145, achievementIds: ["primeira-escuta", "constante"], recommendations: [] },
+  { slug: "paulo-s", name: "Paulo S.", bio: "Biografia de gente difícil. Aprendo mais com erro alheio.", color: "from-red-500 to-rose-600", memberSince: "outubro de 2024", hoursListened: 205, achievementIds: ["primeira-escuta", "centenario"], recommendations: [] },
+  { slug: "iara", name: "Iara", bio: "Ouço à noite, no escuro, com o fone bom. É quase cinema.", color: "from-green-500 to-lime-600", memberSince: "junho de 2025", hoursListened: 61, achievementIds: ["primeira-escuta", "coruja"], recommendations: [] },
+  { slug: "vitor-h", name: "Vitor H.", bio: "Mistério e policial. Tento sempre descobrir antes do fim.", color: "from-blue-500 to-cyan-600", memberSince: "abril de 2025", hoursListened: 112, achievementIds: ["primeira-escuta"], recommendations: [] },
+  { slug: "marina-t", name: "Marina T.", bio: "Leio o que o clube escolher. É assim que eu descubro coisa nova.", color: "from-purple-500 to-fuchsia-600", memberSince: "julho de 2025", hoursListened: 51, achievementIds: ["primeira-escuta"], recommendations: [] },
 ];
-
 /**
  * Acha o leitor pelo nome como ele aparece escrito, por exemplo num comentário
  * de livro ("Marcos V."). É por aqui que os comentários viram links de perfil.

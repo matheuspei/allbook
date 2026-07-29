@@ -3,7 +3,7 @@ import { ArrowRight, CalendarClock, Users } from "lucide-react";
 
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { catalog, slugify } from "@/lib/books";
-import { clubePorId, nomeDoMembro, souDono, vagasRestantes } from "@/lib/clubes";
+import { EU, clubePorId, corDoMembro, nomeDoMembro, souDono, vagasRestantes, type Clube } from "@/lib/clubes";
 import { findMember } from "@/lib/community";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { initialOf, readProfile } from "@/lib/profile";
@@ -238,6 +238,7 @@ function CartaoDoClube({ clubeId }: { clubeId: string }) {
    */
   const meu = souDono(clube);
   const donoTemPagina = findMember(clube.donoSlug) !== undefined;
+  const [vendoMembros, setVendoMembros] = useState(false);
 
   return (
     <div
@@ -277,16 +278,31 @@ function CartaoDoClube({ clubeId }: { clubeId: string }) {
             </p>
           )}
 
+          {/*
+            **Os dois números viraram alvos** (29/07, pedido do Matheus: *"as
+            quatro pessoas também não são links clicáveis"*). Número que descreve
+            algo que existe no app e não leva até ele é informação que morre na
+            tela. As pessoas abrem a lista **aqui mesmo**, sem sair do feed; as
+            etapas abrem o clube, onde o ritmo mora.
+          */}
           <div className="mt-2 flex items-center gap-3 text-[11px]">
-            <span className="flex items-center gap-1 text-white/60">
+            <button
+              onClick={() => setVendoMembros(true)}
+              className="flex items-center gap-1 text-white/60 underline-offset-2 hover:text-white hover:underline"
+              data-testid="clube-membros"
+            >
               <Users className="h-3 w-3" />
               {clube.membros.length} {clube.membros.length === 1 ? "pessoa" : "pessoas"}
-            </span>
-            <span className="flex items-center gap-1 text-white/60">
+            </button>
+            <Link
+              href={`/clube/${clube.id}`}
+              className="flex items-center gap-1 text-white/60 underline-offset-2 hover:text-white hover:underline"
+              data-testid="clube-etapas"
+            >
               <CalendarClock className="h-3 w-3" />
               {clube.ciclo.marcos.length}{" "}
               {clube.ciclo.marcos.length === 1 ? "etapa" : "etapas"}
-            </span>
+            </Link>
           </div>
         </div>
       </div>
@@ -322,6 +338,90 @@ function CartaoDoClube({ clubeId }: { clubeId: string }) {
           Entrar
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
+      </div>
+
+      {vendoMembros && (
+        <QuemEstaNoClube clube={clube} onFechar={() => setVendoMembros(false)} />
+      )}
+    </div>
+  );
+}
+
+/**
+ * A turma do clube, numa folha — e **cada nome abre a página da pessoa**.
+ *
+ * Pedido do Matheus em 29/07: *"esses quatro membros, eu também teria que ver
+ * quem são; deveria abrir uma listinha e aí eu poderia clicar nos membros"*.
+ *
+ * Abre **sem sair do feed**, de propósito: ver quem está numa turma é curiosidade
+ * de passagem, e mandar a pessoa para outra tela por isso a faria perder o lugar
+ * na rolagem.
+ */
+function QuemEstaNoClube({ clube, onFechar }: { clube: Clube; onFechar: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[160] flex items-end bg-black/55 backdrop-blur-xs animate-in fade-in duration-200"
+      onClick={onFechar}
+      data-testid="folha-de-membros"
+    >
+      <div
+        className="max-h-[75vh] w-full overflow-y-auto rounded-t-[28px] border-t border-white/10 bg-[#1a1a1a] p-5 pb-9 animate-in slide-in-from-bottom duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto -mt-1 mb-4 h-1.5 w-12 rounded-full bg-white/15" />
+        <h2 className="font-display text-lg font-bold">{clube.nome}</h2>
+        <p className="mt-0.5 text-xs text-white/40">
+          {clube.membros.length} {clube.membros.length === 1 ? "pessoa" : "pessoas"} nesta turma
+        </p>
+
+        <div className="mt-4 space-y-1">
+          {clube.membros.map((slug) => {
+            const ehVoce = slug === EU;
+            const temPagina = findMember(slug) !== undefined;
+            const conteudo = (
+              <>
+                <span
+                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(
+                    slug,
+                  )} font-display text-sm font-bold`}
+                >
+                  {nomeDoMembro(slug).charAt(0)}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold">
+                    {nomeDoMembro(slug)}
+                    {slug === clube.donoSlug && (
+                      <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/50">
+                        modera
+                      </span>
+                    )}
+                  </span>
+                  {findMember(slug)?.bio && (
+                    <span className="block truncate text-[11px] text-white/35">
+                      {findMember(slug)?.bio}
+                    </span>
+                  )}
+                </span>
+              </>
+            );
+
+            return ehVoce || !temPagina ? (
+              <div key={slug} className="flex items-center gap-3 rounded-xl px-2 py-2">
+                {conteudo}
+              </div>
+            ) : (
+              <Link
+                key={slug}
+                href={`/user/${slug}`}
+                onClick={onFechar}
+                className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/[0.06]"
+                data-testid={`membro-${slug}`}
+              >
+                {conteudo}
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
