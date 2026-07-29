@@ -4834,6 +4834,71 @@ rede social": é o livro circulando pela voz das pessoas. É isso que resolve o
    definir o **como** (abaixo).
 5. **Cartão de áudio com a capa grande** — aprovado. É item 9 da tabela.
 
+### ✅ FECHADO em 29/07 (à noite) — as oito respostas
+
+Os oito pontos abaixo foram decididos na conversa. **A lista original fica logo
+adiante, com as recomendações, para se entender de onde cada decisão veio.**
+
+1. **Atividade de clube → sino.** O que acontece **no seu clube** (perguntaram,
+   abriu votação, o prazo vence) é notificação, porque cobra ação sua. O que é
+   **vida dos outros** ("Carla criou um clube") vai para o Seguindo.
+2. **Pergunta é um tipo de post**, com selo e "responder com um livro" — não uma
+   aba. O que a aba tinha de bom (juntar as sem resposta) vira **filtro** no feed.
+3. **Curtir sim; comentar sim, raso** (um nível). E **compartilhar** —
+   republicar no seu perfil — aprovado pelo Matheus.
+4. **Post só de texto é permitido, nunca o padrão.** O compositor abre com os
+   anexos à mão. Texto puro ganha tratamento tipográfico para ter presença.
+5. **"Áudio no post" = o trecho do livro** (a citação de 40s, que já existe).
+   **Gravar a própria voz continua rejeitado** (§4.39), e o Matheus confirmou:
+   *"a gente já deixou rejeitado, agora está descartado"*.
+6. **O item do "botão sem nome" foi riscado** — nenhum dos dois lembrava a que
+   se referia.
+7. **O que morre da Comunidade de hoje:** mural, lista de todo mundo e a fileira
+   "Seguindo" morrem. **"Ouvindo agora" não morre — muda de lugar**, vai para o
+   Seguindo (é atividade, e é a única vitrine que só um app de audiolivro tem).
+   **"Combina com você" também sobrevive**, mas não como bloco fixo: vira
+   **cartão ocasional dentro do Seguindo**, com o motivo medido, para não virar
+   parede de gente (receio do Matheus, que é o mesmo meu).
+8. **"Trechos quentes da semana": entra.** **"Quem está no seu trecho agora":
+   entra também** — eu era contra e **perdi o argumento**. Registro por quê:
+   - **Meu argumento do "não tem servidor" estava errado**, e ele apontou: o app
+     inteiro é maquete esperando backend; rejeitar por isso rejeitaria tudo.
+   - **O mecanismo que ele propôs resolve a privacidade:** opcional **e
+     recíproco** — quem não mostra, não vê —, e só entre quem se segue.
+   - **Condição que eu defendi e ficou:** **granularidade grossa** — mostrar
+     *"está no capítulo 12"*, nunca *"ouvindo agora, neste segundo"*. Entrega
+     quase todo o valor ("tem gente perto de mim neste livro") e tira o que é
+     de fato sensível: presença ao vivo revela **rotina**.
+   - **Anotado sobre a reciprocidade:** ela pressiona a ligar (quem não liga
+     fica cego). É bom mecanismo, mas não é neutro — por isso **nasce desligada**.
+
+### Decisões de clube tomadas na mesma conversa
+
+- **O fim do ciclo já estava resolvido, e o Matheus redescobriu:** a **votação do
+  próximo livro** (`VotacaoDoClube`) + a **estante** fazem o clube continuar. O
+  que ele descreveu — *"muda o nome, escolhe o próximo livro"* — é isso.
+- **Falta poder renomear o clube.** Hoje o nome é fixo desde a criação, e um
+  clube que troca de assunto precisa trocar de nome. **A construir.**
+- **A votação passa a aceitar de 2 a 5 opções**, com **3 sugerido**. O argumento
+  que motivou o 3 continua válido e fica registrado: *com 5 opções e 8 pessoas, o
+  vencedor sai com 3 votos* — cinco pessoas ficam com um livro que não
+  escolheram. Empate: desempata o dono.
+- **Lista de espera** quando o clube enche, com teto de **250** (número do
+  Matheus). **A "turma 2" que eu propus foi retirada** — ele perguntou por que
+  existiria, se o moderador já pode aumentar o limite ou criar outro clube, e eu
+  **não consegui fundamentar**. Fica o alerta, sem bloqueio: acima de ~30 pessoas
+  a conversa por capítulo vira ruído, e o clube começa a virar fórum (§4.43).
+- **Quem perde a votação ganha uma saída** (peça nova, nascida da pergunta dele
+  "como essa pessoa vai para o outro clube?"): ao fechar a votação, quem votou no
+  livro derrotado vê *"3 pessoas também queriam X — criar um clube desse livro?"*,
+  com o formulário já preenchido. Resolve três coisas: dá destino a quem perdeu,
+  compensa o custo de ter 5 opções, e faz o clube **se multiplicar sozinho**. É a
+  "turma 2" nascendo do lugar certo — não porque encheu, mas porque um grupo
+  queria outro livro.
+- **Rejeitado: redirecionar gente de um clube para outro.** Quem não gosta do
+  próximo livro **sai** (o botão existe). Mover pessoa sem que ela peça é decidir
+  por ela.
+
 ### Em aberto — o que precisa da sua palavra antes de construir
 
 1. **Atividade de clube: sino ou Seguindo?** (recomendo: sino para o que pede
@@ -4856,16 +4921,24 @@ rede social": é o livro circulando pela voz das pessoas. É isso que resolve o
 8. **"Trechos quentes da semana" e "quem está no seu trecho agora"** (da 3ª
    captura) entram? Não foram comentados.
 
-### Ordem de construção proposta
+### Ordem de construção (com as oito já decididas)
 
 1. **O cartão do post**, nas três formas (com livro · com trecho · com clube) —
-   sozinho, sem tela. Se ele não sair do cru, nada em volta salva.
-2. **O compositor**: escrever + anexar (livro, trecho, clube).
-3. **O feed** com as duas lentes (Feed · Seguindo) e os cartões de clube/fórum
-   intercalados.
-4. **Convite para clube** pela página da pessoa, com aceitar no sino.
-5. **O perfil girando em torno dos posts** (§4.56) — depende de 1 e 2.
-6. **Capa grande no cartão de trecho** — pode entrar junto de 1, é a mesma peça.
+   sozinho, sem tela. Se ele não sair do cru, nada em volta salva. **A capa
+   grande no cartão de trecho entra aqui**, é a mesma peça.
+2. **O compositor**: escrever + anexar (livro, trecho, clube), com o tipo
+   **pergunta** e o post de texto puro com tratamento tipográfico.
+3. **O feed** com as duas lentes (Feed · Seguindo), os cartões de clube/fórum
+   intercalados, curtir/comentar raso e compartilhar.
+4. **O Seguindo**: atividade em linha + "ouvindo agora" + "combina com você"
+   como cartão ocasional.
+5. **Convite para clube** pela página da pessoa, com aceitar no sino.
+6. **O perfil girando em torno dos posts** (§4.56) — depende de 1 e 2.
+
+**Fora do caminho crítico, e independentes** (dá para fazer a qualquer momento):
+renomear o clube · votação de 2 a 5 opções · lista de espera com teto de 250 ·
+"quem perdeu a votação funda um clube" · trechos quentes · presença por capítulo
+(com opt-in recíproco).
 
 ---
 
