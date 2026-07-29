@@ -4456,6 +4456,75 @@ do cru, a tela em volta não salva.
 
 ---
 
+## 4.54 Conta privada: a tranca é sobre o que o app registra, não sobre o que você diz (29/07)
+
+**Nada construído — alinhamento antes de codar, a pedido do Matheus.** Segue a
+§4.53, e é a consequência natural dela.
+
+O pedido: *"eu sou uma pessoa que talvez não queira que as pessoas vejam o que eu
+estou fazendo… se ele é privado, eu tenho que dizer se aceito ou não quem está me
+seguindo, como é hoje no Instagram"*.
+
+### A decisão, e o princípio por trás
+
+|  | Perfil público | Perfil privado |
+| --- | --- | --- |
+| **Post** (o que escrevi) | vai ao feed geral | **vai ao feed geral, igual** |
+| **Atividade** (o que fiz) | só seguidores | só seguidores **aprovados** |
+| **Virar seguidor** | automático | **você aprova** |
+
+Palavras do Matheus: *"se eu escrevo para geral, eu já escolhi falar para a
+comunidade… o que ele não vai mostrar são as minhas atividades dentro do
+aplicativo"*.
+
+**O princípio: escrever já é o ato de tornar público.** A tranca não protege o
+que você **diz** — protege o que o app **registra sozinho**: que você está no
+capítulo 3, que entrou num clube, que avaliou um livro. É a mesma linha que
+separa Feed de Seguindo na §4.53, agora aplicada à privacidade.
+
+**Rejeitado, com motivo:** o modelo Instagram puro (privado esconde tudo,
+inclusive os posts). Duas razões — o feed geral perderia gente justamente quando
+mais precisa de conteúdo; e a pessoa privada ficaria sem entender por que ninguém
+a lê, tendo escolhido publicar.
+
+### O que isso simplifica
+
+**"Privado" deixa de ser um modo do app e vira uma pergunta:** *quem vira seu
+seguidor — qualquer um, ou só quem você aprovar?* Como a atividade **já** é
+restrita a seguidores nos dois casos (§4.53), não existem duas versões de tela
+nem dois cálculos de visibilidade. É um interruptor e uma fila de pedidos.
+
+### Onde mora: no painel que já existe
+
+**Não se cria aba de configuração.** O painel **"Você"** já tem a seção
+**Privacidade**, com "Mostrar o que estou ouvindo" e "Mostrar meus clubes";
+**"Conta privada"** entra ali como terceiro item, e a fila de pedidos aparece
+logo abaixo quando está ligada. Dar tela própria a isso seria repetir o erro que
+a §4.53 acabou de condenar na Comunidade: coisa nova ganhando lugar próprio em
+vez de entrar onde pertence.
+
+### O pacote completo tem três peças, e duas só doem depois
+
+1. **Aprovar ou recusar** quem pede para seguir, com aviso no sino.
+2. **Remover um seguidor** já aceito — sem isso, um "sim" dado às pressas é para
+   sempre.
+3. **Fechar a porta depois:** ao virar privado, quem já seguia continua seguindo?
+   (O Instagram mantém.) Se for para cortar, precisa de "remover todos".
+
+**Pré-requisito duro:** isto é **servidor**. Pedido pendente, aprovação e
+notificação não funcionam só no navegador — é a **primeira peça da Comunidade que
+exige o backend** para valer de verdade. Dá para maquetar antes; não dá para
+lançar antes. Ver `docs/BANCO-DE-DADOS.md`.
+
+### Duas escolhas menores, ainda com o Matheus
+
+- **O perfil nasce público ou privado?** Recomendação: **público** — no começo o
+  app precisa de circulação, e quem quer se fechar acha o interruptor.
+- **Quem é privado aparece nas sugestões de gente?** Recomendação: **sim, com o
+  cadeado** — senão a pessoa privada fica invisível e nunca recebe pedido nenhum.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
