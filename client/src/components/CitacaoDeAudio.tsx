@@ -32,13 +32,70 @@ import { savePlaying } from "@/lib/playback";
 export default function CitacaoDeAudio({
   citacao,
   compacto,
+  grande,
 }: {
   citacao: Citacao;
   /** Dentro da ficha do próprio livro a capa é redundante — some. */
   compacto?: boolean;
+  /**
+   * A versão com a **capa ao fundo** — para o feed, onde o trecho é o conteúdo
+   * do cartão e não um anexo de um texto.
+   *
+   * Pedido do Matheus em 29/07, comparando com uma maquete antiga: *"esse áudio
+   * está bem melhor do que o que a gente implementou, porque você consegue ver
+   * o ícone maior da capa"*. Ele tem razão, e o motivo é o mesmo que sustenta a
+   * §4.53: **é a capa que dá corpo visual**; miniatura de 48px é informação,
+   * capa grande é presença.
+   */
+  grande?: boolean;
 }) {
   const livro = livroDaCitacao(citacao);
   if (!livro) return null;
+
+  if (grande) {
+    return (
+      <Link
+        href={linkDaCitacao(citacao)}
+        onClick={() => savePlaying(true)}
+        className="block overflow-hidden rounded-xl bg-white/[0.05] ring-1 ring-inset ring-white/8 transition-colors hover:bg-white/[0.09]"
+        data-testid="citacao-de-audio"
+      >
+        <span className="relative block h-32">
+          <img src={livro.cover} alt={livro.title} className="h-full w-full object-cover" />
+          <span className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/50 to-transparent" />
+          <span className="absolute inset-x-0 bottom-0 p-3">
+            <span className="block truncate font-display text-[15px] font-bold">{livro.title}</span>
+            <span className="mt-0.5 block truncate text-[11px] text-white/55">{livro.author}</span>
+          </span>
+        </span>
+
+        <span className="flex items-center gap-3 px-3 py-2.5">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-black">
+            <Play className="h-4 w-4 fill-current" />
+          </span>
+
+          {/* A onda ocupa o vão e diz "isto toca" antes de qualquer texto.
+              Desenhada, não medida — não há áudio para ler (ver abaixo). */}
+          <span className="flex h-8 flex-1 items-center gap-[3px] overflow-hidden" aria-hidden>
+            {Array.from({ length: 30 }, (_, i) => (
+              <span
+                key={i}
+                className="w-[3px] shrink-0 rounded-full bg-primary/40"
+                style={{ height: 5 + ((i * 37) % 22) }}
+              />
+            ))}
+          </span>
+
+          <span className="shrink-0 text-right">
+            <span className="block text-[11.5px] font-bold text-primary">
+              {citacao.duracaoSec}s
+            </span>
+            <span className="block text-[10px] text-white/35">{rotuloDaCitacao(citacao)}</span>
+          </span>
+        </span>
+      </Link>
+    );
+  }
 
   return (
     <Link

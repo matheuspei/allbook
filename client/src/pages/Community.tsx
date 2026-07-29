@@ -4,7 +4,9 @@ import { Check, ChevronRight, Plus } from "lucide-react";
 
 import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
 import ConversasDeAgora from "@/components/ConversasDeAgora";
-import MuralDaComunidade from "@/components/MuralDaComunidade";
+import CartaoDePost from "@/components/comunidade/CartaoDePost";
+import { todosOsPosts, type Post } from "@/lib/posts";
+import { MURAL_EVENT } from "@/lib/mural";
 import { useToast } from "@/hooks/use-toast";
 import {
   ouvindoAgoraNaComunidade,
@@ -43,7 +45,7 @@ const ABAS: { key: Aba; label: string }[] = [
   // "Mural" nomeia o coração; "Fóruns" diz o que a aba é sem confundir com o
   // clube de leitura — a troca de 28/07 (ROTEIRO 4.44).
   // hoje (28/07 — "Conversas" e "Rodas de conversa" caíram por pedido).
-  { key: "agora", label: "Mural" },
+  { key: "agora", label: "Feed" },
   { key: "grupos", label: "Fóruns" },
   { key: "pessoas", label: "Pessoas" },
 ];
@@ -146,7 +148,36 @@ function AbaAgora() {
         </section>
       )}
 
-      <MuralDaComunidade />
+      <FeedDePosts />
+    </div>
+  );
+}
+
+/**
+ * O feed — a primeira leva da Comunidade nova (ROTEIRO §4.53–§4.58).
+ *
+ * **Esta versão é só a lista de cartões, de propósito.** Ainda não tem o
+ * compositor, as duas lentes (Feed · Seguindo), curtir/comentar nem os cartões
+ * de clube e fórum intercalados. A ordem combinada com o Matheus era ver **o
+ * cartão** primeiro: se ele não sair do cru, a tela em volta não salva.
+ *
+ * Ordem cronológica pura, sem algoritmo — decisão registrada na §4.58.
+ */
+function FeedDePosts() {
+  const [posts, setPosts] = useState<Post[]>([]);
+
+  useEffect(() => {
+    const atualizar = () => setPosts(todosOsPosts());
+    atualizar();
+    window.addEventListener(MURAL_EVENT, atualizar);
+    return () => window.removeEventListener(MURAL_EVENT, atualizar);
+  }, []);
+
+  return (
+    <div className="space-y-3 px-5 pt-4" data-testid="feed-de-posts">
+      {posts.map((post) => (
+        <CartaoDePost key={post.id} post={post} />
+      ))}
     </div>
   );
 }
