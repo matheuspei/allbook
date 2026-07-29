@@ -31,6 +31,19 @@ export interface Settings {
    * continua aparecendo para a turma, que é outro contrato.
    */
   mostrarMeusClubes: boolean;
+  /**
+   * Conta privada: quem quiser te seguir precisa da **sua** aprovação
+   * (ROTEIRO 4.54).
+   *
+   * **Nasce desligada**, por decisão do Matheus em 29/07: *"o perfil dela já
+   * nasce público, e ela tem a opção de privar aquilo caso queira"*. No começo o
+   * app precisa de circulação, e quem quer se fechar acha o interruptor.
+   *
+   * **Não governa o que você escreve.** O post continua indo ao feed geral —
+   * escrever já é o ato de tornar público. Isto governa só quem enxerga a sua
+   * **atividade** (está ouvindo, comentou, avaliou, entrou num clube).
+   */
+  contaPrivada: boolean;
 }
 
 /** Os mesmos degraus oferecidos dentro do player, para não haver duas escalas. */
@@ -40,6 +53,7 @@ export const defaultSettings: Settings = {
   speed: 1.0,
   mostrarOuvindoAgora: true,
   mostrarMeusClubes: true,
+  contaPrivada: false,
 };
 
 export function readSettings(): Settings {
@@ -59,6 +73,10 @@ export function readSettings(): Settings {
         typeof stored.mostrarMeusClubes === "boolean"
           ? stored.mostrarMeusClubes
           : defaultSettings.mostrarMeusClubes,
+      contaPrivada:
+        typeof stored.contaPrivada === "boolean"
+          ? stored.contaPrivada
+          : defaultSettings.contaPrivada,
     };
   } catch {
     return defaultSettings;

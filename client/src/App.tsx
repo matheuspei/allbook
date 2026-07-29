@@ -28,6 +28,7 @@ import You from "@/pages/You";
 import Achievements from "@/pages/Achievements";
 import Bookmarks from "@/pages/Bookmarks";
 import Trechos from "@/pages/Trechos";
+import Seguidores from "@/pages/Seguidores";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
@@ -131,6 +132,9 @@ function Router() {
             <Route path="/you" component={You} />
             <Route path="/achievements" component={Achievements} />
             <Route path="/downloads" component={Downloads} />
+            {/* Quem te segue, com a fila de pedidos da conta privada
+                (ROTEIRO 4.54). */}
+            <Route path="/seguidores" component={Seguidores} />
             <Route path="/bookmarks" component={Bookmarks} />
             {/* Os trechos de áudio têm endereço próprio, e não uma aba dentro
                 das notas: a nota é privada e por livro, o trecho é para mostrar

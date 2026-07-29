@@ -4516,12 +4516,42 @@ notificação não funcionam só no navegador — é a **primeira peça da Comun
 exige o backend** para valer de verdade. Dá para maquetar antes; não dá para
 lançar antes. Ver `docs/BANCO-DE-DADOS.md`.
 
-### Duas escolhas menores, ainda com o Matheus
+### Duas escolhas menores
 
-- **O perfil nasce público ou privado?** Recomendação: **público** — no começo o
-  app precisa de circulação, e quem quer se fechar acha o interruptor.
-- **Quem é privado aparece nas sugestões de gente?** Recomendação: **sim, com o
-  cadeado** — senão a pessoa privada fica invisível e nunca recebe pedido nenhum.
+- **O perfil nasce público** — decidido pelo Matheus na mesma conversa: *"o
+  perfil dela já nasce público, e ela tem a opção de privar aquilo caso queira"*.
+  No começo o app precisa de circulação, e quem quer se fechar acha o
+  interruptor.
+- **Quem é privado aparece nas sugestões de gente?** Recomendação registrada:
+  **sim, com o cadeado** — senão a pessoa privada fica invisível e nunca recebe
+  pedido nenhum. Ainda não decidido, e só terá efeito com o servidor.
+
+### Construído em 29/07 (maquete), no mesmo dia
+
+O Matheus mandou construir já e **deixar o rastro para o backend**: *"você cria
+isso já… e registra dizendo: futuramente você vai ter que fazer isso do backend,
+para que quando for começar no backend eles vejam no roteiro que aquilo precisa
+ser feito"*.
+
+- **`lib/seguidores.ts`** — a outra metade de `following.ts`: quem segue **você**.
+  Seguidores e pedidos vêm do esqueleto (`community.ts`), porque sem servidor
+  ninguém pode pedir de verdade; **o que é fingido é a origem, não o efeito** —
+  aceitar, recusar e remover ficam gravados e valem dentro da maquete.
+- **`/seguidores`** ("Quem te segue") — lista com **remover** ao lado de cada
+  nome, e a aba **Pedidos** que só existe com a conta privada ligada (fila vazia
+  numa conta pública prometeria um controle que não existe).
+- **`Você › Privacidade`** ganhou **Conta privada**, ao lado dos dois
+  interruptores que já havia — sem tela de configuração nova —, e a linha **Quem
+  te segue** com o número de pedidos pendentes.
+- **O contrato do servidor foi escrito em `docs/BANCO-DE-DADOS.md`, seção 3.1**
+  — inclusive as promessas que a interface faz e que o backend **tem** de honrar:
+  recusar e remover são silenciosos; ligar a tranca não expulsa quem já seguia;
+  a visibilidade da atividade é filtrada **no servidor**, nunca na tela.
+
+**Defeito encontrado testando, e consertado:** respondido o último pedido, as
+abas somem (não há mais escolha) mas o conteúdo continuava filtrado por
+"pedidos" — a tela dizia *"Ninguém ainda"* com quatro seguidores logo abaixo.
+Agora a aba volta sozinha para a lista quando a fila esvazia.
 
 ---
 

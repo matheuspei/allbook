@@ -9,10 +9,12 @@ import {
   Headphones,
   HelpCircle,
   LogIn,
+  Lock,
   Medal,
   Scissors,
   Settings,
   Share2,
+  UserCheck,
   UsersRound,
   type LucideIcon,
 } from "lucide-react";
@@ -35,6 +37,7 @@ import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile } from "@/lib/profile";
 import { totalBookmarks } from "@/lib/bookmarks";
 import { TRECHOS_EVENT, trechosGuardados } from "@/lib/trechosGuardados";
+import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
 import { readDownloads } from "@/lib/library";
 import { achievements, unlockedCountFor } from "@/lib/achievements";
 import { readSettings, saveSettings, type Settings as AppSettings } from "@/lib/settings";
@@ -109,6 +112,7 @@ export default function You() {
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [bookmarkTotal, setBookmarkTotal] = useState(0);
   const [totalTrechos, setTotalTrechos] = useState(0);
+  const [pedidos, setPedidos] = useState(0);
   const [downloadCount, setDownloadCount] = useState(0);
   const [ganhas, setGanhas] = useState(0);
   const [ajustes, setAjustes] = useState<AppSettings>(readSettings);
@@ -119,7 +123,10 @@ export default function You() {
    * mesmo instante com base no estado antigo faziam o segundo desfazer o
    * primeiro — apareceu no teste automatizado, que clica mais rápido que dedo.
    */
-  function alternarPrivacidade(chave: "mostrarOuvindoAgora" | "mostrarMeusClubes", ligado: boolean) {
+  function alternarPrivacidade(
+    chave: "mostrarOuvindoAgora" | "mostrarMeusClubes" | "contaPrivada",
+    ligado: boolean,
+  ) {
     const next = { ...readSettings(), [chave]: ligado };
     setAjustes(next);
     saveSettings(next);
@@ -141,6 +148,18 @@ export default function You() {
     atualizar();
     window.addEventListener(TRECHOS_EVENT, atualizar);
     return () => window.removeEventListener(TRECHOS_EVENT, atualizar);
+  }, []);
+
+  /* A fila de pedidos depende do interruptor logo abaixo: ligar a conta privada
+     tem de fazer o número aparecer na hora, sem sair da tela. */
+  useEffect(() => {
+    setPedidos(pedidosPendentes(ajustes.contaPrivada).length);
+  }, [ajustes.contaPrivada]);
+
+  useEffect(() => {
+    const atualizar = () => setPedidos(pedidosPendentes(readSettings().contaPrivada).length);
+    window.addEventListener(SEGUIDORES_EVENT, atualizar);
+    return () => window.removeEventListener(SEGUIDORES_EVENT, atualizar);
   }, []);
 
   /**
@@ -311,6 +330,67 @@ export default function You() {
               data-testid="switch-meus-clubes"
             />
           </div>
+
+          {/*
+            **Conta privada** (ROTEIRO 4.54). Entra aqui, e não numa tela de
+            configuração nova: privacidade já tem seção, e criar lugar próprio
+            para cada coisa nova é o erro que a §4.53 acabou de condenar.
+
+            A frase de apoio diz o que a tranca **não** faz — o post continua
+            público —, porque essa é a parte que surpreende depois. Escrever já é
+            o ato de tornar público; o que se protege é o que o app registra
+            sozinho.
+          */}
+          <div className="flex items-center gap-4 py-3.5">
+            <div className="w-9 h-9 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
+              <Lock className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm">Conta privada</p>
+              <p className="text-[11px] text-white/35 mt-0.5">
+                Você aprova quem te segue. Seus posts continuam no feed de todos.
+              </p>
+            </div>
+            <Switch
+              checked={ajustes.contaPrivada}
+              onCheckedChange={(ligado) => {
+                alternarPrivacidade("contaPrivada", ligado);
+                toast({
+                  title: ligado ? "Conta privada" : "Conta pública",
+                  description: ligado
+                    ? "Novos seguidores passam pela sua aprovação. Quem já te segue continua."
+                    : "Qualquer pessoa pode te seguir a partir de agora.",
+                });
+              }}
+              aria-label="Conta privada"
+              data-testid="switch-conta-privada"
+            />
+          </div>
+
+          {/* Quem te segue mora ao lado da tranca: é onde ela tem efeito. O
+              contador de pedidos só aparece com a conta privada — com a conta
+              pública não existe fila. */}
+          <Link
+            href="/seguidores"
+            className="flex items-center gap-4 py-3.5 transition-colors hover:bg-white/[0.02]"
+            data-testid="you-seguidores"
+          >
+            <div className="w-9 h-9 rounded-lg bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
+              <UserCheck className="w-[18px] h-[18px] text-white/80" strokeWidth={1.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm">Quem te segue</p>
+              <p className="text-[11px] text-white/35 mt-0.5">
+                Ver a lista e remover quem quiser.
+              </p>
+            </div>
+            {pedidos > 0 && (
+              <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-black">
+                {pedidos}
+              </span>
+            )}
+            <ChevronRight className="w-4 h-4 text-white/25" />
+          </Link>
         </div>
       </section>
 

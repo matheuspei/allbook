@@ -224,9 +224,57 @@ O app já promete estas coisas na tela. Nenhuma funciona sem servidor:
       não esqueça de atualizar `pages/Help.tsx`.
 - [ ] **Login que verifica de verdade** (hoje qualquer e-mail entra).
 - [ ] **Comunidade com gente real** — seguir, ser respondido, ser notificado.
+      **A parte de seguidores já tem tela pronta e contrato escrito: ver 3.1.**
 - [ ] **Produção de narração sob demanda** — o pipeline do `/request`.
 - [ ] **Convite com código de indicação** — hoje o "Convidar amigos" compartilha
       o endereço do site; com contas, vira um link de indicação.
+
+---
+
+## 3.1 Etapa 2 do backend — seguidores e conta privada (construído em 29/07 como maquete)
+
+> **Leia esta seção antes de mexer em qualquer coisa social.** A tela já existe e
+> funciona (`/seguidores`, e o interruptor em `Você › Privacidade`), mas **os
+> seguidores são fictícios**: vêm de `community.ts`, porque ninguém pode pedir
+> para te seguir sem servidor. O que a pessoa faz (aceitar, recusar, remover)
+> vale de verdade — o que é fingido é a **origem**, não o efeito.
+>
+> Decisão de rumo e o porquê de cada regra: **ROTEIRO §4.53 e §4.54**.
+
+**O contrato que o servidor tem de honrar** (é o que a interface já promete):
+
+- [ ] **`seguidores` é uma relação com estado**, não uma lista: `pendente`,
+      `aceito`, `recusado`, `removido`. O front já pensa assim
+      (`lib/seguidores.ts`), mas guarda só os **seus** lados da relação.
+- [ ] **Pedido só existe com a conta privada ligada.** Com conta pública, seguir
+      é imediato e não gera pendência — a tela esconde a aba de pedidos, e o
+      servidor não deve criar registro `pendente` nesse caso.
+- [ ] **Ligar a conta privada não expulsa quem já seguia** (é o que o aviso da
+      tela diz, e o que o Instagram faz). Se um dia isso mudar, muda o texto
+      junto.
+- [ ] **Recusar e remover são silenciosos.** A tela promete, em letras miúdas:
+      *"Ninguém é avisado quando você recusa ou remove"*. **Não** mande
+      notificação nesses dois casos — mande em "fulano começou a te seguir" e em
+      "fulano pediu para te seguir".
+- [ ] **Aceitar depois de ter removido volta a valer.** O front já trata
+      (`aceitarPedido` limpa o `removidos`); no banco, o estado novo substitui o
+      velho em vez de conviver com ele.
+- [ ] **A visibilidade da atividade é do servidor, não da tela.** Hoje nada
+      esconde de verdade: os fictícios não têm para quem esconder. Com contas, o
+      que é de seguidor **não pode sair na API** para quem não é — filtrar no
+      front seria vazar e depois esconder.
+- [ ] **O post não obedece a essa tranca** (§4.54). Post vai ao feed geral
+      mesmo com a conta privada. Só a **atividade** (está ouvindo, comentou,
+      avaliou, entrou num clube) é restrita a seguidores.
+- [ ] **A conta privada nasce desligada** (`defaultSettings.contaPrivada:
+      false`), por decisão do Matheus. Migrar a chave `allbook_settings` junto
+      com as outras preferências.
+- [ ] **Remover seguidor precisa existir na API desde o primeiro dia.** É a peça
+      que só dói depois: sem ela, um "sim" dado às pressas vale para sempre.
+
+**Chave nova no navegador** (soma-se ao inventário da seção 1):
+`allbook_seguidores` — `{aceitos[], recusados[], removidos[]}`, slugs de
+`community.ts`. **Vira relação entre contas; não migrar como está.**
 
 ---
 
