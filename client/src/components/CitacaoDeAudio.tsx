@@ -10,6 +10,7 @@ import {
   type Citacao,
 } from "@/lib/citacoes";
 import { savePlaying } from "@/lib/playback";
+import { slugify } from "@/lib/books";
 
 /**
  * O cartão de um trecho citado — a peça que a sala e o feed usam igual.
@@ -130,7 +131,7 @@ export default function CitacaoDeAudio({
  * **A capa continua sendo porta para o livro** — só o play deixou de navegar.
  * Quem quer ouvir, ouve aqui; quem quer o livro, toca na capa.
  */
-function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: number; cover: string; title: string; author: string } }) {
+function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: number; cover: string; title: string; author: string; narrator: string } }) {
   const [tocando, setTocando] = useState(false);
   const [decorrido, setDecorrido] = useState(0);
 
@@ -156,14 +157,46 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
       className="overflow-hidden rounded-xl bg-white/[0.05] ring-1 ring-inset ring-white/8"
       data-testid="citacao-de-audio"
     >
-      <Link href={`/book/${livro.id}`} className="relative block h-32">
-        <img src={livro.cover} alt={livro.title} className="h-full w-full object-cover" />
-        <span className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/50 to-transparent" />
-        <span className="absolute inset-x-0 bottom-0 p-3">
-          <span className="block truncate font-display text-[15px] font-bold">{livro.title}</span>
-          <span className="mt-0.5 block truncate text-[11px] text-white/55">{livro.author}</span>
-        </span>
-      </Link>
+      {/*
+        **Cada parte leva ao seu lugar** (29/07, pedido do Matheus para os três
+        cartões): a capa e o título abrem a ficha; o autor e o narrador abrem a
+        página deles, que já existe (`/person/:slug`). Antes o bloco inteiro era
+        um link só, e o nome do narrador — que neste app é motivo de escolha de
+        livro — ficava sendo texto morto.
+      */}
+      <div className="relative h-32">
+        <Link href={`/book/${livro.id}`} className="block h-full">
+          <img src={livro.cover} alt={livro.title} className="h-full w-full object-cover" />
+        </Link>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/50 to-transparent"
+        />
+        <div className="absolute inset-x-0 bottom-0 p-3">
+          <Link href={`/book/${livro.id}`} className="block">
+            <span className="block truncate font-display text-[15px] font-bold hover:text-primary">
+              {livro.title}
+            </span>
+          </Link>
+          <p className="mt-0.5 truncate text-[11px] text-white/55">
+            <Link
+              href={`/person/${slugify(livro.author)}`}
+              className="underline-offset-2 hover:text-white hover:underline"
+              data-testid="trecho-autor"
+            >
+              {livro.author}
+            </Link>
+            {" · narra "}
+            <Link
+              href={`/person/${slugify(livro.narrator)}`}
+              className="underline-offset-2 hover:text-white hover:underline"
+              data-testid="trecho-narrador"
+            >
+              {livro.narrator}
+            </Link>
+          </p>
+        </div>
+      </div>
 
       <div className="flex items-center gap-3 px-3 py-2.5">
         <button
@@ -196,12 +229,22 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
           ))}
         </span>
 
-        <span className="shrink-0 text-right">
+        {/* O carimbo do momento vira porta para o player naquele ponto: quem
+            quer ouvir só o trecho usa o play aqui; quem quer continuar dali
+            para a frente toca no horário. Duas vontades, dois alvos. */}
+        <Link
+          href={linkDaCitacao(citacao)}
+          onClick={() => savePlaying(true)}
+          className="shrink-0 text-right"
+          data-testid="trecho-abrir-no-player"
+        >
           <span className="block font-mono text-[11.5px] font-bold text-primary">
             {tocando || decorrido > 0 ? `-${restante}s` : `${citacao.duracaoSec}s`}
           </span>
-          <span className="block text-[10px] text-white/35">{rotuloDaCitacao(citacao)}</span>
-        </span>
+          <span className="block text-[10px] text-white/35 underline-offset-2 hover:underline">
+            {rotuloDaCitacao(citacao)}
+          </span>
+        </Link>
       </div>
     </div>
   );

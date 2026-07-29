@@ -3,7 +3,7 @@ import { ArrowRight, CalendarClock, Users } from "lucide-react";
 
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { catalog, slugify } from "@/lib/books";
-import { clubePorId, vagasRestantes } from "@/lib/clubes";
+import { clubePorId, nomeDoMembro, souDono, vagasRestantes } from "@/lib/clubes";
 import { findMember } from "@/lib/community";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { initialOf, readProfile } from "@/lib/profile";
@@ -229,31 +229,55 @@ function CartaoDoClube({ clubeId }: { clubeId: string }) {
   const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
   const vagas = vagasRestantes(clube);
 
+  /*
+   * **Cuidado que um bug meu revelou:** nem todo dono está em `community.ts` —
+   * os clubes semeados usam também os "figurantes" declarados em `clubes.ts`.
+   * `findMember` devolvia `undefined` para eles e o cartão dizia "seu clube"
+   * num clube que não é seu. Agora o nome vem de `nomeDoMembro`, que consulta
+   * as duas listas, e o link só existe para quem tem página.
+   */
+  const meu = souDono(clube);
+  const donoTemPagina = findMember(clube.donoSlug) !== undefined;
+
   return (
-    <Link
-      href={`/clube/${clube.id}`}
-      className="mt-3 block overflow-hidden rounded-xl ring-1 ring-inset ring-white/10 transition-colors hover:ring-white/20"
+    <div
+      className="mt-3 overflow-hidden rounded-xl ring-1 ring-inset ring-white/10"
       data-testid="post-clube"
     >
-      <span className="relative block h-36">
-        {livro && (
-          <img src={livro.cover} alt="" className="h-full w-full object-cover" />
-        )}
-        <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10" />
+      <div className="relative h-36">
+        {livro && <img src={livro.cover} alt="" className="h-full w-full object-cover" />}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10" />
 
         {/* Diz o que é antes de qualquer outra coisa — era o que faltava. */}
         <span className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-black">
           Clube de leitura
         </span>
 
-        <span className="absolute inset-x-0 bottom-0 p-3">
-          <span className="block truncate font-display text-[16px] font-bold">{clube.nome}</span>
-          {livro && (
-            <span className="mt-0.5 block truncate text-[11.5px] text-white/65">
-              lendo {livro.title}
+        <div className="absolute inset-x-0 bottom-0 p-3">
+          <Link href={`/clube/${clube.id}`} className="block">
+            <span className="block truncate font-display text-[16px] font-bold hover:text-primary">
+              {clube.nome}
             </span>
+          </Link>
+
+          {/* **Cada parte leva ao seu lugar** (29/07): o livro da vez abre a
+              ficha dele, o moderador abre a página dele. Antes o cartão inteiro
+              era um link só e tudo caía no clube — o livro citado ali ficava
+              sendo informação morta. */}
+          {livro && (
+            <p className="mt-0.5 truncate text-[11.5px] text-white/65">
+              lendo{" "}
+              <Link
+                href={`/book/${livro.id}`}
+                className="font-semibold text-white/90 underline-offset-2 hover:underline"
+                data-testid="clube-livro"
+              >
+                {livro.title}
+              </Link>
+            </p>
           )}
-          <span className="mt-2 flex items-center gap-3 text-[11px]">
+
+          <div className="mt-2 flex items-center gap-3 text-[11px]">
             <span className="flex items-center gap-1 text-white/60">
               <Users className="h-3 w-3" />
               {clube.membros.length} {clube.membros.length === 1 ? "pessoa" : "pessoas"}
@@ -263,22 +287,43 @@ function CartaoDoClube({ clubeId }: { clubeId: string }) {
               {clube.ciclo.marcos.length}{" "}
               {clube.ciclo.marcos.length === 1 ? "etapa" : "etapas"}
             </span>
-          </span>
-        </span>
-      </span>
+          </div>
+        </div>
+      </div>
 
-      <span className="flex items-center justify-between bg-white/[0.06] px-3 py-2.5">
-        <span className="text-[11.5px] text-white/50">
-          {vagas !== undefined && vagas > 0
-            ? `${vagas} ${vagas === 1 ? "vaga aberta" : "vagas abertas"}`
-            : "aberto a quem quiser"}
+      <div className="flex items-center justify-between bg-white/[0.06] px-3 py-2.5">
+        <span className="min-w-0 flex-1 truncate text-[11.5px] text-white/50">
+          {meu ? (
+            "seu clube"
+          ) : (
+            <>
+              moderado por{" "}
+              {donoTemPagina ? (
+                <Link
+                  href={`/user/${clube.donoSlug}`}
+                  className="font-semibold text-white/75 underline-offset-2 hover:underline"
+                  data-testid="clube-moderador"
+                >
+                  {nomeDoMembro(clube.donoSlug)}
+                </Link>
+              ) : (
+                <span className="font-semibold text-white/75" data-testid="clube-moderador">
+                  {nomeDoMembro(clube.donoSlug)}
+                </span>
+              )}
+            </>
+          )}
+          {vagas !== undefined && vagas > 0 && ` · ${vagas} ${vagas === 1 ? "vaga" : "vagas"}`}
         </span>
-        <span className="flex items-center gap-1.5 text-[12px] font-bold text-primary">
+        <Link
+          href={`/clube/${clube.id}`}
+          className="ml-3 flex shrink-0 items-center gap-1.5 text-[12px] font-bold text-primary"
+        >
           Entrar
           <ArrowRight className="h-3.5 w-3.5" />
-        </span>
-      </span>
-    </Link>
+        </Link>
+      </div>
+    </div>
   );
 }
 
