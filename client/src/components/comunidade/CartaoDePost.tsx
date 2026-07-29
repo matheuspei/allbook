@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { CalendarClock, HelpCircle, Users } from "lucide-react";
+import { ArrowRight, CalendarClock, Users } from "lucide-react";
 
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { catalog } from "@/lib/books";
@@ -72,28 +72,37 @@ export default function CartaoDePost({ post }: { post: Post }) {
           </span>
         </Link>
 
-        {/* Some assim que você segue: cumpriu a função, sai da frente. */}
-        {!ehMeu && !seguindo && (
+        {/*
+          **Fica como "Seguindo" em vez de sumir** — o Matheus discordou da minha
+          versão: *"ele tem que aparecer você seguindo, que é o padrão já das
+          redes sociais"*. É decisão dele, e o padrão dá o que a minha não dava:
+          poder **deixar de seguir** dali mesmo. O estado apagado (sem anel,
+          texto fraco) é o que evita a poluição que me preocupava.
+        */}
+        {!ehMeu && (
           <button
             onClick={() => {
               if (post.autorSlug) setSeguindo(toggleFollow(post.autorSlug));
             }}
-            className="shrink-0 rounded-full px-3 py-1.5 text-[11.5px] font-bold text-primary ring-1 ring-inset ring-primary/40 transition-colors hover:bg-primary/10"
+            className={`shrink-0 rounded-full px-3 py-1.5 text-[11.5px] font-bold transition-colors ${
+              seguindo
+                ? "text-white/35 hover:text-white/70"
+                : "text-primary ring-1 ring-inset ring-primary/40 hover:bg-primary/10"
+            }`}
             data-testid={`seguir-${post.autorSlug}`}
           >
-            Seguir
+            {seguindo ? "Seguindo" : "Seguir"}
           </button>
         )}
       </header>
 
-      {/* A pergunta se anuncia antes do texto: quem passa os olhos sabe que ali
-          cabe uma resposta dele. */}
-      {post.pergunta && (
-        <p className="mt-2.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#f59e0b]">
-          <HelpCircle className="h-3 w-3" />
-          Perguntou
-        </p>
-      )}
+      {/*
+        **O selo "Perguntou" saiu em 29/07**, e a dúvida foi do Matheus: *"fico me
+        questionando se ele faz sentido"*. Faz — mas só quando existir o que ele
+        promete: respostas embaixo e o filtro "sem resposta". Sozinho ele é
+        rótulo, e rótulo sem mecanismo é a decoração que a §4.23 manda varrer.
+        `post.pergunta` continua no modelo, esperando as respostas.
+      */}
 
       {post.texto && (
         <p
@@ -153,7 +162,20 @@ function CapaDoLivro({ bookId }: { bookId: number }) {
   );
 }
 
-/** O clube citado — capa do livro da vez, prazo e vagas. Convite, na prática. */
+/**
+ * O clube citado — **refeito em 29/07**.
+ *
+ * A primeira versão era uma linha com capinha de 48px, e as duas críticas foram
+ * certeiras (uma minha, uma do Matheus): ela **destoava** no meio de cartões com
+ * capa grande, e — pior — *"você não consegue dizer que isso é um clube de
+ * leitura; tem pouca informação"*. Um cartão que não se nomeia obriga a pessoa a
+ * clicar para descobrir o que é.
+ *
+ * Agora ele **se apresenta**: a capa do livro da vez ao fundo, o selo dizendo o
+ * que é, e as três coisas que decidem se alguém entra — **o livro, o ritmo e as
+ * vagas**. O "Entrar" é explícito, porque o cartão de clube é, na prática, um
+ * convite.
+ */
 function CartaoDoClube({ clubeId }: { clubeId: string }) {
   const clube = clubePorId(clubeId);
   if (!clube) return null;
@@ -163,28 +185,50 @@ function CartaoDoClube({ clubeId }: { clubeId: string }) {
   return (
     <Link
       href={`/clube/${clube.id}`}
-      className="mt-3 flex items-center gap-3 rounded-xl bg-white/[0.05] p-2.5 ring-1 ring-inset ring-white/8 transition-colors hover:bg-white/[0.09]"
+      className="mt-3 block overflow-hidden rounded-xl ring-1 ring-inset ring-white/10 transition-colors hover:ring-white/20"
       data-testid="post-clube"
     >
-      {livro && (
-        <img src={livro.cover} alt="" className="h-16 w-12 shrink-0 rounded-lg object-cover" />
-      )}
-      <span className="min-w-0 flex-1">
-        <span className="block truncate font-display text-[14px] font-bold">{clube.nome}</span>
+      <span className="relative block h-36">
         {livro && (
-          <span className="mt-0.5 block truncate text-[11.5px] text-white/45">{livro.title}</span>
+          <img src={livro.cover} alt="" className="h-full w-full object-cover" />
         )}
-        <span className="mt-1.5 flex items-center gap-3 text-[11px]">
-          <span className="flex items-center gap-1 text-white/45">
-            <Users className="h-3 w-3" />
-            {clube.membros.length}
-          </span>
-          {vagas !== undefined && vagas > 0 && (
-            <span className="flex items-center gap-1 font-semibold text-primary">
-              <CalendarClock className="h-3 w-3" />
-              {vagas} {vagas === 1 ? "vaga" : "vagas"}
+        <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10" />
+
+        {/* Diz o que é antes de qualquer outra coisa — era o que faltava. */}
+        <span className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-black">
+          Clube de leitura
+        </span>
+
+        <span className="absolute inset-x-0 bottom-0 p-3">
+          <span className="block truncate font-display text-[16px] font-bold">{clube.nome}</span>
+          {livro && (
+            <span className="mt-0.5 block truncate text-[11.5px] text-white/65">
+              lendo {livro.title}
             </span>
           )}
+          <span className="mt-2 flex items-center gap-3 text-[11px]">
+            <span className="flex items-center gap-1 text-white/60">
+              <Users className="h-3 w-3" />
+              {clube.membros.length} {clube.membros.length === 1 ? "pessoa" : "pessoas"}
+            </span>
+            <span className="flex items-center gap-1 text-white/60">
+              <CalendarClock className="h-3 w-3" />
+              {clube.ciclo.marcos.length}{" "}
+              {clube.ciclo.marcos.length === 1 ? "etapa" : "etapas"}
+            </span>
+          </span>
+        </span>
+      </span>
+
+      <span className="flex items-center justify-between bg-white/[0.06] px-3 py-2.5">
+        <span className="text-[11.5px] text-white/50">
+          {vagas !== undefined && vagas > 0
+            ? `${vagas} ${vagas === 1 ? "vaga aberta" : "vagas abertas"}`
+            : "aberto a quem quiser"}
+        </span>
+        <span className="flex items-center gap-1.5 text-[12px] font-bold text-primary">
+          Entrar
+          <ArrowRight className="h-3.5 w-3.5" />
         </span>
       </span>
     </Link>
