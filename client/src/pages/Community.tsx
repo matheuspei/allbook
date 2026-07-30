@@ -166,7 +166,6 @@ function AbaAgora() {
  */
 function FeedDePosts() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [soPerguntas, setSoPerguntas] = useState(false);
 
   useEffect(() => {
     const atualizar = () => setPosts(todosOsPosts());
@@ -182,52 +181,40 @@ function FeedDePosts() {
   }, []);
 
   const perguntas = posts.filter((post) => post.pergunta).length;
-  const mostrados = soPerguntas ? posts.filter((post) => post.pergunta) : posts;
 
   return (
     <div className="px-5 pt-4" data-testid="feed-de-posts">
       <Compositor />
 
       {/*
-        **O filtro é o que faz o selo "Pergunta" valer.** A §4.58 decidiu que
-        pergunta é um **tipo de post, não uma aba** — aba dividiria a comunidade
-        em duas plateias. O que a aba tinha de bom era juntar as perguntas, e é
-        exatamente isto: um filtro dentro do próprio feed.
+        **Uma porta para `/perguntas`, e não um filtro no lugar** (30/07). Havia
+        aqui um par "Tudo · Perguntas" que filtrava a lista sem sair da tela; o
+        Matheus pediu **uma página** — *"levaria para uma página onde só mostraria
+        perguntas"* —, e ele tem razão por um motivo que eu não tinha visto: o
+        filtro mudava a lista **embaixo da pessoa**, sem endereço nem título, e o
+        selo dentro do cartão não conseguia apontar para ele. Com a página, o selo
+        e esta linha levam ao mesmo lugar: **um mecanismo, não dois**.
 
-        **Some quando não há pergunta nenhuma**, em vez de ficar zerado: filtro
-        que não filtra nada é o botão morto que a §4.23 manda varrer.
+        **Some quando não há pergunta nenhuma** — porta para sala vazia é o beco
+        sem saída que a §4.23 manda varrer.
       */}
       {perguntas > 0 && (
-        <div className="mt-3 flex gap-2" data-testid="feed-filtros">
-          <button
-            onClick={() => setSoPerguntas(false)}
-            className={`rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition-colors ${
-              soPerguntas
-                ? "border border-white/15 text-white/50 hover:text-white/80"
-                : "bg-white text-black"
-            }`}
-            data-testid="filtro-tudo"
-          >
-            Tudo
-          </button>
-          <button
-            onClick={() => setSoPerguntas(true)}
-            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition-colors ${
-              soPerguntas
-                ? "bg-white text-black"
-                : "border border-white/15 text-white/50 hover:text-white/80"
-            }`}
-            data-testid="filtro-perguntas"
-          >
-            <HelpCircle className="h-3.5 w-3.5" />
-            Perguntas
-            <span className={soPerguntas ? "text-black/45" : "text-white/30"}>{perguntas}</span>
-          </button>
-        </div>
+        <Link
+          href="/perguntas"
+          className="mt-3 flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-2.5 transition-colors hover:bg-white/[0.07]"
+          data-testid="link-perguntas"
+        >
+          <HelpCircle className="h-4 w-4 shrink-0 text-primary" />
+          <span className="min-w-0 flex-1 text-[12.5px] text-white/70">
+            <strong className="font-semibold text-white">{perguntas}</strong>{" "}
+            {perguntas === 1 ? "pergunta esperando" : "perguntas esperando"} uma opinião
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-white/25" />
+        </Link>
       )}
 
       <div className="mt-3 space-y-3">
-        {mostrados.map((post) => (
+        {posts.map((post) => (
           <CartaoDePost key={post.id} post={post} />
         ))}
       </div>

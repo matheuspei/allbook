@@ -38,6 +38,7 @@ import { criarCitacao, type Citacao } from "@/lib/citacoes";
 import { catalog } from "@/lib/books";
 import { readMeusPosts, apagarPost as apagarPostDoMural, MAX_POST, type MeuPost } from "@/lib/mural";
 import { people } from "@/lib/people";
+import { todosOsClubes } from "@/lib/clubes";
 
 /** O mesmo limite do mural — 280. Um só, para não haver dois tetos no app. */
 export { MAX_POST };
@@ -66,6 +67,20 @@ export type ObjetoDoPost =
  * notificação, traz quem-pode-mencionar-quem e traz moderação. Menção é a porta
  * de entrada de importunação em toda rede — entra depois, se fizer falta.
  *
+ * ---
+ *
+ * **A menção passou a ser o caminho ÚNICO de citar por nome** (30/07, crítica do
+ * Matheus). Antes havia dois: os botões "Livro" e "Clube" no compositor **e** o
+ * `@`. Ele apontou a redundância: *"se você já pode marcar com @, qual é o
+ * sentido de ter isso aqui?"*. Tinha razão — e a consequência é que a **primeira
+ * menção de livro ou de clube vira o cartão do post** (ver
+ * `objetoDaPrimeiraMencao`). Sem isso a menção seria uma citação de segunda
+ * classe, e era exatamente disso que ele reclamou: *"não colocou a capa"*.
+ *
+ * **O botão "Trecho" ficou**, e a razão é dele: não há como digitar um trecho de
+ * áudio dentro de uma frase. Trecho se escolhe de uma lista; livro e clube têm
+ * nome.
+ *
  * ⚠️ **Como isto é guardado, e por quê.** O texto fica **limpo** (`"lembrou
  * @Fundação"`) e a lista de menções vem ao lado. Não há marcação dentro do texto
  * (`[[livro:7|Fundação]]`) por um motivo prático: o texto é digitado num
@@ -76,7 +91,10 @@ export type ObjetoDoPost =
 export interface Mencao {
   /** O nome como aparece no texto, **sem** o `@`. */
   rotulo: string;
-  alvo: { tipo: "livro"; bookId: number } | { tipo: "pessoa"; slug: string };
+  alvo:
+    | { tipo: "livro"; bookId: number }
+    | { tipo: "clube"; clubeId: string }
+    | { tipo: "pessoa"; slug: string };
 }
 
 export interface Post {
@@ -99,6 +117,15 @@ export interface Post {
   date: string;
   /** Quando foi editado, se foi. A tela mostra "editado" a partir disto. */
   editadoEm?: string;
+  /**
+   * "Eu **não** quero o cartão desta menção" — o X do compositor.
+   *
+   * Existe para distinguir duas ausências que, sem ele, seriam iguais no
+   * armazenamento: o post que **não tem cartão porque a pessoa tirou** e o post
+   * que **não tem cartão porque foi escrito antes de a menção virar cartão**
+   * (30/07). O segundo ganha o cartão ao ser lido; o primeiro, nunca.
+   */
+  semCartao?: boolean;
 }
 
 /** Dias atrás, em ISO — os fictícios precisam de data relativa a hoje. */
@@ -214,16 +241,38 @@ function lerMeus(): Post[] {
   try {
     const guardado = JSON.parse(localStorage.getItem(CHAVE_POSTS) || "[]");
     if (!Array.isArray(guardado)) return [];
-    return guardado.filter(
-      (item): item is Post =>
-        item &&
-        typeof item.id === "string" &&
-        typeof item.texto === "string" &&
-        typeof item.date === "string",
-    );
+    return guardado
+      .filter(
+        (item): item is Post =>
+          item &&
+          typeof item.id === "string" &&
+          typeof item.texto === "string" &&
+          typeof item.date === "string",
+      )
+      .map(comCartaoDaMencao);
   } catch {
     return [];
   }
+}
+
+/**
+ * Dá cartão ao post antigo que mencionava um livro e não ganhou capa.
+ *
+ * **Por que a leitura conserta e não uma migração.** O Matheus publicou uma
+ * pergunta citando `@O clube das 5 da manhã` **antes** de a menção virar cartão, e
+ * a queixa dele foi justamente *"não colocou a capa"*. Reescrever o
+ * `localStorage` na leitura seria efeito colateral escondido; derivar na hora de
+ * mostrar dá o mesmo resultado e não mexe no que está gravado.
+ *
+ * **Só age quando não há nada gravado.** Post com objeto próprio fica como está —
+ * é o que garante que **editar o texto não troca a capa** de um post que já
+ * circulou. E post com `semCartao` continua sem cartão, porque ali a ausência foi
+ * escolha.
+ */
+function comCartaoDaMencao(post: Post): Post {
+  if (post.objeto || post.semCartao) return post;
+  const objeto = objetoDaPrimeiraMencao(post.mencoes, post.texto);
+  return objeto ? { ...post, objeto } : post;
 }
 
 function gravarMeus(lista: Post[]): void {
@@ -249,17 +298,27 @@ export function meusPosts(): Post[] {
  */
 export function publicarPost(dados: {
   texto: string;
+  /**
+   * O anexo explícito — hoje só o **trecho**, que é o único que não se digita.
+   * Ausente, o objeto sai da primeira menção de livro ou clube (30/07).
+   */
   objeto?: ObjetoDoPost;
   pergunta?: boolean;
   mencoes?: Mencao[];
+  /** Quem tirou o cartão da menção com o X: fica só o texto com o link. */
+  semCartao?: boolean;
 }): Post | null {
   const texto = dados.texto.trim().slice(0, MAX_POST);
-  if (!texto && !dados.objeto) return null;
+  const objeto =
+    dados.objeto ??
+    (dados.semCartao ? undefined : objetoDaPrimeiraMencao(dados.mencoes, texto));
+  if (!texto && !objeto) return null;
 
   const post: Post = {
     id: `p-meu-${Date.now()}`,
     texto,
-    ...(dados.objeto ? { objeto: dados.objeto } : {}),
+    ...(objeto ? { objeto } : {}),
+    ...(dados.semCartao ? { semCartao: true } : {}),
     ...(dados.pergunta ? { pergunta: true } : {}),
     // Menção cujo nome saiu do texto (a pessoa apagou depois) não é guardada:
     // ela nunca apareceria, e ficaria pesando no armazenamento para sempre.
@@ -353,15 +412,50 @@ export function candidatosDeMencao(termo: string, limite = 6): CandidatoDeMencao
 
   for (const livro of catalog) {
     const alvo = semAcento(livro.title);
-    const onde = alvo.indexOf(busca);
-    if (onde === -1) continue;
+    let onde = alvo.indexOf(busca);
+    /*
+      **Também acha pelo autor e pelo narrador**, mesmo mostrando o livro. Isto
+      recupperava o que a busca do botão "Livro" fazia e que se perderia ao
+      removê-lo (30/07): neste app o narrador é motivo de escolha de livro, e
+      "quem narrou aquele do Aurélio?" é uma pergunta que a pessoa faz de fato.
+      Peso maior, para não empurrar o casamento por título para baixo.
+    */
+    let peso = onde === 0 ? 0 : onde > 0 ? 2 : -1;
+    if (peso === -1) {
+      const porGente =
+        semAcento(livro.author).includes(busca) || semAcento(livro.narrator).includes(busca);
+      if (!porGente) continue;
+      onde = 0;
+      peso = 4;
+    }
     achados.push({
-      peso: onde === 0 ? 0 : 2,
+      peso,
       item: {
         rotulo: livro.title,
         alvo: { tipo: "livro", bookId: livro.id },
         detalhe: livro.author,
         capa: livro.cover,
+      },
+    });
+  }
+
+  /*
+    **Clube de leitura entra na lista** (30/07). Era o buraco por trás da queixa
+    do Matheus: ele digitou `@` querendo um clube, o `@` só conhecia livros e
+    pessoas, e o que ele acabou marcando foi o **livro** "O clube das 5 da manhã".
+  */
+  for (const clube of todosOsClubes()) {
+    const alvo = semAcento(clube.nome);
+    const onde = alvo.indexOf(busca);
+    if (onde === -1) continue;
+    const daVez = catalog.find((livro) => livro.id === clube.ciclo.bookId);
+    achados.push({
+      peso: onde === 0 ? 0 : 2,
+      item: {
+        rotulo: clube.nome,
+        alvo: { tipo: "clube", clubeId: clube.id },
+        detalhe: daVez ? `clube · lendo ${daVez.title}` : "clube de leitura",
+        capa: daVez?.cover,
       },
     });
   }
@@ -394,7 +488,54 @@ export function candidatosDeMencao(termo: string, limite = 6): CandidatoDeMencao
 
 /** Para onde uma menção leva. */
 export function hrefDaMencao(alvo: Mencao["alvo"]): string {
-  return alvo.tipo === "livro" ? `/book/${alvo.bookId}` : `/person/${alvo.slug}`;
+  if (alvo.tipo === "livro") return `/book/${alvo.bookId}`;
+  if (alvo.tipo === "clube") return `/clube/${alvo.clubeId}`;
+  return `/person/${alvo.slug}`;
+}
+
+/**
+ * O cartão que sai de uma menção — **a primeira de livro ou de clube**.
+ *
+ * É o que faz o `@` ser o caminho único de citar por nome (30/07). O Matheus
+ * apontou a redundância dos botões de anexo e, ao removê-los, a menção teve de
+ * assumir o trabalho: *"não colocou a capa"* era a queixa exata.
+ *
+ * **Por que só a primeira, e não todas.** Continua valendo *um objeto por post*
+ * (§4.58): dois cartões brigam pelo mesmo espaço e o post perde a forma. Um texto
+ * pode citar três livros — o primeiro ganha corpo, os outros seguem como palavra
+ * clicável, que é o que a §4.58 já dizia da menção.
+ *
+ * **Pessoa mencionada não vira cartão.** O objeto do post é sempre uma obra ou uma
+ * turma; um cartão de gente traria de volta o feed "sobre pessoas" que fez as onze
+ * maquetes anteriores falharem.
+ */
+export function objetoDaPrimeiraMencao(
+  mencoes: Mencao[] | undefined,
+  /**
+   * O texto, para saber quem vem antes. **A ordem que importa é a da frase, não a
+   * de escolha**: se a pessoa escreve sobre dois livros e só depois volta para
+   * marcar o primeiro, o cartão tem de ser do que aparece primeiro — é o que ela
+   * está lendo na tela.
+   */
+  texto?: string,
+): ObjetoDoPost | undefined {
+  const candidatas = (mencoes ?? []).filter(
+    (mencao) => mencao.alvo.tipo === "livro" || mencao.alvo.tipo === "clube",
+  );
+  if (candidatas.length === 0) return undefined;
+
+  const primeira =
+    texto === undefined
+      ? candidatas[0]
+      : [...candidatas].sort((a, b) => {
+          const posA = texto.indexOf(`@${a.rotulo}`);
+          const posB = texto.indexOf(`@${b.rotulo}`);
+          return (posA === -1 ? Infinity : posA) - (posB === -1 ? Infinity : posB);
+        })[0];
+
+  if (primeira.alvo.tipo === "livro") return { tipo: "livro", bookId: primeira.alvo.bookId };
+  if (primeira.alvo.tipo === "clube") return { tipo: "clube", clubeId: primeira.alvo.clubeId };
+  return undefined;
 }
 
 /* ------------------------------------------------------------------ *

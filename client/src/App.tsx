@@ -17,6 +17,7 @@ import RecommendationsEdit from "@/pages/RecommendationsEdit";
 // e `Settings` seria confundido com o ícone de mesmo nome do lucide.
 import SettingsPage from "@/pages/Settings";
 import Community from "@/pages/Community";
+import Perguntas from "@/pages/Perguntas";
 import Grupo from "@/pages/Grupo";
 import Topico from "@/pages/Topico";
 import Clubes from "@/pages/Clubes";
@@ -118,6 +119,9 @@ function Router() {
                 linha como as outras (ROTEIRO 4.55). */}
             <Route path="/privacidade" component={Privacidade} />
             <Route path="/community" component={Community} />
+            {/* O recorte só de perguntas, alcançado pelo selo de um post ou pela
+                pílula do feed (30/07 — ver o cabeçalho de `Perguntas.tsx`). */}
+            <Route path="/perguntas" component={Perguntas} />
             {/* Os Grupos (Orkut: comunidade → tópico → respostas).
                 A mais específica primeiro, regra deste Switch. */}
             <Route path="/forum/:id/topico/:topicoId" component={Topico} />

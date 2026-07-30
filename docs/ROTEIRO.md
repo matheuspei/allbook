@@ -5116,6 +5116,12 @@ dias, vira data absoluta** ("12 jul"), porque "há 3 semanas" obriga a fazer con
 Item 2 da ordem da §4.58. Como na §4.59, o que está aqui **nasceu fazendo e
 olhando** — o plano está lá, o que a mão descobriu está aqui.
 
+> ⚠️ **Duas decisões desta seção foram revistas horas depois, pelo Matheus — leia
+> a §4.61 junto.** O **filtro "Perguntas" no feed** virou **página `/perguntas`**, e
+> o **botão de anexar clube** (com a regra de só aparecer se você tem clube) foi
+> **removido** junto com o de livro. O que está abaixo continua valendo como o
+> raciocínio de onde se partiu.
+
 ### O selo "Pergunta" voltou, porque ganhou mecanismo
 
 Em 29/07 eu tirei o selo do cartão, e o motivo era bom: **rótulo sem mecanismo é
@@ -5207,6 +5213,105 @@ clube descobre os clubes na aba Fóruns, que é onde eles moram.
 Uma linha com o avatar, que abre no lugar. **Botão flutuante** tapa conteúdo (a
 §4.58 já dizia isso) e **caixa sempre aberta** empurraria o primeiro post para
 baixo da dobra: quem entra na Comunidade quer ler antes de escrever.
+
+---
+
+## 4.61 O `@` virou o caminho único de citar — e o selo ganhou endereço (30/07)
+
+Três críticas do Matheus no mesmo turno, horas depois de a §4.60 ficar pronta.
+**Todas procedentes, e todas apontando para a mesma coisa: redundância.** Revisam
+decisões da §4.58 e da §4.60, e é por isso que estão em seção própria.
+
+### A queixa que revelou dois buracos: *"não colocou a capa do clube"*
+
+Ele escreveu uma pergunta marcando com `@` e reclamou que não veio a capa. Fui
+apurar e havia **dois** problemas, não um:
+
+1. **A menção era, por decisão, só texto com link** (§4.58: *"a menção é texto com
+   link, não um segundo cartão"*). Isso era defensável enquanto existisse o botão
+   de anexar — a menção era o caminho "leve" e o botão o "pesado".
+2. **O `@` não conhecia clube de leitura**, só livros e pessoas. O que ele marcou
+   foi o **livro** "O clube das 5 da manhã", achando que era um clube. O buraco era
+   meu e passou despercebido porque livro e clube dividem o nome no catálogo dele.
+
+### Os botões "Livro" e "Clube" saíram — e o argumento dele era melhor que o meu
+
+> *"Se você já pode marcar com @, eu fico me perguntando qual é o sentido de ter
+> isso aqui, sendo que você já pode marcar o @ no meio da coisa."*
+
+Ele está certo, e a régua é a da §4.23 aplicada a mecanismos em vez de botões:
+**dois caminhos para a mesma coisa é pior que um**, porque a pessoa precisa
+escolher entre eles sem ter critério. E entre os dois, o `@` é o melhor: cita
+**dentro da frase**, em vez de pendurar um anexo ao lado dela.
+
+**A consequência obrigatória:** a menção teve de assumir o trabalho do anexo — **a
+primeira menção de livro ou clube vira o cartão do post**. Sem isso, remover os
+botões teria **tirado uma função** em vez de simplificar.
+
+- **Continua sendo um objeto por post** (§4.58). Um texto pode citar três livros: o
+  primeiro ganha capa, os outros seguem como palavra clicável.
+- **A ordem que vale é a da frase, não a de escolha.** Quem escreve sobre dois
+  livros e só depois volta para marcar o primeiro tem o cartão do primeiro — é o
+  que ela está lendo na tela.
+- **Pessoa mencionada não vira cartão.** O objeto do post é sempre uma obra ou uma
+  turma; cartão de gente traria de volta o feed "sobre pessoas" que fez as onze
+  maquetes anteriores falharem (§4.53).
+
+**O "Trecho" ficou, e a razão é dele:** *"o trecho talvez até possa fazer sentido,
+porque você precisa do botão de trecho para anexar o áudio"*. Exato — **não há como
+digitar um trecho de áudio dentro de uma frase.** Livro e clube têm nome; trecho se
+escolhe de uma lista.
+
+**O que se perdeu, e eu registro em vez de esconder:** não dá mais para pôr a capa
+**sem nomear o livro no texto**. "Isso me quebrou" + capa virou "@Duna me quebrou".
+Julguei o preço baixo — quem escreve sobre um livro costuma dizer qual — mas é uma
+perda real, e se ela incomodar o conserto é um botão "só a capa" (não um botão de
+anexo de volta).
+
+**Dois riscos que a remoção criou, e o que fiz com cada um:**
+
+- **Descoberta.** Sem botão, o `@` fica invisível: o placeholder desaparece na
+  primeira letra. Resposta: **a dica ficou fixa embaixo do campo**, ao lado do botão
+  de trecho.
+- **A busca por narrador ia junto.** A folha do botão "Livro" buscava por título,
+  autor **e narrador**, e neste app o narrador é motivo de escolha de livro (§4.15).
+  Resposta: **a lista do `@` passou a achar livro pelo nome do autor e do
+  narrador** também, mostrando o livro.
+
+### O selo "Pergunta" virou link, e o filtro do feed virou página
+
+> *"Esse ícone precisa ser clicável dentro do mural, que hoje não é, e levaria para
+> uma página onde só mostraria perguntas."*
+
+É a régua da §4.59 outra vez — **rótulo que nomeia uma categoria e não leva até ela
+morre na tela** —, e ele viu o que eu não tinha visto: o **filtro local não servia
+de destino**. Ele mudava a lista embaixo da pessoa, sem endereço e sem título, e o
+selo dentro do cartão não tinha para onde apontar.
+
+Agora existe **`/perguntas`**, e o selo e a linha do topo do feed levam ao mesmo
+lugar: **um mecanismo, não dois**. O par "Tudo · Perguntas" saiu.
+
+**Isto não é a "aba de perguntas" que a §4.58 rejeitou.** O que foi rejeitado era
+dividir a Comunidade em **duas plateias** — dois lugares onde se escreve e se lê por
+padrão. A página não é padrão de nada: é um **recorte sob demanda**, alcançado por um
+selo. Pergunta continua sendo um tipo de post e continua no feed junto com o resto.
+
+**O que a página ganha quando existirem respostas** (item 3 da §4.58): a divisão
+entre "sem resposta" e "já respondidas". Hoje ela junta; amanhã ela cobra.
+
+### O post que ele já tinha escrito ganhou a capa
+
+A derivação do cartão acontece **ao publicar**, e o post dele era anterior. Em vez de
+deixá-lo sem capa, a **leitura** também deriva — mas **só quando não há nada
+gravado**. Assim:
+
+- post com objeto próprio fica como está, o que garante que **editar o texto não
+  troca a capa** de um post que já circulou (§4.60);
+- post de quem **tirou o cartão com o X** continua sem cartão, porque ali a ausência
+  foi escolha — e é para distinguir as duas ausências que existe o campo `semCartao`.
+
+**Rejeitado: reescrever o `localStorage` na leitura.** Daria o mesmo resultado com
+efeito colateral escondido; derivar na hora de mostrar não mexe no que está gravado.
 
 ---
 

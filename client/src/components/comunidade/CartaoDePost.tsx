@@ -101,21 +101,23 @@ export default function CartaoDePost({ post }: { post: Post }) {
       </header>
 
       {/*
-        **O selo voltou em 30/07, e agora tem para onde levar.** Ele saiu em
-        29/07 porque era rótulo sem mecanismo (§4.23): a dúvida foi do Matheus —
-        *"fico me questionando se ele faz sentido"* — e eu concordei. O que mudou
-        é que o feed ganhou o **filtro "Perguntas"**: o selo passou a ser a marca
-        de um conjunto que a pessoa consegue isolar, e não mais enfeite. As
-        respostas embaixo continuam pendentes (item 3 da ordem da §4.58).
+        **O selo é um link, e foi o Matheus quem cobrou isso** (30/07): *"esse
+        ícone precisa ser clicável dentro do mural, que hoje não é, e levaria para
+        uma página onde só mostraria perguntas"*.
+
+        Ele está aplicando a régua da §4.59 — rótulo que nomeia uma categoria e não
+        leva até ela morre na tela. É a mesma razão pela qual o selo tinha saído em
+        29/07: sem destino, era enfeite. Agora tem `/perguntas`.
       */}
       {post.pergunta && (
-        <span
-          className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-primary"
+        <Link
+          href="/perguntas"
+          className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-primary transition-colors hover:bg-primary/25"
           data-testid="selo-pergunta"
         >
           <HelpCircle className="h-3 w-3" />
           Pergunta
-        </span>
+        </Link>
       )}
 
       {editando ? (
