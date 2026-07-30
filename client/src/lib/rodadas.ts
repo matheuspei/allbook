@@ -41,9 +41,26 @@ export interface Rodada {
   respostas: RespostaDaRodada[];
 }
 
+/** De 2 a 5 opções, com **3 sugerido** (§4.58). */
+export const MIN_OPCOES_VOTACAO = 2;
+export const MAX_OPCOES_VOTACAO = 5;
+export const OPCOES_SUGERIDAS = 3;
+
 export interface Votacao {
   clubeId: string;
-  /** Três livros — mais que isso dispersa, menos não é escolha. */
+  /**
+   * Os livros em disputa — de 2 a 5.
+   *
+   * **Era fixo em 3, e o 3 continua sendo o sugerido** (§4.58). O argumento que
+   * o motivou vale registrar porque é contraintuitivo: *com 5 opções e 8
+   * pessoas, o vencedor sai com 3 votos* — cinco pessoas ficam com um livro que
+   * não escolheram. Mais opção parece mais democracia e é o contrário.
+   *
+   * **Então por que 5 passou a caber?** Porque o custo dele ganhou compensação:
+   * quem votou no derrotado agora tem saída (ver `quemPerdeuFundaClube` na
+   * §4.58) — o grupo que queria outro livro funda o próprio clube em vez de
+   * engolir a escolha.
+   */
   opcoes: number[];
   /** Voto de cada membro: slug → bookId. */
   votos: Record<string, number>;
@@ -122,6 +139,8 @@ interface EstadoLocal {
   votos: Record<string, number>;
   /** Votações encerradas por você (o ciclo novo já começou). */
   votacoesEncerradas: string[];
+  /** Votações que você abriu como moderador. */
+  votacoesAbertas: Votacao[];
 }
 
 const VAZIO: EstadoLocal = {
@@ -130,6 +149,7 @@ const VAZIO: EstadoLocal = {
   encerradas: [],
   votos: {},
   votacoesEncerradas: [],
+  votacoesAbertas: [],
 };
 
 function readEstado(): EstadoLocal {
@@ -248,12 +268,54 @@ export function votacaoDoClube(clubeId: string): Votacao | undefined {
   const estado = readEstado();
   if (estado.votacoesEncerradas.includes(clubeId)) return undefined;
 
-  const semeada = votacoesSemeadas.find((item) => item.clubeId === clubeId);
-  if (!semeada) return undefined;
+  /* A sua vem antes da semeada: se você abriu uma votação num clube que já tinha
+     a de exemplo, quem manda é a sua. */
+  const base =
+    estado.votacoesAbertas.find((item) => item.clubeId === clubeId) ??
+    votacoesSemeadas.find((item) => item.clubeId === clubeId);
+  if (!base) return undefined;
 
   const meuVoto = estado.votos[clubeId];
-  if (meuVoto === undefined) return semeada;
-  return { ...semeada, votos: { ...semeada.votos, [EU]: meuVoto } };
+  if (meuVoto === undefined) return base;
+  return { ...base, votos: { ...base.votos, [EU]: meuVoto } };
+}
+
+/**
+ * O moderador abre a votação do próximo livro — **de 2 a 5 livros**.
+ *
+ * Antes só existia a votação semeada, o que deixava o ciclo sem continuação nos
+ * clubes de verdade: acabava o livro e não havia como escolher o próximo. É a
+ * peça que fecha o ciclo que a §4.58 descreveu (*"muda o nome, escolhe o próximo
+ * livro"*), junto com o renomear.
+ *
+ * **Os votos do esqueleto entram junto**, distribuídos de forma estável pelos
+ * membros fictícios: uma votação que começa 0 a 0 e nunca se mexe não mostra
+ * como a coisa funciona — e o Matheus já disse que a falta de servidor não é
+ * motivo para construir menos.
+ */
+export function abrirVotacao(clubeId: string, bookIds: number[], dias = 7): Votacao | undefined {
+  const opcoes = Array.from(new Set(bookIds)).slice(0, MAX_OPCOES_VOTACAO);
+  if (opcoes.length < MIN_OPCOES_VOTACAO) return undefined;
+
+  const votacao: Votacao = {
+    clubeId,
+    opcoes,
+    votos: {},
+    fecha: daquiA(dias),
+  };
+  const estado = readEstado();
+  salvar({
+    ...estado,
+    votacoesAbertas: [
+      ...estado.votacoesAbertas.filter((item) => item.clubeId !== clubeId),
+      votacao,
+    ],
+    /* Abrir votação nova limpa o seu voto anterior naquele clube: senão você
+       chegaria já tendo votado numa lista que nunca viu. */
+    votos: Object.fromEntries(Object.entries(estado.votos).filter(([id]) => id !== clubeId)),
+    votacoesEncerradas: estado.votacoesEncerradas.filter((id) => id !== clubeId),
+  });
+  return votacao;
 }
 
 export function meuVoto(clubeId: string): number | undefined {
@@ -278,6 +340,40 @@ export function apuracao(votacao: Votacao): { bookId: number; votos: number }[] 
 /** O livro que está ganhando (ou ganhou). */
 export function vencedor(votacao: Votacao): number {
   return apuracao(votacao)[0]?.bookId ?? votacao.opcoes[0];
+}
+
+/**
+ * Deu empate no topo?
+ *
+ * **Quem desempata é o dono** (§4.58). Sortear seria mais "justo" no papel e
+ * pior na prática: ninguém entende de onde veio o resultado, e o clube tem um
+ * moderador justamente para as decisões que a regra não fecha.
+ */
+export function empatadosNoTopo(votacao: Votacao): number[] {
+  const resultado = apuracao(votacao);
+  const topo = resultado[0]?.votos ?? 0;
+  const empatados = resultado.filter((item) => item.votos === topo);
+  return empatados.length > 1 ? empatados.map((item) => item.bookId) : [];
+}
+
+/**
+ * Quem votou no livro derrotado — **e quantos eram** (§4.58).
+ *
+ * É o dado por trás da saída que o Matheus pediu ao perguntar *"como essa pessoa
+ * vai para o outro clube?"*: ao fechar a votação, quem votou no perdedor vê
+ * *"3 pessoas também queriam X — criar um clube desse livro?"*. Resolve três
+ * coisas de uma vez: dá destino a quem perdeu, compensa o custo de permitir 5
+ * opções, e faz o clube **se multiplicar** — não porque encheu, mas porque um
+ * grupo queria outro livro.
+ */
+export function meuLivroDerrotado(
+  votacao: Votacao,
+  escolhido: number,
+): { bookId: number; quantos: number } | undefined {
+  const meu = readEstado().votos[votacao.clubeId];
+  if (meu === undefined || meu === escolhido) return undefined;
+  const quantos = Object.values(votacao.votos).filter((voto) => voto === meu).length;
+  return { bookId: meu, quantos };
 }
 
 export function encerrarVotacao(clubeId: string): void {

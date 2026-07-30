@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "wouter";
 import { Check, Vote } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -6,7 +7,9 @@ import { catalog } from "@/lib/books";
 import { comecarCiclo, prazoEmTexto, souDono, type Clube } from "@/lib/clubes";
 import {
   apuracao,
+  empatadosNoTopo,
   encerrarVotacao,
+  meuLivroDerrotado,
   meuVoto,
   RODADAS_EVENT,
   vencedor,
@@ -23,8 +26,15 @@ import {
  * começo do outro — e o livro que sai vai para a **estante do clube**, que é a
  * memória do que aquela turma leu junto.
  *
- * **Três opções, nunca mais.** Lista longa dispersa o voto e ninguém decide;
- * duas viram disputa. Três é o número que se lê de uma vez no celular.
+ * **De 2 a 5 opções, com 3 sugerido** (§4.58). O argumento contra listas longas
+ * continua valendo e vale registrar porque é contraintuitivo: *com 5 opções e 8
+ * pessoas, o vencedor sai com 3 votos* — cinco pessoas ficam com um livro que
+ * não escolheram. O 5 só passou a caber porque quem perde ganhou saída: ao
+ * fechar, quem votou no derrotado é convidado a **fundar o clube daquele livro**.
+ *
+ * **Empate quem desfaz é o dono.** Sortear seria mais "justo" no papel e pior na
+ * prática — ninguém entende de onde veio o resultado, e o clube tem moderador
+ * justamente para o que a regra não fecha.
  *
  * **O voto é aberto em número, fechado em nome:** você vê quantos votos cada
  * livro tem, não quem votou em quê. É a mesma escolha da régua de progresso —
@@ -33,6 +43,10 @@ import {
 export default function VotacaoDoClube({ clube }: { clube: Clube }) {
   const { toast } = useToast();
   const [votacao, setVotacao] = useState<Votacao | undefined>(() => votacaoDoClube(clube.id));
+  /** O livro escolhido pelo dono quando dá empate. */
+  const [desempate, setDesempate] = useState<number | undefined>();
+  /** O seu livro derrotado, para o convite de fundar um clube dele. */
+  const [derrotado, setDerrotado] = useState<{ bookId: number; quantos: number } | undefined>();
 
   useEffect(() => {
     const atualizar = () => setVotacao(votacaoDoClube(clube.id));
@@ -41,12 +55,23 @@ export default function VotacaoDoClube({ clube }: { clube: Clube }) {
     return () => window.removeEventListener(RODADAS_EVENT, atualizar);
   }, [clube.id]);
 
-  if (!votacao) return null;
+  /* O convite de fundar clube sobrevive ao fim da votação — é justamente
+     **depois** dela que ele faz sentido. */
+  if (!votacao) {
+    return derrotado ? (
+      <ConviteDeFundarClube
+        bookId={derrotado.bookId}
+        quantos={derrotado.quantos}
+        onFechar={() => setDerrotado(undefined)}
+      />
+    ) : null;
+  }
 
   const meu = meuVoto(clube.id);
   const resultado = apuracao(votacao);
   const totalDeVotos = resultado.reduce((soma, item) => soma + item.votos, 0);
   const souModerador = souDono(clube);
+  const empatados = empatadosNoTopo(votacao);
 
   return (
     <section className="space-y-3" data-testid="votacao-do-clube">
@@ -112,23 +137,118 @@ export default function VotacaoDoClube({ clube }: { clube: Clube }) {
       )}
 
       {souModerador && (
-        <button
-          onClick={() => {
-            const escolhido = vencedor(votacao);
-            const livro = catalog.find((item) => item.id === escolhido);
-            comecarCiclo(clube.id, escolhido);
-            encerrarVotacao(clube.id);
-            toast({
-              title: "Novo ciclo começou",
-              description: `"${livro?.title}" é o livro da vez. O anterior foi para a estante do clube.`,
-            });
-          }}
-          className="w-full rounded-xl bg-white/[0.06] py-2.5 text-xs font-semibold text-white/70 transition-colors hover:bg-white/10"
-          data-testid="encerrar-votacao"
-        >
-          Encerrar votação e começar o ciclo
-        </button>
+        <>
+          {/* **O empate aparece antes do botão**, com os nomes: sem isso o dono
+              encerraria sem saber que estava escolhendo, e a turma veria um
+              vencedor saído do nada. */}
+          {empatados.length > 1 && (
+            <div
+              className="rounded-xl border border-[#f59e0b]/25 bg-[#f59e0b]/[0.07] p-3"
+              data-testid="empate-na-votacao"
+            >
+              <p className="text-[11.5px] leading-relaxed text-white/70">
+                <b className="text-[#f59e0b]">Empate.</b> Você desempata — toque no que vai valer.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {empatados.map((bookId) => {
+                  const livro = catalog.find((item) => item.id === bookId);
+                  return (
+                    <button
+                      key={bookId}
+                      onClick={() => setDesempate(bookId)}
+                      className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                        desempate === bookId
+                          ? "bg-primary text-black"
+                          : "border border-white/15 text-white/60 hover:text-white"
+                      }`}
+                      data-testid={`desempate-${bookId}`}
+                    >
+                      {livro?.title ?? "livro"}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={() => {
+              const escolhido = desempate ?? vencedor(votacao);
+              const livro = catalog.find((item) => item.id === escolhido);
+              /* O derrotado é lido **antes** de encerrar: depois disso a votação
+                 some e o seu voto já não pode ser comparado com nada. */
+              const perdido = meuLivroDerrotado(votacao, escolhido);
+              comecarCiclo(clube.id, escolhido);
+              encerrarVotacao(clube.id);
+              setDerrotado(perdido);
+              toast({
+                title: "Novo ciclo começou",
+                description: `"${livro?.title}" é o livro da vez. O anterior foi para a estante do clube.`,
+              });
+            }}
+            disabled={empatados.length > 1 && desempate === undefined}
+            className="w-full rounded-xl bg-white/[0.06] py-2.5 text-xs font-semibold text-white/70 transition-colors hover:bg-white/10 disabled:opacity-30"
+            data-testid="encerrar-votacao"
+          >
+            Encerrar votação e começar o ciclo
+          </button>
+        </>
       )}
     </section>
+  );
+}
+
+/**
+ * "3 pessoas também queriam X — criar um clube desse livro?"
+ *
+ * **A peça nasceu de uma pergunta do Matheus** (§4.58): *"como essa pessoa vai
+ * para o outro clube?"*. Quem votou no livro derrotado ficava com o livro que não
+ * escolheu e nenhuma saída — e a saída óbvia (mover a pessoa para outro clube)
+ * foi **rejeitada**, porque mover gente sem que ela peça é decidir por ela.
+ *
+ * O que ficou faz o clube **se multiplicar sozinho**: o grupo que queria outro
+ * livro funda o próprio, com o formulário já preenchido. E é o que compensa o
+ * custo de permitir 5 opções na votação.
+ */
+export function ConviteDeFundarClube({
+  bookId,
+  quantos,
+  onFechar,
+}: {
+  bookId: number;
+  quantos: number;
+  onFechar: () => void;
+}) {
+  const livro = catalog.find((item) => item.id === bookId);
+  if (!livro) return null;
+
+  return (
+    <div
+      className="mt-3 flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/[0.07] p-3"
+      data-testid="fundar-clube-do-derrotado"
+    >
+      <img src={livro.cover} alt="" className="h-[54px] w-[38px] shrink-0 rounded object-cover" />
+      <div className="min-w-0 flex-1">
+        <p className="text-[12px] leading-snug text-white/75">
+          {quantos > 1 ? `${quantos} pessoas também queriam` : "Você queria"}{" "}
+          <b className="text-white">{livro.title}</b>. Que tal abrir um clube dele?
+        </p>
+        <div className="mt-2 flex items-center gap-3">
+          <Link
+            href={`/clubes/novo?livro=${livro.id}`}
+            className="text-[11.5px] font-bold text-primary"
+            data-testid="criar-clube-do-derrotado"
+          >
+            Criar o clube
+          </Link>
+          <button
+            onClick={onFechar}
+            className="text-[11.5px] font-semibold text-white/35 transition-colors hover:text-white/70"
+          >
+            Agora não
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

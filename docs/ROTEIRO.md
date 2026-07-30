@@ -5006,9 +5006,10 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
    elas abrem. Detalhe na **§4.66**.
 
 **Fora do caminho crítico, e independentes** (dá para fazer a qualquer momento):
-renomear o clube · votação de 2 a 5 opções · lista de espera com teto de 250 ·
-"quem perdeu a votação funda um clube" · trechos quentes · presença por capítulo
-(com opt-in recíproco).
+~~renomear o clube~~ · ~~votação de 2 a 5 opções~~ · lista de espera com teto de
+250 · ~~"quem perdeu a votação funda um clube"~~ · trechos quentes · presença por
+capítulo (com opt-in recíproco). **Os três riscados foram feitos em 30/07 —
+§4.69.**
 
 ---
 
@@ -5807,6 +5808,54 @@ com *"o ciclo já começou"* ao lado responde antes da pergunta.
 - **`adicionarMembro` guarda quem entrou por convite à parte** (`convidados`), do
   mesmo jeito que os removidos: o esqueleto fica intacto e só a sua ação é
   gravada. Com servidor, vira um POST e a tela não muda.
+
+---
+
+## 4.69 O ciclo do clube fecha sozinho (30/07, noite)
+
+Três peças da lista "fora do caminho crítico" da §4.58, e juntas elas resolvem
+uma coisa só: **o clube continuar depois do primeiro livro**. O Matheus tinha
+descrito o ciclo numa frase — *"muda o nome, escolhe o próximo livro"* — e
+faltavam as duas metades.
+
+### Renomear o clube
+
+O nome era fixo desde a criação, e ele mente rápido: o clube nasce "Duna nas
+quintas" e três livros depois não descreve mais nada. Agora o moderador troca
+nome e descrição na tela de gerenciar, e vale para clube semeado **e** para clube
+seu — guardado por fora (`renomeados`), como todo o resto, para o esqueleto ficar
+intacto. **Nome vazio não passa:** clube sem nome não é citável com `@` nem
+achável na busca.
+
+### A votação passou a existir de verdade — e aceita de 2 a 5 livros
+
+Até aqui só existia a votação **semeada**: num clube real, acabava o livro e não
+havia como escolher o próximo — ou seja, a peça que existe para o clube não morrer
+no fim do ciclo não funcionava fora do exemplo. Agora o moderador abre a votação
+escolhendo os livros.
+
+**De 2 a 5, com 3 sugerido**, e o argumento que fixou o 3 vale repetir porque é
+contraintuitivo: *com 5 opções e 8 pessoas, o vencedor sai com 3 votos* — cinco
+pessoas ficam com um livro que não escolheram. Mais opção parece mais democracia e
+é o contrário. **O 5 só passou a caber porque quem perde ganhou saída** (abaixo).
+
+**Empate: desempata o dono**, com os empatados nomeados na tela antes do botão.
+Sortear seria mais "justo" no papel e pior na prática — ninguém entende de onde
+saiu o resultado, e o clube tem moderador exatamente para o que a regra não fecha.
+
+### Quem perdeu a votação funda o próprio clube
+
+Nasceu de uma pergunta do Matheus: *"como essa pessoa vai para o outro clube?"*.
+Ao encerrar, quem votou no derrotado vê *"3 pessoas também queriam X — criar um
+clube desse livro?"*, e o formulário abre **já preenchido** (`/clubes/novo?livro=`),
+com nome sugerido.
+
+**Rejeitado, e continua rejeitado: mover gente de um clube para outro.** Mover
+alguém sem que peça é decidir por ela. O que ficou faz o clube **se multiplicar**
+— não porque encheu, mas porque um grupo queria outro livro.
+
+**Ainda falta desta lista:** lista de espera com teto de 250, trechos quentes da
+semana, e presença por capítulo (com opt-in recíproco).
 
 ---
 

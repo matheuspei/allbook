@@ -510,6 +510,15 @@ interface EstadoLocal {
    * não muda.
    */
   convidados: Record<string, string[]>;
+  /**
+   * Nome e descrição trocados pelo moderador: clubeId → o novo texto.
+   *
+   * **Existe porque um clube que troca de assunto precisa trocar de nome**
+   * (§4.58): o nome nasce colado ao primeiro livro ("Duna nas quintas") e, três
+   * ciclos depois, mente. Guardado por fora, como todo o resto, para o esqueleto
+   * ficar intacto.
+   */
+  renomeados: Record<string, { nome: string; descricao: string }>;
   /** Quantas pessoas cabem: clubeId → limite. Ausente = sem limite. */
   limites: Record<string, number>;
   /** Clubes semeados que você apagou (só acontece nos que você modera). */
@@ -523,6 +532,7 @@ const VAZIO: EstadoLocal = {
   estantes: {},
   removidos: {},
   convidados: {},
+  renomeados: {},
   limites: {},
   apagados: [],
 };
@@ -538,6 +548,7 @@ function readEstado(): EstadoLocal {
       estantes: guardado.estantes ?? {},
       removidos: guardado.removidos ?? {},
       convidados: guardado.convidados ?? {},
+      renomeados: guardado.renomeados ?? {},
       limites: guardado.limites ?? {},
       apagados: Array.isArray(guardado.apagados) ? guardado.apagados : [],
     };
@@ -580,6 +591,7 @@ function comAlteracoes(clube: Clube, estado: EstadoLocal): Clube {
 function moderado(clube: Clube, estado: EstadoLocal): Clube {
   const fora = estado.removidos[clube.id];
   const limite = estado.limites[clube.id];
+  const renomeado = estado.renomeados[clube.id];
   /* Quem entrou por convite seu vale para clube semeado **e** para clube seu —
      por isso a soma acontece aqui, e não no `comAlteracoes`, que só passa pelos
      semeados. */
@@ -590,9 +602,36 @@ function moderado(clube: Clube, estado: EstadoLocal): Clube {
 
   return {
     ...clube,
+    ...(renomeado ? { nome: renomeado.nome, descricao: renomeado.descricao } : {}),
     membros: fora ? membros.filter((slug) => !fora.includes(slug)) : membros,
     ...(limite !== undefined ? { limite } : {}),
   };
+}
+
+/**
+ * Troca o nome (e a descrição) de um clube que você modera.
+ *
+ * **Por que isto faltava** (§4.58): o nome era fixo desde a criação, e o clube
+ * que muda de assunto ficava com um nome que mente. O Matheus descreveu o ciclo
+ * inteiro numa frase — *"muda o nome, escolhe o próximo livro"* —, e a segunda
+ * metade já existia (a votação).
+ *
+ * **Vale para clube semeado e para clube seu**, e por isso mora no `renomeados`
+ * em vez de reescrever a lista `criados`: um caminho só, e o esqueleto intacto.
+ * **Nome vazio não passa** — clube sem nome não tem como ser citado nem achado.
+ */
+export function renomearClube(clubeId: string, nome: string, descricao: string): boolean {
+  const limpo = nome.trim().slice(0, 40);
+  if (!limpo) return false;
+  const estado = readEstado();
+  salvar({
+    ...estado,
+    renomeados: {
+      ...estado.renomeados,
+      [clubeId]: { nome: limpo, descricao: descricao.trim().slice(0, 200) },
+    },
+  });
+  return true;
 }
 
 /** Todos os clubes que existem para você: os semeados e os seus. */

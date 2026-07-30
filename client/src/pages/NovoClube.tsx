@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { Check, Search } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
@@ -52,10 +52,21 @@ export default function NovoClube() {
   const { toast } = useToast();
   const [, navegar] = useLocation();
 
-  const [nome, setNome] = useState("");
+  /*
+    **`?livro=<id>` chega preenchido** (30/07). Quem perde a votação do próximo
+    livro é convidado a fundar o clube daquele livro (§4.58), e mandar a pessoa
+    para um formulário em branco depois de ela dizer "sim, quero" era perder o
+    impulso — ela teria de procurar de novo o livro que acabou de ver na tela.
+    O nome também nasce sugerido, porque "Clube de Duna" é melhor ponto de
+    partida do que um campo vazio.
+  */
+  const busca_url = new URLSearchParams(useSearch());
+  const livroDaUrl = catalog.find((item) => item.id === Number(busca_url.get("livro")));
+
+  const [nome, setNome] = useState(livroDaUrl ? `Clube de ${livroDaUrl.title}` : "");
   const [descricao, setDescricao] = useState("");
   const [busca, setBusca] = useState("");
-  const [bookId, setBookId] = useState<number | null>(null);
+  const [bookId, setBookId] = useState<number | null>(livroDaUrl?.id ?? null);
   const [inicio, setInicio] = useState(hojeIso());
   const [fim, setFim] = useState(somarDiasIso(hojeIso(), 28));
   const [limite, setLimite] = useState<number | undefined>(undefined);

@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { CalendarRange, Eye, MessageCircleQuestion, Plus, Shield, Trash2, Undo2, UserMinus, Users, Vote, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
+import { catalog } from "@/lib/books";
 import EditorDeMarcos from "@/components/clube/EditorDeMarcos";
 import {
   AlertDialog,
@@ -27,7 +28,9 @@ import {
   membrosRemovidos,
   nomeDoMembro,
   readmitirMembro,
+  prazoEmTexto,
   removerMembro,
+  renomearClube,
   sairDoClube,
   souDono,
   vagasRestantes,
@@ -46,7 +49,19 @@ import {
   encerrarPauta,
   pautaAberta,
 } from "@/lib/pautas";
-import { PERGUNTAS_SUGERIDAS, RODADAS_EVENT, abrirRodada, encerrarRodada, janelaEmTexto, rodadaAberta } from "@/lib/rodadas";
+import {
+  MAX_OPCOES_VOTACAO,
+  MIN_OPCOES_VOTACAO,
+  OPCOES_SUGERIDAS,
+  PERGUNTAS_SUGERIDAS,
+  RODADAS_EVENT,
+  abrirRodada,
+  abrirVotacao,
+  encerrarRodada,
+  janelaEmTexto,
+  rodadaAberta,
+  votacaoDoClube,
+} from "@/lib/rodadas";
 import { MURAL_EVENT, desfazerModeracao, escondidasDoClube } from "@/lib/muralDoClube";
 
 /**
@@ -123,9 +138,11 @@ export default function GerenciarClube({ params }: { params: { id: string } }) {
           </span>
         </p>
 
+        <NomeDoClube key={`n-${versao}`} clube={clube} />
         <Vagas clube={clube} />
         <RitmoDoCiclo key={`c-${versao}`} clube={clube} />
         <Membros key={`m-${versao}`} clube={clube} />
+        <VotacaoDoModerador key={`v-${versao}`} clube={clube} />
         <PautaDoModerador key={`p-${versao}`} clube={clube} />
         <RodadaDoModerador key={`r-${versao}`} clube={clube} />
         <Escondidas key={`e-${versao}`} clube={clube} />
@@ -143,6 +160,205 @@ export default function GerenciarClube({ params }: { params: { id: string } }) {
         />
       </div>
     </div>
+  );
+}
+
+/* ================================================================== *
+ * 0. Nome e descrição — o clube que muda de assunto muda de nome.
+ * ================================================================== */
+
+/**
+ * Renomear o clube — **o que faltava para o ciclo fechar de verdade** (§4.58).
+ *
+ * O Matheus descreveu a continuidade numa frase: *"muda o nome, escolhe o
+ * próximo livro"*. A segunda metade já existia (a votação); a primeira, não — o
+ * nome era fixo desde a criação. E ele mente rápido: um clube nasce "Duna nas
+ * quintas" e, três livros depois, o nome não descreve mais nada do que aquela
+ * turma faz.
+ *
+ * **Só o dono renomeia**, como tudo nesta tela. E o nome vazio não passa: clube
+ * sem nome não tem como ser citado com `@` nem achado na busca.
+ */
+function NomeDoClube({ clube }: { clube: ClubeTipo }) {
+  const { toast } = useToast();
+  const [nome, setNome] = useState(clube.nome);
+  const [descricao, setDescricao] = useState(clube.descricao);
+  const mudou = nome.trim() !== clube.nome || descricao.trim() !== clube.descricao;
+
+  return (
+    <section data-testid="secao-nome-do-clube">
+      <h2 className="mb-1 font-display text-base font-bold">Nome do clube</h2>
+      <p className="mb-3 text-[11.5px] leading-relaxed text-white/40">
+        Trocou de livro e o nome ficou velho? Troque também — quem já está dentro continua
+        dentro.
+      </p>
+
+      <input
+        value={nome}
+        onChange={(evento) => setNome(evento.target.value.slice(0, 40))}
+        placeholder="Nome do clube"
+        className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm focus:border-primary/50 focus:outline-none"
+        data-testid="input-nome-do-clube"
+      />
+      <textarea
+        value={descricao}
+        onChange={(evento) => setDescricao(evento.target.value.slice(0, 200))}
+        placeholder="Sobre o que é este clube?"
+        rows={2}
+        className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-[12.5px] leading-relaxed focus:border-primary/50 focus:outline-none"
+        data-testid="input-descricao-do-clube"
+      />
+
+      <div className="mt-2.5 flex justify-end">
+        <button
+          onClick={() => {
+            if (!renomearClube(clube.id, nome, descricao)) return;
+            toast({
+              title: "Clube renomeado",
+              description: "O nome novo vale em toda parte: feed, busca e menção com @.",
+            });
+          }}
+          disabled={!mudou || nome.trim().length === 0}
+          className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-black disabled:opacity-30"
+          data-testid="button-salvar-nome"
+        >
+          Salvar
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/* ================================================================== *
+ * 0.5 Votação do próximo livro — de 2 a 5 opções.
+ * ================================================================== */
+
+/**
+ * **Abrir a votação do próximo livro** (§4.58, e o que faltava para o ciclo ter
+ * continuação de verdade).
+ *
+ * Até 30/07 só existia a votação de exemplo, semeada: num clube real, acabava o
+ * livro e não havia como escolher o próximo — o clube morria no fim do primeiro
+ * ciclo, que é exatamente o que a votação existe para evitar.
+ *
+ * **De 2 a 5, com 3 sugerido.** O argumento que fixou o 3 continua no lugar e é
+ * contraintuitivo: *com 5 opções e 8 pessoas, o vencedor sai com 3 votos* — cinco
+ * ficam com um livro que não escolheram. O 5 só passou a caber porque quem perde
+ * ganhou saída (fundar o clube do livro derrotado).
+ */
+function VotacaoDoModerador({ clube }: { clube: ClubeTipo }) {
+  const { toast } = useToast();
+  const aberta = votacaoDoClube(clube.id);
+  const [busca, setBusca] = useState("");
+  const [escolhidos, setEscolhidos] = useState<number[]>([]);
+
+  const encontrados = busca.trim()
+    ? catalog
+        .filter((livro) =>
+          `${livro.title} ${livro.author}`.toLowerCase().includes(busca.trim().toLowerCase()),
+        )
+        .filter((livro) => !escolhidos.includes(livro.id))
+        .slice(0, 5)
+    : [];
+
+  if (aberta) {
+    return (
+      <section data-testid="secao-votacao-aberta">
+        <h2 className="mb-1 font-display text-base font-bold">Próximo livro</h2>
+        <p className="text-[11.5px] leading-relaxed text-white/40">
+          Já há uma votação aberta com {aberta.opcoes.length} livros. Ela fecha{" "}
+          {prazoEmTexto(aberta.fecha)} — o resultado e o botão de encerrar ficam na página do
+          clube.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section data-testid="secao-abrir-votacao">
+      <h2 className="mb-1 font-display text-base font-bold">Próximo livro</h2>
+      <p className="mb-3 text-[11.5px] leading-relaxed text-white/40">
+        Escolha de {MIN_OPCOES_VOTACAO} a {MAX_OPCOES_VOTACAO} livros para a turma votar.{" "}
+        {OPCOES_SUGERIDAS} é o tamanho que costuma funcionar: com muitas opções, o vencedor
+        ganha com poucos votos.
+      </p>
+
+      {escolhidos.length > 0 && (
+        <div className="mb-2.5 space-y-1.5" data-testid="opcoes-escolhidas">
+          {escolhidos.map((id) => {
+            const livro = catalog.find((item) => item.id === id);
+            if (!livro) return null;
+            return (
+              <div
+                key={id}
+                className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.03] p-2"
+              >
+                <img src={livro.cover} alt="" className="h-10 w-7 shrink-0 rounded object-cover" />
+                <span className="min-w-0 flex-1 truncate text-[12.5px]">{livro.title}</span>
+                <button
+                  onClick={() => setEscolhidos((atual) => atual.filter((item) => item !== id))}
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-white/30 hover:text-white"
+                  aria-label={`Tirar ${livro.title}`}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {escolhidos.length < MAX_OPCOES_VOTACAO && (
+        <input
+          value={busca}
+          onChange={(evento) => setBusca(evento.target.value)}
+          placeholder="Buscar um livro…"
+          className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm focus:border-primary/50 focus:outline-none"
+          data-testid="input-busca-votacao"
+        />
+      )}
+
+      {encontrados.length > 0 && (
+        <div className="mt-2 space-y-1">
+          {encontrados.map((livro) => (
+            <button
+              key={livro.id}
+              onClick={() => {
+                setEscolhidos((atual) => [...atual, livro.id]);
+                setBusca("");
+              }}
+              className="flex w-full items-center gap-2.5 rounded-xl p-2 text-left transition-colors hover:bg-white/[0.06]"
+              data-testid={`opcao-votacao-${livro.id}`}
+            >
+              <img src={livro.cover} alt="" className="h-10 w-7 shrink-0 rounded object-cover" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[12.5px]">{livro.title}</span>
+                <span className="block truncate text-[10.5px] text-white/35">{livro.author}</span>
+              </span>
+              <Plus className="h-3.5 w-3.5 shrink-0 text-primary" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-3 flex justify-end">
+        <button
+          onClick={() => {
+            if (!abrirVotacao(clube.id, escolhidos)) return;
+            setEscolhidos([]);
+            toast({
+              title: "Votação aberta",
+              description: "A turma vota na página do clube. Você encerra quando quiser.",
+            });
+          }}
+          disabled={escolhidos.length < MIN_OPCOES_VOTACAO}
+          className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-black disabled:opacity-30"
+          data-testid="button-abrir-votacao"
+        >
+          Abrir votação
+        </button>
+      </div>
+    </section>
   );
 }
 
