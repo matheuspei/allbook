@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Check, ChevronRight, Plus } from "lucide-react";
+import { Check, ChevronRight, HelpCircle, Plus } from "lucide-react";
 
 import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
 import ConversasDeAgora from "@/components/ConversasDeAgora";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
-import { todosOsPosts, type Post } from "@/lib/posts";
+import Compositor from "@/components/comunidade/Compositor";
+import { POSTS_EVENT, todosOsPosts, type Post } from "@/lib/posts";
 import { MURAL_EVENT } from "@/lib/mural";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -154,30 +155,82 @@ function AbaAgora() {
 }
 
 /**
- * O feed — a primeira leva da Comunidade nova (ROTEIRO §4.53–§4.58).
+ * O feed — a Comunidade nova (ROTEIRO §4.53–§4.58).
  *
- * **Esta versão é só a lista de cartões, de propósito.** Ainda não tem o
- * compositor, as duas lentes (Feed · Seguindo), curtir/comentar nem os cartões
- * de clube e fórum intercalados. A ordem combinada com o Matheus era ver **o
- * cartão** primeiro: se ele não sair do cru, a tela em volta não salva.
+ * **O que já está de pé:** o cartão nas quatro formas, o **compositor** no topo,
+ * curtir, editar e apagar. **Ainda falta** (item 3 da ordem da §4.58): as duas
+ * lentes Feed · Seguindo, comentar, compartilhar, e os cartões de clube e fórum
+ * intercalados.
  *
  * Ordem cronológica pura, sem algoritmo — decisão registrada na §4.58.
  */
 function FeedDePosts() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [soPerguntas, setSoPerguntas] = useState(false);
 
   useEffect(() => {
     const atualizar = () => setPosts(todosOsPosts());
     atualizar();
+    /* Dois eventos porque há dois formatos de post seu: o novo
+       (`allbook_posts`) e os herdados do mural. Ver `CHAVE_POSTS`. */
+    window.addEventListener(POSTS_EVENT, atualizar);
     window.addEventListener(MURAL_EVENT, atualizar);
-    return () => window.removeEventListener(MURAL_EVENT, atualizar);
+    return () => {
+      window.removeEventListener(POSTS_EVENT, atualizar);
+      window.removeEventListener(MURAL_EVENT, atualizar);
+    };
   }, []);
 
+  const perguntas = posts.filter((post) => post.pergunta).length;
+  const mostrados = soPerguntas ? posts.filter((post) => post.pergunta) : posts;
+
   return (
-    <div className="space-y-3 px-5 pt-4" data-testid="feed-de-posts">
-      {posts.map((post) => (
-        <CartaoDePost key={post.id} post={post} />
-      ))}
+    <div className="px-5 pt-4" data-testid="feed-de-posts">
+      <Compositor />
+
+      {/*
+        **O filtro é o que faz o selo "Pergunta" valer.** A §4.58 decidiu que
+        pergunta é um **tipo de post, não uma aba** — aba dividiria a comunidade
+        em duas plateias. O que a aba tinha de bom era juntar as perguntas, e é
+        exatamente isto: um filtro dentro do próprio feed.
+
+        **Some quando não há pergunta nenhuma**, em vez de ficar zerado: filtro
+        que não filtra nada é o botão morto que a §4.23 manda varrer.
+      */}
+      {perguntas > 0 && (
+        <div className="mt-3 flex gap-2" data-testid="feed-filtros">
+          <button
+            onClick={() => setSoPerguntas(false)}
+            className={`rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition-colors ${
+              soPerguntas
+                ? "border border-white/15 text-white/50 hover:text-white/80"
+                : "bg-white text-black"
+            }`}
+            data-testid="filtro-tudo"
+          >
+            Tudo
+          </button>
+          <button
+            onClick={() => setSoPerguntas(true)}
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition-colors ${
+              soPerguntas
+                ? "bg-white text-black"
+                : "border border-white/15 text-white/50 hover:text-white/80"
+            }`}
+            data-testid="filtro-perguntas"
+          >
+            <HelpCircle className="h-3.5 w-3.5" />
+            Perguntas
+            <span className={soPerguntas ? "text-black/45" : "text-white/30"}>{perguntas}</span>
+          </button>
+        </div>
+      )}
+
+      <div className="mt-3 space-y-3">
+        {mostrados.map((post) => (
+          <CartaoDePost key={post.id} post={post} />
+        ))}
+      </div>
     </div>
   );
 }

@@ -46,7 +46,26 @@ export default function AnexarTrecho({
   if (citacao) {
     return (
       <div className="relative">
-        <CitacaoDeAudio citacao={citacao} compacto={compacto} />
+        {/*
+          ⚠️ **O cartão fica inerte aqui, e isto conserta um bug.** O
+          `CitacaoDeAudio` compacto é um **link para o player** — tocar nele no
+          meio de um campo de texto **tira a pessoa da tela e leva o que ela
+          escreveu junto**. Descoberto em 30/07 construindo o compositor, e valia
+          para os três lugares que anexam trecho (compositor, mural do clube,
+          resposta do fórum): o anexo é o que você está prendendo à sua fala, não
+          um atalho para sair.
+
+          **O X continua clicável** porque está fora do bloqueio.
+
+          **Limitação conhecida, e é a mesma da folha de escolha:** com o cartão
+          inerte, o play desenhado nele não toca. O conserto de verdade é o cartão
+          compacto **tocar ali dentro**, como o `grande` já faz — está anotado no
+          ROTEIRO §4.60 e não foi feito aqui para não mexer no cartão que quatro
+          telas usam.
+        */}
+        <span className="pointer-events-none block">
+          <CitacaoDeAudio citacao={citacao} compacto={compacto} />
+        </span>
         <button
           type="button"
           onClick={() => onEscolher(undefined)}

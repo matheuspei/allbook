@@ -4982,13 +4982,17 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
 
 ### Ordem de construção (com as oito já decididas)
 
-1. **O cartão do post**, nas três formas (com livro · com trecho · com clube) —
-   sozinho, sem tela. Se ele não sair do cru, nada em volta salva. **A capa
-   grande no cartão de trecho entra aqui**, é a mesma peça.
-2. **O compositor**: escrever + anexar (livro, trecho, clube), com o tipo
-   **pergunta** e o post de texto puro com tratamento tipográfico.
+1. ✅ **FEITO 29/07 — O cartão do post**, nas três formas (com livro · com trecho ·
+   com clube) — sozinho, sem tela. Se ele não sair do cru, nada em volta salva.
+   **A capa grande no cartão de trecho entra aqui**, é a mesma peça. O que se
+   descobriu construindo está na **§4.59**.
+2. ✅ **FEITO 30/07 — O compositor**: escrever + anexar (livro, trecho, clube), com
+   o tipo **pergunta** e o post de texto puro com tratamento tipográfico. Entraram
+   junto a **menção com `@`**, o **editar** com selo, e o **filtro "Perguntas"** —
+   este último porque sem ele o botão de pergunta era decoração. Detalhe na **§4.60**.
 3. **O feed** com as duas lentes (Feed · Seguindo), os cartões de clube/fórum
-   intercalados, curtir/comentar raso e compartilhar.
+   intercalados, curtir/comentar raso e compartilhar. *(Curtir já está de pé no
+   post desde 29/07; falta no mural do clube, no fórum e no mural.)*
 4. **O Seguindo**: atividade em linha + "ouvindo agora" + "combina com você"
    como cartão ocasional.
 5. **Convite para clube** pela página da pessoa, com aceitar no sino.
@@ -5104,6 +5108,105 @@ Eu havia escrito que não acrescentaria "selo de novo" (o tempo já está no car
 e ele leu como se eu fosse tirar a data — e defendeu que **data é importante**.
 Está: "há 2 h", "ontem". A conversa rendeu uma melhoria de verdade: **passados 7
 dias, vira data absoluta** ("12 jul"), porque "há 3 semanas" obriga a fazer conta.
+
+---
+
+## 4.60 O compositor, construído — e o que se decidiu construindo (30/07)
+
+Item 2 da ordem da §4.58. Como na §4.59, o que está aqui **nasceu fazendo e
+olhando** — o plano está lá, o que a mão descobriu está aqui.
+
+### O selo "Pergunta" voltou, porque ganhou mecanismo
+
+Em 29/07 eu tirei o selo do cartão, e o motivo era bom: **rótulo sem mecanismo é
+decoração** (§4.23). A dúvida tinha sido dele — *"fico me questionando se ele faz
+sentido"*.
+
+Construindo o compositor, o botão "Pergunta" caiu no mesmo problema: marcar um post
+como pergunta não mudava nada em tela nenhuma. Duas saídas ruins e uma boa:
+
+- **Ruim:** deixar o botão e o post sair igual aos outros. Botão que não faz nada.
+- **Ruim:** não oferecer o botão. Estreitava a decisão dele sem avisar.
+- **Feita:** trazer o selo **junto com o filtro "Perguntas"** no topo do feed.
+
+O filtro é exatamente o que a aba de perguntas tinha de bom — juntar as perguntas
+— **sem** dividir a comunidade em duas plateias, que foi o motivo de a aba ter sido
+rejeitada. Agora o selo marca um conjunto que a pessoa consegue isolar. **As
+respostas embaixo continuam pendentes** (item 3): quando existirem, o filtro pode
+virar "sem resposta", que é o que ele promete de melhor.
+
+**O filtro some quando não há pergunta nenhuma** — filtro que não filtra é o mesmo
+botão morto por outro caminho.
+
+### Chave de armazenamento nova, e por que não deu para reusar a do mural
+
+Os posts seus passam a viver em `allbook_posts`. O `MeuPost` do mural
+(`allbook_mural_posts`) **não servia**, por três razões de fato:
+
+1. **Não aceita trecho** — só `bookId` ou `clubeId`, e o trecho é o objeto que só
+   o AllBook tem.
+2. **Exige âncora** — a validação descarta post sem livro nem clube, e a §4.58
+   decidiu que texto puro é permitido.
+3. **Não tem `pergunta`, `mencoes` nem `editadoEm`.**
+
+Os antigos continuam sendo lidos e mostrados (decisão dele: *"tanto faz; pode
+deixar os que já tem lá"*), e por isso **apagar tenta nos dois formatos** — quem
+toca "Apagar" não sabe nem tem por que saber em qual chave o post está.
+
+**Pendência que isto cria:** o Perfil lê `readMeusPosts` (só o formato antigo), e
+por isso **post novo ainda não aparece no Perfil**. Não foi consertado de propósito:
+é o item 6 da ordem (o perfil girando em torno dos posts), que reformula a seção
+inteira — remendar agora seria trabalho jogado fora.
+
+### A menção: como ficou guardada, e a alternativa rejeitada
+
+O texto fica **limpo** (`"me lembrou @Hábitos Atômicos"`) e a lista de menções vem
+ao lado, com o alvo de cada uma.
+
+**Rejeitado: marcação dentro do texto** (`[[livro:102|Hábitos Atômicos]]`). Motivo
+prático: o texto é digitado num `textarea`, e ali a marcação apareceria **crua para
+quem escreve**. Com a lista ao lado, o app casa `@` + nome ao mostrar — e se a
+pessoa editar e quebrar o nome, a menção **volta a ser texto**, nunca vira link
+apontando para coisa que o texto não diz mais.
+
+**Um campo, dois lugares** (`CampoComMencao`): o compositor e o **editar** usam o
+mesmo. Escrever duas versões dele era o erro que a §4.40 cobrou caro.
+
+### Editar edita o texto, nunca o anexo
+
+Decisão nova, tomada construindo. Trocar a capa depois de o post circular é uma
+troca de sentido que **nem o selo "editado" consegue avisar**: quem já viu o cartão
+viu outro livro. Para trocar o objeto, apaga e escreve de novo.
+
+### O botão de clube só existe se você estiver em algum clube
+
+Terceira via entre duas saídas ruins: folha vazia dizendo "você não tem clubes" é
+beco sem saída (§4.23), e botão desabilitado é pior — parece defeito. Quem não tem
+clube descobre os clubes na aba Fóruns, que é onde eles moram.
+
+### Dois defeitos que só apareceram na tela
+
+- **Meu, e novo:** escolhida a menção, o campo passava a conter `@Hábitos Atômicos `
+  — e esse termo **casa com o próprio livro**, então a lista reabria mostrando o
+  item que a pessoa acabou de escolher, e ficava pendurada até ela digitar a
+  palavra seguinte. Conserto: se o termo **é** um rótulo já registrado, a lista não
+  abre.
+- **Antigo, e pior:** o preview do trecho anexado é o `CitacaoDeAudio` compacto, que
+  é **um link para o player** — tocar nele no meio de escrever **levava a pessoa
+  embora e o texto ia junto**. Valia para os três lugares que anexam trecho
+  (compositor, mural do clube, resposta do fórum). Consertado na raiz, no
+  `AnexarTrecho`: o cartão fica inerte, o X continua clicável.
+  - **Limitação que isto expõe, e que já existia:** com o cartão inerte, **o play
+    desenhado nele não toca** — e na folha "Seus trechos" nunca tocou, porque ela já
+    usava o mesmo bloqueio. O conserto certo é o cartão **compacto** tocar ali
+    dentro, como o `grande` já faz. Não foi feito agora para não mexer no cartão
+    que quatro telas usam. **A construir.**
+
+### A caixa nasce fechada — e as duas alternativas rejeitadas
+
+Uma linha com o avatar, que abre no lugar. **Botão flutuante** tapa conteúdo (a
+§4.58 já dizia isso) e **caixa sempre aberta** empurraria o primeiro post para
+baixo da dobra: quem entra na Comunidade quer ler antes de escrever.
 
 ---
 

@@ -1,14 +1,16 @@
 import { Link } from "wouter";
-import { ArrowRight, CalendarClock, Users } from "lucide-react";
+import { ArrowRight, CalendarClock, HelpCircle, Users } from "lucide-react";
 
 import AcoesDoPost from "@/components/comunidade/AcoesDoPost";
+import CampoComMencao from "@/components/comunidade/CampoComMencao";
+import TextoDoPost from "@/components/comunidade/TextoDoPost";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { catalog, slugify } from "@/lib/books";
 import { EU, clubePorId, corDoMembro, nomeDoMembro, souDono, vagasRestantes, type Clube } from "@/lib/clubes";
 import { findMember } from "@/lib/community";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { initialOf, readProfile } from "@/lib/profile";
-import { type Post } from "@/lib/posts";
+import { editarPost, type Mencao, type Post } from "@/lib/posts";
 import { useState } from "react";
 
 /**
@@ -42,6 +44,7 @@ export default function CartaoDePost({ post }: { post: Post }) {
   const [seguindo, setSeguindo] = useState(() =>
     post.autorSlug ? isFollowing(post.autorSlug) : true,
   );
+  const [editando, setEditando] = useState(false);
 
   const nome = ehMeu ? meuPerfil.name : (membro?.name ?? "Leitor");
   const href = ehMeu ? "/profile" : `/user/${post.autorSlug}`;
@@ -98,25 +101,39 @@ export default function CartaoDePost({ post }: { post: Post }) {
       </header>
 
       {/*
-        **O selo "Perguntou" saiu em 29/07**, e a dúvida foi do Matheus: *"fico me
-        questionando se ele faz sentido"*. Faz — mas só quando existir o que ele
-        promete: respostas embaixo e o filtro "sem resposta". Sozinho ele é
-        rótulo, e rótulo sem mecanismo é a decoração que a §4.23 manda varrer.
-        `post.pergunta` continua no modelo, esperando as respostas.
+        **O selo voltou em 30/07, e agora tem para onde levar.** Ele saiu em
+        29/07 porque era rótulo sem mecanismo (§4.23): a dúvida foi do Matheus —
+        *"fico me questionando se ele faz sentido"* — e eu concordei. O que mudou
+        é que o feed ganhou o **filtro "Perguntas"**: o selo passou a ser a marca
+        de um conjunto que a pessoa consegue isolar, e não mais enfeite. As
+        respostas embaixo continuam pendentes (item 3 da ordem da §4.58).
       */}
-
-      {post.texto && (
-        <p
-          className={
-            post.objeto
-              ? "mt-2 text-[14px] leading-relaxed text-white/85"
-              : /* Sem objeto, o texto **é** o cartão: corpo maior e entrelinha
-                   larga, para ter presença em vez de virar buraco. */
-                "mt-2.5 font-display text-[19px] font-semibold leading-snug tracking-tight text-white/90"
-          }
+      {post.pergunta && (
+        <span
+          className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-primary"
+          data-testid="selo-pergunta"
         >
-          {post.texto}
-        </p>
+          <HelpCircle className="h-3 w-3" />
+          Pergunta
+        </span>
+      )}
+
+      {editando ? (
+        <EditarOTexto post={post} onPronto={() => setEditando(false)} />
+      ) : (
+        post.texto && (
+          <TextoDoPost
+            texto={post.texto}
+            mencoes={post.mencoes}
+            className={
+              post.objeto
+                ? "mt-2 text-[14px] leading-relaxed text-white/85"
+                : /* Sem objeto, o texto **é** o cartão: corpo maior e entrelinha
+                     larga, para ter presença em vez de virar buraco. */
+                  "mt-2.5 font-display text-[19px] font-semibold leading-snug tracking-tight text-white/90"
+            }
+          />
+        )
       )}
 
       {post.objeto?.tipo === "livro" && <CapaDoLivro bookId={post.objeto.bookId} />}
@@ -127,8 +144,63 @@ export default function CartaoDePost({ post }: { post: Post }) {
       )}
       {post.objeto?.tipo === "clube" && <CartaoDoClube clubeId={post.objeto.clubeId} />}
 
-      <AcoesDoPost post={post} />
+      <AcoesDoPost post={post} onEditar={() => setEditando(true)} />
     </article>
+  );
+}
+
+/**
+ * Reescrever o texto de um post seu, **no lugar**.
+ *
+ * Editar foi decisão do Matheus contra o meu argumento (§4.58): *"nas grandes
+ * plataformas você consegue editar"*. A condição que ficou é o selo "editado",
+ * que a `editarPost` grava — sem ele, o autor vira o sentido do texto e faz os
+ * comentários anteriores parecerem loucos.
+ *
+ * **Edita-se o texto, não o anexo.** Trocar a capa depois de o post circular
+ * seria a troca de sentido que nem o selo consegue avisar: quem já viu o cartão
+ * viu outro livro. Para trocar o objeto, apaga e escreve de novo.
+ *
+ * **A menção continua funcionando aqui** porque o campo é o mesmo do compositor
+ * (`CampoComMencao`) — dá para citar um livro novo ao corrigir a frase.
+ */
+function EditarOTexto({ post, onPronto }: { post: Post; onPronto: () => void }) {
+  const [texto, setTexto] = useState(post.texto);
+  const [mencoes, setMencoes] = useState<Mencao[]>(post.mencoes ?? []);
+
+  return (
+    <div className="mt-2 rounded-xl bg-white/[0.05] p-2.5 ring-1 ring-inset ring-white/10">
+      <CampoComMencao
+        texto={texto}
+        mencoes={mencoes}
+        onMudar={(novoTexto, novasMencoes) => {
+          setTexto(novoTexto);
+          setMencoes(novasMencoes);
+        }}
+        placeholder="Escreva de novo…"
+        autoFocus
+      />
+      <div className="mt-2 flex items-center justify-end gap-2">
+        <button
+          onClick={onPronto}
+          className="rounded-full px-2.5 py-1.5 text-[11.5px] font-semibold text-white/35 transition-colors hover:text-white/70"
+          data-testid="cancelar-edicao"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={() => {
+            editarPost(post.id, texto, mencoes);
+            onPronto();
+          }}
+          disabled={texto.trim().length === 0 && post.objeto === undefined}
+          className="rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-black disabled:opacity-30"
+          data-testid="salvar-edicao"
+        >
+          Salvar
+        </button>
+      </div>
+    </div>
   );
 }
 
