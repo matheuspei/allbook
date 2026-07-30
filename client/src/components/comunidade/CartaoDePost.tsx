@@ -9,6 +9,7 @@ import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { catalog, slugify } from "@/lib/books";
 import { EU, clubePorId, corDoMembro, nomeDoMembro, souDono, vagasRestantes, type Clube } from "@/lib/clubes";
 import { findMember } from "@/lib/community";
+import { findPerson } from "@/lib/people";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { initialOf, readProfile } from "@/lib/profile";
 import { editarPost, type Mencao, type Post } from "@/lib/posts";
@@ -154,6 +155,7 @@ export default function CartaoDePost({
         </div>
       )}
       {post.objeto?.tipo === "clube" && <CartaoDoClube clubeId={post.objeto.clubeId} />}
+      {post.objeto?.tipo === "pessoa" && <CartaoDePessoa slug={post.objeto.slug} />}
 
       <AcoesDoPost
         post={post}
@@ -305,6 +307,99 @@ function CapaDoLivro({ bookId }: { bookId: number }) {
           Ver o livro
           <ArrowRight className="h-3 w-3" />
         </Link>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A pessoa citada — **e quem preenche o cartão são os livros dela** (30/07).
+ *
+ * **A ideia foi do Matheus; a ressalva foi minha, e ela está no desenho.** Ele
+ * propôs *"um cartãozinho que levaria para aquele perfil, assim como já existe nos
+ * livros"*. Meu receio, com a §4.53 na mão: as **onze** maquetes de Comunidade
+ * falharam porque o feed era **sobre pessoas** — texto sem corpo —, e neste app
+ * quase nenhum autor tem foto (o avatar é uma inicial colorida). Um cartão de
+ * rosto ao lado de um cartão de capa perde sempre.
+ *
+ * O acordo: o cartão existe, **e o corpo dele são as capas**. A fileira de livros
+ * é o que dá presença, e é também a informação que decide se você quer o perfil —
+ * *"quem é essa narradora?"* se responde vendo o que ela narrou, não vendo a cara
+ * dela.
+ *
+ * **Sem livro nenhum não há cartão** (`return null`): sobraria um retângulo com um
+ * nome, que é exatamente o cru de que ele reclamou nas maquetes antigas.
+ */
+function CartaoDePessoa({ slug }: { slug: string }) {
+  const pessoa = findPerson(slug);
+  if (!pessoa) return null;
+
+  /* O chapéu vem do que ela **fez**, e a ordem segue o peso: quem escreveu e
+     narrou aparece como as duas coisas. */
+  const chapeus = [
+    pessoa.wrote.length > 0 ? `${pessoa.wrote.length} ${pessoa.wrote.length === 1 ? "livro escrito" : "livros escritos"}` : null,
+    pessoa.narrated.length > 0
+      ? `${pessoa.narrated.length} ${pessoa.narrated.length === 1 ? "narração" : "narrações"}`
+      : null,
+  ].filter(Boolean);
+
+  /* Prioriza o que ela narrou: no AllBook a voz é o motivo de escolha (§4.15). */
+  const capas = [...pessoa.narrated, ...pessoa.wrote].slice(0, 5);
+  if (capas.length === 0) return null;
+
+  return (
+    <div
+      className="mt-3 overflow-hidden rounded-xl bg-white/[0.05] ring-1 ring-inset ring-white/8"
+      data-testid="post-pessoa"
+    >
+      <div className="flex items-center gap-3 p-3.5 pb-2.5">
+        <Link href={`/person/${pessoa.slug}`} className="shrink-0">
+          {pessoa.photo ? (
+            <img
+              src={pessoa.photo}
+              alt={pessoa.name}
+              className="h-12 w-12 rounded-full object-cover ring-1 ring-white/15"
+            />
+          ) : (
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-primary to-orange-600 font-display text-lg font-bold">
+              {pessoa.name.charAt(0)}
+            </span>
+          )}
+        </Link>
+
+        <div className="min-w-0 flex-1">
+          <Link href={`/person/${pessoa.slug}`} className="block">
+            <span className="block truncate font-display text-[15px] font-bold leading-tight hover:text-primary">
+              {pessoa.name}
+            </span>
+          </Link>
+          <span className="mt-0.5 block truncate text-[11.5px] text-white/45">
+            {chapeus.join(" · ")}
+          </span>
+        </div>
+
+        <Link
+          href={`/person/${pessoa.slug}`}
+          className="flex shrink-0 items-center gap-1 rounded-full bg-white/12 px-3 py-2 text-[11.5px] font-bold transition-colors hover:bg-white/20"
+          data-testid="ver-perfil-pessoa"
+        >
+          Ver
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
+
+      {/* **As capas são o cartão.** Rolam de lado quando são muitas, e cada uma
+          abre o livro dela — número que não leva ao objeto morre na tela (§4.59). */}
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide px-3.5 pb-3.5">
+        {capas.map((livro) => (
+          <Link key={livro.id} href={`/book/${livro.id}`} className="shrink-0">
+            <img
+              src={livro.cover}
+              alt={livro.title}
+              className="h-[74px] w-[50px] rounded-md object-cover shadow-md shadow-black/40 ring-1 ring-white/10 transition-transform hover:scale-105"
+            />
+          </Link>
+        ))}
       </div>
     </div>
   );

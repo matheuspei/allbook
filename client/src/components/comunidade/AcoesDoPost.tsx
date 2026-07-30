@@ -65,9 +65,13 @@ export default function AcoesDoPost({
 
   return (
     <div className="mt-3 flex items-center gap-1 border-t border-white/[0.06] pt-2.5">
+      {/* `py-3`: o alvo passa de 26 para 38 px de altura — **44 no aparelho**, que
+          é o mínimo de Apple e Google. Medido, não estimado. Ver o comentário
+          longo em `ComentariosDoPost`: o mesmo defeito valia aqui, em menor grau,
+          e foi ele que fez o Matheus dizer que "o curtir não está funcionando". */}
       <button
         onClick={() => setCurtido(alternarCurtida(post.id))}
-        className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12px] font-semibold transition-colors ${
+        className={`flex items-center gap-1.5 rounded-full px-3 py-3 text-[12px] font-semibold transition-colors ${
           curtido ? "text-primary" : "text-white/45 hover:text-white/80"
         }`}
         aria-pressed={curtido}
@@ -84,7 +88,7 @@ export default function AcoesDoPost({
       */}
       <button
         onClick={onComentar}
-        className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12px] font-semibold transition-colors ${
+        className={`flex items-center gap-1.5 rounded-full px-3 py-3 text-[12px] font-semibold transition-colors ${
           comentariosAbertos ? "text-white" : "text-white/45 hover:text-white/80"
         }`}
         aria-expanded={comentariosAbertos}

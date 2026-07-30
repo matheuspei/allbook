@@ -5396,6 +5396,89 @@ função.
 
 ---
 
+## 4.63 O que a primeira hora de uso revelou (30/07)
+
+Quatro coisas que o Matheus achou **usando**, e que nenhuma leitura de código teria
+mostrado. Vale como método: **a lista de defeitos mais útil vem de quem usa, não de
+quem escreve.**
+
+### "Esse curtir não está funcionando" — e ele funcionava
+
+Fui medir antes de mexer, e o curtir **grava, o coração acende, o número sobe**. O
+que não funcionava era o **dedo acertar**: o botão de curtir do comentário tinha
+**19×14 px** — cerca de 22×16 no aparelho — contra os **44** que Apple e Google
+recomendam.
+
+> **É o mesmo defeito das bolinhas da conversa no player**, que ele já tinha achado
+> com as mesmas palavras: *"é muito pequeno e o dedo da pessoa é muito grande"*.
+> Duas vezes o mesmo erro meu, em lugares diferentes. **Alvo de toque entra na
+> revisão de tudo que eu desenhar daqui em diante.**
+
+Conserto: `py-3 -my-3` — o padding cria a área de toque, a margem negativa devolve
+o espaço ao layout. **O desenho não muda; o alvo triplica** (medido: 16 → 40 px no
+aparelho). Aumentar a fonte estava fora de questão: comentário não pode competir
+visualmente com o post.
+
+### A ordem dos comentários estava errada, e a ordem sozinha não resolvia
+
+Eu tinha ordenado do mais antigo para o mais novo, "como conversa". Ele achou o
+defeito usando: *"eu acabei de comentar e o meu comentário foi lá pra baixo, muito
+ruim"*.
+
+**O problema não era gosto, era confirmação:** quem escreve não vê o que escreveu, e
+sem confirmação a pessoa escreve de novo. E **inverter a ordem sozinho não
+bastava** — com o campo embaixo, o comentário novo apareceria *acima* do campo,
+ainda fora do olhar. As duas coisas juntas resolvem: **campo em cima, lista do mais
+novo para o mais velho**, que é o que YouTube e Facebook fazem.
+
+O encadeamento não se perde porque a lista é **rasa**: quem responde carrega o
+`@Fulano`, e é ele que diz com quem se fala — não a posição.
+
+### A menção agora fica grifada enquanto você escreve
+
+Pedido dele: *"seria legal que ele ficasse grifado quando você marcasse, como
+acontece hoje nas redes sociais"*. Tinha razão — você marcava e o nome ficava igual
+ao resto do texto, então não dava para saber se pegou.
+
+**Rejeitado: campo rico (`contenteditable`).** Daria texto formatado de verdade, mas
+traz junto colagem com estilo, seleção quebrada, cursor perdido e comportamento
+diferente em cada navegador. Muito risco para um grifo.
+
+**Feito: espelho atrás do campo.** Um `div` com o mesmo texto e a mesma tipografia,
+com os nomes pintados, exatamente atrás de um `textarea` de letras transparentes —
+`-webkit-text-fill-color: transparent` apaga as letras **sem** apagar o cursor. As
+duas camadas precisam de tipografia idêntica, senão o grifo desalinha; por isso ela
+está numa constante só, usada pelas duas.
+
+### O cartão de pessoa: a ideia foi dele, a ressalva foi minha, e as duas entraram
+
+Ele propôs *"um cartãozinho que levaria para aquele perfil, assim como já existe nos
+livros"*, e pediu minha opinião. Ela era contrária, com fundamento:
+
+- a §4.53 registra que **onze** maquetes de Comunidade falharam porque o feed era
+  **sobre pessoas** — texto sem corpo;
+- neste app **quase nenhum autor ou narrador tem foto**: o avatar é uma inicial
+  colorida. Um cartão de rosto ao lado de um cartão de capa perde sempre.
+
+**O acordo, e é melhor que as duas posições isoladas: o cartão existe, e o corpo
+dele são as capas dos livros da pessoa.** A fileira de capas é o que dá presença — e
+é também a informação que decide se você quer o perfil: *"quem é essa narradora?"*
+se responde vendo **o que ela narrou**.
+
+Detalhes que caíram junto: as narrações vêm primeiro (no AllBook a voz é motivo de
+escolha, §4.15); **sem livro nenhum não há cartão**, porque sobraria um retângulo
+com um nome — o cru de que ele reclamava.
+
+**Consequência para a regra da §4.61:** a primeira menção **de qualquer tipo** vira
+o cartão, e a derivação passou a valer para os posts do esqueleto também. Sem isso a
+regra valeria só para quem usa o app, e a tela mostraria dois comportamentos para a
+mesma coisa.
+
+*(E sim: mencionar autor e narrador **já funcionava** desde a §4.61, gerando link
+para `/person/:slug`. A dúvida dele era legítima — nada na tela dizia isso.)*
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

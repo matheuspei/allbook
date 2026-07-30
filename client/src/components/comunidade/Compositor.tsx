@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
 import { type Citacao } from "@/lib/citacoes";
 import { clubePorId } from "@/lib/clubes";
+import { findPerson } from "@/lib/people";
 import { initialOf, readProfile } from "@/lib/profile";
 import {
   MAX_POST,
@@ -164,6 +165,8 @@ export default function Compositor({ aoPublicar }: { aoPublicar?: () => void }) 
           <AnexoDeLivro bookId={objeto.bookId} onTirar={() => setSemCartao(true)} />
         ) : objeto?.tipo === "clube" ? (
           <AnexoDeClube clubeId={objeto.clubeId} onTirar={() => setSemCartao(true)} />
+        ) : objeto?.tipo === "pessoa" ? (
+          <AnexoDePessoa slug={objeto.slug} onTirar={() => setSemCartao(true)} />
         ) : (
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Sem citação: o próprio `AnexarTrecho` desenha o botão "Trecho". */}
@@ -309,6 +312,46 @@ function AnexoDeClube({ clubeId, onTirar }: { clubeId: string; onTirar: () => vo
         </span>
       </div>
       <BotaoDeTirar onClick={onTirar} rotulo="Tirar o clube" />
+    </div>
+  );
+}
+
+/** O mesmo desenho dos outros dois, com as capas no lugar da capa única. */
+function AnexoDePessoa({ slug, onTirar }: { slug: string; onTirar: () => void }) {
+  const pessoa = findPerson(slug);
+  if (!pessoa) return null;
+  const capas = [...pessoa.narrated, ...pessoa.wrote].slice(0, 4);
+
+  return (
+    <div className="relative" data-testid="anexo-de-pessoa">
+      <div className="flex items-center gap-3 rounded-xl bg-white/[0.05] p-2.5 pr-9 ring-1 ring-inset ring-white/8">
+        {pessoa.photo ? (
+          <img src={pessoa.photo} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
+        ) : (
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-orange-600 font-display font-bold">
+            {pessoa.name.charAt(0)}
+          </span>
+        )}
+        <span className="min-w-0 flex-1">
+          <span className="block text-[9.5px] font-bold uppercase tracking-[0.12em] text-primary">
+            {pessoa.roles.includes("narrator") ? "Narração" : "Autoria"}
+          </span>
+          <span className="mt-0.5 block truncate text-[13px] font-semibold">{pessoa.name}</span>
+          {capas.length > 0 && (
+            <span className="mt-1 flex gap-1">
+              {capas.map((livro) => (
+                <img
+                  key={livro.id}
+                  src={livro.cover}
+                  alt=""
+                  className="h-6 w-4 rounded-[2px] object-cover"
+                />
+              ))}
+            </span>
+          )}
+        </span>
+      </div>
+      <BotaoDeTirar onClick={onTirar} rotulo="Tirar a pessoa" />
     </div>
   );
 }

@@ -101,20 +101,17 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
 
   return (
     <div className="mt-2.5 border-t border-white/[0.06] pt-2.5" data-testid={`comentarios-${post.id}`}>
-      {lista.length > 0 && (
-        <div className="space-y-2.5">
-          {lista.map((comentario) => (
-            <UmComentario
-              key={comentario.id}
-              comentario={comentario}
-              onResponder={responder}
-              onApagado={() => toast({ title: "Comentário apagado" })}
-            />
-          ))}
-        </div>
-      )}
+      {/*
+        **O campo fica em cima, e a lista é do mais novo para o mais velho.**
 
-      <div className={`flex items-start gap-2.5 ${lista.length > 0 ? "mt-3" : ""}`}>
+        Estava ao contrário até 30/07, e o Matheus achou o defeito usando:
+        *"eu acabei de comentar e o meu comentário foi lá pra baixo, muito ruim"*.
+        Inverter a ordem sozinho não bastava — com o campo embaixo, o que você
+        acabou de escrever apareceria **acima** do campo, fora do olhar. As duas
+        coisas juntas fazem o comentário novo nascer **logo abaixo de onde você
+        digitou**, que é o que YouTube e Facebook fazem.
+      */}
+      <div className="flex items-start gap-2.5">
         {perfil.photo ? (
           <img src={perfil.photo} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
         ) : (
@@ -143,13 +140,26 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
         <button
           onClick={enviar}
           disabled={texto.trim().length === 0}
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary text-black transition-opacity disabled:opacity-25"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-black transition-opacity disabled:opacity-25"
           aria-label="Enviar comentário"
           data-testid={`enviar-comentario-${post.id}`}
         >
-          <Send className="h-3.5 w-3.5" />
+          <Send className="h-4 w-4" />
         </button>
       </div>
+
+      {lista.length > 0 && (
+        <div className="mt-3 space-y-2.5">
+          {lista.map((comentario) => (
+            <UmComentario
+              key={comentario.id}
+              comentario={comentario}
+              onResponder={responder}
+              onApagado={() => toast({ title: "Comentário apagado" })}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -215,21 +225,37 @@ function UmComentario({
           />
         </div>
 
-        <div className="mt-1 flex items-center gap-3 pl-1">
-          <span className="text-[10.5px] text-white/25">{quando(comentario.date)}</span>
+        {/*
+          ⚠️ **A área de toque destes botões é maior que o desenho deles.**
+
+          O Matheus relatou que *"esse curtir não está funcionando"*. Fui medir: ele
+          **funciona** — grava e o coração acende. O que não funcionava era o
+          **dedo acertar**: o botão tinha **19×14 px**, cerca de 22×16 no aparelho,
+          contra os 44 que Apple e Google recomendam. É o mesmo defeito das
+          bolinhas da conversa no player, que ele já tinha achado: *"é muito
+          pequeno e o dedo da pessoa é muito grande"*.
+
+          O conserto é `py-2 -my-2`: o padding cria a área de toque, a margem
+          negativa devolve o espaço ao layout. **O desenho não muda; o alvo
+          dobra.** Aumentar a fonte estragaria a hierarquia — comentário não pode
+          competir com o post.
+        */}
+        <div className="mt-0.5 flex items-center gap-1 pl-1">
+          <span className="py-3 pr-2 text-[10.5px] text-white/25">{quando(comentario.date)}</span>
           <button
             onClick={() => setCurtido(alternarCurtida(comentario.id))}
-            className={`flex items-center gap-1 text-[10.5px] font-semibold transition-colors ${
+            className={`-my-3 flex items-center gap-1 px-2 py-3 text-[10.5px] font-semibold transition-colors ${
               curtido ? "text-primary" : "text-white/35 hover:text-white/70"
             }`}
+            aria-pressed={curtido}
             data-testid={`curtir-comentario-${comentario.id}`}
           >
-            <Heart className={`h-3 w-3 ${curtido ? "fill-current" : ""}`} />
+            <Heart className={`h-3.5 w-3.5 ${curtido ? "fill-current" : ""}`} />
             {total > 0 && total}
           </button>
           <button
             onClick={() => onResponder(nome)}
-            className="text-[10.5px] font-semibold text-white/35 transition-colors hover:text-white/70"
+            className="-my-3 px-2 py-3 text-[10.5px] font-semibold text-white/35 transition-colors hover:text-white/70"
             data-testid={`responder-${comentario.id}`}
           >
             Responder
@@ -240,11 +266,11 @@ function UmComentario({
                 apagarComentario(comentario.id);
                 onApagado();
               }}
-              className="text-white/20 transition-colors hover:text-red-300"
+              className="-my-3 px-2 py-3 text-white/20 transition-colors hover:text-red-300"
               aria-label="Apagar comentário"
               data-testid={`apagar-comentario-${comentario.id}`}
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           )}
         </div>

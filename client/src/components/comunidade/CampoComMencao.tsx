@@ -110,6 +110,41 @@ export default function CampoComMencao({
     setCursor(el.selectionStart ?? el.value.length);
   }
 
+  /**
+   * Quebra o texto em pedaços comuns e menções, para o espelho pintar.
+   *
+   * **Mesma regra do `TextoDoPost`**, que faz isto na hora de mostrar o post
+   * publicado: casa o rótulo mais longo primeiro (senão *Helena* quebraria
+   * *Helena Vasques* no meio), e o que não casa volta a ser texto comum. As duas
+   * peças precisam concordar — o que você vê escrevendo tem de ser o que sai.
+   */
+  function pedacosGrifados(alvo: string, lista: Mencao[]): (string | Mencao)[] {
+    if (lista.length === 0) return [alvo];
+    const porTamanho = [...lista].sort((a, b) => b.rotulo.length - a.rotulo.length);
+    const pedacos: (string | Mencao)[] = [];
+    let sobra = "";
+    let i = 0;
+
+    while (i < alvo.length) {
+      if (alvo[i] === "@") {
+        const achada = porTamanho.find((m) => alvo.startsWith(`@${m.rotulo}`, i));
+        if (achada) {
+          if (sobra) {
+            pedacos.push(sobra);
+            sobra = "";
+          }
+          pedacos.push(achada);
+          i += achada.rotulo.length + 1;
+          continue;
+        }
+      }
+      sobra += alvo[i];
+      i += 1;
+    }
+    if (sobra) pedacos.push(sobra);
+    return pedacos;
+  }
+
   /** Troca o `@termo` pelo nome inteiro e registra a menção. */
   function escolher(candidato: CandidatoDeMencao) {
     if (!consulta) return;
@@ -132,8 +167,47 @@ export default function CampoComMencao({
     });
   }
 
+  /*
+    As duas camadas usam **exatamente** a mesma tipografia e o mesmo espaçamento.
+    Qualquer diferença desalinha o grifo do texto, e o efeito vira borrão.
+  */
+  const tipografia = `w-full resize-none whitespace-pre-wrap break-words leading-relaxed ${
+    className ?? "max-h-64 text-[14px]"
+  }`;
+
   return (
     <div className="relative min-w-0 flex-1">
+      {/*
+        **O grifo da menção, atrás do campo** — pedido do Matheus em 30/07:
+        *"seria legal que ele ficasse grifado quando você marcasse, como acontece
+        hoje nas redes sociais"*. Ele tem razão: hoje você marca e o nome fica
+        igual ao resto, então não dá para saber se pegou.
+
+        **Por que uma camada atrás, e não um campo rico.** Um `contenteditable`
+        daria texto formatado de verdade, mas traz junto colagem com estilo,
+        seleção quebrada, cursor perdido e comportamento diferente em cada
+        navegador — muito risco para um grifo. A técnica daqui é a que as caixas de
+        busca com destaque usam: **um espelho do texto, com os nomes marcados,
+        exatamente atrás de um `textarea` de texto transparente**. O que se digita e
+        o que se vê são o mesmo, e o cursor continua sendo o do navegador.
+
+        `aria-hidden`: é pintura. Quem usa leitor de tela lê o `textarea`.
+      */}
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 overflow-hidden text-white ${tipografia}`}
+      >
+        {pedacosGrifados(texto, mencoes).map((pedaco, i) =>
+          typeof pedaco === "string" ? (
+            <span key={i}>{pedaco}</span>
+          ) : (
+            <span key={i} className="rounded bg-primary/15 font-semibold text-primary">
+              @{pedaco.rotulo}
+            </span>
+          ),
+        )}
+      </div>
+
       <textarea
         ref={campo}
         value={texto}
@@ -145,9 +219,17 @@ export default function CampoComMencao({
         onClick={(evento) => guardarCursor(evento.currentTarget)}
         placeholder={placeholder}
         rows={linhas}
-        className={`w-full resize-none bg-transparent leading-relaxed text-white placeholder:text-white/30 focus:outline-none ${
-          className ?? "max-h-64 text-[14px]"
-        }`}
+        /*
+          **Quem se vê é o espelho; este campo fica invisível, menos o cursor.**
+          `-webkit-text-fill-color: transparent` some com as letras sem mexer no
+          `caret-color`, que continua branco — é o truque que faz a coisa toda
+          funcionar.
+
+          **Só quando há texto:** com o campo vazio, apagar as letras apagaria
+          junto o texto de exemplo (o placeholder), e a caixa ficaria muda.
+        */
+        className={`relative bg-transparent caret-white text-white placeholder:text-white/30 focus:outline-none ${tipografia}`}
+        style={{ WebkitTextFillColor: texto.length > 0 ? "transparent" : undefined }}
         data-testid="campo-com-mencao"
       />
 

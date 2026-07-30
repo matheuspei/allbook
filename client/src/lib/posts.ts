@@ -53,7 +53,20 @@ export { MAX_POST };
 export type ObjetoDoPost =
   | { tipo: "livro"; bookId: number }
   | { tipo: "trecho"; citacao: Citacao }
-  | { tipo: "clube"; clubeId: string };
+  | { tipo: "clube"; clubeId: string }
+  /**
+   * Um autor ou narrador — **e o corpo dele são as capas** (30/07).
+   *
+   * Ideia do Matheus: *"talvez seja interessante até criar um cartãozinho que
+   * levaria para aquele perfil, assim como já existe nos livros"*. Eu tinha uma
+   * ressalva de peso, e ela está no cartão: a §4.53 registra que as **onze**
+   * maquetes de Comunidade falharam porque o feed era **sobre pessoas**, e o que
+   * dá corpo visual neste app é a capa, não o rosto — ainda mais aqui, onde quase
+   * nenhum autor tem foto e o avatar é uma inicial colorida.
+   *
+   * O acordo: o cartão existe, mas quem preenche são **os livros dela**.
+   */
+  | { tipo: "pessoa"; slug: string };
 
 /**
  * Uma palavra do texto que virou link — **um livro, um autor ou um narrador**.
@@ -505,9 +518,10 @@ export function hrefDaMencao(alvo: Mencao["alvo"]): string {
  * pode citar três livros — o primeiro ganha corpo, os outros seguem como palavra
  * clicável, que é o que a §4.58 já dizia da menção.
  *
- * **Pessoa mencionada não vira cartão.** O objeto do post é sempre uma obra ou uma
- * turma; um cartão de gente traria de volta o feed "sobre pessoas" que fez as onze
- * maquetes anteriores falharem.
+ * **Pessoa também vira cartão, desde 30/07** — pedido do Matheus, com a ressalva
+ * atendida: o cartão de pessoa é preenchido pelas **capas dos livros dela**, não
+ * pelo rosto (ver `ObjetoDoPost`). Vale a mesma regra: a primeira que aparece **no
+ * texto**, seja livro, clube ou gente.
  */
 export function objetoDaPrimeiraMencao(
   mencoes: Mencao[] | undefined,
@@ -519,9 +533,7 @@ export function objetoDaPrimeiraMencao(
    */
   texto?: string,
 ): ObjetoDoPost | undefined {
-  const candidatas = (mencoes ?? []).filter(
-    (mencao) => mencao.alvo.tipo === "livro" || mencao.alvo.tipo === "clube",
-  );
+  const candidatas = mencoes ?? [];
   if (candidatas.length === 0) return undefined;
 
   const primeira =
@@ -535,7 +547,7 @@ export function objetoDaPrimeiraMencao(
 
   if (primeira.alvo.tipo === "livro") return { tipo: "livro", bookId: primeira.alvo.bookId };
   if (primeira.alvo.tipo === "clube") return { tipo: "clube", clubeId: primeira.alvo.clubeId };
-  return undefined;
+  return { tipo: "pessoa", slug: primeira.alvo.slug };
 }
 
 /* ------------------------------------------------------------------ *
@@ -565,7 +577,11 @@ export function todosOsPosts(): Post[] {
     (post) => post.objeto?.tipo !== "livro" || existe(post.objeto.bookId),
   );
   return [
-    ...deFora,
+    /* A derivação do cartão vale para **todo mundo**, não só para os seus: um post
+       do esqueleto que cita `@Helena Vasques` e não tem objeto ganha o cartão dela
+       pelo mesmo caminho. Sem isto, a regra valeria só para quem usa o app — e a
+       tela mostraria dois comportamentos para a mesma coisa. */
+    ...deFora.map(comCartaoDaMencao),
     // Os seus, nos dois formatos: o novo e os herdados do mural (ver `CHAVE_POSTS`).
     ...lerMeus(),
     ...readMeusPosts().map(meuPostComoPost),

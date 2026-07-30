@@ -181,11 +181,23 @@ function gravar(lista: ComentarioDePost[]): void {
   window.dispatchEvent(new Event(COMENTARIOS_EVENT));
 }
 
-/** Os comentários de um post, **do mais antigo para o mais novo** — como conversa. */
+/**
+ * Os comentários de um post, **do mais novo para o mais antigo**.
+ *
+ * ⚠️ **Era o contrário, e estava errado** (30/07). Eu tinha ordenado como
+ * conversa — antigo em cima —, e o Matheus achou o defeito usando: *"eu acabei de
+ * comentar e o meu comentário foi lá pra baixo, muito ruim"*. Ele tem razão, e o
+ * problema é maior que gosto: **quem escreve não vê o que escreveu**, e sem
+ * confirmação a pessoa escreve de novo.
+ *
+ * O encadeamento não se perde porque a lista é **rasa**: quem responde alguém
+ * carrega o `@Fulano` junto, e é ele que diz com quem se está falando — não a
+ * posição na lista.
+ */
 export function comentariosDoPost(postId: string): ComentarioDePost[] {
   return [...DO_ESQUELETO, ...ler()]
     .filter((item) => item.postId === postId)
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .sort((a, b) => b.date.localeCompare(a.date));
 }
 
 export function totalDeComentarios(postId: string): number {
