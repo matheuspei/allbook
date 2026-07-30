@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
-import { Check, Plus, UserPlus } from "lucide-react";
+import { BookHeart, Check, MessageSquareQuote, Plus, UserPlus, Users } from "lucide-react";
 
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import PageHeader from "@/components/PageHeader";
 import SeloDeMedalha from "@/components/SeloDeMedalha";
 import { ItemDoFeed } from "@/components/MuralDaComunidade";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
+import PortasDoPerfil from "@/components/PortasDoPerfil";
 import { postsDe } from "@/lib/posts";
-import { estreiaEmTexto, meusClubes, vagasRestantes, type Clube } from "@/lib/clubes";
+import { clubesDe, estreiaEmTexto, meusClubes, vagasRestantes, type Clube } from "@/lib/clubes";
 import { convidar, podeConvidarPara, simularResposta } from "@/lib/convites";
 import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
@@ -68,6 +69,7 @@ export default function UserProfile() {
   const books = recommendationsOf(member);
   const postsDela = postsDe(member.slug);
   const meus = meusClubes();
+  const clubesDela = clubesDe(member.slug);
   // A atividade na língua do mural: avaliações e comentários, com a trava.
   // Recomendações ficam de fora — têm a vitrine própria nesta página.
   const atividade = muralDe(member.slug, ["avaliou", "comentou"]);
@@ -147,12 +149,8 @@ export default function UserProfile() {
             <p className="font-display text-base font-bold leading-none">{member.hoursListened}h</p>
             <p className="mt-1 text-[10px] text-white/40">ouvidas</p>
           </div>
-          <div>
-            <p className="font-display text-base font-bold leading-none">{books.length}</p>
-            <p className="mt-1 text-[10px] text-white/40">
-              {books.length === 1 ? "recomendação" : "recomendações"}
-            </p>
-          </div>
+          {/* "Recomendações" saiu daqui pelo mesmo motivo da sua página: a porta
+              logo abaixo mostra o mesmo número. */}
         </div>
       </div>
 
@@ -204,6 +202,34 @@ export default function UserProfile() {
           </button>
         )}
       </div>
+
+      {/* As mesmas três portas da sua página (§4.56) — componente único, para as
+          duas não divergirem com o tempo (a régua da §4.41). */}
+      <PortasDoPerfil
+        portas={[
+          {
+            icone: BookHeart,
+            rotulo: books.length === 1 ? "recomendação" : "recomendações",
+            total: books.length,
+            href: `/user/${member.slug}/recomendacoes`,
+            testid: "porta-recomendacoes",
+          },
+          {
+            icone: MessageSquareQuote,
+            rotulo: atividade.length === 1 ? "comentário" : "comentários",
+            total: atividade.length,
+            href: `/user/${member.slug}/comentarios`,
+            testid: "porta-comentarios",
+          },
+          {
+            icone: Users,
+            rotulo: clubesDela.length === 1 ? "clube" : "clubes",
+            total: clubesDela.length,
+            href: `/user/${member.slug}/clubes`,
+            testid: "porta-clubes",
+          },
+        ]}
+      />
 
       {convidando && (
         <FolhaDeConvite
@@ -266,67 +292,6 @@ export default function UserProfile() {
         </section>
       )}
 
-      <section className="px-5 py-5 border-t border-white/10" data-testid="section-user-recommendations">
-        <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-4">
-          {primeiroNome} recomenda
-        </h2>
-
-        {books.length === 0 ? (
-          <p className="text-sm text-white/40 py-6">Ainda não recomendou nada.</p>
-        ) : (
-          <div className="space-y-3" data-testid="user-recommendations-grid">
-            {books.map(({ book, note }) => (
-              <Link
-                key={book.id}
-                href={`/book/${book.id}`}
-                className="flex gap-3 group"
-                data-testid={`user-recommendation-${book.id}`}
-              >
-                <img
-                  src={book.cover}
-                  alt={book.title}
-                  className="w-11 h-[59px] rounded object-cover shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-xs font-medium leading-tight line-clamp-1 group-hover:text-primary transition-colors">
-                    {book.title}
-                  </h3>
-                  <p className="text-[10px] text-white/40 mt-0.5 line-clamp-1">{book.author}</p>
-                  {note && (
-                    <p className="text-[11px] text-white/55 leading-snug mt-1 italic">
-                      “{note}”
-                    </p>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/*
-        A atividade da pessoa, na língua do mural (28/07 — o Matheus apontou
-        que o perfil dos membros tinha ficado sem as novidades). Substituiu a
-        lista crua "Comentários de fulano", que misturava resenha com papo e
-        **vazava texto de trecho à frente**: o `ItemDoFeed` traz a separação
-        (estrela na avaliação, cadeado no comentário preso) de graça.
-        Recomendações ficam de fora — têm a vitrine própria logo acima.
-      */}
-      <section className="px-5 py-5 border-t border-white/10" data-testid="section-user-activity">
-        <h2 className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-1">
-          Atividade de {primeiroNome}
-        </h2>
-
-        {atividade.length === 0 ? (
-          <p className="text-sm text-white/40 py-6">Ainda não disse nada nos livros.</p>
-        ) : (
-          <div data-testid="user-activity-list">
-            {atividade.map((item) => (
-              <ItemDoFeed key={item.id} item={item} />
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

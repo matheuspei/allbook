@@ -618,6 +618,17 @@ export function souDono(clube: Clube): boolean {
   return clube.donoSlug === EU;
 }
 
+/**
+ * Os clubes de outro leitor — para a página dele (§4.56).
+ *
+ * Vale para clube semeado **e** para os seus: se você convidou alguém para um
+ * clube seu, ele aparece na página dessa pessoa, porque `todosOsClubes` já traz
+ * os dois e a lista de membros já foi somada em `moderado`.
+ */
+export function clubesDe(slug: string): Clube[] {
+  return todosOsClubes().filter((clube) => clube.membros.includes(slug));
+}
+
 /** Os clubes em que você está — os que criou e aqueles em que entrou. */
 export function meusClubes(): Clube[] {
   return todosOsClubes().filter(souMembro);

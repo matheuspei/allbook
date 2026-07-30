@@ -36,6 +36,9 @@ import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
 import BookDetails from "@/pages/BookDetails";
 import Conversa from "@/pages/Conversa";
+import Recomendacoes from "@/pages/Recomendacoes";
+import Comentarios from "@/pages/Comentarios";
+import ClubesDaPessoa from "@/pages/ClubesDaPessoa";
 import PersonProfile from "@/pages/PersonProfile";
 import PublisherProfile from "@/pages/PublisherProfile";
 import Studio from "@/pages/Studio";
@@ -119,6 +122,9 @@ function Router() {
             {/* Privacidade tem tela própria desde 29/07: no painel ela é uma
                 linha como as outras (ROTEIRO 4.55). */}
             <Route path="/privacidade" component={Privacidade} />
+            {/* As suas, sem slug — o mesmo componente das de cima. */}
+            <Route path="/recomendacoes" component={Recomendacoes} />
+            <Route path="/comentarios" component={Comentarios} />
             <Route path="/community" component={Community} />
             {/* O recorte só de perguntas, alcançado pelo selo de um post ou pela
                 pílula do feed (30/07 — ver o cabeçalho de `Perguntas.tsx`). */}
@@ -138,6 +144,13 @@ function Router() {
                 a rota mais curta capturaria a mais longa. */}
             <Route path="/clube/:id/gerenciar" component={GerenciarClube} />
             <Route path="/clube/:id" component={Clube} />
+            {/* As três páginas que os ícones do topo do perfil abrem (§4.56,
+                construídas em 30/07). **As de `/user/:slug/…` vêm antes de
+                `/user/:slug`**, senão a rota mais curta captura as três — a
+                mesma armadilha que o `/profile/edit` já tinha ensinado. */}
+            <Route path="/user/:slug/recomendacoes" component={Recomendacoes} />
+            <Route path="/user/:slug/comentarios" component={Comentarios} />
+            <Route path="/user/:slug/clubes" component={ClubesDaPessoa} />
             <Route path="/user/:slug" component={UserProfile} />
             {/* O painel privado ("Você") e a grade de conquistas — a separação
                 página pública × painel decidida em 28/07 (ROTEIRO 4.41). */}

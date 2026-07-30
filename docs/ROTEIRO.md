@@ -5000,10 +5000,10 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
    aba Pessoas, e a Comunidade ficou com duas abas. Detalhe na **§4.65**.
 5. ✅ **FEITO 30/07 — Convite para clube** pela página da pessoa, com aceitar no
    sino. Detalhe na **§4.68**.
-6. 🔸 **QUASE — O perfil girando em torno dos posts** (§4.56). **Feito em 30/07:**
-   os posts em cartão na sua página e na dos outros, e publicar direto do perfil.
-   **Falta:** recomendações/comentários/clubes virarem ícones no topo — depende de
-   páginas de destino que ainda não existem. Detalhe na **§4.66**.
+6. ✅ **FEITO 30/07 — O perfil girando em torno dos posts** (§4.56): os posts em
+   cartão na sua página e na dos outros, publicar direto do perfil, e as três
+   portas no topo (recomendações · comentários · clubes) com as três páginas que
+   elas abrem. Detalhe na **§4.66**.
 
 **Fora do caminho crítico, e independentes** (dá para fazer a qualquer momento):
 renomear o clube · votação de 2 a 5 opções · lista de espera com teto de 250 ·
@@ -5660,7 +5660,7 @@ gente de novo.
 
 ---
 
-## 4.66 O perfil ganhou os posts (30/07, noite) — item 6, em parte
+## 4.66 O perfil girando em torno dos posts (30/07, noite) — item 6
 
 A §4.56 registrou o diagnóstico do Matheus com todas as letras: *"os posts que a
 pessoa escreveu têm que estar aqui no perfil, e não estão hoje. Isso é um erro
@@ -5683,16 +5683,39 @@ existe.
    mesma coisa — a poluição que eu temia quando ele entrou no cartão (§4.58). No
    feed ele continua, porque lá cada cartão é de alguém diferente.
 
-### O que ficou de fora, e por quê
+### As três portas, e as três páginas que elas precisavam (mesma noite)
 
-**O item 2 da §4.56 — recomendações, comentários e clubes virarem ícones no topo,
-cada um abrindo a sua página.** Não foi construído porque **as páginas de destino
-não existem**: hoje `/profile/recommendations` é a tela de *editar* a lista, e
-não há página de "os comentários de fulano" nem de "os clubes de fulano". Fazer o
-ícone antes do destino seria criar três botões mortos, que é o oposto da §4.23.
+O item 2 da §4.56 tinha ficado de fora por falta de destino — *"as páginas não
+existem, e ícone sem destino é botão morto"*. O Matheus respondeu o óbvio:
+**então crie as páginas**. Criadas, e os ícones entraram junto:
 
-**Fica como o próximo passo do item 6**, e é uma decisão de forma que vale ver
-desenhada antes de sair construindo: três ícones no topo mudam a cara da página.
+- **`/recomendacoes`** e **`/user/:slug/recomendacoes`** — a lista inteira, com a
+  nota de cada livro. O "Editar" só aparece na sua e leva à tela que já existia
+  (`/profile/recommendations`): aquela é onde se **monta** a lista, esta é onde se
+  **lê** — e é a que um visitante vê.
+- **`/comentarios`** e **`/user/:slug/comentarios`** — e aqui **comentário e post
+  se separaram**. Antes o perfil tinha um "O que eu disse" que misturava os dois,
+  cortado em três linhas. Agora o post tem o corpo do perfil e o comentário tem
+  esta página; separar é o que deixa cada um ter a forma certa (cartão com capa ×
+  linha com destino).
+- **`/user/:slug/clubes`** — **só para os outros**, de propósito: os seus clubes
+  já têm casa em `/clubes`, onde além de vê-los dá para criar e descobrir. Uma
+  segunda página com metade daquilo seriam duas respostas para a mesma pergunta,
+  o defeito que a §4.57 varreu do menu da Comunidade.
+
+**As mesmas três portas na sua página e na dos outros**, num componente único
+(`PortasDoPerfil`) — duas cópias divergem com o tempo, e foi assim que o perfil
+dos membros ficou sem as novidades em 28/07.
+
+**Duas decisões pequenas que vieram junto:**
+
+- **O número faz parte da porta.** "12 recomendações" é o que faz alguém abrir;
+  porta sem número não diz se há algo do outro lado. Porta com zero fica apagada
+  mas **continua ali** — na sua página, ela é onde se começa.
+- **"Recomendações" saiu da linha de números** nas duas páginas: a porta logo
+  abaixo mostra o mesmo dado, e o mesmo número duas vezes na mesma tela é a
+  redundância que a régua da casa proíbe. Ficaram os que só existem ali (horas,
+  títulos) e seguidores, o único daquela linha que leva a algum lugar.
 
 ---
 

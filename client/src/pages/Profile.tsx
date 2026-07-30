@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Eye, Pencil, Plus, Settings, Share2, X } from "lucide-react";
+import { BookHeart, Eye, MessageSquareQuote, Pencil, Settings, Share2, Users, X } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
@@ -8,7 +8,7 @@ import SeloDeMedalha from "@/components/SeloDeMedalha";
 import { useToast } from "@/hooks/use-toast";
 import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
 import { readRecommendations } from "@/lib/recommendations";
-import { clubePorId, meusClubes, souDono, type Clube } from "@/lib/clubes";
+import { meusClubes, type Clube } from "@/lib/clubes";
 import { formatarDuracao } from "@/lib/listening";
 import { lerDadosDeConquista, lerResumo, type ResumoDeAudicao } from "@/lib/stats";
 import {
@@ -18,26 +18,14 @@ import {
 } from "@/lib/achievements";
 import { playbackPercent, readPlaybackList, type Playback } from "@/lib/playback";
 import { readMyComments } from "@/lib/myComments";
-import { MURAL_EVENT, readMeusPosts } from "@/lib/mural";
+import { MURAL_EVENT } from "@/lib/mural";
 import { POSTS_EVENT, postsDe, type Post } from "@/lib/posts";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
+import PortasDoPerfil from "@/components/PortasDoPerfil";
 import Compositor from "@/components/comunidade/Compositor";
 import { readSettings } from "@/lib/settings";
 import { SEGUIDORES_EVENT, meusSeguidores, pedidosPendentes } from "@/lib/seguidores";
 import { catalog, type Book } from "@/lib/books";
-
-/**
- * Uma fala sua — comentário num livro ou post do mural (de livro ou de
- * clube), já resolvida para a tela: capa, rótulo e destino.
- */
-interface FalaMinha {
-  id: string;
-  texto: string;
-  date: string;
-  capa: string;
-  rotulo: string;
-  href: string;
-}
 
 /**
  * Perfil (`/profile`) — **a sua página**, a mesma que os outros veem.
@@ -73,7 +61,8 @@ export default function Profile() {
   const [recommendations, setRecommendations] = useState<{ book: Book; note: string }[]>(readRecommendations);
   const [resumo, setResumo] = useState<ResumoDeAudicao | null>(null);
   const [tocando, setTocando] = useState<Playback | null>(null);
-  const [falas, setFalas] = useState<FalaMinha[]>([]);
+  /** Quantos comentários você já deixou — o número da porta "O que eu disse". */
+  const [totalComentarios, setTotalComentarios] = useState(0);
   /** Os seus posts, em cartão — a peça que faltava no perfil (§4.56). */
   const [postsNoPerfil, setMeusPostsNoPerfil] = useState<Post[]>([]);
   const [clubes, setClubes] = useState<Clube[]>([]);
@@ -92,20 +81,16 @@ export default function Profile() {
     setTocando(readPlaybackList()[0] ?? null);
     // Relê os interruptores ao voltar do painel — é lá que eles moram.
     setPrivacidade(readSettings());
-    // "O que eu disse" junta as suas duas vozes: comentários nos livros e
-    // posts do mural (28/07) — para quem te visita, é tudo fala sua. Só o que
-    // tem livro: comentário de pessoa/editora não tem capa para mostrar aqui.
-    recarregarFalas();
+    recarregarPosts();
     setClubes(meusClubes());
 
-    // Publicou ou apagou um post no mural com a página aberta? A seção relê.
-    /* Dois avisos, dois armazenamentos: o mural antigo e os posts da Comunidade
-       nova (onde moram os compartilhamentos). */
-    window.addEventListener(MURAL_EVENT, recarregarFalas);
-    window.addEventListener(POSTS_EVENT, recarregarFalas);
+    /* Publicou, compartilhou ou apagou com a página aberta? A seção relê. Dois
+       avisos, dois armazenamentos: o mural antigo e os posts da Comunidade nova. */
+    window.addEventListener(MURAL_EVENT, recarregarPosts);
+    window.addEventListener(POSTS_EVENT, recarregarPosts);
     return () => {
-      window.removeEventListener(MURAL_EVENT, recarregarFalas);
-      window.removeEventListener(POSTS_EVENT, recarregarFalas);
+      window.removeEventListener(MURAL_EVENT, recarregarPosts);
+      window.removeEventListener(POSTS_EVENT, recarregarPosts);
     };
   }, []);
 
@@ -121,46 +106,9 @@ export default function Profile() {
     return () => window.removeEventListener(SEGUIDORES_EVENT, atualizar);
   }, []);
 
-  function recarregarFalas() {
-    const doLivro = (id: number): { capa: string; rotulo: string; href: string } | null => {
-      const book = catalog.find((b) => b.id === id);
-      return book ? { capa: book.cover, rotulo: book.title, href: `/book/${book.id}` } : null;
-    };
-
-    const dosComentarios: FalaMinha[] = readMyComments().flatMap((item) => {
-      if (item.bookId === undefined) return [];
-      const alvo = doLivro(item.bookId);
-      return alvo ? [{ id: item.id, texto: item.text, date: item.date, ...alvo }] : [];
-    });
-
-    const dosPosts: FalaMinha[] = readMeusPosts().flatMap((item) => {
-      // Post de clube: a capa é o livro da vez, o destino é o clube.
-      if (item.clubeId !== undefined) {
-        const clube = clubePorId(item.clubeId);
-        const daVez = clube ? catalog.find((b) => b.id === clube.ciclo.bookId) : undefined;
-        if (!clube || !daVez) return [];
-        return [
-          {
-            id: item.id,
-            texto: item.texto,
-            date: item.date,
-            capa: daVez.cover,
-            rotulo: `No clube ${clube.nome}`,
-            href: `/clube/${clube.id}`,
-          },
-        ];
-      }
-      if (item.bookId === undefined) return [];
-      const alvo = doLivro(item.bookId);
-      return alvo ? [{ id: item.id, texto: item.texto, date: item.date, ...alvo }] : [];
-    });
-
-    setFalas(
-      [...dosComentarios, ...dosPosts]
-        .sort((a, b) => b.date.localeCompare(a.date))
-        .slice(0, 3),
-    );
+  function recarregarPosts() {
     setMeusPostsNoPerfil(postsDe());
+    setTotalComentarios(readMyComments().length);
   }
 
   const selos = resumo
@@ -361,12 +309,12 @@ export default function Profile() {
             <p className="font-display text-base font-bold leading-none">{resumo.titulosComecados}</p>
             <p className="mt-1 text-[10px] text-white/40">títulos</p>
           </div>
-          <div>
-            <p className="font-display text-base font-bold leading-none">{recommendations.length}</p>
-            <p className="mt-1 text-[10px] text-white/40">
-              {recommendations.length === 1 ? "recomendação" : "recomendações"}
-            </p>
-          </div>
+          {/* **"Recomendações" saiu daqui** em 30/07: a porta logo abaixo mostra o
+              mesmo número, e o mesmo dado duas vezes na mesma tela é a
+              redundância que a régua da casa proíbe. Ficaram os dois que só
+              existem aqui — o quanto você ouviu e quantos títulos — mais
+              seguidores, que é o único número desta linha que leva a algum
+              lugar. */}
 
           {/*
             **Seguidores moram aqui** (ROTEIRO 4.55). Estavam atrás do painel, na
@@ -389,6 +337,43 @@ export default function Profile() {
           )}
         </section>
       )}
+
+      {/*
+        **As três portas** (§4.56, construídas em 30/07). Recomendações,
+        comentários e clubes saíam da rolagem para virar ícones no topo, cada um
+        abrindo a sua página — e as páginas nasceram junto, para nenhum ícone
+        existir sem destino (§4.23).
+
+        **Clubes aponta para `/clubes`**, e não para uma página nova: os seus
+        clubes já têm casa, onde além de vê-los dá para criar e descobrir. Duas
+        respostas para a mesma pergunta é o defeito que a §4.57 varreu do menu da
+        Comunidade.
+      */}
+      <PortasDoPerfil
+        portas={[
+          {
+            icone: BookHeart,
+            rotulo: recommendations.length === 1 ? "recomendação" : "recomendações",
+            total: recommendations.length,
+            href: "/recomendacoes",
+            testid: "porta-recomendacoes",
+          },
+          {
+            icone: MessageSquareQuote,
+            rotulo: totalComentarios === 1 ? "comentário" : "comentários",
+            total: totalComentarios,
+            href: "/comentarios",
+            testid: "porta-comentarios",
+          },
+          {
+            icone: Users,
+            rotulo: clubes.length === 1 ? "clube" : "clubes",
+            total: clubes.length,
+            href: "/clubes",
+            testid: "porta-clubes",
+          },
+        ]}
+      />
 
       {livroTocando && tocando && (
         <section className="border-b border-white/10 px-5 py-5" data-testid="profile-now-playing">
@@ -461,136 +446,6 @@ export default function Profile() {
         )}
       </section>
 
-      <section className="border-b border-white/10 px-5 py-5" data-testid="section-profile-recommendations">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            Eu recomendo
-          </h2>
-          {!visitante && (
-            <Link
-              href="/profile/recommendations"
-              className="shrink-0 text-xs font-medium text-primary"
-              data-testid="link-edit-recommendations"
-            >
-              {recommendations.length > 0 ? "Editar" : "Montar lista"}
-            </Link>
-          )}
-        </div>
-
-        {recommendations.length === 0 ? (
-          <Link
-            href="/profile/recommendations"
-            className="flex items-center gap-3 py-3 text-left"
-            data-testid="empty-recommendations"
-          >
-            <div className="flex h-[59px] w-11 shrink-0 items-center justify-center rounded border border-dashed border-white/15">
-              <Plus className="h-4 w-4 text-white/25" />
-            </div>
-            <p className="text-xs leading-relaxed text-white/40">
-              Escolha os livros que você indicaria para alguém.
-              <br />
-              É o que um visitante vê primeiro na sua página.
-            </p>
-          </Link>
-        ) : (
-          <div className="space-y-4" data-testid="recommendations-row">
-            {recommendations.map(({ book, note }) => (
-              <Link
-                key={book.id}
-                href={`/book/${book.id}`}
-                className="flex gap-3 group"
-                data-testid={`recommendation-${book.id}`}
-              >
-                <img
-                  src={book.cover}
-                  alt={book.title}
-                  className="h-[59px] w-11 shrink-0 rounded object-cover"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="line-clamp-1 text-xs font-medium leading-tight transition-colors group-hover:text-primary">
-                    {book.title}
-                  </p>
-                  <p className="mt-0.5 line-clamp-1 text-[10px] text-white/40">{book.author}</p>
-                  {note && (
-                    <p className="mt-1 text-[11px] italic leading-snug text-white/55">“{note}”</p>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* O interruptor "O que eu disse" (ROTEIRO 4.55) tira da **vitrine** o
-          histórico de falas; dentro do livro e do clube elas continuam onde
-          foram ditas — o mesmo contrato de "mostrar meus clubes". */}
-      {privacidade.mostrarMeusComentarios && falas.length > 0 && (
-        <section className="border-b border-white/10 px-5 py-5" data-testid="section-profile-comments">
-          <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            O que eu disse
-          </h2>
-          <div className="space-y-4">
-            {falas.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className="flex gap-3 group"
-                data-testid={`profile-comment-${item.id}`}
-              >
-                <img
-                  src={item.capa}
-                  alt=""
-                  className="h-[45px] w-[34px] shrink-0 rounded object-cover"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] text-white/40 transition-colors group-hover:text-primary">
-                    {item.rotulo}
-                  </p>
-                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/70">
-                    “{item.texto}”
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {privacidade.mostrarMeusClubes && clubes.length > 0 && (
-        <section className="border-b border-white/10 px-5 py-5" data-testid="section-profile-clubs">
-          <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            Meus clubes
-          </h2>
-          <div className="space-y-3">
-            {clubes.map((clube) => {
-              const livroDoClube = catalog.find((b) => b.id === clube.ciclo.bookId);
-              return (
-                <Link
-                  key={clube.id}
-                  href={`/clube/${clube.id}`}
-                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3 transition-colors hover:bg-white/5"
-                  data-testid={`profile-club-${clube.id}`}
-                >
-                  {livroDoClube && (
-                    <img
-                      src={livroDoClube.cover}
-                      alt=""
-                      className="h-[50px] w-[38px] shrink-0 rounded object-cover"
-                    />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-semibold">{clube.nome}</p>
-                    <p className="mt-0.5 text-[10px] text-white/40">
-                      {souDono(clube) ? "Moderador · " : ""}
-                      {clube.membros.length} {clube.membros.length === 1 ? "pessoa" : "pessoas"}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      )}
     </div>
   );
 }
