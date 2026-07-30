@@ -7,7 +7,7 @@ import ConversasDeAgora from "@/components/ConversasDeAgora";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
 import CartaoDeSugestoes from "@/components/comunidade/CartaoDeSugestoes";
 import LinhaDeAtividade from "@/components/comunidade/LinhaDeAtividade";
-import { ConviteDeClube, ConviteDeForum } from "@/components/comunidade/CartaoDeConvite";
+import { ConviteDeClube, ConviteDeForum, TrechosQuentes } from "@/components/comunidade/CartaoDeConvite";
 import Compositor from "@/components/comunidade/Compositor";
 import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
 import { montarFeed, type ItemDoFeed, type Lente } from "@/lib/feedDaComunidade";
@@ -266,6 +266,8 @@ function FeedDePosts() {
             return <LinhaDeAtividade key={item.chave} evento={item.evento} />;
           if (item.tipo === "sugestoes")
             return <CartaoDeSugestoes key={item.chave} sugestoes={item.sugestoes} />;
+          if (item.tipo === "trechos")
+            return <TrechosQuentes key={item.chave} trechos={item.trechos} />;
           if (item.tipo === "clube")
             return (
               <ConviteDeClube key={item.chave} clube={item.clube} comecando={item.comecando} />

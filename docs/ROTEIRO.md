@@ -5007,9 +5007,9 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
 
 **Fora do caminho crítico, e independentes** (dá para fazer a qualquer momento):
 ~~renomear o clube~~ · ~~votação de 2 a 5 opções~~ · ~~lista de espera com teto de
-250~~ · ~~"quem perdeu a votação funda um clube"~~ · trechos quentes · ~~presença
-por capítulo (com opt-in recíproco)~~. **Feitos em 30/07 — §4.69 (clube) e §4.70
-(presença).**
+250~~ · ~~"quem perdeu a votação funda um clube"~~ · ~~trechos quentes~~ · ~~presença
+por capítulo (com opt-in recíproco)~~. **Todos feitos em 30/07 — §4.69 (clube),
+§4.70 (presença) e §4.71 (trechos).**
 
 ---
 
@@ -5874,7 +5874,8 @@ entra (`chamarOProximoDaFila`, chamada de dentro de `sairDoClube` e
   Matheus quando propus a "turma 2" automática, e a razão de ela continuar
   rejeitada.
 
-**Ainda falta desta lista:** trechos quentes da semana.
+**A lista da §4.58 acabou:** os seis itens "fora do caminho crítico" estão
+construídos (os trechos quentes ficaram na §4.71).
 
 ---
 
@@ -5912,6 +5913,32 @@ sem saber o que ganha. A contagem não vaza nome nem capítulo.
 **Anotado, e continua valendo:** a reciprocidade **pressiona** — quem não liga
 fica cego. É bom mecanismo e não é neutro, e é exatamente por isso que o padrão
 é desligado.
+
+---
+
+## 4.71 Trechos quentes (30/07, noite)
+
+Último item da §4.58. É a vitrine que só um app de audiolivro pode ter: não "os
+livros mais falados" — isso qualquer catálogo mostra —, e sim **os 40 segundos
+que fizeram alguém parar o carro**.
+
+- **O calor vem dos dois lugares onde um trecho existe:** anexado a um post
+  (curtidas do post) e citado num comentário da conversa do livro (curtidas do
+  comentário, que já existem em `comments.ts`).
+- **Duas vozes valem mais que curtidas soltas.** Um pedaço que duas pessoas
+  cortaram por conta própria é mais quente que um post popular — e trechos que
+  caem no mesmo bloco de 30 segundos são o mesmo pedaço, com os calores somados.
+  Sem isso, dois cartões quase idênticos lado a lado leriam como defeito.
+- **O cartão toca no lugar**, e a frase de quem cortou vem junto: player solto no
+  meio do feed é botão sem promessa.
+- **Um trecho só não vira cartão.** Com um item, o carrossel é um player com
+  etiqueta pomposa, e "circulando" passa a ser mentira.
+
+**O nome perdeu o "da semana", de propósito.** A §4.58 pediu "trechos quentes da
+semana", mas com pouca gente sete dias devolvem lista vazia quase sempre — e
+rótulo que promete uma janela que os dados não têm é mentira pequena que corrói a
+tela. A janela é de 15 dias e o título diz "estão circulando". Quando houver
+movimento de verdade, a janela aperta e o nome pode voltar.
 
 ---
 

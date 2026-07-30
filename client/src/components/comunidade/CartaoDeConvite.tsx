@@ -1,8 +1,11 @@
 import { Link } from "wouter";
-import { ArrowRight, MessageSquare, Sparkles } from "lucide-react";
+import { ArrowRight, Flame, MessageSquare, Sparkles } from "lucide-react";
 
 import { CartaoDoClube } from "@/components/comunidade/CartaoDePost";
+import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { relativeDate } from "@/lib/activity";
+import { findMember } from "@/lib/community";
+import { type TrechoQuente } from "@/lib/trechosQuentes";
 import { estreiaEmTexto, type Clube } from "@/lib/clubes";
 import { type Grupo, type TopicoNaTela } from "@/lib/grupos";
 
@@ -101,6 +104,57 @@ export function ConviteDeForum({ grupo, topico }: { grupo: Grupo; topico: Topico
 
         <ArrowRight className="mt-3 h-4 w-4 shrink-0 text-white/25" />
       </Link>
+    </section>
+  );
+}
+
+/**
+ * **Trechos quentes** — os pedaços de áudio que estão circulando (§4.58, item 8).
+ *
+ * É o cartão mais "AllBook" do feed: nenhum outro app pode mostrar isto, porque
+ * em nenhum outro o conteúdo é voz. Por isso ele **toca ali mesmo** — mandar a
+ * pessoa para outra tela para ouvir 40 segundos seria perder o gesto.
+ *
+ * **Rola de lado quando há mais de um.** Empilhar três players verticalmente
+ * daria uma parede de ondas sonoras iguais; deitado, cada um é uma escolha.
+ *
+ * **A frase de quem cortou vem junto**, porque é ela que dá motivo ao play: um
+ * player solto no meio do feed é um botão sem promessa.
+ */
+export function TrechosQuentes({ trechos }: { trechos: TrechoQuente[] }) {
+  return (
+    <section
+      className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-3.5 pt-3"
+      data-testid="feed-trechos-quentes"
+    >
+      <Etiqueta>
+        <Flame className="h-3.5 w-3.5 text-primary" />
+        Trechos que estão circulando
+      </Etiqueta>
+
+      <div className="-mx-3.5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3.5 pb-1 scrollbar-hide">
+        {trechos.map((item) => {
+          const quem = item.autorSlug ? findMember(item.autorSlug)?.name : "Você";
+          return (
+            <div
+              key={`${item.citacao.bookId}-${item.citacao.inicioSec}`}
+              className={`shrink-0 snap-start ${trechos.length > 1 ? "w-[87%]" : "w-full"}`}
+            >
+              <CitacaoDeAudio citacao={item.citacao} grande />
+              {item.frase && (
+                <p className="mt-2 line-clamp-2 text-[12px] leading-relaxed text-white/50">
+                  <span className="font-semibold text-white/70">{quem}:</span> “{item.frase}”
+                </p>
+              )}
+              {item.vozes > 1 && (
+                <p className="mt-1 text-[11px] text-primary/70">
+                  {item.vozes} pessoas cortaram este mesmo pedaço
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }

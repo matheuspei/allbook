@@ -32,6 +32,7 @@ import {
   type Clube,
 } from "@/lib/clubes";
 import { postsDeQuemVoceSegue, todosOsPosts, type Post } from "@/lib/posts";
+import { trechosQuentes, type TrechoQuente } from "@/lib/trechosQuentes";
 
 /** As duas lentes: a comunidade toda, ou só quem você segue (§4.58). */
 export type Lente = "todos" | "seguindo";
@@ -45,6 +46,8 @@ export type ItemDoFeed =
   | { tipo: "post"; chave: string; data: string; post: Post }
   | { tipo: "clube"; chave: string; clube: Clube; comecando: boolean }
   | { tipo: "forum"; chave: string; grupo: Grupo; topico: TopicoNaTela }
+  /** Os pedaços de áudio que estão circulando (§4.58, item 8). */
+  | { tipo: "trechos"; chave: string; trechos: TrechoQuente[] }
   /**
    * O que alguém **fez** (recomendou um livro, comentou nele) — e não o que
    * escreveu. **Só na lente "Seguindo"**, que é a regra que o Matheus deu na
@@ -67,6 +70,13 @@ export type ItemDoFeed =
  */
 const POSICAO_DO_CLUBE = 3;
 const POSICAO_DO_FORUM = 8;
+
+/**
+ * Os trechos quentes ficam **entre os dois convites**, e mais perto do topo que
+ * o fórum de propósito: diferente deles, isto não é convite — é **conteúdo**, e
+ * é o conteúdo que só este app tem. Quem rolar cinco cartões merece ouvir algo.
+ */
+const POSICAO_DOS_TRECHOS = 5;
 
 /**
  * Onde entra o "Combina com você" na lente "Seguindo".
@@ -257,6 +267,16 @@ export function montarFeed(lente: Lente, seguindo: string[]): ItemDoFeed[] {
         clube: clube.clube,
         comecando: clube.comecando,
       },
+    });
+  }
+
+  /* **Um trecho só não vira cartão.** Com um item, o carrossel é um player
+     solto com etiqueta pomposa — e "circulando" fica sendo mentira. */
+  const trechos = trechosQuentes();
+  if (trechos.length >= 2 && itens.length >= POSICAO_DOS_TRECHOS) {
+    paraInserir.push({
+      posicao: POSICAO_DOS_TRECHOS,
+      item: { tipo: "trechos", chave: "trechos-quentes", trechos },
     });
   }
 
