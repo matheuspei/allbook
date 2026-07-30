@@ -28,6 +28,8 @@ import {
   membrosRemovidos,
   nomeDoMembro,
   readmitirMembro,
+  chamarOProximoDaFila,
+  filaDoClube,
   prazoEmTexto,
   removerMembro,
   renomearClube,
@@ -142,6 +144,7 @@ export default function GerenciarClube({ params }: { params: { id: string } }) {
         <Vagas clube={clube} />
         <RitmoDoCiclo key={`c-${versao}`} clube={clube} />
         <Membros key={`m-${versao}`} clube={clube} />
+        <ListaDeEspera key={`f-${versao}`} clube={clube} />
         <VotacaoDoModerador key={`v-${versao}`} clube={clube} />
         <PautaDoModerador key={`p-${versao}`} clube={clube} />
         <RodadaDoModerador key={`r-${versao}`} clube={clube} />
@@ -224,6 +227,85 @@ function NomeDoClube({ clube }: { clube: ClubeTipo }) {
         >
           Salvar
         </button>
+      </div>
+    </section>
+  );
+}
+
+/* ================================================================== *
+ * 0.4 Lista de espera — quem quer entrar e não coube.
+ * ================================================================== */
+
+/**
+ * A fila do clube cheio, do lado de quem modera (§4.58).
+ *
+ * **Só aparece quando há alguém esperando.** Uma seção "lista de espera (0)" em
+ * todo clube seria ruído permanente por um caso que quase nunca acontece.
+ *
+ * **Admitir só funciona com vaga aberta**, e quando não há, a tela diz o que
+ * fazer em vez de apagar o botão sem explicação: aumentar o limite ali em cima é
+ * o caminho — e é a resposta que o próprio Matheus deu quando eu propus a "turma
+ * 2" automática, que ficou rejeitada por isso mesmo.
+ */
+function ListaDeEspera({ clube }: { clube: ClubeTipo }) {
+  const { toast } = useToast();
+  const fila = filaDoClube(clube.id);
+  if (fila.length === 0) return null;
+
+  const vagas = vagasRestantes(clube);
+  const temVaga = vagas === undefined || vagas > 0;
+
+  return (
+    <section data-testid="secao-lista-de-espera">
+      <h2 className="mb-1 flex items-center gap-2 font-display text-base font-bold">
+        <Users className="h-4 w-4 text-primary" />
+        Lista de espera
+      </h2>
+      <p className="mb-3 text-[11.5px] leading-relaxed text-white/40">
+        {fila.length} {fila.length === 1 ? "pessoa quer" : "pessoas querem"} entrar e o clube está
+        cheio.{" "}
+        {temVaga
+          ? "Há vaga — dá para admitir agora."
+          : "Para abrir vaga, aumente o limite ali em cima."}
+      </p>
+
+      <div className="space-y-1.5">
+        {fila.map((slug, indice) => (
+          <div
+            key={slug}
+            className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-2.5"
+            data-testid={`fila-${slug}`}
+          >
+            <span className="w-4 shrink-0 text-center text-[11px] font-bold text-white/25">
+              {indice + 1}
+            </span>
+            <span
+              className={`grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(
+                slug,
+              )} text-[11px] font-bold`}
+            >
+              {nomeDoMembro(slug).charAt(0)}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-[12.5px]">
+              {slug === EU ? "Você" : nomeDoMembro(slug)}
+            </span>
+            <button
+              onClick={() => {
+                const quem = chamarOProximoDaFila(clube.id);
+                if (quem)
+                  toast({
+                    title: `${quem === EU ? "Você entrou" : `${nomeDoMembro(quem)} entrou`} no clube`,
+                  });
+              }}
+              disabled={!temVaga || indice > 0}
+              className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-black disabled:opacity-25"
+              title={indice > 0 ? "A fila anda pela ordem" : undefined}
+              data-testid={`admitir-${slug}`}
+            >
+              Admitir
+            </button>
+          </div>
+        ))}
       </div>
     </section>
   );

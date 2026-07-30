@@ -5006,9 +5006,9 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
    elas abrem. Detalhe na **§4.66**.
 
 **Fora do caminho crítico, e independentes** (dá para fazer a qualquer momento):
-~~renomear o clube~~ · ~~votação de 2 a 5 opções~~ · lista de espera com teto de
-250 · ~~"quem perdeu a votação funda um clube"~~ · trechos quentes · presença por
-capítulo (com opt-in recíproco). **Os três riscados foram feitos em 30/07 —
+~~renomear o clube~~ · ~~votação de 2 a 5 opções~~ · ~~lista de espera com teto de
+250~~ · ~~"quem perdeu a votação funda um clube"~~ · trechos quentes · presença por
+capítulo (com opt-in recíproco). **Os quatro riscados foram feitos em 30/07 —
 §4.69.**
 
 ---
@@ -5854,8 +5854,28 @@ com nome sugerido.
 alguém sem que peça é decidir por ela. O que ficou faz o clube **se multiplicar**
 — não porque encheu, mas porque um grupo queria outro livro.
 
-**Ainda falta desta lista:** lista de espera com teto de 250, trechos quentes da
-semana, e presença por capítulo (com opt-in recíproco).
+### A lista de espera: clube cheio deixou de ser porta fechada
+
+Antes, clube lotado terminava numa frase — *"este clube está cheio"* — e nada
+mais: quem se interessou não tinha o que fazer, e o moderador **nem ficava
+sabendo** que havia gente querendo entrar. Agora há fila, com a sua posição
+visível, e ela **anda sozinha**: quando alguém sai ou é removido, o primeiro
+entra (`chamarOProximoDaFila`, chamada de dentro de `sairDoClube` e
+`removerMembro` — a tela não precisa lembrar).
+
+- **Teto de 250** (número do Matheus). Não é limite técnico: é o ponto em que uma
+  fila deixa de ser promessa e vira mentira.
+- **A fila fictícia é estável e proporcional** (semente pelo id do clube): fila
+  sempre vazia esconderia o que a peça significa — entrar atrás de 6 pessoas é
+  diferente de entrar atrás de 1.
+- **Do lado do moderador**, a seção só aparece quando há alguém esperando, e
+  "Admitir" só funciona com vaga aberta. Sem vaga, a tela **diz o que fazer**
+  (aumentar o limite) em vez de apagar o botão — que foi a resposta do próprio
+  Matheus quando propus a "turma 2" automática, e a razão de ela continuar
+  rejeitada.
+
+**Ainda falta desta lista:** trechos quentes da semana e presença por capítulo
+(com opt-in recíproco).
 
 ---
 

@@ -519,6 +519,8 @@ interface EstadoLocal {
    * ficar intacto.
    */
   renomeados: Record<string, { nome: string; descricao: string }>;
+  /** Clubes cheios em que você entrou na fila: ids. */
+  naFila: string[];
   /** Quantas pessoas cabem: clubeId → limite. Ausente = sem limite. */
   limites: Record<string, number>;
   /** Clubes semeados que você apagou (só acontece nos que você modera). */
@@ -533,6 +535,7 @@ const VAZIO: EstadoLocal = {
   removidos: {},
   convidados: {},
   renomeados: {},
+  naFila: [],
   limites: {},
   apagados: [],
 };
@@ -549,6 +552,7 @@ function readEstado(): EstadoLocal {
       removidos: guardado.removidos ?? {},
       convidados: guardado.convidados ?? {},
       renomeados: guardado.renomeados ?? {},
+      naFila: Array.isArray(guardado.naFila) ? guardado.naFila : [],
       limites: guardado.limites ?? {},
       apagados: Array.isArray(guardado.apagados) ? guardado.apagados : [],
     };
@@ -847,6 +851,109 @@ export function vagasRestantes(clube: Clube): number | undefined {
   return Math.max(0, clube.limite - clube.membros.length);
 }
 
+/* ------------------------------------------------------------------ *
+ * Lista de espera — o que fazer quando o clube está cheio (§4.58).
+ *
+ * **O problema que ela resolve:** clube lotado era um beco sem saída. A tela
+ * dizia "este clube está cheio" e acabava ali — a pessoa que se interessou não
+ * tinha o que fazer, e o moderador não ficava sabendo que havia gente querendo
+ * entrar. É exatamente o tipo de porta fechada que a §4.23 manda varrer.
+ *
+ * **Teto de 250** (número do Matheus). Não é limite técnico: é o ponto em que
+ * uma fila deixa de ser uma promessa e vira mentira — ninguém entra em 250º
+ * lugar num clube de oito pessoas.
+ *
+ * **A "turma 2" foi retirada, e continua fora.** Eu tinha proposto que o clube
+ * cheio gerasse automaticamente uma segunda turma; o Matheus perguntou por que
+ * ela existiria se o moderador já pode aumentar o limite ou criar outro clube, e
+ * eu não consegui fundamentar. O que multiplica clube é outra coisa, e já está
+ * construída: quem perde a votação funda o clube do livro que queria (§4.69).
+ * ------------------------------------------------------------------ */
+
+/** Quantas pessoas cabem na fila de um clube. */
+export const TETO_DA_FILA = 250;
+
+/** Quem está na fila deste clube — os fictícios e, se for o caso, você. */
+export function filaDoClube(clubeId: string): string[] {
+  const clube = clubePorId(clubeId);
+  if (!clube) return [];
+  const naFila = readEstado().naFila.includes(clubeId);
+  return [...filaSemeada(clube), ...(naFila ? [EU] : [])];
+}
+
+/**
+ * A fila fictícia de um clube cheio — **estável, e proporcional ao clube**.
+ *
+ * Sem servidor não há fila de verdade, mas uma fila sempre vazia esconderia o
+ * que a peça significa: entrar numa fila de 6 pessoas é diferente de entrar numa
+ * de 1. A semente é o id do clube, então o número não muda a cada desenho — a
+ * mesma honestidade do progresso dos membros e das curtidas.
+ */
+function filaSemeada(clube: Clube): string[] {
+  if (!clubeCheio(clube)) return [];
+  let semente = 0;
+  for (let i = 0; i < clube.id.length; i += 1) semente = (semente * 31 + clube.id.charCodeAt(i)) % 9973;
+  const quantos = semente % 5;
+  return community
+    .filter((membro) => !clube.membros.includes(membro.slug))
+    .slice(0, quantos)
+    .map((membro) => membro.slug);
+}
+
+/** Você está na fila deste clube? */
+export function estouNaFila(clubeId: string): boolean {
+  return readEstado().naFila.includes(clubeId);
+}
+
+/** A sua posição na fila, começando em 1. `undefined` se você não está nela. */
+export function minhaPosicaoNaFila(clubeId: string): number | undefined {
+  const posicao = filaDoClube(clubeId).indexOf(EU);
+  return posicao === -1 ? undefined : posicao + 1;
+}
+
+/**
+ * Entra na fila. Devolve `false` quando não dá — clube inexistente, você já é
+ * membro, o clube não está cheio (aí é só entrar) ou a fila bateu no teto.
+ */
+export function entrarNaFila(clubeId: string): boolean {
+  const clube = clubePorId(clubeId);
+  if (!clube || souMembro(clube) || !clubeCheio(clube)) return false;
+  if (filaDoClube(clubeId).length >= TETO_DA_FILA) return false;
+
+  const estado = readEstado();
+  if (estado.naFila.includes(clubeId)) return false;
+  salvar({ ...estado, naFila: [...estado.naFila, clubeId] });
+  return true;
+}
+
+export function sairDaFila(clubeId: string): void {
+  const estado = readEstado();
+  salvar({ ...estado, naFila: estado.naFila.filter((id) => id !== clubeId) });
+}
+
+/**
+ * Abriu vaga: **o primeiro da fila entra**.
+ *
+ * Chamada quando alguém sai ou é removido. Se o primeiro da fila for você, você
+ * entra de verdade; se for um fictício, ele vira membro pelo mesmo caminho do
+ * convite aceito (`adicionarMembro`). Deixar a vaga aberta com gente esperando
+ * seria a fila não significar nada.
+ */
+export function chamarOProximoDaFila(clubeId: string): string | undefined {
+  const clube = clubePorId(clubeId);
+  if (!clube || clubeCheio(clube)) return undefined;
+  const primeiro = filaDoClube(clubeId)[0];
+  if (!primeiro) return undefined;
+
+  if (primeiro === EU) {
+    sairDaFila(clubeId);
+    entrarNoClube(clubeId);
+  } else {
+    adicionarMembro(clubeId, primeiro);
+  }
+  return primeiro;
+}
+
 export function entrarNoClube(id: string): void {
   const estado = readEstado();
   if (estado.criados.some((clube) => clube.id === id)) return;
@@ -874,6 +981,10 @@ export function sairDoClube(id: string): void {
     criados: estado.criados.filter((c) => c.id !== id),
     apagados: apagaSemeado ? [...estado.apagados, id] : estado.apagados,
   });
+
+  /* Saiu você, abriu vaga: quem estava esperando entra. Sem isto a fila seria
+     uma lista que nunca anda — e fila que não anda é pior que não ter fila. */
+  chamarOProximoDaFila(id);
 }
 
 /* ------------------------------------------------------------------ *
@@ -923,6 +1034,8 @@ export function removerMembro(clubeId: string, slug: string): void {
   if (jaFora.includes(slug)) return;
 
   salvar({ ...estado, removidos: { ...estado.removidos, [clubeId]: [...jaFora, slug] } });
+
+  chamarOProximoDaFila(clubeId);
 }
 
 /** Devolver alguém que foi removido — todo poder de moderação precisa de volta. */

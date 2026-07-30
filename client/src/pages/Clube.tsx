@@ -13,6 +13,10 @@ import { catalog } from "@/lib/books";
 import {
   CLUBES_EVENT,
   clubeCheio,
+  entrarNaFila,
+  filaDoClube,
+  minhaPosicaoNaFila,
+  sairDaFila,
   clubePorId,
   corDoMembro,
   dataCurta,
@@ -83,6 +87,8 @@ export default function Clube({ params }: { params: { id: string } }) {
   const { toast } = useToast();
   const [, navegar] = useLocation();
   const [clube, setClube] = useState<ClubeTipo | undefined>(() => clubePorId(params.id));
+  /** Muda quando você entra ou sai da fila — força a leitura de novo. */
+  const [versao, setVersao] = useState(0);
 
   useEffect(() => {
     const atualizar = () => setClube(clubePorId(params.id));
@@ -112,6 +118,10 @@ export default function Clube({ params }: { params: { id: string } }) {
   const dono = souDono(clube);
   const cheio = clubeCheio(clube);
   const vagas = vagasRestantes(clube);
+  /* `versao` entra na conta só para o React refazer o cálculo depois de entrar
+     ou sair da fila — o dado mora no localStorage, não no estado. */
+  const fila = versao >= 0 ? filaDoClube(clube.id) : [];
+  const posicao = minhaPosicaoNaFila(clube.id);
 
   /**
    * Convidar: a folha nativa do celular quando existe, copiar o link quando
@@ -208,11 +218,58 @@ export default function Clube({ params }: { params: { id: string } }) {
           )}
 
           <div className="flex gap-2">
+            {/*
+              **Clube cheio deixou de ser beco sem saída** (30/07, §4.58). Antes
+              a tela dizia "está cheio" e acabava ali: quem se interessou não
+              tinha o que fazer, e o moderador nem ficava sabendo que havia gente
+              querendo entrar. Agora há fila — e a fila **anda sozinha**: quando
+              alguém sai ou é removido, o primeiro entra.
+            */}
             {!membro && cheio && (
-              <p className="flex-1 rounded-xl bg-white/[0.04] px-4 py-3 text-xs leading-relaxed text-white/45">
-                <b className="text-white/75">Este clube está cheio</b> — {clube.limite} de{" "}
-                {clube.limite} lugares ocupados. Quem modera define quantas pessoas cabem.
-              </p>
+              <div className="flex-1 rounded-xl bg-white/[0.04] px-4 py-3" data-testid="clube-cheio">
+                {posicao !== undefined ? (
+                  <>
+                    <p className="text-xs leading-relaxed text-white/55">
+                      <b className="text-primary">Você está na fila</b> — {posicao}º lugar. Abriu
+                      vaga, você entra e é avisado.
+                    </p>
+                    <button
+                      onClick={() => {
+                        sairDaFila(clube.id);
+                        setVersao((v) => v + 1);
+                        toast({ title: "Você saiu da fila" });
+                      }}
+                      className="mt-2 text-[11.5px] font-semibold text-white/35 transition-colors hover:text-white/70"
+                      data-testid="button-sair-da-fila"
+                    >
+                      Sair da fila
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs leading-relaxed text-white/45">
+                      <b className="text-white/75">Este clube está cheio</b> — {clube.limite} de{" "}
+                      {clube.limite} lugares ocupados.
+                      {fila.length > 0 &&
+                        ` ${fila.length} ${fila.length === 1 ? "pessoa espera" : "pessoas esperam"} vaga.`}
+                    </p>
+                    <button
+                      onClick={() => {
+                        if (!entrarNaFila(clube.id)) return;
+                        setVersao((v) => v + 1);
+                        toast({
+                          title: "Você entrou na fila",
+                          description: "Quando alguém sair, o primeiro da fila entra no lugar.",
+                        });
+                      }}
+                      className="mt-2.5 w-full rounded-lg bg-white/[0.08] py-2 text-[12.5px] font-bold transition-colors hover:bg-white/15"
+                      data-testid="button-entrar-na-fila"
+                    >
+                      Entrar na lista de espera
+                    </button>
+                  </>
+                )}
+              </div>
             )}
 
             {!membro && !cheio && (
