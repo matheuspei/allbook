@@ -54,13 +54,21 @@ export function alternarCurtida(postId: string): boolean {
 /**
  * Quantas pessoas curtiram — **fora você**.
  *
- * Os seus posts começam em zero de propósito: fingir que estranhos curtiram o
- * que você acabou de escrever seria a mentira mais fácil de perceber, e a que
- * mais desmoraliza o resto.
+ * O que **você** escreveu começa em zero de propósito: fingir que estranhos
+ * curtiram o que você acabou de escrever seria a mentira mais fácil de perceber, e
+ * a que mais desmoraliza o resto.
+ *
+ * **Serve post e comentário** (30/07), porque curtir é **uma ação só no app** e não
+ * uma por lugar — a inconsistência que o Matheus apontou na §4.58. Os ids do
+ * esqueleto são `p-esq-…` (post) e `c-esq-…` (comentário); os seus são `…-meu-…` e
+ * caem no zero.
  */
-export function curtidasDoPost(postId: string): number {
-  if (!postId.startsWith("p-esq-")) return 0;
+export function curtidasDoPost(id: string): number {
+  const doEsqueleto = id.startsWith("p-esq-") || id.startsWith("c-esq-");
+  if (!doEsqueleto) return 0;
   let semente = 0;
-  for (let i = 0; i < postId.length; i += 1) semente = (semente * 31 + postId.charCodeAt(i)) % 9973;
-  return semente % 14;
+  for (let i = 0; i < id.length; i += 1) semente = (semente * 31 + id.charCodeAt(i)) % 9973;
+  /* Comentário ganha número menor que post: uma resposta com 12 corações e o
+     post com 3 seria a hierarquia invertida, e a tela contaria uma mentira. */
+  return id.startsWith("c-esq-") ? semente % 6 : semente % 14;
 }

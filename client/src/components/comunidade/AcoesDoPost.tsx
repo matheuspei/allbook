@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MoreHorizontal, Pencil, Trash2, Flag } from "lucide-react";
+import { Heart, MessageCircle, MoreHorizontal, Pencil, Trash2, Flag } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
+import { COMENTARIOS_EVENT, totalDeComentarios } from "@/lib/comentariosDePost";
 import { curtidasDoPost, euCurti, alternarCurtida } from "@/lib/curtidas";
 import { apagarMeuPost, type Post } from "@/lib/posts";
 
@@ -23,17 +24,31 @@ export default function AcoesDoPost({
   post,
   onApagado,
   onEditar,
+  comentariosAbertos,
+  onComentar,
 }: {
   post: Post;
   onApagado?: () => void;
   /** Liga o modo de edição no cartão — quem desenha o campo é ele. */
   onEditar?: () => void;
+  comentariosAbertos?: boolean;
+  /** Abre/fecha a conversa. Quem desenha a conversa é o cartão. */
+  onComentar?: () => void;
 }) {
   const { toast } = useToast();
   const [curtido, setCurtido] = useState(() => euCurti(post.id));
   const [menuAberto, setMenuAberto] = useState(false);
+  const [comentarios, setComentarios] = useState(() => totalDeComentarios(post.id));
   const menuRef = useRef<HTMLDivElement>(null);
   const ehMeu = post.autorSlug === undefined;
+
+  /* O contador tem de mudar na hora em que você comenta — e quando o esqueleto
+     responde de volta, 2,5 s depois, sem você tocar em nada. */
+  useEffect(() => {
+    const atualizar = () => setComentarios(totalDeComentarios(post.id));
+    window.addEventListener(COMENTARIOS_EVENT, atualizar);
+    return () => window.removeEventListener(COMENTARIOS_EVENT, atualizar);
+  }, [post.id]);
 
   /* Fecha o menu ao tocar fora — sem isto ele fica aberto enquanto a pessoa
      rola o feed, e vira um cartão com um painel pendurado. */
@@ -60,6 +75,23 @@ export default function AcoesDoPost({
       >
         <Heart className={`h-4 w-4 ${curtido ? "fill-current" : ""}`} />
         {total > 0 && total}
+      </button>
+
+      {/*
+        **Comentar entrou em 30/07** — decisão da §4.58 (*"o post tem que curtir e
+        comentar, com certeza"*), e o que faltava era o mecanismo: agora existe
+        (`lib/comentariosDePost.ts`), raso, um nível.
+      */}
+      <button
+        onClick={onComentar}
+        className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12px] font-semibold transition-colors ${
+          comentariosAbertos ? "text-white" : "text-white/45 hover:text-white/80"
+        }`}
+        aria-expanded={comentariosAbertos}
+        data-testid={`comentar-${post.id}`}
+      >
+        <MessageCircle className="h-4 w-4" />
+        {comentarios > 0 && comentarios}
       </button>
 
       <div className="relative ml-auto" ref={menuRef}>

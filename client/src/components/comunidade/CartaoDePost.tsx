@@ -3,6 +3,7 @@ import { ArrowRight, CalendarClock, HelpCircle, Users } from "lucide-react";
 
 import AcoesDoPost from "@/components/comunidade/AcoesDoPost";
 import CampoComMencao from "@/components/comunidade/CampoComMencao";
+import ComentariosDoPost from "@/components/comunidade/ComentariosDoPost";
 import TextoDoPost from "@/components/comunidade/TextoDoPost";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { catalog, slugify } from "@/lib/books";
@@ -37,7 +38,14 @@ import { useState } from "react";
  * poluição; o acordo foi ele sumir depois de cumprir a função, em vez de virar
  * "Seguindo ✓" ocupando espaço em todo post para sempre (§4.58).
  */
-export default function CartaoDePost({ post }: { post: Post }) {
+export default function CartaoDePost({
+  post,
+  /** Na página de um post só, a conversa já vem aberta. */
+  abrirSempre,
+}: {
+  post: Post;
+  abrirSempre?: boolean;
+}) {
   const membro = post.autorSlug ? findMember(post.autorSlug) : undefined;
   const meuPerfil = readProfile();
   const ehMeu = post.autorSlug === undefined;
@@ -45,6 +53,7 @@ export default function CartaoDePost({ post }: { post: Post }) {
     post.autorSlug ? isFollowing(post.autorSlug) : true,
   );
   const [editando, setEditando] = useState(false);
+  const [comentando, setComentando] = useState(false);
 
   const nome = ehMeu ? meuPerfil.name : (membro?.name ?? "Leitor");
   const href = ehMeu ? "/profile" : `/user/${post.autorSlug}`;
@@ -146,7 +155,22 @@ export default function CartaoDePost({ post }: { post: Post }) {
       )}
       {post.objeto?.tipo === "clube" && <CartaoDoClube clubeId={post.objeto.clubeId} />}
 
-      <AcoesDoPost post={post} onEditar={() => setEditando(true)} />
+      <AcoesDoPost
+        post={post}
+        onEditar={() => setEditando(true)}
+        comentariosAbertos={comentando}
+        onComentar={() => setComentando((valor) => !valor)}
+      />
+
+      {/*
+        **A conversa abre no lugar, e só quando pedida.** Feed com cinco
+        comentários abertos por post deixa de ser feed — a pessoa rola dez telas
+        para ver quatro posts. O contador na barra já diz que há conversa.
+
+        `abrirSempre` existe para a página de um post só (`/post/:id`), onde
+        esconder a conversa não faria sentido: quem chegou ali chegou por ela.
+      */}
+      {(comentando || abrirSempre) && <ComentariosDoPost post={post} />}
     </article>
   );
 }

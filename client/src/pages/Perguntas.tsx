@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { ArrowLeft, HelpCircle } from "lucide-react";
 
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
+import { COMENTARIOS_EVENT, temResposta } from "@/lib/comentariosDePost";
 import { POSTS_EVENT, todosOsPosts, type Post } from "@/lib/posts";
 import { MURAL_EVENT } from "@/lib/mural";
 
@@ -28,17 +29,30 @@ import { MURAL_EVENT } from "@/lib/mural";
  */
 export default function Perguntas() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [soSemResposta, setSoSemResposta] = useState(false);
 
   useEffect(() => {
     const atualizar = () => setPosts(todosOsPosts().filter((post) => post.pergunta));
     atualizar();
     window.addEventListener(POSTS_EVENT, atualizar);
     window.addEventListener(MURAL_EVENT, atualizar);
+    window.addEventListener(COMENTARIOS_EVENT, atualizar);
     return () => {
       window.removeEventListener(POSTS_EVENT, atualizar);
       window.removeEventListener(MURAL_EVENT, atualizar);
+      window.removeEventListener(COMENTARIOS_EVENT, atualizar);
     };
   }, []);
+
+  /*
+    **A promessa da página, cumprida** (30/07). Quando ela nasceu, poucas horas
+    antes, só sabia juntar perguntas — e eu registrei que o valor de verdade vinha
+    quando existisse resposta, para ela poder **cobrar**. Existe: `temResposta` lê
+    os comentários. Ninguém respondeu é o caso que precisa de alguém, e é o único
+    filtro que a página tem.
+  */
+  const semResposta = posts.filter((post) => !temResposta(post.id));
+  const mostrados = soSemResposta ? semResposta : posts;
 
   return (
     <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="perguntas-page">
@@ -62,8 +76,39 @@ export default function Perguntas() {
         <p className="relative mt-1.5 text-sm text-white/45">
           {posts.length === 0
             ? "Ninguém perguntou nada por aqui ainda"
-            : `${posts.length} ${posts.length === 1 ? "pergunta esperando" : "perguntas esperando"} uma opinião`}
+            : semResposta.length === 0
+              ? "Todas já têm resposta"
+              : `${semResposta.length} ${semResposta.length === 1 ? "ainda espera" : "ainda esperam"} uma opinião`}
         </p>
+
+        {/* Duas pílulas, um critério: **tem resposta ou não**. Somem quando todas
+            já foram respondidas — filtro que não filtra é botão morto (§4.23). */}
+        {semResposta.length > 0 && semResposta.length < posts.length && (
+          <div className="relative mt-4 flex gap-2" data-testid="perguntas-filtros">
+            <button
+              onClick={() => setSoSemResposta(false)}
+              className={`rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition-colors ${
+                soSemResposta
+                  ? "border border-white/15 text-white/50 hover:text-white/80"
+                  : "bg-white text-black"
+              }`}
+              data-testid="perguntas-todas"
+            >
+              Todas {posts.length}
+            </button>
+            <button
+              onClick={() => setSoSemResposta(true)}
+              className={`rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition-colors ${
+                soSemResposta
+                  ? "bg-white text-black"
+                  : "border border-white/15 text-white/50 hover:text-white/80"
+              }`}
+              data-testid="perguntas-sem-resposta"
+            >
+              Sem resposta {semResposta.length}
+            </button>
+          </div>
+        )}
       </header>
 
       {posts.length === 0 ? (
@@ -84,7 +129,7 @@ export default function Perguntas() {
         </div>
       ) : (
         <div className="space-y-3 px-5 pt-1">
-          {posts.map((post) => (
+          {mostrados.map((post) => (
             <CartaoDePost key={post.id} post={post} />
           ))}
         </div>

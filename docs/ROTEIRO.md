@@ -4990,9 +4990,11 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
    o tipo **pergunta** e o post de texto puro com tratamento tipográfico. Entraram
    junto a **menção com `@`**, o **editar** com selo, e o **filtro "Perguntas"** —
    este último porque sem ele o botão de pergunta era decoração. Detalhe na **§4.60**.
-3. **O feed** com as duas lentes (Feed · Seguindo), os cartões de clube/fórum
-   intercalados, curtir/comentar raso e compartilhar. *(Curtir já está de pé no
-   post desde 29/07; falta no mural do clube, no fórum e no mural.)*
+3. 🔸 **QUASE — O feed** com as duas lentes (Feed · Seguindo), os cartões de
+   clube/fórum intercalados, curtir/comentar raso e compartilhar. **Feito em 30/07:**
+   as duas lentes, **comentar raso** (com curtir no comentário e a página
+   `/post/:id`). **Falta:** compartilhar e os cartões de clube/fórum intercalados.
+   Detalhe na **§4.62**. *(Curtir ainda falta no mural do clube, no fórum e no mural.)*
 4. **O Seguindo**: atividade em linha + "ouvindo agora" + "combina com você"
    como cartão ocasional.
 5. **Convite para clube** pela página da pessoa, com aceitar no sino.
@@ -5312,6 +5314,85 @@ gravado**. Assim:
 
 **Rejeitado: reescrever o `localStorage` na leitura.** Daria o mesmo resultado com
 efeito colateral escondido; derivar na hora de mostrar não mexe no que está gravado.
+
+---
+
+## 4.62 Comentar, as duas lentes e a página de um post (30/07)
+
+Item 3 da ordem da §4.58, na maior parte. Comecei por **comentar** e não pelas
+lentes porque era o que destravava mais coisa: **sem resposta, pergunta não é
+pergunta** — a `/perguntas` sabia juntar e não sabia cobrar.
+
+### Comentar: raso, um nível, com `@Fulano`
+
+Como decidido (§4.58): a resposta a um comentário **não abre fio**, entra na mesma
+lista com o nome de quem responde na frente. O motivo é concreto: já existem
+**duas** conversas profundas no app (a do livro e a do clube), e uma terceira com
+fios aninhados seria um lugar onde a conversa se esconde dentro dela mesma.
+
+**A conversa abre fechada no feed.** Um feed em que cada post traz cinco
+comentários abertos deixa de ser feed — a pessoa rola dez telas para ver quatro
+posts. O que fica visível é **quantos** são.
+
+**Curtir passou a valer no comentário também**, com a mesma `lib/curtidas.ts` do
+post. Era metade da inconsistência que a §4.58 registrou (curtir existindo em
+alguns lugares e não em outros). Comentário ganha número menor que post por
+semente: resposta com 12 corações sob um post com 3 seria hierarquia invertida, e a
+tela contaria uma mentira.
+
+**Rejeitado: reusar `replies.ts`** (as respostas da conversa do livro), apesar de
+fazer quase o mesmo. Duas razões concretas: lá o `bookId` é obrigatório na
+semântica e **post pode não ter livro**; e o `parentId` de lá é um comentário do
+catálogo fixo. Generalizar exigiria mexer em `CommentThread.tsx`, que é território
+da outra janela. **Duas libs pequenas com a mesma gramática é mais seguro que uma
+grande com campos que mentem.**
+
+### A página de um post (`/post/:id`) — nasceu de uma necessidade, não de um desejo
+
+Quando alguém comenta, o sino precisa levar **ao post**. Não havia para onde: o
+feed é cronológico, e um post de dois dias atrás está a dez telas de rolagem. É o
+mesmo defeito que a §4.51 cobrou por outro caminho (a resposta que caía na sinopse
+em vez da conversa). Ali a conversa **vem aberta**: quem chegou, chegou por ela.
+
+Serve também de endereço para o **compartilhar**, quando ele existir.
+
+### As duas lentes ficam embaixo do compositor, não nas abas do alto
+
+As pílulas de cima dizem **que parte** da Comunidade (Feed · Fóruns · Pessoas); as
+novas dizem **de quem** (Todos · Seguindo). São critérios diferentes, e a régua da
+casa é que **uma fileira de pílulas carrega um critério só**.
+
+A regra do que aparece em cada uma é a do Matheus (§4.58): **post é o mesmo nas
+duas**, muda de quem. A **atividade** ("Carla está ouvindo X") é que será exclusiva
+do Seguindo — item 4, ainda por fazer.
+
+### Três defeitos pegos na tela, e nenhum apareceu no `tsc`
+
+1. **"Responder" não dava foco ao campo.** Punha `@Fulano` no comentário e deixava
+   o foco no botão: quem começava a digitar **escrevia no vazio e perdia a frase**.
+   `autoFocus` não resolve, porque só vale na montagem. Conserto: `focarQuando`, um
+   contador que o pai incrementa — e **zero não pede foco**, para abrir a conversa
+   só para ler não subir o teclado do celular.
+2. **O aviso descrevia errado.** Todo comentário em post dizia *"comentou no seu
+   post"* — inclusive quando o post era de outra pessoa e o que houve foi alguém
+   **respondendo o seu comentário** lá. Aviso que descreve errado é pior que aviso
+   nenhum: a pessoa abre esperando uma coisa e encontra outra.
+3. *(§4.61)* a lista de menções reabrindo com o item já escolhido.
+
+### O esqueleto responde de volta — e por que isso não é enfeite
+
+Sem servidor, um comentário seu cairia no vazio, e a pessoa nunca veria como a
+conversa se comporta. Quem responde é **o autor do post**, 2,5 s depois, e o sino
+acende — que era o pedido dele na §4.58 (*"eu tenho que ser notificado"*).
+
+**Só em post de outra pessoa:** o esqueleto reagindo ao próprio dono do post seria
+o app conversando consigo mesmo. Quando houver servidor, a simulação sai inteira.
+
+### O que ainda falta do item 3
+
+**Compartilhar** (republicar no seu perfil) e os **cartões de clube/fórum
+intercalados** no feed. Nada disso está pendurado na interface — não há botão sem
+função.
 
 ---
 

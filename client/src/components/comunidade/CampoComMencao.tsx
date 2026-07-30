@@ -24,6 +24,7 @@ export default function CampoComMencao({
   onMudar,
   placeholder,
   autoFocus,
+  focarQuando,
   linhas = 2,
   className,
 }: {
@@ -32,6 +33,16 @@ export default function CampoComMencao({
   onMudar: (texto: string, mencoes: Mencao[]) => void;
   placeholder: string;
   autoFocus?: boolean;
+  /**
+   * **Foco por pedido de fora**: qualquer mudança neste número traz o cursor para
+   * cá, no fim do texto.
+   *
+   * Existe por um bug pego na tela em 30/07: tocar "Responder" num comentário
+   * enchia o campo com `@Fulano` e **deixava o foco no botão** — quem começava a
+   * digitar em seguida escrevia no vazio e perdia a frase. `autoFocus` não
+   * resolvia, porque ele só vale na montagem, e o campo já estava montado.
+   */
+  focarQuando?: number;
   linhas?: number;
   className?: string;
 }) {
@@ -50,6 +61,20 @@ export default function CampoComMencao({
   useEffect(() => {
     if (autoFocus) campo.current?.focus();
   }, [autoFocus]);
+
+  useEffect(() => {
+    /* Zero é o valor inicial e **não** pede foco: abrir a conversa para ler não
+       deve subir o teclado do celular. Só os incrementos pedem. */
+    if (!focarQuando) return;
+    const el = campo.current;
+    if (!el) return;
+    el.focus();
+    /* O cursor vai para o fim: o `@Fulano` acabou de ser posto na frente, e a
+       pessoa vai continuar escrevendo depois dele. */
+    const fim = el.value.length;
+    el.setSelectionRange(fim, fim);
+    setCursor(fim);
+  }, [focarQuando]);
 
   /**
    * A consulta ativa. **O `@` só conta no começo ou depois de um espaço** —

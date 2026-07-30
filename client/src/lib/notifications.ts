@@ -37,8 +37,16 @@ export interface ReplyNotification {
   id: string;
   /** Quem respondeu — `slug` de um leitor em `community.ts`. */
   fromSlug: string;
-  /** O livro onde a conversa está, para o toque levar de volta a ela. */
-  bookId: number;
+  /**
+   * O livro onde a conversa está, para o toque levar de volta a ela.
+   *
+   * **Opcional desde 30/07**, quando o comentário de post entrou: post pode não
+   * ter livro nenhum, e o destino dele é o post. Um dos dois campos existe sempre
+   * — `bookId` para a conversa do livro, `postId` para o feed.
+   */
+  bookId?: number;
+  /** O post comentado, para o toque abrir `/post/:id`. */
+  postId?: string;
   /** O trecho da resposta, mostrado no aviso. */
   text: string;
   /** ISO. */
@@ -55,9 +63,10 @@ export function readNotifications(): ReplyNotification[] {
         (item): item is ReplyNotification =>
           item &&
           typeof item.fromSlug === "string" &&
-          typeof item.bookId === "number" &&
           typeof item.text === "string" &&
-          typeof item.date === "string",
+          typeof item.date === "string" &&
+          // Um destino, sempre: a conversa de um livro ou um post.
+          (typeof item.bookId === "number" || typeof item.postId === "string"),
       )
       .sort((a, b) => b.date.localeCompare(a.date));
   } catch {
@@ -115,13 +124,16 @@ export function unreadNotificationCount(): number {
 
 export function addNotification(entry: {
   fromSlug: string;
-  bookId: number;
+  /** Um dos dois: a conversa de um livro, ou um post do feed. */
+  bookId?: number;
+  postId?: string;
   text: string;
 }): ReplyNotification[] {
   const notification: ReplyNotification = {
     id: `n-${Date.now()}`,
     fromSlug: entry.fromSlug,
-    bookId: entry.bookId,
+    ...(entry.bookId !== undefined ? { bookId: entry.bookId } : {}),
+    ...(entry.postId !== undefined ? { postId: entry.postId } : {}),
     text: entry.text,
     date: new Date().toISOString(),
     read: false,

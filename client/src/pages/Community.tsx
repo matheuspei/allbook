@@ -6,7 +6,7 @@ import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
 import ConversasDeAgora from "@/components/ConversasDeAgora";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
 import Compositor from "@/components/comunidade/Compositor";
-import { POSTS_EVENT, todosOsPosts, type Post } from "@/lib/posts";
+import { POSTS_EVENT, postsDeQuemVoceSegue, todosOsPosts, type Post } from "@/lib/posts";
 import { MURAL_EVENT } from "@/lib/mural";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -41,6 +41,14 @@ import { catalog } from "@/lib/books";
  */
 
 type Aba = "agora" | "grupos" | "pessoas";
+
+/** As duas lentes do feed: a comunidade toda, ou só quem você segue (§4.58). */
+type Lente = "todos" | "seguindo";
+
+const LENTES: { key: Lente; label: string }[] = [
+  { key: "todos", label: "Todos" },
+  { key: "seguindo", label: "Seguindo" },
+];
 
 const ABAS: { key: Aba; label: string }[] = [
   // "Mural" nomeia o coração; "Fóruns" diz o que a aba é sem confundir com o
@@ -166,9 +174,14 @@ function AbaAgora() {
  */
 function FeedDePosts() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [lente, setLente] = useState<Lente>("todos");
+  const [seguindo, setSeguindo] = useState<string[]>([]);
 
   useEffect(() => {
-    const atualizar = () => setPosts(todosOsPosts());
+    const atualizar = () => {
+      setPosts(todosOsPosts());
+      setSeguindo(readFollowing());
+    };
     atualizar();
     /* Dois eventos porque há dois formatos de post seu: o novo
        (`allbook_posts`) e os herdados do mural. Ver `CHAVE_POSTS`. */
@@ -180,6 +193,14 @@ function FeedDePosts() {
     };
   }, []);
 
+  /*
+    **As duas lentes, e a regra que o Matheus deu** (§4.58): *"o post dela
+    aparece tanto na parte do Feed de notícia geral do aplicativo como na parte
+    do Seguindo… O que não aparece nos dois são atividades"*. Então **post é o
+    mesmo nas duas**; o que muda é de quem. A atividade ("Carla está ouvindo X")
+    é que será exclusiva do Seguindo — e é o item 4 da ordem, ainda por fazer.
+  */
+  const mostrados = lente === "seguindo" ? postsDeQuemVoceSegue(seguindo) : posts;
   const perguntas = posts.filter((post) => post.pergunta).length;
 
   return (
@@ -213,11 +234,57 @@ function FeedDePosts() {
         </Link>
       )}
 
+      {/*
+        **As duas lentes.** Ficam **aqui**, embaixo do compositor, e não nas abas
+        do alto: as de cima dizem *que parte da Comunidade* (Feed · Fóruns ·
+        Pessoas), e estas dizem *de quem*. Misturar os dois critérios numa fileira
+        só é o que a régua da casa proíbe — uma fileira de pílulas carrega um
+        critério, não dois.
+      */}
+      <div className="mt-3 flex gap-2" data-testid="feed-lentes">
+        {LENTES.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => setLente(item.key)}
+            className={`rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition-colors ${
+              lente === item.key
+                ? "bg-white text-black"
+                : "border border-white/15 text-white/50 hover:text-white/80"
+            }`}
+            data-testid={`feed-lente-${item.key}`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
       <div className="mt-3 space-y-3">
-        {posts.map((post) => (
+        {mostrados.map((post) => (
           <CartaoDePost key={post.id} post={post} />
         ))}
       </div>
+
+      {/*
+        **Estado vazio do "Seguindo", com saída.** Quem não segue ninguém veria uma
+        lista com os próprios posts e nada mais — e não saberia por quê. A porta é a
+        aba Pessoas, que é onde se segue gente (§4.23: nada de tela morta).
+      */}
+      {lente === "seguindo" && mostrados.length === 0 && (
+        <div className="mt-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] p-5">
+          <p className="text-[13px] leading-relaxed text-white/55">
+            {seguindo.length === 0
+              ? "Você ainda não segue ninguém — é por isso que aqui está vazio."
+              : "Quem você segue não publicou nada ainda."}
+          </p>
+          <button
+            onClick={() => setLente("todos")}
+            className="mt-3 text-[12px] font-bold text-primary"
+            data-testid="voltar-feed-todos"
+          >
+            Ver o feed inteiro
+          </button>
+        </div>
+      )}
     </div>
   );
 }

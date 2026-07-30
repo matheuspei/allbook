@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SEGUIDORES_EVENT, aceitarPedido, pedidosPendentes, recusarPedido } from "@/lib/seguidores";
 import { readSettings } from "@/lib/settings";
 import { PLAYBACK_EVENT } from "@/lib/playback";
+import { todosOsPosts } from "@/lib/posts";
 import { RODADAS_EVENT } from "@/lib/rodadas";
 import {
   isSystemRead,
@@ -84,6 +85,8 @@ type Aviso = {
   /** Inicial de quem respondeu, para o avatar. */
   inicial?: string;
   bookId?: number;
+  /** Quando a resposta é num **post** do feed: o toque abre `/post/:id`. */
+  postId?: string;
   lida: boolean;
 };
 
@@ -173,12 +176,27 @@ function avisosDoSistema(): Aviso[] {
 }
 
 /** Converte a notificação guardada no `localStorage` no formato da tela. */
+/** O post é seu? Em `lib/posts.ts`, ausência de `autorSlug` significa "eu". */
+function ehMeuPost(postId: string): boolean {
+  const post = todosOsPosts().find((item) => item.id === postId);
+  return post?.autorSlug === undefined;
+}
+
 function deResposta(item: ReplyNotification): Aviso {
   const membro = findMember(item.fromSlug);
   return {
     id: item.id,
     tipo: "resposta",
-    titulo: `${membro?.name ?? "Um leitor"} respondeu você`,
+    /*
+      **O título diz o que de fato aconteceu**, e isto foi um bug pego na tela em
+      30/07: todo aviso de post dizia *"comentou no seu post"* — inclusive quando o
+      post era de outra pessoa e o que houve foi alguém **respondendo o seu
+      comentário** lá. Aviso que descreve errado é pior que aviso nenhum: a pessoa
+      abre esperando uma coisa e encontra outra.
+    */
+    titulo: item.postId
+      ? `${membro?.name ?? "Um leitor"} ${ehMeuPost(item.postId) ? "comentou no seu post" : "respondeu seu comentário"}`
+      : `${membro?.name ?? "Um leitor"} respondeu você`,
     corpo: `“${item.text}”`,
     data: item.date,
     // A cor do avatar da própria pessoa: é assim que ela aparece nas outras
@@ -186,6 +204,7 @@ function deResposta(item: ReplyNotification): Aviso {
     cor: membro?.color ?? "from-primary to-orange-600",
     inicial: membro?.name.charAt(0) ?? "?",
     bookId: item.bookId,
+    postId: item.postId,
     lida: item.read,
   };
 }
@@ -305,6 +324,13 @@ export default function Notifications() {
       achar a sala. Os avisos do sistema (o livro que ficou pronto, o lançamento
       do autor) falam do **título**, e para esses a ficha é o lugar certo.
     */
+    /* Comentário num post do seu feed leva **ao post**, com a conversa aberta.
+       Sem `/post/:id` o aviso caía no feed e o post podia estar a dez telas de
+       rolagem — o mesmo defeito da 4.51, por outro caminho. */
+    if (aviso.postId) {
+      setLocation(`/post/${aviso.postId}`);
+      return;
+    }
     if (!aviso.bookId) return;
     setLocation(
       aviso.tipo === "resposta" ? `/book/${aviso.bookId}/conversa` : `/book/${aviso.bookId}`,

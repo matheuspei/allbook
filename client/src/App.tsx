@@ -18,6 +18,7 @@ import RecommendationsEdit from "@/pages/RecommendationsEdit";
 import SettingsPage from "@/pages/Settings";
 import Community from "@/pages/Community";
 import Perguntas from "@/pages/Perguntas";
+import PostUnico from "@/pages/PostUnico";
 import Grupo from "@/pages/Grupo";
 import Topico from "@/pages/Topico";
 import Clubes from "@/pages/Clubes";
@@ -122,6 +123,9 @@ function Router() {
             {/* O recorte só de perguntas, alcançado pelo selo de um post ou pela
                 pílula do feed (30/07 — ver o cabeçalho de `Perguntas.tsx`). */}
             <Route path="/perguntas" component={Perguntas} />
+            {/* Um post sozinho, com a conversa aberta — o destino do aviso
+                "comentaram no seu post" (30/07). */}
+            <Route path="/post/:id" component={PostUnico} />
             {/* Os Grupos (Orkut: comunidade → tópico → respostas).
                 A mais específica primeiro, regra deste Switch. */}
             <Route path="/forum/:id/topico/:topicoId" component={Topico} />
