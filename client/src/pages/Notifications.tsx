@@ -18,7 +18,14 @@ import {
 import PageHeader from "@/components/PageHeader";
 import { avisosDeClube } from "@/lib/avisosDeClube";
 import { catalog, getBooksByIds } from "@/lib/books";
-import { CLUBES_EVENT } from "@/lib/clubes";
+import { CLUBES_EVENT, clubePorId, estreiaEmTexto } from "@/lib/clubes";
+import {
+  CONVITES_EVENT,
+  aceitarConvite,
+  convitesParaMim,
+  recusarConvite,
+  type Convite,
+} from "@/lib/convites";
 import { findMember, type CommunityMember } from "@/lib/community";
 import { useToast } from "@/hooks/use-toast";
 import { SEGUIDORES_EVENT, aceitarPedido, pedidosPendentes, recusarPedido } from "@/lib/seguidores";
@@ -72,9 +79,19 @@ type Aviso = {
    * no caso do **pedido**, muda a natureza do cartão — ele não leva a lugar
    * nenhum, ele **pede uma resposta** e traz os dois botões (ROTEIRO 4.55).
    */
-  tipo: "resposta" | "sistema" | "pedido";
-  /** Só em "pedido": quem está pedindo, para aceitar ou recusar daqui. */
+  tipo: "resposta" | "sistema" | "pedido" | "convite";
+  /** Só em "pedido" e "convite": quem está do outro lado. */
   slug?: string;
+  /**
+   * Só em "convite": o clube para onde te chamaram, e o id do convite.
+   *
+   * **Convite é o segundo cartão que pede resposta em vez de levar a algum
+   * lugar** — o primeiro foi o pedido para te seguir (§4.55). A diferença entre
+   * os dois é o que a resposta faz: aceitar um pedido abre a sua vitrine;
+   * aceitar um convite **te põe dentro de uma turma com prazo**.
+   */
+  clubeId?: string;
+  conviteId?: string;
   titulo: string;
   corpo: string;
   /** ISO. É o que ordena e agrupa — por isso os exemplos também têm data real. */
@@ -194,16 +211,23 @@ function deResposta(item: ReplyNotification): Aviso {
       comentário** lá. Aviso que descreve errado é pior que aviso nenhum: a pessoa
       abre esperando uma coisa e encontra outra.
     */
-    titulo: item.postId
-      ? `${membro?.name ?? "Um leitor"} ${ehMeuPost(item.postId) ? "comentou no seu post" : "respondeu seu comentário"}`
-      : `${membro?.name ?? "Um leitor"} respondeu você`,
-    corpo: `“${item.text}”`,
+    titulo: item.clubeId
+      ? /* Resposta a convite: o texto já conta o desfecho ("entrou", "não pôde"),
+           então o título só nomeia o assunto. Dizer "respondeu você" aqui era o
+           mesmo defeito de descrição pego logo acima — visto na tela em 30/07. */
+        `${membro?.name ?? "Um leitor"} respondeu ao seu convite`
+      : item.postId
+        ? `${membro?.name ?? "Um leitor"} ${ehMeuPost(item.postId) ? "comentou no seu post" : "respondeu seu comentário"}`
+        : `${membro?.name ?? "Um leitor"} respondeu você`,
+    /* Convite não vai entre aspas: não é fala de ninguém, é o que aconteceu. */
+    corpo: item.clubeId ? item.text : `“${item.text}”`,
     data: item.date,
     // A cor do avatar da própria pessoa: é assim que ela aparece nas outras
     // telas, e reconhecer a cor é reconhecer quem falou.
     cor: membro?.color ?? "from-primary to-orange-600",
     inicial: membro?.name.charAt(0) ?? "?",
     bookId: item.bookId,
+    clubeId: item.clubeId,
     postId: item.postId,
     lida: item.read,
   };
@@ -235,6 +259,38 @@ function avisosDePedido(pendentes: CommunityMember[]): Aviso[] {
        responde, e é isso que apaga a marca do sino. */
     lida: false,
   }));
+}
+
+/**
+ * Os convites de clube que esperam a sua palavra (§4.58, item 5).
+ *
+ * **Nunca nasce lido**, pelo mesmo motivo do pedido para te seguir: é pendência,
+ * não recado. E some da lista quando você responde — é isso que apaga a marca do
+ * sino sem precisar de "marcar como lida".
+ */
+function avisosDeConvite(convites: Convite[]): Aviso[] {
+  return convites.flatMap((convite) => {
+    const clube = clubePorId(convite.clubeId);
+    const quem = findMember(convite.deSlug);
+    if (!clube) return [];
+    return [
+      {
+        id: convite.id,
+        tipo: "convite" as const,
+        slug: convite.deSlug,
+        clubeId: convite.clubeId,
+        conviteId: convite.id,
+        /* Curto para caber numa linha no celular: "te convidou para um clube"
+           estourava e virava reticências, e o clube já está na linha de baixo. */
+        titulo: `${quem?.name ?? "Alguém"} te convidou`,
+        corpo: `${clube.nome} · ${estreiaEmTexto(clube)}`,
+        data: convite.date,
+        cor: quem?.color ?? "from-primary to-orange-600",
+        inicial: (quem?.name ?? "?").charAt(0),
+        lida: false,
+      },
+    ];
+  });
 }
 
 function horasAtras(horas: number): string {
@@ -290,6 +346,7 @@ export default function Notifications() {
   );
   const [respostas, setRespostas] = useState<ReplyNotification[]>([]);
   const [pedidos, setPedidos] = useState<CommunityMember[]>([]);
+  const [convites, setConvites] = useState<Convite[]>([]);
 
   useEffect(() => {
     setRespostas(readNotifications());
@@ -302,9 +359,25 @@ export default function Notifications() {
     return () => window.removeEventListener(SEGUIDORES_EVENT, atualizar);
   }, []);
 
-  const avisos = [...sistema, ...respostas.map(deResposta), ...avisosDePedido(pedidos)].sort(
-    (a, b) => b.data.localeCompare(a.data),
-  );
+  /* Os convites mudam por três caminhos — você responde, o clube enche, o ciclo
+     começa —, e os dois últimos acontecem sem você tocar em nada. */
+  useEffect(() => {
+    const atualizar = () => setConvites(convitesParaMim());
+    atualizar();
+    window.addEventListener(CONVITES_EVENT, atualizar);
+    window.addEventListener(CLUBES_EVENT, atualizar);
+    return () => {
+      window.removeEventListener(CONVITES_EVENT, atualizar);
+      window.removeEventListener(CLUBES_EVENT, atualizar);
+    };
+  }, []);
+
+  const avisos = [
+    ...sistema,
+    ...respostas.map(deResposta),
+    ...avisosDePedido(pedidos),
+    ...avisosDeConvite(convites),
+  ].sort((a, b) => b.data.localeCompare(a.data));
   const naoLidas = avisos.filter((item) => !item.lida).length;
 
   function abrir(aviso: Aviso) {
@@ -329,6 +402,12 @@ export default function Notifications() {
        rolagem — o mesmo defeito da 4.51, por outro caminho. */
     if (aviso.postId) {
       setLocation(`/post/${aviso.postId}`);
+      return;
+    }
+    /* "Fulano entrou no seu clube" leva **ao clube** — o aviso fala da turma, e
+       é a turma que a pessoa quer ver. */
+    if (aviso.clubeId) {
+      setLocation(`/clube/${aviso.clubeId}`);
       return;
     }
     if (!aviso.bookId) return;
@@ -406,6 +485,8 @@ export default function Notifications() {
                   {daFaixa.map((aviso, i) =>
                     aviso.tipo === "pedido" ? (
                       <CartaoDePedido key={aviso.id} aviso={aviso} />
+                    ) : aviso.tipo === "convite" ? (
+                      <CartaoDeConvite key={aviso.id} aviso={aviso} />
                     ) : (
                       <Cartao key={aviso.id} aviso={aviso} indice={i} onAbrir={abrir} />
                     ),
@@ -473,6 +554,72 @@ function CartaoDePedido({ aviso }: { aviso: Aviso }) {
           className="grid h-9 w-9 place-items-center rounded-full bg-white/[0.07] text-white/60 transition-colors hover:text-white"
           aria-label="Recusar"
           data-testid={`aviso-recusar-${slug}`}
+        >
+          <X className="h-4 w-4" strokeWidth={3} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * O convite para um clube — o **segundo** cartão que pede resposta (§4.58,
+ * item 5).
+ *
+ * Tem a mesma forma do pedido para te seguir, de propósito: as duas coisas são a
+ * mesma pergunta ("aceita?"), e dar formas diferentes a perguntas iguais faz a
+ * pessoa reaprender o que já sabia. **O que muda é o peso do sim** — aceitar te
+ * põe numa turma com prazo —, e por isso o aviso mostra o nome do clube e quando
+ * ele estreia antes de você decidir.
+ *
+ * Tocar no cartão abre o clube: dá para ir ver o livro e o ritmo antes de
+ * responder, e voltar. O convite continua aqui.
+ */
+function CartaoDeConvite({ aviso }: { aviso: Aviso }) {
+  const { toast } = useToast();
+  const id = aviso.conviteId ?? aviso.id;
+
+  return (
+    <div
+      className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-primary/10 to-transparent p-3 ring-1 ring-primary/15"
+      data-testid={`aviso-convite-${id}`}
+    >
+      <Link href={`/clube/${aviso.clubeId}`} className="flex min-w-0 flex-1 items-center gap-3">
+        <span
+          className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br ${aviso.cor} font-display text-base font-bold`}
+        >
+          {aviso.inicial}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold">{aviso.titulo}</span>
+          <span className="mt-0.5 block truncate text-[11.5px] text-white/40">{aviso.corpo}</span>
+          <span className="mt-0.5 block text-[10px] text-white/25">{quandoFoi(aviso.data)}</span>
+        </span>
+      </Link>
+
+      <div className="flex shrink-0 gap-1.5">
+        <button
+          onClick={() => {
+            aceitarConvite(id);
+            toast({
+              title: "Você entrou na turma",
+              description: "O clube aparece em Meus clubes, com o prazo de cada etapa.",
+            });
+          }}
+          className="grid h-9 w-9 place-items-center rounded-full bg-primary text-black transition-transform active:scale-95"
+          aria-label="Aceitar convite"
+          data-testid={`convite-aceitar-${id}`}
+        >
+          <Check className="h-4 w-4" strokeWidth={3} />
+        </button>
+        <button
+          onClick={() => {
+            recusarConvite(id);
+            toast({ title: "Convite recusado", description: "Ninguém é avisado disso." });
+          }}
+          className="grid h-9 w-9 place-items-center rounded-full bg-white/[0.07] text-white/60 transition-colors hover:text-white"
+          aria-label="Recusar convite"
+          data-testid={`convite-recusar-${id}`}
         >
           <X className="h-4 w-4" strokeWidth={3} />
         </button>

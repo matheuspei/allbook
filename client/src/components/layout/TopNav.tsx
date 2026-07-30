@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import BuscaSobreposta from "@/components/BuscaSobreposta";
 import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notifications";
 import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
+import { CONVITES_EVENT, convitesParaMim } from "@/lib/convites";
 import { readSettings } from "@/lib/settings";
 import { initialOf, readProfile } from "@/lib/profile";
 
@@ -13,8 +14,8 @@ export default function TopNav() {
   const [scrolled, setScrolled] = useState(false);
   const [buscando, setBuscando] = useState(false);
   // Quantos avisos ainda não lidos: respostas "responderam você" + avisos de
-  // sistema + **pedidos para te seguir** (ROTEIRO 4.55). É o que acende e conta
-  // a marca do sino. Zero = sino limpo.
+  // sistema + **pedidos para te seguir** (ROTEIRO 4.55) + **convites de clube**
+  // (§4.58, item 5). É o que acende e conta a marca do sino. Zero = sino limpo.
   //
   // O pedido é somado **aqui**, e não dentro de `unreadNotificationCount()`,
   // para não criar import circular: `seguidores.ts` e `notifications.ts` ficam
@@ -32,7 +33,9 @@ export default function TopNav() {
   useEffect(() => {
     const refresh = () =>
       setUnread(
-        unreadNotificationCount() + pedidosPendentes(readSettings().contaPrivada).length,
+        unreadNotificationCount() +
+          pedidosPendentes(readSettings().contaPrivada).length +
+          convitesParaMim().length,
       );
     refresh();
     // O evento cobre a mesma aba (você respondeu → chegou aviso; abriu a tela e
@@ -40,10 +43,12 @@ export default function TopNav() {
     // então ler numa aba apaga a marca na outra.
     window.addEventListener(NOTIFICATIONS_EVENT, refresh);
     window.addEventListener(SEGUIDORES_EVENT, refresh);
+    window.addEventListener(CONVITES_EVENT, refresh);
     window.addEventListener("storage", refresh);
     return () => {
       window.removeEventListener(NOTIFICATIONS_EVENT, refresh);
       window.removeEventListener(SEGUIDORES_EVENT, refresh);
+      window.removeEventListener(CONVITES_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
   }, []);

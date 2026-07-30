@@ -47,6 +47,14 @@ export interface ReplyNotification {
   bookId?: number;
   /** O post comentado, para o toque abrir `/post/:id`. */
   postId?: string;
+  /**
+   * O clube, quando o aviso é de convite (aceito, recusado ou entrada).
+   *
+   * Entrou em 30/07 com os convites (§4.58, item 5). É o terceiro destino
+   * possível — e a validação abaixo aceita os três, porque um aviso sem destino
+   * é um aviso que não leva a lugar nenhum.
+   */
+  clubeId?: string;
   /** O trecho da resposta, mostrado no aviso. */
   text: string;
   /** ISO. */
@@ -65,8 +73,10 @@ export function readNotifications(): ReplyNotification[] {
           typeof item.fromSlug === "string" &&
           typeof item.text === "string" &&
           typeof item.date === "string" &&
-          // Um destino, sempre: a conversa de um livro ou um post.
-          (typeof item.bookId === "number" || typeof item.postId === "string"),
+          // Um destino, sempre: a conversa de um livro, um post ou um clube.
+          (typeof item.bookId === "number" ||
+            typeof item.postId === "string" ||
+            typeof item.clubeId === "string"),
       )
       .sort((a, b) => b.date.localeCompare(a.date));
   } catch {
@@ -124,9 +134,10 @@ export function unreadNotificationCount(): number {
 
 export function addNotification(entry: {
   fromSlug: string;
-  /** Um dos dois: a conversa de um livro, ou um post do feed. */
+  /** Um dos três: a conversa de um livro, um post do feed, ou um clube. */
   bookId?: number;
   postId?: string;
+  clubeId?: string;
   text: string;
 }): ReplyNotification[] {
   const notification: ReplyNotification = {
@@ -134,6 +145,7 @@ export function addNotification(entry: {
     fromSlug: entry.fromSlug,
     ...(entry.bookId !== undefined ? { bookId: entry.bookId } : {}),
     ...(entry.postId !== undefined ? { postId: entry.postId } : {}),
+    ...(entry.clubeId !== undefined ? { clubeId: entry.clubeId } : {}),
     text: entry.text,
     date: new Date().toISOString(),
     read: false,

@@ -502,6 +502,14 @@ interface EstadoLocal {
   estantes: Record<string, { bookId: number; terminadoEm: string }[]>;
   /** Membros que o moderador removeu: clubeId → slugs. */
   removidos: Record<string, string[]>;
+  /**
+   * Quem entrou por **convite seu**: clubeId → slugs.
+   *
+   * Guardado à parte pela mesma razão dos removidos: o esqueleto fica intacto e
+   * só a sua ação é gravada. Quando houver servidor isto vira um POST, e a tela
+   * não muda.
+   */
+  convidados: Record<string, string[]>;
   /** Quantas pessoas cabem: clubeId → limite. Ausente = sem limite. */
   limites: Record<string, number>;
   /** Clubes semeados que você apagou (só acontece nos que você modera). */
@@ -514,6 +522,7 @@ const VAZIO: EstadoLocal = {
   ciclos: {},
   estantes: {},
   removidos: {},
+  convidados: {},
   limites: {},
   apagados: [],
 };
@@ -528,6 +537,7 @@ function readEstado(): EstadoLocal {
       ciclos: guardado.ciclos ?? {},
       estantes: guardado.estantes ?? {},
       removidos: guardado.removidos ?? {},
+      convidados: guardado.convidados ?? {},
       limites: guardado.limites ?? {},
       apagados: Array.isArray(guardado.apagados) ? guardado.apagados : [],
     };
@@ -570,10 +580,17 @@ function comAlteracoes(clube: Clube, estado: EstadoLocal): Clube {
 function moderado(clube: Clube, estado: EstadoLocal): Clube {
   const fora = estado.removidos[clube.id];
   const limite = estado.limites[clube.id];
+  /* Quem entrou por convite seu vale para clube semeado **e** para clube seu —
+     por isso a soma acontece aqui, e não no `comAlteracoes`, que só passa pelos
+     semeados. */
+  const convidados = (estado.convidados[clube.id] ?? []).filter(
+    (slug) => !clube.membros.includes(slug),
+  );
+  const membros = [...clube.membros, ...convidados];
 
   return {
     ...clube,
-    membros: fora ? clube.membros.filter((slug) => !fora.includes(slug)) : clube.membros,
+    membros: fora ? membros.filter((slug) => !fora.includes(slug)) : membros,
     ...(limite !== undefined ? { limite } : {}),
   };
 }
@@ -825,6 +842,27 @@ export function sairDoClube(id: string): void {
  * apagando o clube — e essa é outra ação, com outra confirmação. Sem esta trava,
  * um clube ficaria sem dono e sem quem o modere.
  */
+/**
+ * Põe alguém na turma — **é o que acontece quando um convite é aceito**.
+ *
+ * Respeita o limite pela mesma razão que `entrarNoClube`: se a tela deixasse o
+ * botão aceso num clube lotado, o limite viraria enfeite. E desfaz uma remoção
+ * anterior, porque readmitir por convite é uma decisão nova do moderador.
+ */
+export function adicionarMembro(clubeId: string, slug: string): void {
+  const clube = clubePorId(clubeId);
+  if (!clube || clubeCheio(clube) || clube.membros.includes(slug)) return;
+
+  const estado = readEstado();
+  const atuais = estado.convidados[clubeId] ?? [];
+  const fora = (estado.removidos[clubeId] ?? []).filter((item) => item !== slug);
+  salvar({
+    ...estado,
+    convidados: { ...estado.convidados, [clubeId]: [...atuais, slug] },
+    removidos: { ...estado.removidos, [clubeId]: fora },
+  });
+}
+
 export function removerMembro(clubeId: string, slug: string): void {
   if (slug === EU) return;
   const clube = clubePorId(clubeId);

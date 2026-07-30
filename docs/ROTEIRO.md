@@ -4998,7 +4998,8 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
 4. ✅ **FEITO 30/07 — O Seguindo**: atividade em linha + "ouvindo agora" (só de
    quem você segue) + "combina com você" como cartão ocasional. Junto morreu a
    aba Pessoas, e a Comunidade ficou com duas abas. Detalhe na **§4.65**.
-5. **Convite para clube** pela página da pessoa, com aceitar no sino.
+5. ✅ **FEITO 30/07 — Convite para clube** pela página da pessoa, com aceitar no
+   sino. Detalhe na **§4.68**.
 6. 🔸 **QUASE — O perfil girando em torno dos posts** (§4.56). **Feito em 30/07:**
    os posts em cartão na sua página e na dos outros, e publicar direto do perfil.
    **Falta:** recomendações/comentários/clubes virarem ícones no topo — depende de
@@ -5730,6 +5731,59 @@ servidor; se isso bloqueasse, bloquearia tudo. O que a falta de servidor muda é
 só **de onde vem o número** — e isso é uma troca de fonte, não uma mudança de
 tela. Quando aparecer a vontade de escrever "isto fica para quando houver
 servidor", o certo é construir e deixar a fonte de dados isolada.
+
+---
+
+## 4.68 Convite para clube, com aceitar no sino (30/07, noite) — item 5
+
+Última peça da ordem central da §4.58. Nasceu de uma das cinco capturas de
+29/07 ("convidar alguém pela página dela"), aprovada pelos dois na hora; as
+regras já estavam fechadas e foram construídas como estavam.
+
+### As três regras, e o que cada uma evita
+
+- **Qualquer membro convida** — não só o dono. Um clube cresce por quem já está
+  dentro; exigir o moderador a cada convite faz dele porteiro, e o clube para de
+  crescer quando ele dorme. **Remover continua sendo do dono:** convidar é abrir
+  a porta, remover é moderação.
+- **Clube lotado não pode ser convidado.** A vaga prometida não existe.
+- **Ciclo começado também não.** Entrar no meio do livro é chegar numa conversa
+  que já tem spoiler. Quem quiser entrar atrasado entra pela página do clube,
+  sabendo disso — o que não pode é o app **convidar** para isso.
+
+**O "não" aparece escrito, o clube não some da lista.** Esconder o clube que a
+pessoa tinha em mente faz ela achar que o app perdeu alguma coisa; mostrar cinza
+com *"o ciclo já começou"* ao lado responde antes da pergunta.
+
+### Os dois lados existem — e um deles é simulado, de propósito
+
+- **Você convida:** o convidado responde sozinho ~3 s depois, entra na turma e o
+  sino acende. Mesmo recurso do comentário que recebe resposta (§4.62), e pelo
+  mesmo motivo: sem ele, convidar cai no vazio e ninguém vê o ciclo se fechar.
+- **Você recebe:** um convite semeado espera no sino, para o lado de aceitar não
+  nascer morto.
+- **Aceita quase sempre, mas não sempre** (1 em 4 recusa, por sorteio **estável**
+  pelo id). Um app onde todo convite é aceito ensina errado — convidar passaria a
+  parecer gratuito. E recusar não expõe motivo: recusar convite não deve cobrar
+  explicação de ninguém.
+
+### Detalhes que a tela cobrou
+
+- **O convite é o segundo cartão que pede resposta** em vez de levar a algum
+  lugar — o primeiro foi o pedido para te seguir (§4.55). Ficou com **a mesma
+  forma**: perguntas iguais com desenhos diferentes fazem a pessoa reaprender o
+  que já sabia. O que muda é o peso do sim, e por isso o cartão mostra o clube e
+  quando ele estreia antes de você decidir.
+- **Aceitar entra no clube dentro da lib**, não na tela: dois passos para uma
+  decisão só é como se cria a tela que esquece o segundo e deixa a pessoa fora do
+  clube achando que entrou.
+- **Título errado, pego na tela:** o aviso de convite aceito dizia *"Marcos V.
+  respondeu você"*, porque reusava o texto das respostas de comentário. É o mesmo
+  defeito de descrição da §4.62 — aviso que descreve errado é pior que aviso
+  nenhum.
+- **`adicionarMembro` guarda quem entrou por convite à parte** (`convidados`), do
+  mesmo jeito que os removidos: o esqueleto fica intacto e só a sua ação é
+  gravada. Com servidor, vira um POST e a tela não muda.
 
 ---
 

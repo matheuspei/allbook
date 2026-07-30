@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
-import { Check, Plus } from "lucide-react";
+import { Check, Plus, UserPlus } from "lucide-react";
 
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import PageHeader from "@/components/PageHeader";
@@ -8,6 +8,8 @@ import SeloDeMedalha from "@/components/SeloDeMedalha";
 import { ItemDoFeed } from "@/components/MuralDaComunidade";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
 import { postsDe } from "@/lib/posts";
+import { estreiaEmTexto, meusClubes, vagasRestantes, type Clube } from "@/lib/clubes";
+import { convidar, podeConvidarPara, simularResposta } from "@/lib/convites";
 import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
 import { findMember, recommendationsOf } from "@/lib/community";
@@ -32,6 +34,7 @@ export default function UserProfile() {
   const { toast } = useToast();
   const member = findMember(params.slug ?? "");
   const [following, setFollowing] = useState(false);
+  const [convidando, setConvidando] = useState(false);
 
   useEffect(() => {
     setFollowing(isFollowing(params.slug ?? ""));
@@ -64,6 +67,7 @@ export default function UserProfile() {
 
   const books = recommendationsOf(member);
   const postsDela = postsDe(member.slug);
+  const meus = meusClubes();
   // A atividade na língua do mural: avaliações e comentários, com a trava.
   // Recomendações ficam de fora — têm a vitrine própria nesta página.
   const atividade = muralDe(member.slug, ["avaliou", "comentou"]);
@@ -156,10 +160,10 @@ export default function UserProfile() {
         O botão que faltava. Seguir nasce aqui — depois de você ler o que a
         pessoa escreveu e ver o que ela indica — e não numa lista de nomes.
       */}
-      <div className="px-5">
+      <div className="px-5 mt-5 flex gap-2.5">
         <button
           onClick={() => onToggleFollow(primeiroNome)}
-          className={`mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+          className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
             following
               ? "border border-white/15 text-white/70 hover:bg-white/5"
               : "bg-primary text-black hover:bg-primary/90"
@@ -178,7 +182,37 @@ export default function UserProfile() {
             </>
           )}
         </button>
+
+        {/*
+          **Convidar para um clube, pela página da pessoa** — item 5 da ordem da
+          §4.58, aprovado pelos dois em 29/07. É aqui que o convite faz sentido:
+          você acabou de ler o que ela escreveu e ver o que ela ouve, e é disso
+          que sai a vontade de chamá-la para uma turma.
+
+          **Só aparece se você estiver em algum clube** — sem clube não há para
+          onde convidar, e o botão seria a porta para uma sala vazia (§4.23). É a
+          mesma regra do botão de clube no compositor (§4.60).
+        */}
+        {meus.length > 0 && (
+          <button
+            onClick={() => setConvidando(true)}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/15 py-2.5 text-sm font-semibold text-white/70 transition-colors hover:bg-white/5"
+            data-testid="button-convidar"
+          >
+            <UserPlus className="h-4 w-4" />
+            Convidar
+          </button>
+        )}
       </div>
+
+      {convidando && (
+        <FolhaDeConvite
+          slug={member.slug}
+          nome={primeiroNome}
+          clubes={meus}
+          onFechar={() => setConvidando(false)}
+        />
+      )}
 
       {/* O mesmo bloco vivo da sua página — o dado já existia (`ouvindoAgora`)
           e o perfil não o mostrava (28/07). */}
@@ -293,6 +327,112 @@ export default function UserProfile() {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+/**
+ * A folha de convite: **os seus clubes, e o porquê de cada não**.
+ *
+ * As três regras da §4.58 (já está na turma · clube lotado · o ciclo começou)
+ * poderiam simplesmente esconder o clube da lista. **Não escondem, e isso é
+ * decisão:** quem procura o clube que tem em mente e não o encontra acha que o
+ * app perdeu alguma coisa. Mostrar cinza, com o motivo escrito ao lado, responde
+ * a pergunta antes de ela ser feita — é a régua da §4.23 aplicada a um "não".
+ */
+function FolhaDeConvite({
+  slug,
+  nome,
+  clubes,
+  onFechar,
+}: {
+  slug: string;
+  nome: string;
+  clubes: Clube[];
+  onFechar: () => void;
+}) {
+  const { toast } = useToast();
+  const [enviados, setEnviados] = useState<string[]>([]);
+
+  function enviar(clube: Clube) {
+    if (!convidar(clube.id, slug)) return;
+    setEnviados((atual) => [...atual, clube.id]);
+    /* A resposta vem em 3 s (ver `convites.ts`): sem ela, convidar cairia no
+       vazio e ninguém veria como o ciclo se fecha. */
+    simularResposta(clube.id, slug);
+    toast({
+      title: `Convite enviado a ${nome}`,
+      description: `Se aceitar, entra em "${clube.nome}" e você é avisado no sino.`,
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[160] flex items-end bg-black/55 backdrop-blur-xs animate-in fade-in duration-200"
+      onClick={onFechar}
+      data-testid="folha-de-convite"
+    >
+      <div
+        className="max-h-[75vh] w-full overflow-y-auto rounded-t-[28px] border-t border-white/10 bg-[#1a1a1a] p-5 pb-9 animate-in slide-in-from-bottom duration-300"
+        onClick={(evento) => evento.stopPropagation()}
+      >
+        <div className="mx-auto -mt-1 mb-4 h-1.5 w-12 rounded-full bg-white/15" />
+        <h2 className="font-display text-lg font-bold">Convidar {nome}</h2>
+        <p className="mt-0.5 text-xs text-white/40">
+          Qualquer membro pode convidar — quem remove é o moderador.
+        </p>
+
+        <div className="mt-4 space-y-2">
+          {clubes.map((clube) => {
+            const jaEnviei = enviados.includes(clube.id);
+            const { pode, motivo } = podeConvidarPara(clube.id, slug);
+            const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+            const vagas = vagasRestantes(clube);
+
+            return (
+              <div
+                key={clube.id}
+                className={`flex items-center gap-3 rounded-xl border border-white/[0.07] p-3 ${
+                  pode || jaEnviei ? "bg-white/[0.03]" : "bg-transparent opacity-45"
+                }`}
+                data-testid={`convite-clube-${clube.id}`}
+              >
+                {livro && (
+                  <img
+                    src={livro.cover}
+                    alt=""
+                    className="h-[52px] w-[38px] shrink-0 rounded object-cover"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] font-semibold">{clube.nome}</p>
+                  <p className="mt-0.5 truncate text-[11px] text-white/40">
+                    {estreiaEmTexto(clube)}
+                    {vagas !== undefined && ` · ${vagas} ${vagas === 1 ? "vaga" : "vagas"}`}
+                  </p>
+                </div>
+
+                {jaEnviei ? (
+                  <span className="flex shrink-0 items-center gap-1 text-[11.5px] font-bold text-primary">
+                    <Check className="h-3.5 w-3.5" />
+                    enviado
+                  </span>
+                ) : pode ? (
+                  <button
+                    onClick={() => enviar(clube)}
+                    className="shrink-0 rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-black"
+                    data-testid={`enviar-convite-${clube.id}`}
+                  >
+                    Convidar
+                  </button>
+                ) : (
+                  <span className="shrink-0 text-[11px] text-white/35">{motivo}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
