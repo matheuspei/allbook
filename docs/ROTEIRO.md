@@ -5153,24 +5153,6 @@ O fluxo de como o trabalho pensado na nuvem chega ao computador está definido:
 construção via Claude Code, no Cursor. Detalhes no documento "AllBook — Fluxo de
 Trabalho", no Cowork.
 
-### Qual modelo usar neste projeto (perguntado em 29/07)
-
-O Matheus perguntou qual modelo da Anthropic seria melhor, pensando só em
-qualidade. A recomendação, e o motivo é **específico daqui**:
-
-- **Opus, com contexto grande e esforço alto**, para desenho e decisão. O
-  trabalho difícil no AllBook não é escrever React — é **não contradizer o que já
-  foi decidido**: este roteiro passa de 5.000 linhas e as seções se referem umas
-  às outras ("a §4.53 decidiu X, então a §4.57 não pode Y"). Isso pede contexto
-  grande e raciocínio longo.
-- **Sonnet**, para trabalho mecânico e em volume: aplicar um padrão em vinte
-  arquivos, renomear, migrar.
-- **Sobre o Fable: não há recomendação** — quem respondeu não conhecia o perfil
-  dele o bastante para opinar sem chutar. Fica registrado como não avaliado.
-
-**E o que pesa mais que o modelo:** construir em pedaços pequenos e verificáveis,
-testar cada um no navegador antes de seguir, e registrar a decisão na hora. Foi
-isso que fez o dia 29/07 render seis seções deste roteiro.
 
 ---
 
