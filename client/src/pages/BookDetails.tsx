@@ -23,6 +23,7 @@ import { publisherOfBook } from "@/lib/publishers";
 import { STUDIO_NAME, narratorKind } from "@/lib/studio";
 import PublisherMark from "@/components/PublisherMark";
 import SalaDoLivro from "@/components/SalaDoLivro";
+import PresencaNoLivro from "@/components/PresencaNoLivro";
 import AvaliacoesDoLivro from "@/components/AvaliacoesDoLivro";
 import FaixaDoClubeNoLivro from "@/components/clube/FaixaDoClubeNoLivro";
 import AvaliarLivro from "@/components/AvaliarLivro";
@@ -782,6 +783,14 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           {/* Se algum clube está lendo este livro agora, o convite aparece
               aqui — a pessoa já está olhando o título (ROTEIRO 4.39). */}
           <FaixaDoClubeNoLivro bookId={Number(params.id)} />
+
+          {/* **Quem está neste livro, por capítulo** (§4.58, item 8). Fica junto
+              da conversa de propósito: as duas respondem à mesma pergunta —
+              *quem mais está aqui dentro?* —, uma pela fala e outra pela
+              posição. Some sozinha quando não há ninguém. */}
+          <div className="-mx-5">
+            <PresencaNoLivro bookId={Number(params.id)} />
+          </div>
 
           <SalaDoLivro
             bookId={Number(params.id)}

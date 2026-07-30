@@ -5007,9 +5007,9 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
 
 **Fora do caminho crítico, e independentes** (dá para fazer a qualquer momento):
 ~~renomear o clube~~ · ~~votação de 2 a 5 opções~~ · ~~lista de espera com teto de
-250~~ · ~~"quem perdeu a votação funda um clube"~~ · trechos quentes · presença por
-capítulo (com opt-in recíproco). **Os quatro riscados foram feitos em 30/07 —
-§4.69.**
+250~~ · ~~"quem perdeu a votação funda um clube"~~ · trechos quentes · ~~presença
+por capítulo (com opt-in recíproco)~~. **Feitos em 30/07 — §4.69 (clube) e §4.70
+(presença).**
 
 ---
 
@@ -5874,8 +5874,44 @@ entra (`chamarOProximoDaFila`, chamada de dentro de `sairDoClube` e
   Matheus quando propus a "turma 2" automática, e a razão de ela continuar
   rejeitada.
 
-**Ainda falta desta lista:** trechos quentes da semana e presença por capítulo
-(com opt-in recíproco).
+**Ainda falta desta lista:** trechos quentes da semana.
+
+---
+
+## 4.70 Presença por capítulo (30/07, noite)
+
+O item 8 da §4.58 — a peça que **eu era contra e perdi o argumento**, e que por
+isso vale registrar com cuidado.
+
+### O que ficou construído
+
+Na ficha do livro, "quem está neste livro": as pessoas com quem você tem
+**seguimento mútuo** que estão ouvindo aquele título, cada uma com **o capítulo**
+e uma barra de progresso. Some sozinha quando não há ninguém.
+
+### As quatro travas, e o que cada uma protege
+
+1. **Opcional**, e **nasce desligada** — o único interruptor do app assim.
+2. **Recíproca:** com o interruptor desligado a função devolve lista vazia. A
+   regra mora na lib (`presenca.ts`), não na tela: regra de privacidade
+   espalhada por telas é regra que a próxima tela esquece.
+3. **Só entre quem se segue nos dois sentidos.** Mostrar onde você está para
+   alguém que você não escolheu ver seria dar sem receber.
+4. **Grossa: capítulo, nunca segundo.** Foi a condição que eu defendi e que
+   ficou. Entrega quase todo o valor — *tem gente perto de mim neste livro* — e
+   tira o que é de fato sensível: presença ao vivo revela **rotina** (a que horas
+   você acorda, se dormiu fora, quando sumiu por três dias).
+
+### O convite honesto, que é o que faz a peça existir
+
+Com o interruptor desligado, a ficha mostra *"1 pessoa que você segue e que te
+segue de volta está ouvindo este livro"* e o botão de ligar. **Sem isso o
+interruptor pediria um sim no escuro** — ninguém liga um recurso de privacidade
+sem saber o que ganha. A contagem não vaza nome nem capítulo.
+
+**Anotado, e continua valendo:** a reciprocidade **pressiona** — quem não liga
+fica cego. É bom mecanismo e não é neutro, e é exatamente por isso que o padrão
+é desligado.
 
 ---
 

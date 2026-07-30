@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Headphones, Lock, MessageSquare, UsersRound } from "lucide-react";
+import { Headphones, Lock, MessageSquare, Radio, UsersRound } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { Switch } from "@/components/ui/switch";
@@ -90,6 +90,21 @@ export default function Privacidade() {
             ligado={ajustes.mostrarMeusComentarios}
             onMudar={(ligado) => alternar("mostrarMeusComentarios", ligado)}
             testid="switch-meus-comentarios"
+          />
+          {/*
+            **A única que nasce desligada** (§4.58, item 8). O apoio explica a
+            reciprocidade em uma frase, porque é ela que decide o sim: ligar não
+            é só "mostrar", é **passar a ver** — e não ligar é ficar cego para
+            quem também mostra. Dizer isso no interruptor evita a descoberta
+            depois, que é quando a pessoa se sente enganada.
+          */}
+          <Linha
+            icone={Radio}
+            titulo="Em que capítulo eu estou"
+            apoio="Só para quem você segue e te segue de volta — e é troca: quem não mostra, não vê. Nunca aparece a hora, só o capítulo."
+            ligado={ajustes.mostrarMeuCapitulo}
+            onMudar={(ligado) => alternar("mostrarMeuCapitulo", ligado)}
+            testid="switch-meu-capitulo"
           />
           <Linha
             icone={UsersRound}

@@ -60,6 +60,23 @@ export interface Settings {
    * deliberadamente público — esconder seria desfazer o gesto.
    */
   mostrarMeusComentarios: boolean;
+  /**
+   * **Presença por capítulo** — mostrar em que ponto de um livro você está para
+   * quem você segue e que te segue de volta (§4.58, item 8).
+   *
+   * **Nasce desligada, e isso foi condição.** Eu era contra a peça e perdi o
+   * argumento — o mecanismo que o Matheus propôs resolve a privacidade: é
+   * **recíproco** (quem não mostra, não vê) e só vale entre quem se segue
+   * mutuamente. Mas reciprocidade **pressiona**: quem não liga fica cego. É bom
+   * mecanismo e não é neutro, e por isso a escolha de ligar tem de ser um ato,
+   * nunca o padrão.
+   *
+   * **Granularidade grossa, e essa foi a minha condição aceita:** mostra *"está
+   * no capítulo 12"*, nunca *"ouvindo agora, neste segundo"*. Entrega quase todo
+   * o valor ("tem gente perto de mim neste livro") e tira o que é de fato
+   * sensível — presença ao vivo revela **rotina**.
+   */
+  mostrarMeuCapitulo: boolean;
 }
 
 /** Os mesmos degraus oferecidos dentro do player, para não haver duas escalas. */
@@ -71,6 +88,8 @@ export const defaultSettings: Settings = {
   mostrarMeusClubes: true,
   contaPrivada: false,
   mostrarMeusComentarios: true,
+  /* A única que nasce desligada. Ver o comentário do campo. */
+  mostrarMeuCapitulo: false,
 };
 
 export function readSettings(): Settings {
@@ -86,6 +105,10 @@ export function readSettings(): Settings {
         typeof stored.mostrarOuvindoAgora === "boolean"
           ? stored.mostrarOuvindoAgora
           : defaultSettings.mostrarOuvindoAgora,
+      mostrarMeuCapitulo:
+        typeof stored.mostrarMeuCapitulo === "boolean"
+          ? stored.mostrarMeuCapitulo
+          : defaultSettings.mostrarMeuCapitulo,
       mostrarMeusClubes:
         typeof stored.mostrarMeusClubes === "boolean"
           ? stored.mostrarMeusClubes
