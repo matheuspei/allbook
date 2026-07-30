@@ -3,24 +3,28 @@ import { Heart, MessageCircle, MoreHorizontal, Pencil, Repeat2, Trash2, Flag } f
 
 import { useToast } from "@/hooks/use-toast";
 import { COMENTARIOS_EVENT, totalDeComentarios } from "@/lib/comentariosDePost";
-import { alternarCompartilhamento, euCompartilhei } from "@/lib/compartilhados";
 import { curtidasDoPost, euCurti, alternarCurtida } from "@/lib/curtidas";
-import { apagarMeuPost, type Post } from "@/lib/posts";
+import {
+  POSTS_EVENT,
+  apagarMeuPost,
+  euCompartilhei,
+  totalDeCompartilhamentos,
+  type Post,
+} from "@/lib/posts";
 
 /**
  * A barra de ações do post — **curtir** e o menu de "…".
  *
- * **O que está aqui e o que não está, e por quê.** A §4.58 decidiu quatro ações:
- * curtir, comentar, compartilhar e o menu — e desde 30/07 **as quatro
- * funcionam**. Curtir e comentar são botões na barra; **compartilhar mora dentro
- * do "…"**, que foi como a §4.58 o listou (*editar · apagar · compartilhar ·
- * denunciar*).
+ * **As três ações da §4.58 são três botões: curtir, comentar, compartilhar.** O
+ * menu de "…" guarda o que é raro e destrutivo — editar e apagar no que é seu,
+ * denunciar no dos outros.
  *
- * **Considerado e não feito: compartilhar como terceiro botão da barra**, no
- * estilo do "retweet". Ele seria mais visível e alternaria com um toque, mas o
- * gesto é raro perto de curtir e comentar — e três ícones, dos quais um quase
- * nunca é usado, encolhem os dois que são. Fica registrado porque é uma troca
- * defensável nos dois sentidos.
+ * **Compartilhar nasceu dentro do "…" e saiu de lá no mesmo dia**, depois da
+ * crítica do Matheus: a Comunidade virou uma rede social, e nela compartilhar é
+ * gesto de primeira classe — escondê-lo atrás de um menu é tratá-lo como
+ * "denunciar". Ele fica **aceso** quando você já compartilhou, e o número ao lado
+ * é **contagem real** (os do esqueleto e o seu), não simulada como a das
+ * curtidas: onde existe número verdadeiro, inventar é mentira gratuita.
  *
  * **O contador de curtidas é simulado e estável** (semente pelo id do post), como
  * o progresso dos membros do clube: sem servidor não existe curtida de ninguém
@@ -32,6 +36,8 @@ export default function AcoesDoPost({
   onEditar,
   comentariosAbertos,
   onComentar,
+  compartilhandoAberto,
+  onCompartilhar,
 }: {
   post: Post;
   onApagado?: () => void;
@@ -40,10 +46,16 @@ export default function AcoesDoPost({
   comentariosAbertos?: boolean;
   /** Abre/fecha a conversa. Quem desenha a conversa é o cartão. */
   onComentar?: () => void;
+  compartilhandoAberto?: boolean;
+  /** Abre/fecha a caixa de compartilhar. Quem a desenha é o cartão. */
+  onCompartilhar?: () => void;
 }) {
   const { toast } = useToast();
   const [curtido, setCurtido] = useState(() => euCurti(post.id));
   const [compartilhado, setCompartilhado] = useState(() => euCompartilhei(post.id));
+  const [compartilhamentos, setCompartilhamentos] = useState(() =>
+    totalDeCompartilhamentos(post.id),
+  );
   const [menuAberto, setMenuAberto] = useState(false);
   const [comentarios, setComentarios] = useState(() => totalDeComentarios(post.id));
   const menuRef = useRef<HTMLDivElement>(null);
@@ -55,6 +67,17 @@ export default function AcoesDoPost({
     const atualizar = () => setComentarios(totalDeComentarios(post.id));
     window.addEventListener(COMENTARIOS_EVENT, atualizar);
     return () => window.removeEventListener(COMENTARIOS_EVENT, atualizar);
+  }, [post.id]);
+
+  /* O mesmo para o compartilhar: ele cria (ou apaga) um post seu, e o botão
+     precisa acender e o número mudar sem recarregar a tela. */
+  useEffect(() => {
+    const atualizar = () => {
+      setCompartilhado(euCompartilhei(post.id));
+      setCompartilhamentos(totalDeCompartilhamentos(post.id));
+    };
+    window.addEventListener(POSTS_EVENT, atualizar);
+    return () => window.removeEventListener(POSTS_EVENT, atualizar);
   }, [post.id]);
 
   /* Fecha o menu ao tocar fora — sem isto ele fica aberto enquanto a pessoa
@@ -105,6 +128,28 @@ export default function AcoesDoPost({
         {comentarios > 0 && comentarios}
       </button>
 
+      {/*
+        **Compartilhar não aparece no seu próprio post.** Ele já está no seu
+        perfil e no feed — não há o que espalhar, e um botão que só pode recusar
+        é o botão morto que a §4.23 manda varrer.
+      */}
+      {!ehMeu && (
+        <button
+          onClick={onCompartilhar}
+          className={`flex items-center gap-1.5 rounded-full px-3 py-3 text-[12px] font-semibold transition-colors ${
+            compartilhado || compartilhandoAberto
+              ? "text-primary"
+              : "text-white/45 hover:text-white/80"
+          }`}
+          aria-pressed={compartilhado}
+          aria-expanded={compartilhandoAberto}
+          data-testid={`compartilhar-${post.id}`}
+        >
+          <Repeat2 className="h-4 w-4" />
+          {compartilhamentos > 0 && compartilhamentos}
+        </button>
+      )}
+
       <div className="relative ml-auto" ref={menuRef}>
         <button
           onClick={() => setMenuAberto((valor) => !valor)}
@@ -150,47 +195,23 @@ export default function AcoesDoPost({
                 </button>
               </>
             ) : (
-              <>
-                {/*
-                  **Compartilhar = republicar no seu perfil** (§4.58). Não existe
-                  em post seu: ele já está no seu perfil e no feed, e não há o que
-                  espalhar — por isso a opção mora só neste ramo.
-                */}
-                <button
-                  onClick={() => {
-                    const agora = alternarCompartilhamento(post.id);
-                    setCompartilhado(agora);
-                    setMenuAberto(false);
-                    toast({
-                      title: agora ? "Compartilhado" : "Compartilhamento desfeito",
-                      description: agora
-                        ? "O post aparece no seu perfil e no feed, com o seu nome em cima."
-                        : undefined,
-                    });
-                  }}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-[13px] transition-colors hover:bg-white/5"
-                  data-testid={`compartilhar-${post.id}`}
-                >
-                  <Repeat2
-                    className={`h-4 w-4 ${compartilhado ? "text-primary" : "text-white/50"}`}
-                  />
-                  {compartilhado ? "Desfazer compartilhamento" : "Compartilhar"}
-                </button>
-                <button
-                  onClick={() => {
-                    setMenuAberto(false);
-                    toast({
-                      title: "Denúncia enviada",
-                      description: "Ninguém é avisado de que foi você.",
-                    });
-                  }}
-                  className="flex w-full items-center gap-3 border-t border-white/[0.06] px-4 py-3 text-left text-[13px] transition-colors hover:bg-white/5"
-                  data-testid={`denunciar-${post.id}`}
-                >
-                  <Flag className="h-4 w-4 text-white/50" />
-                  Denunciar
-                </button>
-              </>
+              /* Compartilhar saiu daqui e virou botão da barra: **um caminho, não
+                 dois** — a mesma régua que fez o `@` substituir os botões de
+                 anexo no compositor (§4.61). */
+              <button
+                onClick={() => {
+                  setMenuAberto(false);
+                  toast({
+                    title: "Denúncia enviada",
+                    description: "Ninguém é avisado de que foi você.",
+                  });
+                }}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left text-[13px] transition-colors hover:bg-white/5"
+                data-testid={`denunciar-${post.id}`}
+              >
+                <Flag className="h-4 w-4 text-white/50" />
+                Denunciar
+              </button>
             )}
           </div>
         )}

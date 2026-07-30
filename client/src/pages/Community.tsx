@@ -1,49 +1,44 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Check, ChevronRight, HelpCircle, Plus } from "lucide-react";
+import { ChevronRight, HelpCircle, Plus } from "lucide-react";
 
 import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
 import ConversasDeAgora from "@/components/ConversasDeAgora";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
+import CartaoDeSugestoes from "@/components/comunidade/CartaoDeSugestoes";
+import LinhaDeAtividade from "@/components/comunidade/LinhaDeAtividade";
 import { ConviteDeClube, ConviteDeForum } from "@/components/comunidade/CartaoDeConvite";
 import Compositor from "@/components/comunidade/Compositor";
 import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
-import { COMPARTILHADOS_EVENT } from "@/lib/compartilhados";
 import { montarFeed, type ItemDoFeed, type Lente } from "@/lib/feedDaComunidade";
 import { MURAL_EVENT } from "@/lib/mural";
 import { useToast } from "@/hooks/use-toast";
-import {
-  ouvindoAgoraNaComunidade,
-  suggestions,
-  type AudicaoDeAgora,
-  type Suggestion,
-} from "@/lib/activity";
-import { community, findMember } from "@/lib/community";
-import { isFollowing, readFollowing, toggleFollow } from "@/lib/following";
-import { readLibrary } from "@/lib/library";
+import { ouvindoAgoraNaComunidade, type AudicaoDeAgora } from "@/lib/activity";
+import { readFollowing } from "@/lib/following";
 import { GRUPOS_EVENT, criarGrupo, resumoDosGrupos } from "@/lib/grupos";
-import { catalog } from "@/lib/books";
 
 /**
- * Comunidade (`/community`) — reorganizada em três abas internas (28/07).
+ * Comunidade (`/community`) — **duas abas** desde 30/07.
  *
- * A junção das quatro propostas empilhava nove blocos numa rolagem só, e o
- * Matheus apontou: *"muita coisa, muita coisa solta — organizar melhor"*. A
- * resposta é a divisão por assunto, nas pílulas que a Biblioteca já usa:
+ * - **Feed** — o que as pessoas escreveram, nas duas lentes (Todos · Seguindo),
+ *   com os cartões de clube e de fórum intercalados.
+ * - **Fóruns** — o assunto: as conversas da semana, os fóruns (Orkut: fórum →
+ *   tópico → respostas, com CRIAR) e os clubes.
  *
- * - **Mural** — o vivo: quem está ouvindo (fita de capas) e o Mural.
- * - **Fóruns** — o assunto: as conversas da semana (fusão do "top da
- *   semana" com as portas — apontavam para as mesmas salas), os fóruns
- *   (Orkut: fórum → tópico → respostas, com CRIAR) e os clubes.
- * - **Pessoas** — combina com você, a lista de todo mundo, seguindo.
- *   (O pódio nasceu e morreu no mesmo dia — "não está legal", disse ele.)
+ * **A aba "Pessoas" morreu em 30/07**, e não por espaço: é a decisão 7 da
+ * §4.58. Ela tinha três blocos e cada um teve um destino —
  *
- * Cada aba tem 2–3 blocos. Nenhuma função morreu na reorganização; a fileira
- * "Seguindo" encolheu para uma linha porque era a mais redundante (quem você
- * segue já aparece no mural e nas páginas).
+ * - **"Combina com você"** virou **cartão ocasional dentro do Seguindo**, para
+ *   não ser parede de perfis (é o que falhou onze vezes, §4.53);
+ * - **"Ouvindo agora"** mudou de lugar, também para o Seguindo: é **atividade**,
+ *   e a regra que separa as lentes diz que atividade só existe ali;
+ * - **"Todo mundo"** e a **fileira "Seguindo"** morreram. Gente se descobre pelo
+ *   que ela escreve — cada post traz o botão de seguir —, e não numa lista
+ *   telefônica. *(Se fizer falta, o lugar de uma lista de pessoas é a Busca, não
+ *   uma aba da Comunidade.)*
  */
 
-type Aba = "agora" | "grupos" | "pessoas";
+type Aba = "agora" | "grupos";
 
 const LENTES: { key: Lente; label: string }[] = [
   { key: "todos", label: "Todos" },
@@ -51,12 +46,10 @@ const LENTES: { key: Lente; label: string }[] = [
 ];
 
 const ABAS: { key: Aba; label: string }[] = [
-  // "Mural" nomeia o coração; "Fóruns" diz o que a aba é sem confundir com o
-  // clube de leitura — a troca de 28/07 (ROTEIRO 4.44).
-  // hoje (28/07 — "Conversas" e "Rodas de conversa" caíram por pedido).
+  // "Fóruns" diz o que a aba é sem confundir com o clube de leitura — a troca
+  // de 28/07 (ROTEIRO 4.44).
   { key: "agora", label: "Feed" },
   { key: "grupos", label: "Fóruns" },
-  { key: "pessoas", label: "Pessoas" },
 ];
 
 export default function Community() {
@@ -98,67 +91,71 @@ export default function Community() {
         </div>
       </header>
 
-      {aba === "agora" && <AbaAgora />}
+      {aba === "agora" && <FeedDePosts />}
       {aba === "grupos" && <AbaGrupos />}
-      {aba === "pessoas" && <AbaPessoas />}
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ *
- * Agora — o vivo: a fita de quem ouve, e o Mural
- * ------------------------------------------------------------------ */
-
-function AbaAgora() {
+/**
+ * A fita de quem está no meio de um livro **agora** — só de quem você segue.
+ *
+ * **Mudou de lugar em 30/07** (§4.58, decisão 7): morava no alto da Comunidade,
+ * com a comunidade inteira, e passou a viver dentro da lente Seguindo. O motivo é
+ * a regra que separa as duas lentes — isto é **atividade**, e atividade responde
+ * à pergunta *o que andaram fazendo as pessoas que eu escolhi*.
+ *
+ * **O que se perde, e fica anotado:** era a primeira coisa que se via na
+ * Comunidade, e é a única vitrine que só um app de audiolivro tem. Atrás de uma
+ * lente, quem nunca tocar em "Seguindo" não a verá. Se fizer falta, a saída é uma
+ * versão compacta no alto do Feed — não desfazer a regra.
+ */
+function OuvindoAgora({ seguindo }: { seguindo: string[] }) {
   const [audicoes, setAudicoes] = useState<AudicaoDeAgora[]>([]);
 
   useEffect(() => {
-    setAudicoes(ouvindoAgoraNaComunidade());
-  }, []);
+    setAudicoes(ouvindoAgoraNaComunidade().filter((item) => seguindo.includes(item.member.slug)));
+  }, [seguindo]);
+
+  if (audicoes.length === 0) return null;
 
   return (
-    <div data-testid="community-agora">
-      {audicoes.length > 0 && (
-        <section className="pt-1 pb-4 border-b border-white/10" data-testid="community-listening-now">
-          <h2 className="mb-3 flex items-center gap-2 px-5 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-40" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
-            </span>
-            Ouvindo agora
-          </h2>
+    <section className="mt-3" data-testid="community-listening-now">
+      <h2 className="mb-2.5 flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-wider text-white/40">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-40" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+        </span>
+        Ouvindo agora
+      </h2>
 
-          {/* A fita de capas: livros no lugar de rostos, moldura de "ao vivo". */}
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1">
-            {audicoes.map(({ member, book, chapter }) => (
-              <Link
-                key={member.slug}
-                href={`/user/${member.slug}`}
-                className="w-[80px] shrink-0 group"
-                data-testid={`listening-${member.slug}`}
+      {/* A fita de capas: livros no lugar de rostos, moldura de "ao vivo". */}
+      <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+        {audicoes.map(({ member, book, chapter }) => (
+          <Link
+            key={member.slug}
+            href={`/user/${member.slug}`}
+            className="w-[80px] shrink-0 group"
+            data-testid={`listening-${member.slug}`}
+          >
+            <div className="relative h-[106px] w-[80px] overflow-hidden rounded-xl border-2 border-primary/55">
+              <img src={book.cover} alt={book.title} className="h-full w-full object-cover" />
+              <span
+                className={`absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-black bg-gradient-to-br ${member.color} text-[8px] font-bold`}
               >
-                <div className="relative h-[106px] w-[80px] overflow-hidden rounded-xl border-2 border-primary/55">
-                  <img src={book.cover} alt={book.title} className="h-full w-full object-cover" />
-                  <span
-                    className={`absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-black bg-gradient-to-br ${member.color} text-[8px] font-bold`}
-                  >
-                    {member.name.charAt(0)}
-                  </span>
-                  <span className="absolute bottom-1.5 right-1 rounded-full bg-black/75 px-1.5 py-0.5 text-[8px]">
-                    cap. {chapter}
-                  </span>
-                </div>
-                <p className="mt-1.5 truncate text-center text-[10px] text-white/55 transition-colors group-hover:text-white">
-                  {member.name.split(" ")[0]}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <FeedDePosts />
-    </div>
+                {member.name.charAt(0)}
+              </span>
+              <span className="absolute bottom-1.5 right-1 rounded-full bg-black/75 px-1.5 py-0.5 text-[8px]">
+                cap. {chapter}
+              </span>
+            </div>
+            <p className="mt-1.5 truncate text-center text-[10px] text-white/55 transition-colors group-hover:text-white">
+              {member.name.split(" ")[0]}
+            </p>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -176,24 +173,25 @@ function AbaAgora() {
 function FeedDePosts() {
   const [itens, setItens] = useState<ItemDoFeed[]>([]);
   const [lente, setLente] = useState<Lente>("todos");
+  const [seguindo, setSeguindo] = useState<string[]>([]);
   const [perguntas, setPerguntas] = useState(0);
 
   useEffect(() => {
     const atualizar = () => {
-      setItens(montarFeed(lente, readFollowing()));
+      const quemEuSigo = readFollowing();
+      setSeguindo(quemEuSigo);
+      setItens(montarFeed(lente, quemEuSigo));
       setPerguntas(todosOsPosts().filter((post) => post.pergunta).length);
     };
     atualizar();
-    /* Três eventos: os dois formatos de post seu — o novo (`allbook_posts`) e os
-       herdados do mural (ver `CHAVE_POSTS`) — mais o compartilhar, que muda a
-       lista sem criar post nenhum. */
+    /* Dois eventos, pelos dois formatos de post seu: o novo (`allbook_posts`) e
+       os herdados do mural (ver `CHAVE_POSTS`). O compartilhar não precisa de um
+       terceiro — ele **é** um post, e dispara o mesmo aviso. */
     window.addEventListener(POSTS_EVENT, atualizar);
     window.addEventListener(MURAL_EVENT, atualizar);
-    window.addEventListener(COMPARTILHADOS_EVENT, atualizar);
     return () => {
       window.removeEventListener(POSTS_EVENT, atualizar);
       window.removeEventListener(MURAL_EVENT, atualizar);
-      window.removeEventListener(COMPARTILHADOS_EVENT, atualizar);
     };
     /*
       **A lente entra nas dependências**, e isso é o que faz trocar de lente
@@ -257,17 +255,17 @@ function FeedDePosts() {
         ))}
       </div>
 
+      {/* A fita de "ouvindo agora" mora **dentro do Seguindo** desde 30/07 — é
+          atividade, e atividade só existe nesta lente (§4.58, decisão 7). */}
+      {lente === "seguindo" && <OuvindoAgora seguindo={seguindo} />}
+
       <div className="mt-3 space-y-3">
         {itens.map((item) => {
           if (item.tipo === "post") return <CartaoDePost key={item.chave} post={item.post} />;
-          if (item.tipo === "compartilhado")
-            return (
-              <CartaoDePost
-                key={item.chave}
-                post={item.post}
-                compartilhamento={{ porSlug: item.porSlug, date: item.data }}
-              />
-            );
+          if (item.tipo === "atividade")
+            return <LinhaDeAtividade key={item.chave} evento={item.evento} />;
+          if (item.tipo === "sugestoes")
+            return <CartaoDeSugestoes key={item.chave} sugestoes={item.sugestoes} />;
           if (item.tipo === "clube")
             return (
               <ConviteDeClube key={item.chave} clube={item.clube} comecando={item.comecando} />
@@ -278,14 +276,16 @@ function FeedDePosts() {
 
       {/*
         **Estado vazio do "Seguindo", com saída.** Quem não segue ninguém veria uma
-        lista com os próprios posts e nada mais — e não saberia por quê. A porta é a
-        aba Pessoas, que é onde se segue gente (§4.23: nada de tela morta).
+        lista vazia e não saberia por quê. A saída **é o cartão "Combina com
+        você"**, que o montador coloca aqui mesmo — desde que a aba Pessoas morreu
+        (§4.58, decisão 7), ele é o lugar de começar a seguir gente. O texto abaixo
+        só explica o vazio; quem resolve é o cartão (§4.23: nada de tela morta).
       */}
-      {lente === "seguindo" && itens.length === 0 && (
+      {lente === "seguindo" && itens.filter((item) => item.tipo !== "sugestoes").length === 0 && (
         <div className="mt-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] p-5">
           <p className="text-[13px] leading-relaxed text-white/55">
-            {readFollowing().length === 0
-              ? "Você ainda não segue ninguém — é por isso que aqui está vazio."
+            {seguindo.length === 0
+              ? "Você ainda não segue ninguém — é por isso que aqui está vazio. Comece pelas sugestões acima, ou siga quem escreveu algo que você gostou no feed."
               : "Quem você segue não publicou nada ainda."}
           </p>
           <button
@@ -426,188 +426,6 @@ function AbaGrupos() {
 
       {/* O compromisso: os clubes (da janela A), intactos. */}
       <ClubesNaComunidade />
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Gente — pódio, afinidade e quem você segue
- * ------------------------------------------------------------------ */
-
-function AbaPessoas() {
-  const { toast } = useToast();
-  const [sugestoes, setSugestoes] = useState<Suggestion[]>([]);
-  const [following, setFollowing] = useState<string[]>([]);
-
-  useEffect(() => {
-    recarregar();
-  }, []);
-
-  function recarregar() {
-    setFollowing(readFollowing());
-    setSugestoes(suggestions(readLibrary().map((item) => item.id), 4));
-  }
-
-  function seguir(slug: string, primeiroNome: string) {
-    const agora = toggleFollow(slug);
-    recarregar();
-    toast({
-      title: agora ? `Seguindo ${primeiroNome}` : `Você deixou de seguir ${primeiroNome}`,
-      description: agora ? "O mural passa a priorizar quem você segue." : undefined,
-    });
-  }
-
-  const seguindo = following
-    .map((slug) => findMember(slug))
-    .filter((member): member is NonNullable<typeof member> => member !== undefined);
-
-  /*
-   * O pódio da semana morava aqui e MORREU em 28/07, no mesmo dia em que
-   * nasceu — o Matheus: "não está legal, tem que ser totalmente reformulado".
-   * No lugar: a lista completa de "Todo mundo", rica de contexto (bio, o que
-   * a pessoa está ouvindo, seguir ali) — gente como gente, não como ranking.
-   */
-
-  return (
-    <div data-testid="community-pessoas">
-      {sugestoes.length > 0 && (
-        <section className="pt-5 pb-4 border-b border-white/10" data-testid="community-suggestions">
-          <h2 className="mb-3 px-5 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            Combina com você
-          </h2>
-
-          {/* Carrossel de cartões: vitrine de gente, não lista telefônica. */}
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1">
-            {sugestoes.map(({ member, reason, books }) => {
-              const ja = isFollowing(member.slug);
-              return (
-                <div
-                  key={member.slug}
-                  className="w-[132px] shrink-0 rounded-xl border border-white/5 bg-white/[0.03] p-3 text-center"
-                  data-testid={`suggestion-${member.slug}`}
-                >
-                  <Link href={`/user/${member.slug}`} className="block group">
-                    <span
-                      className={`mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br ${member.color} font-display text-base font-bold`}
-                    >
-                      {member.name.charAt(0)}
-                    </span>
-                    <p className="mt-2 truncate text-xs font-bold transition-colors group-hover:text-primary">
-                      {member.name}
-                    </p>
-                    <p className="mt-1 min-h-[42px] text-[10px] leading-snug text-white/40">
-                      {reason}
-                    </p>
-                  </Link>
-                  {books.length > 0 && (
-                    <div className="mt-1 flex justify-center">
-                      {books.slice(0, 3).map((book) => (
-                        <img
-                          key={book.id}
-                          src={book.cover}
-                          alt=""
-                          className="-ml-1 h-[22px] w-4 rounded-[2px] border border-black object-cover first:ml-0"
-                        />
-                      ))}
-                    </div>
-                  )}
-                  <button
-                    onClick={() => seguir(member.slug, member.name.split(" ")[0])}
-                    className={`mt-2 flex w-full items-center justify-center gap-1 rounded-full py-1.5 text-[10px] font-bold transition-colors ${
-                      ja
-                        ? "border border-white/15 text-white/50"
-                        : "bg-primary text-black hover:bg-primary/90"
-                    }`}
-                    data-testid={`follow-${member.slug}`}
-                  >
-                    {ja ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-                    {ja ? "Seguindo" : "Seguir"}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Todo mundo, com contexto: bio, o que está ouvindo, e o Seguir ali.
-          É o que substituiu o pódio — gente como gente, não como ranking. */}
-      <section className="px-5 pt-5 pb-2 border-b border-white/10" data-testid="community-everyone">
-        <h2 className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-          Todo mundo
-        </h2>
-        {community.map((member) => {
-          const ja = isFollowing(member.slug);
-          const ouvindo = member.ouvindoAgora
-            ? catalog.find((book) => book.id === member.ouvindoAgora?.bookId)
-            : undefined;
-          return (
-            <div
-              key={member.slug}
-              className="flex items-center gap-3 border-b border-white/5 py-3 last:border-b-0"
-              data-testid={`everyone-${member.slug}`}
-            >
-              <Link
-                href={`/user/${member.slug}`}
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${member.color} font-display font-bold`}
-              >
-                {member.name.charAt(0)}
-              </Link>
-              <Link href={`/user/${member.slug}`} className="min-w-0 flex-1 group">
-                <p className="truncate text-sm font-semibold transition-colors group-hover:text-primary">
-                  {member.name}
-                </p>
-                <p className="truncate text-[11px] text-white/40">{member.bio}</p>
-                {ouvindo && (
-                  <p className="mt-0.5 flex items-center gap-1 truncate text-[10px] text-green-400/80">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-400" />
-                    ouvindo {ouvindo.title}
-                  </p>
-                )}
-              </Link>
-              <button
-                onClick={() => seguir(member.slug, member.name.split(" ")[0])}
-                className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
-                  ja
-                    ? "border border-white/15 text-white/50"
-                    : "bg-primary text-black hover:bg-primary/90"
-                }`}
-                data-testid={`everyone-follow-${member.slug}`}
-              >
-                {ja ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-                {ja ? "Seguindo" : "Seguir"}
-              </button>
-            </div>
-          );
-        })}
-      </section>
-
-      {/* Uma linha, não um bloco: era a parte mais redundante da tela antiga. */}
-      {seguindo.length > 0 && (
-        <section className="px-5 pt-5 pb-4" data-testid="following-row">
-          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            Seguindo
-          </h2>
-          <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-hide">
-            {seguindo.map((member) => (
-              <Link
-                key={member.slug}
-                href={`/user/${member.slug}`}
-                title={member.name}
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${member.color} text-sm font-bold transition-transform hover:scale-105`}
-                data-testid={`following-${member.slug}`}
-              >
-                {member.name.charAt(0)}
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <p className="px-5 pb-6 pt-3 text-[11px] leading-relaxed text-white/25">
-        Estes leitores são um esqueleto: existem para dar o que ver enquanto o AllBook não tem
-        contas nem servidor.
-      </p>
     </div>
   );
 }

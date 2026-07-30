@@ -21,6 +21,8 @@
  * conseguindo prever a ordem.
  */
 
+import { activityFeed, suggestions, type ActivityEvent, type Suggestion } from "@/lib/activity";
+import { readLibrary } from "@/lib/library";
 import { type Grupo, type TopicoNaTela, participoDa, todosOsGrupos, topicosDa } from "@/lib/grupos";
 import {
   clubeCheio,
@@ -29,34 +31,29 @@ import {
   souMembro,
   type Clube,
 } from "@/lib/clubes";
-import { meusCompartilhamentos } from "@/lib/compartilhados";
-import {
-  compartilhamentosDoEsqueleto,
-  postsDeQuemVoceSegue,
-  todosOsPosts,
-  type Post,
-} from "@/lib/posts";
+import { postsDeQuemVoceSegue, todosOsPosts, type Post } from "@/lib/posts";
 
 /** As duas lentes: a comunidade toda, ou só quem você segue (§4.58). */
 export type Lente = "todos" | "seguindo";
 
 export type ItemDoFeed =
-  /** Um post, do jeito que foi escrito. */
-  | { tipo: "post"; chave: string; data: string; post: Post }
   /**
-   * O mesmo post, republicado por alguém — a linha "Fulano compartilhou" em
-   * cima e o cartão original embaixo, **sem caixa dentro de caixa**.
+   * Um post — **inclusive os compartilhamentos**, que desde 30/07 são posts com
+   * outro post dentro (ver `ObjetoDoPost` em `posts.ts`). Quem sabe desenhar as
+   * duas formas é o cartão; aqui elas são a mesma coisa.
    */
-  | {
-      tipo: "compartilhado";
-      chave: string;
-      data: string;
-      post: Post;
-      /** Quem compartilhou. **Ausente = você.** */
-      porSlug?: string;
-    }
+  | { tipo: "post"; chave: string; data: string; post: Post }
   | { tipo: "clube"; chave: string; clube: Clube; comecando: boolean }
-  | { tipo: "forum"; chave: string; grupo: Grupo; topico: TopicoNaTela };
+  | { tipo: "forum"; chave: string; grupo: Grupo; topico: TopicoNaTela }
+  /**
+   * O que alguém **fez** (recomendou um livro, comentou nele) — e não o que
+   * escreveu. **Só na lente "Seguindo"**, que é a regra que o Matheus deu na
+   * §4.53: *"o post dela aparece nos dois; o que não aparece nos dois são
+   * atividades"*.
+   */
+  | { tipo: "atividade"; chave: string; data: string; evento: ActivityEvent }
+  /** "Combina com você" — o bloco fixo que virou **cartão ocasional** (§4.58). */
+  | { tipo: "sugestoes"; chave: string; sugestoes: Suggestion[] };
 
 /**
  * Onde os cartões de clube e de fórum entram, contando do topo.
@@ -70,6 +67,17 @@ export type ItemDoFeed =
  */
 const POSICAO_DO_CLUBE = 3;
 const POSICAO_DO_FORUM = 8;
+
+/**
+ * Onde entra o "Combina com você" na lente "Seguindo".
+ *
+ * **Era um bloco fixo no alto da aba Pessoas e virou cartão ocasional** (§4.58,
+ * decisão 7). O receio era do Matheus e é o mesmo meu: uma parede de gente
+ * transforma a Comunidade em catálogo de perfis, que é o que falhou onze vezes
+ * (§4.53). Como cartão, ele aparece **depois** de você já ter lido o que as
+ * pessoas fizeram — sugestão em resposta a um contexto, não vitrine na entrada.
+ */
+const POSICAO_DAS_SUGESTOES = 5;
 
 /**
  * Abaixo disto, nada é intercalado.
@@ -138,75 +146,104 @@ function topicoParaOFeed(): { grupo: Grupo; topico: TopicoNaTela } | undefined {
  */
 export function montarFeed(lente: Lente, seguindo: string[]): ItemDoFeed[] {
   const posts = lente === "seguindo" ? postsDeQuemVoceSegue(seguindo) : todosOsPosts();
-  const porId = new Map(todosOsPosts().map((post) => [post.id, post]));
 
   /* Os que têm data ficam num tipo mais estreito até a ordenação acabar: é o que
      deixa claro — para quem lê e para o compilador — que **só eles** entram na
      cronologia. Clube e fórum chegam depois, por posição. */
-  const cronologicos: (Extract<ItemDoFeed, { tipo: "post" | "compartilhado" }>)[] = posts.map(
+  const cronologicos: Extract<ItemDoFeed, { tipo: "post" | "atividade" }>[] = posts.map(
     (post) => ({ tipo: "post", chave: post.id, data: post.date, post }),
   );
 
-  /* Os seus compartilhamentos, sempre; os do esqueleto, só na lente "Todos" —
-     na "Seguindo" eles obedecem à mesma regra dos posts: só de quem você segue. */
-  const republicacoes = [
-    ...meusCompartilhamentos().map((item) => ({ ...item, porSlug: undefined })),
-    ...compartilhamentosDoEsqueleto().filter(
-      (item) => lente === "todos" || seguindo.includes(item.porSlug),
-    ),
-  ];
+  /*
+    **A atividade só existe na "Seguindo", e é isto que separa as duas lentes.**
 
-  for (const item of republicacoes) {
-    const post = porId.get(item.postId);
-    /* Post apagado pelo autor leva o compartilhamento junto — republicar não dá
-       posse do que o outro escreveu (ver `compartilhados.ts`). */
-    if (!post) continue;
-    /* Compartilhar o **seu próprio** post não existe, mas o esqueleto é escrito à
-       mão e um engano ali viraria "você compartilhou você". */
-    if (item.porSlug === undefined && post.autorSlug === undefined) continue;
-    cronologicos.push({
-      tipo: "compartilhado",
-      chave: `c-${item.porSlug ?? "eu"}-${item.postId}`,
-      data: item.date,
-      post,
-      ...(item.porSlug ? { porSlug: item.porSlug } : {}),
-    });
+    A regra é do Matheus (§4.53, repetida na §4.58): *"o post dela aparece tanto
+    no Feed geral como no Seguindo… o que não aparece nos dois são atividades"*.
+    Faz sentido pelo que cada uma responde: o Feed responde *o que se está
+    dizendo na comunidade*; o Seguindo, *o que andaram fazendo as pessoas que eu
+    escolhi*. Recomendação e comentário de um estranho não são resposta para
+    nenhuma das duas — seriam a parede de gente que falhou onze vezes (§4.53).
+
+    Elas entram **na mesma cronologia dos posts**, e não numa faixa separada: o
+    dia de quem você segue é um só, e partir a tela em "posts" e "atividades"
+    obrigaria a pessoa a ler duas listas para saber o que aconteceu.
+  */
+  if (lente === "seguindo") {
+    /* Teto baixo de propósito: a atividade é o degrau de baixo (ver
+       `LinhaDeAtividade`), e quarenta linhas de "recomendou" viram a parede de
+       gente que a §4.53 diz ter afundado onze maquetes. */
+    for (const evento of activityFeed(12)) {
+      cronologicos.push({
+        tipo: "atividade",
+        chave: `a-${evento.id}`,
+        data: evento.date,
+        evento,
+      });
+    }
   }
 
   cronologicos.sort((a, b) => b.data.localeCompare(a.data));
 
   /*
-    **Um post aparece uma vez só — e quem ganha é o compartilhamento.**
+    **O mesmo cartão nunca aparece duas vezes seguidas — mas citar não é repetir.**
 
-    Defeito visto na tela, não no código (30/07): o feed mostrava a pergunta do
-    Ricardo compartilhada pelo Felipe e, três cartões abaixo, a mesma pergunta de
-    novo. As grandes redes convivem com isso porque entre as duas cópias passam
-    centenas de posts; **aqui passam dois**, e o feed parece quebrado.
+    Defeito visto na tela, não no código (30/07): compartilhada a pergunta do
+    Ricardo, o feed mostrava a versão do Felipe e, três cartões abaixo, a mesma
+    pergunta de novo. As grandes redes convivem com isso porque entre as duas
+    cópias passam centenas de posts; **aqui passam dois**, e a tela parece quebrada.
 
-    Como a lista já está do mais novo para o mais velho e o compartilhamento é
-    sempre posterior ao post, **guardar a primeira ocorrência** deixa a versão
-    compartilhada e descarta a original. Nada se perde: o cartão continua
-    mostrando o autor, o texto e a data dele — só ganha uma linha em cima
-    dizendo quem republicou.
+    A regra distingue os dois gestos, e a distinção é o ponto:
 
-    A limpeza é **por lente**: na "Seguindo" de quem não segue o Felipe o
-    compartilhamento nem entrou na lista, e o post original fica no lugar dele.
+    - **Recompartilhamento simples** (sem texto) mostra o cartão original inteiro,
+      então ter os dois é ter o mesmo cartão duas vezes: o original some, e fica a
+      versão com a linha de quem republicou. Nada se perde — autor, texto e data
+      continuam ali.
+    - **Citação** (com texto) é post novo, com fala nova, e o original aparece
+      dentro dela só como moldura pequena. Aqui os dois **ficam**: esconder o
+      original seria trocar o cartão grande do trecho por uma miniatura, por causa
+      de um comentário de outra pessoa.
+
+    A limpeza é **por lente**: na "Seguindo" de quem não segue o Felipe, o
+    compartilhamento nem entrou na lista, e o original fica no lugar dele.
   */
-  const vistos = new Set<string>();
+  const recompartilhados = new Set<string>();
   const itens: ItemDoFeed[] = cronologicos.filter((item) => {
-    if (vistos.has(item.post.id)) return false;
-    vistos.add(item.post.id);
-    return true;
+    if (item.tipo !== "post") return true;
+    const objeto = item.post.objeto;
+    if (objeto?.tipo === "post" && !item.post.texto.trim()) {
+      /* Dois recompartilhamentos simples do mesmo post seriam dois cartões
+         idênticos: vale o mais recente, que é o primeiro desta lista. */
+      if (recompartilhados.has(objeto.postId)) return false;
+      recompartilhados.add(objeto.postId);
+      return true;
+    }
+    return !recompartilhados.has(item.post.id);
   });
-  if (itens.length < MINIMO_PARA_INTERCALAR) return itens;
-
   /*
-    **Os cartões de convite só entram na lente "Todos".** A "Seguindo" responde a
-    uma pergunta precisa — *o que as pessoas que eu sigo andaram fazendo* —, e
-    clube que ninguém que você segue mencionou não é resposta para ela. É a mesma
-    régua que manda a atividade ficar só ali: cada lente responde a uma pergunta.
+    **"Combina com você" na Seguindo, e não no Feed geral.** Sugerir gente faz
+    sentido onde a pergunta é *de quem eu quero saber* — no Feed geral, ao lado de
+    posts de estranhos, seria oferecer mais estranhos.
+
+    **Entra mesmo em lista curta**, ao contrário dos cartões de convite: quanto
+    menos gente você segue, mais o cartão serve. Numa lista de dois itens ele
+    encosta no fim; numa cheia, fica na quinta posição.
   */
-  if (lente !== "todos") return itens;
+  if (lente === "seguindo") {
+    const sugestoes = suggestions(
+      readLibrary().map((item) => item.id),
+      3,
+    );
+    if (sugestoes.length > 0) {
+      itens.splice(Math.min(POSICAO_DAS_SUGESTOES, itens.length), 0, {
+        tipo: "sugestoes",
+        chave: "sugestoes",
+        sugestoes,
+      });
+    }
+    return itens;
+  }
+
+  if (itens.length < MINIMO_PARA_INTERCALAR) return itens;
 
   const paraInserir: { posicao: number; item: ItemDoFeed }[] = [];
 

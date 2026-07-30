@@ -66,7 +66,31 @@ export type ObjetoDoPost =
    *
    * O acordo: o cartão existe, mas quem preenche são **os livros dela**.
    */
-  | { tipo: "pessoa"; slug: string };
+  | { tipo: "pessoa"; slug: string }
+  /**
+   * **Outro post** — é assim que compartilhar funciona (30/07, noite).
+   *
+   * A primeira versão guardava os compartilhamentos numa lista de ids à parte, e
+   * o Matheus derrubou com um argumento que eu deveria ter aplicado sozinho:
+   * *"quando ela compartilha, ela tem a opção de escrever em cima do que está
+   * compartilhando, para dar sua opinião… essas coisas têm que estar baseadas em
+   * você, não em mim"*. Ele tem razão nas duas metades — na do produto (rede
+   * social sem citar com comentário é meia funcionalidade) e na do método
+   * (convenção óbvia é para eu assumir, não para ele ditar).
+   *
+   * **Compartilhar passou a ser: publicar um post seu que carrega o post do
+   * outro.** Não é elegância de arquitetura, é o que isso entrega de graça:
+   * escrever em cima, **editar** depois (com o selo "editado"), apagar, curtir e
+   * comentar o seu compartilhamento, e ele aparecer no seu perfil como qualquer
+   * post seu. A lista de ids não dava nada disso sem código novo para cada item.
+   *
+   * **Duas formas na tela, uma só aqui:** sem texto é recompartilhamento
+   * simples — mostra o cartão original inteiro, com uma linha em cima dizendo
+   * quem republicou. Com texto vira **citação**: o seu post na frente e o do
+   * outro numa moldura menor embaixo. É a diferença entre o "repost" e o
+   * "citar", que toda rede tem porque são dois gestos diferentes.
+   */
+  | { tipo: "post"; postId: string };
 
 /**
  * Uma palavra do texto que virou link — **um livro, um autor ou um narrador**.
@@ -222,28 +246,32 @@ const DO_ESQUELETO: Post[] = [
     texto: "Terminei meu quinto livro do ano. Ano passado inteiro foram três.",
     date: atras(52),
   },
-];
+  /*
+    **Os dois compartilhamentos do esqueleto, um de cada forma.** Existem pelo
+    mesmo motivo dos posts acima: sem nenhum à vista, quem abre a Comunidade não
+    descobre que a ação existe — e recurso que só aparece depois de você mesmo
+    usá-lo é recurso que ninguém usa.
 
-/**
- * O que a comunidade fictícia republicou.
- *
- * **Existe pelo mesmo motivo dos posts acima: para a forma existir no dia 1.**
- * Sem nenhum compartilhamento à vista, quem abre a Comunidade não descobre que a
- * ação existe — e um recurso que só aparece depois de você mesmo usá-lo é um
- * recurso que ninguém usa. Uma pergunta é o melhor caso possível para mostrar:
- * republicar uma pergunta é o gesto de quem quer ajudar a achar a resposta.
- */
-const COMPARTILHADOS_DO_ESQUELETO: { porSlug: string; postId: string; date: string }[] = [
-  { porSlug: "felipe-g", postId: "p-esq-2", date: atras(3) },
+    O do Felipe é **recompartilhamento simples** (sem texto): republicar uma
+    pergunta é o gesto de quem quer ajudar a achar a resposta. O da Juliana é
+    **citação**: ela acrescenta o que só ela tem a dizer sobre o trecho. Ver as
+    duas lado a lado é o que ensina, sem explicar, que dá para fazer as duas.
+  */
+  {
+    id: "p-esq-8",
+    autorSlug: "felipe-g",
+    texto: "",
+    objeto: { tipo: "post", postId: "p-esq-2" },
+    date: atras(3),
+  },
+  {
+    id: "p-esq-9",
+    autorSlug: "juliana-s",
+    texto: "É esse trecho que eu mando para quem diz que não consegue ouvir livro. Ouve os 40 segundos.",
+    objeto: { tipo: "post", postId: "p-esq-1" },
+    date: atras(1),
+  },
 ];
-
-export function compartilhamentosDoEsqueleto(): {
-  porSlug: string;
-  postId: string;
-  date: string;
-}[] {
-  return COMPARTILHADOS_DO_ESQUELETO;
-}
 
 /* ------------------------------------------------------------------ *
  * Os seus posts — escrever, editar, apagar
@@ -403,6 +431,76 @@ export function apagarMeuPost(id: string): void {
   const restantes = lerMeus().filter((post) => post.id !== id);
   gravarMeus(restantes);
   apagarPostDoMural(id);
+}
+
+/* ------------------------------------------------------------------ *
+ * Compartilhar — um post seu que carrega o post do outro
+ * ------------------------------------------------------------------ */
+
+/**
+ * Republica o post de alguém. `texto` vazio = recompartilhamento simples;
+ * com texto, vira citação.
+ *
+ * **Compartilhar duas vezes o mesmo post não existe:** a segunda chamada
+ * atualiza o texto da primeira, em vez de criar um par de posts iguais no feed.
+ * É o que a pessoa espera de um botão que fica aceso — ele é um estado, não um
+ * contador de vezes.
+ */
+export function compartilharPost(postId: string, texto = ""): Post | null {
+  /* Compartilhar post seu não existe: ele já está no seu perfil e no feed. */
+  const alvo = todosOsPosts().find((post) => post.id === postId);
+  if (!alvo || alvo.autorSlug === undefined) return null;
+
+  /*
+    **Compartilhar um compartilhamento é permitido**, e isso foi decidido
+    consertando um botão morto (30/07): eu tinha bloqueado, mas o botão continuava
+    aceso no cartão de citação — a pessoa escrevia, tocava em "Compartilhar" e
+    nada acontecia, que é o pior tipo de beco sem saída (§4.23).
+
+    Permitir não faz a corrente crescer sem fim porque **a moldura mostra um nível
+    só**: quando o post citado também cita alguém, a moldura pega o objeto lá de
+    dentro (ver `PostCitado`) em vez de abrir outra caixa. É o que o Twitter faz
+    ao citar uma citação.
+  */
+  const meu = meuCompartilhamentoDe(postId);
+  if (meu) {
+    editarPost(meu.id, texto);
+    return { ...meu, texto };
+  }
+  return publicarPost({ texto, objeto: { tipo: "post", postId } });
+}
+
+/** O seu compartilhamento de um post, se existir. */
+export function meuCompartilhamentoDe(postId: string): Post | undefined {
+  return lerMeus().find((post) => post.objeto?.tipo === "post" && post.objeto.postId === postId);
+}
+
+export function euCompartilhei(postId: string): boolean {
+  return meuCompartilhamentoDe(postId) !== undefined;
+}
+
+export function desfazerCompartilhamento(postId: string): void {
+  const meu = meuCompartilhamentoDe(postId);
+  if (meu) apagarMeuPost(meu.id);
+}
+
+/**
+ * Quantas vezes um post foi republicado — **contagem real, não simulada**.
+ *
+ * Diferente do curtir, que precisa de semente porque ninguém curte de verdade
+ * sem servidor (ver `curtidas.ts`), aqui há o que contar: os compartilhamentos
+ * do esqueleto estão escritos à mão e o seu está gravado. Número inventado onde
+ * existe número verdadeiro é mentira gratuita.
+ */
+export function totalDeCompartilhamentos(postId: string): number {
+  return todosOsPosts().filter(
+    (post) => post.objeto?.tipo === "post" && post.objeto.postId === postId,
+  ).length;
+}
+
+/** O post citado por outro — `undefined` se o autor já o apagou. */
+export function postPorId(id: string): Post | undefined {
+  return todosOsPosts().find((post) => post.id === id);
 }
 
 /* ------------------------------------------------------------------ *

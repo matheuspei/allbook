@@ -19,9 +19,97 @@ import {
 import { playbackPercent, readPlaybackList, type Playback } from "@/lib/playback";
 import { readMyComments } from "@/lib/myComments";
 import { MURAL_EVENT, readMeusPosts } from "@/lib/mural";
+import { POSTS_EVENT, meusPosts, postPorId, type Post } from "@/lib/posts";
+import { findMember } from "@/lib/community";
+import { findPerson } from "@/lib/people";
 import { readSettings } from "@/lib/settings";
 import { SEGUIDORES_EVENT, meusSeguidores, pedidosPendentes } from "@/lib/seguidores";
 import { catalog, type Book } from "@/lib/books";
+
+/**
+ * Um post da Comunidade nova, reduzido ao que esta seção mostra: capa, rótulo,
+ * destino e o texto que vai entre aspas.
+ *
+ * **Post sem capa nenhuma fica de fora** (devolve `undefined`), e não é
+ * esquecimento: a lista é uma fileira de capinhas, e uma linha sem imagem abriria
+ * um buraco no meio dela. O post continua vivo no feed — o que falta é o perfil
+ * ganhar a forma de cartão, que é o item 6 da ordem da §4.58.
+ */
+function alvoDoPost(
+  post: Post,
+): { texto: string; destino: { capa: string; rotulo: string; href: string } } | undefined {
+  const objeto = post.objeto;
+  if (!objeto) return undefined;
+
+  if (objeto.tipo === "livro") {
+    const livro = catalog.find((item) => item.id === objeto.bookId);
+    return livro
+      ? {
+          texto: post.texto,
+          destino: { capa: livro.cover, rotulo: livro.title, href: `/book/${livro.id}` },
+        }
+      : undefined;
+  }
+
+  if (objeto.tipo === "trecho") {
+    const livro = catalog.find((item) => item.id === objeto.citacao.bookId);
+    return livro
+      ? {
+          texto: post.texto,
+          destino: {
+            capa: livro.cover,
+            rotulo: `Trecho de ${livro.title}`,
+            href: `/post/${post.id}`,
+          },
+        }
+      : undefined;
+  }
+
+  if (objeto.tipo === "clube") {
+    const clube = clubePorId(objeto.clubeId);
+    const daVez = clube ? catalog.find((item) => item.id === clube.ciclo.bookId) : undefined;
+    return clube && daVez
+      ? {
+          texto: post.texto,
+          destino: {
+            capa: daVez.cover,
+            rotulo: `No clube ${clube.nome}`,
+            href: `/clube/${clube.id}`,
+          },
+        }
+      : undefined;
+  }
+
+  if (objeto.tipo === "pessoa") {
+    const pessoa = findPerson(objeto.slug);
+    const capa = pessoa ? [...pessoa.narrated, ...pessoa.wrote][0]?.cover : undefined;
+    return pessoa && capa
+      ? {
+          texto: post.texto,
+          destino: { capa, rotulo: pessoa.name, href: `/person/${pessoa.slug}` },
+        }
+      : undefined;
+  }
+
+  /*
+    **Compartilhamento.** A capa é a do post citado, e o texto é o seu — ou, no
+    recompartilhamento simples, o do autor original: sem isso a linha ficaria com
+    aspas vazias, que é pior do que não aparecer.
+  */
+  const citado = postPorId(objeto.postId);
+  if (!citado) return undefined;
+  const dele = alvoDoPost(citado);
+  if (!dele) return undefined;
+  const autor = citado.autorSlug ? findMember(citado.autorSlug)?.name : undefined;
+  return {
+    texto: post.texto.trim() || citado.texto,
+    destino: {
+      capa: dele.destino.capa,
+      rotulo: autor ? `Compartilhou de ${autor}` : "Compartilhou",
+      href: `/post/${citado.id}`,
+    },
+  };
+}
 
 /**
  * Uma fala sua — comentário num livro ou post do mural (de livro ou de
@@ -94,8 +182,14 @@ export default function Profile() {
     setClubes(meusClubes());
 
     // Publicou ou apagou um post no mural com a página aberta? A seção relê.
+    /* Dois avisos, dois armazenamentos: o mural antigo e os posts da Comunidade
+       nova (onde moram os compartilhamentos). */
     window.addEventListener(MURAL_EVENT, recarregarFalas);
-    return () => window.removeEventListener(MURAL_EVENT, recarregarFalas);
+    window.addEventListener(POSTS_EVENT, recarregarFalas);
+    return () => {
+      window.removeEventListener(MURAL_EVENT, recarregarFalas);
+      window.removeEventListener(POSTS_EVENT, recarregarFalas);
+    };
   }, []);
 
   /* Seguidores e pedidos: leem na montagem e a cada mudança, porque aceitar ou
@@ -144,8 +238,24 @@ export default function Profile() {
       return alvo ? [{ id: item.id, texto: item.texto, date: item.date, ...alvo }] : [];
     });
 
+    /*
+      **Os posts da Comunidade nova entram aqui** (30/07).
+
+      O perfil lia só os comentários e o mural antigo, e por isso **o que você
+      compartilhava não aparecia na sua página** — o que fazia a promessa do
+      compartilhar ("republicar no seu perfil", §4.58) ser meia verdade. Isto é o
+      remendo honesto até o item 6 da ordem chegar (o perfil girando em torno dos
+      posts, §4.56), que é quando esta seção deixa de ser uma lista de três
+      linhas e passa a mostrar os cartões inteiros.
+    */
+    const dosNovosPosts: FalaMinha[] = meusPosts().flatMap((post) => {
+      const alvo = alvoDoPost(post);
+      if (!alvo) return [];
+      return [{ id: post.id, texto: alvo.texto, date: post.date, ...alvo.destino }];
+    });
+
     setFalas(
-      [...dosComentarios, ...dosPosts]
+      [...dosComentarios, ...dosPosts, ...dosNovosPosts]
         .sort((a, b) => b.date.localeCompare(a.date))
         .slice(0, 3),
     );

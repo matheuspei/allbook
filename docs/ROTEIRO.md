@@ -4995,8 +4995,9 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
    **comentar raso** (com curtir no comentário e a página `/post/:id`) estão na
    **§4.62**; **compartilhar** e os **cartões de convite**, na **§4.64**.
    *(Curtir ainda falta no mural do clube, no fórum e no mural — ver adiante.)*
-4. **O Seguindo**: atividade em linha + "ouvindo agora" + "combina com você"
-   como cartão ocasional.
+4. ✅ **FEITO 30/07 — O Seguindo**: atividade em linha + "ouvindo agora" (só de
+   quem você segue) + "combina com você" como cartão ocasional. Junto morreu a
+   aba Pessoas, e a Comunidade ficou com duas abas. Detalhe na **§4.65**.
 5. **Convite para clube** pela página da pessoa, com aceitar no sino.
 6. **O perfil girando em torno dos posts** (§4.56) — depende de 1 e 2.
 
@@ -5485,34 +5486,78 @@ Faltavam duas peças do item 3 da ordem da §4.58 — **compartilhar** e os **ca
 de clube e fórum intercalados**. As duas foram construídas na mesma passada, e o
 que se decidiu construindo está aqui.
 
-### Compartilhar guarda um id, nunca uma cópia
+### A crítica que refez o compartilhar no mesmo dia — e vale como método
 
-A escolha parece detalhe de armazenamento e não é: **copiar o texto congelaria o
-post**. O autor pode editar (§4.58), e o selo "editado" existe justamente para
-avisar que o sentido mudou — uma cópia mostraria para sempre a versão antiga,
-sem selo nenhum. Guardando só o id (`lib/compartilhados.ts`), o compartilhamento
-**acompanha** o original: se ele muda, muda junto; se o autor apaga, some junto.
+A primeira versão fazia só uma coisa: republicar. O Matheus derrubou, e o recado
+tinha duas metades, as duas certas:
+
+> *"Quando ela compartilha um texto, ela tem a opção de escrever em cima do que
+> está compartilhando, para dar sua opinião. (…) A ideia aqui é criar uma rede
+> social, e ela está se tornando isso. Essas coisas têm que estar baseadas em
+> você, não em mim. Não precisa de mim estar sempre dizendo o óbvio — você tem
+> que ter autonomia para tomar essas decisões óbvias."*
+
+**Sobre o produto:** compartilhar sem poder comentar é meia funcionalidade —
+citar é o que transforma republicar em conversa. **Sobre o método:** convenção
+consagrada de rede social é para eu assumir sozinho; se ele precisa ditar o
+óbvio, o trabalho está sendo empurrado para o lado errado da mesa. Fica
+registrado como régua para o resto da Comunidade: **quando a peça tem
+equivalente óbvio nas redes que todo mundo usa, o padrão é ele — só o que foge
+disso precisa de conversa.**
+
+### Compartilhar virou "um post seu com o post do outro dentro"
+
+**Rejeitado (era a minha primeira versão): guardar os compartilhamentos numa
+lista de ids à parte** (`lib/compartilhados.ts`, apagado no mesmo dia). Ela
+republicava e mais nada: escrever em cima, editar depois, apagar, curtir e
+comentar o compartilhamento — cada um desses exigiria código próprio.
+
+**O que ficou:** compartilhar publica um post seu cujo objeto é o post do outro
+(`ObjetoDoPost` ganhou `{ tipo: "post" }`). Todas aquelas ações passaram a
+existir **sem código novo**, porque são as ações que qualquer post já tem, e ele
+aparece no seu perfil pelo mesmo caminho dos outros.
+
+**O id continua sendo o que se guarda, e a razão sobrevive à mudança:** copiar o
+texto congelaria o post. O autor pode editar (§4.58), e o selo "editado" existe
+para avisar que o sentido mudou — uma cópia mostraria a versão antiga sem selo.
+Com o id, o compartilhamento acompanha o original; se o autor apaga, some junto.
 Republicar não dá posse do que o outro escreveu.
 
-**Compartilhar post seu não existe** — ele já está no seu perfil e no feed, não
-há o que espalhar. A opção nem aparece no menu.
+### Duas formas, e é a presença do texto que decide
 
-### Ficou no "…", e não como terceiro botão da barra
+- **Sem texto — recompartilhamento simples:** o cartão original aparece
+  **inteiro**, com uma linha *"Fulano compartilhou · há 3 h"* em cima. Aninhar
+  aqui foi rejeitado: dobra as bordas e espreme a capa sem ganhar nada, e num
+  feed que se sustenta em capas é perder o que faz o cartão funcionar (§4.59).
+- **Com texto — citação:** a sua fala na frente, o post do outro numa **moldura
+  menor** embaixo. Aqui a moldura é certa pelo motivo oposto: existem **duas
+  falas**, e a tela precisa dizer de quem é cada uma.
 
-A §4.58 listou compartilhar dentro dos três pontinhos (*editar · apagar ·
-compartilhar · denunciar*), e ficou lá. **A alternativa considerada** era um
-terceiro ícone na barra, no estilo do "retweet": mais visível, alterna com um
-toque. Perdeu por uma razão de proporção — o gesto é raro perto de curtir e
-comentar, e três ícones, dos quais um quase nunca é usado, encolhem os dois que
-são. Fica registrado porque é troca defensável nos dois sentidos.
+Não há escolha de "tipo" a fazer — a forma sai do que a pessoa fez. É como
+Twitter e Facebook resolvem, e é o que evita mais uma pergunta antes de um gesto
+que deveria ser leve.
 
-### Linha em cima, não caixa dentro de caixa
+### Saiu do "…" e virou botão da barra
 
-O post republicado aparece com uma linha *"Fulano compartilhou · há 3 h"* acima
-do cartão normal. **Aninhar o cartão original dentro de um segundo cartão foi
-rejeitado:** dobra as bordas e empurra a capa para dentro de uma moldura menor —
-num feed que se sustenta em capas, é perder exatamente o que faz o cartão
-funcionar (§4.59: capa não se corta).
+A §4.58 tinha listado compartilhar dentro dos três pontinhos, e foi lá que ele
+nasceu. **Saiu no mesmo dia:** numa rede social, compartilhar é ação de primeira
+classe, e escondê-la num menu é tratá-la como "denunciar". Agora são três botões
+— curtir, comentar, compartilhar —, o de compartilhar fica **aceso** quando é
+seu, e o número ao lado é **contagem real** (não simulada como a das curtidas):
+onde existe número verdadeiro, inventar é mentira gratuita.
+
+### Dois defeitos meus, achados na tela
+
+1. **Botão morto na citação.** Eu tinha proibido compartilhar um
+   compartilhamento ("a corrente cresceria sem fim"), mas o botão continuava
+   aceso no cartão de citação: a pessoa escrevia, tocava, e nada acontecia. A
+   correção foi **permitir** — a corrente não cresce porque a moldura mostra **um
+   nível só**: citando uma citação, ela pega o objeto lá de dentro.
+2. **Promessa falsa no aviso.** O aviso dizia *"está no seu perfil e no feed"*, e
+   o perfil só lia o mural antigo — o compartilhamento não aparecia lá. O perfil
+   passou a ler também os posts da Comunidade nova, com a legenda *"Compartilhou
+   de Fulano"*. É remendo até o item 6 (o perfil girando em torno dos posts,
+   §4.56), que é quando essa seção deixa de ser três linhas e vira cartão.
 
 ### O defeito que só a tela mostrou: o mesmo post duas vezes
 
@@ -5557,6 +5602,57 @@ o beco sem saída da §4.23.
 40 respostas de três meses atrás está morto; um com 4 de ontem está acontecendo.
 Fio seu não entra: você não precisa ser convidado para a conversa que você mesmo
 começou.
+
+---
+
+## 4.65 O Seguindo, e a morte da aba Pessoas (30/07, noite)
+
+Item 4 da ordem da §4.58, construído logo depois do item 3. A decisão que o
+guiou é a **7 do quadro da §4.58**, e ela mexeu em três blocos de uma vez.
+
+### O que cada lente responde — a regra que decide tudo o resto
+
+- **Feed (Todos):** *o que se está dizendo na comunidade.*
+- **Seguindo:** *o que andaram fazendo as pessoas que eu escolhi.*
+
+Daí sai o resto sem discussão caso a caso: **post aparece nas duas**;
+**atividade, só na Seguindo** (era a regra do Matheus na §4.53: *"o que não
+aparece nos dois são atividades"*); **cartão de clube e de fórum, só no Feed**,
+porque clube que ninguém que você segue mencionou não responde à pergunta da
+Seguindo.
+
+### A atividade voltou, mas num degrau abaixo
+
+A §4.53 registra que **onze** maquetes morreram porque o feed era feito de
+"fulano avaliou", "fulano está ouvindo" — texto sem corpo. Trazer isso de volta
+com o mesmo peso visual do post desfaria a virada que salvou a Comunidade.
+
+**A saída foi a hierarquia:** a atividade existe como **linha baixa** (avatar
+pequeno, a frase, a capinha à direita), nunca como cartão. E ela entra **na mesma
+cronologia dos posts**, não numa faixa separada — o dia de quem você segue é um
+só, e partir a tela em duas listas obrigaria a pessoa a ler as duas para saber o
+que aconteceu. Teto de 12 linhas: quarenta "recomendou" seguidos são a parede de
+gente de novo.
+
+### A aba Pessoas morreu, e cada bloco dela teve um destino
+
+- **"Combina com você"** virou **cartão ocasional dentro da Seguindo**, com o
+  motivo medido em cada pessoa. Como bloco fixo no alto de uma aba, era parede de
+  perfis; como cartão, é sugestão em resposta a um contexto. **Entra mesmo em
+  lista curta** (ao contrário dos cartões de convite): quanto menos gente você
+  segue, mais ele serve — e ele é a saída do estado vazio.
+- **"Ouvindo agora"** mudou de lugar, para a Seguindo, e passou a mostrar **só
+  quem você segue**. É atividade, e atividade mora ali. **O que se perde, e fica
+  anotado:** era a primeira coisa que se via na Comunidade e é a única vitrine
+  que só um app de audiolivro tem — atrás de uma lente, quem nunca tocar em
+  "Seguindo" não a verá. Se fizer falta, a saída é uma versão compacta no alto do
+  Feed, **não** desfazer a regra.
+- **"Todo mundo"** e a **fileira "Seguindo"** morreram, e com elas a aba: a
+  Comunidade tem **duas** abas agora (Feed · Fóruns). Gente se descobre pelo que
+  escreve — cada post traz o botão de seguir — e pelas sugestões.
+  **Ressalva registrada:** com isso o app ficou **sem nenhuma lista de todos os
+  leitores**, e a Busca hoje não procura pessoas. Se isso incomodar, o lugar
+  dessa lista é a **Busca**, não uma aba da Comunidade.
 
 ---
 

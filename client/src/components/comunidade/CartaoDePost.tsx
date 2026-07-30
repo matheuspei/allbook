@@ -4,6 +4,7 @@ import { ArrowRight, CalendarClock, HelpCircle, Repeat2, Users } from "lucide-re
 import AcoesDoPost from "@/components/comunidade/AcoesDoPost";
 import CampoComMencao from "@/components/comunidade/CampoComMencao";
 import ComentariosDoPost from "@/components/comunidade/ComentariosDoPost";
+import PostCitado from "@/components/comunidade/PostCitado";
 import TextoDoPost from "@/components/comunidade/TextoDoPost";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { catalog, slugify } from "@/lib/books";
@@ -12,8 +13,18 @@ import { findMember } from "@/lib/community";
 import { findPerson } from "@/lib/people";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { initialOf, readProfile } from "@/lib/profile";
-import { editarPost, type Mencao, type Post } from "@/lib/posts";
+import {
+  MAX_POST,
+  compartilharPost,
+  desfazerCompartilhamento,
+  editarPost,
+  meuCompartilhamentoDe,
+  postPorId,
+  type Mencao,
+  type Post,
+} from "@/lib/posts";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * O cartão de um post — **a peça que decide se a Comunidade sai do cru**.
@@ -61,9 +72,33 @@ export default function CartaoDePost({
   );
   const [editando, setEditando] = useState(false);
   const [comentando, setComentando] = useState(false);
+  const [compartilhando, setCompartilhando] = useState(false);
 
   const nome = ehMeu ? meuPerfil.name : (membro?.name ?? "Leitor");
   const href = ehMeu ? "/profile" : `/user/${post.autorSlug}`;
+
+  /*
+    **O post que este carrega dentro** — só existe em compartilhamento (30/07).
+
+    Quando **não há texto**, o gesto foi um recompartilhamento simples, e a forma
+    certa é o cartão original **inteiro** com uma linha em cima dizendo quem
+    republicou: quem lê quer ver o post, não uma miniatura dele. Por isso este
+    ramo desenha o original e passa a linha adiante, em vez de montar um cartão
+    novo com o mesmo conteúdo encolhido.
+
+    Com texto, cai no fluxo normal e o original aparece na moldura de citação
+    (`PostCitado`), embaixo da sua fala.
+  */
+  const citado = post.objeto?.tipo === "post" ? postPorId(post.objeto.postId) : undefined;
+  if (citado && !post.texto.trim() && citado.objeto?.tipo !== "post") {
+    return (
+      <CartaoDePost
+        post={citado}
+        abrirSempre={abrirSempre}
+        compartilhamento={{ porSlug: post.autorSlug, date: post.date }}
+      />
+    );
+  }
 
   return (
     <article
@@ -193,13 +228,20 @@ export default function CartaoDePost({
       )}
       {post.objeto?.tipo === "clube" && <CartaoDoClube clubeId={post.objeto.clubeId} />}
       {post.objeto?.tipo === "pessoa" && <CartaoDePessoa slug={post.objeto.slug} />}
+      {citado && <PostCitado post={citado} />}
 
       <AcoesDoPost
         post={post}
         onEditar={() => setEditando(true)}
         comentariosAbertos={comentando}
         onComentar={() => setComentando((valor) => !valor)}
+        compartilhandoAberto={compartilhando}
+        onCompartilhar={() => setCompartilhando((valor) => !valor)}
       />
+
+      {compartilhando && (
+        <CaixaDeCompartilhar post={post} onPronto={() => setCompartilhando(false)} />
+      )}
 
       {/*
         **A conversa abre no lugar, e só quando pedida.** Feed com cinco
@@ -211,6 +253,87 @@ export default function CartaoDePost({
       */}
       {(comentando || abrirSempre) && <ComentariosDoPost post={post} />}
     </article>
+  );
+}
+
+/**
+ * Compartilhar — **com a opção de escrever em cima**.
+ *
+ * A caixa abre no lugar, embaixo da barra de ações, e não numa folha que cobre a
+ * tela: compartilhar é gesto de passagem, e tirar a pessoa do feed para isso a
+ * faz perder o lugar na rolagem (o mesmo argumento da lista de membros do clube,
+ * §4.59).
+ *
+ * **O texto é opcional, e os dois caminhos são um toque:** publicar vazio faz o
+ * recompartilhamento simples; escrever antes faz a citação. Não há escolha de
+ * "tipo" a fazer — a forma sai do que você fez, que é como o Twitter e o
+ * Facebook resolvem isso.
+ *
+ * **Quem já compartilhou entra editando:** a caixa abre com o seu texto, o botão
+ * vira "Salvar" e aparece o "Desfazer". Foi o pedido do Matheus — *"ela pode
+ * editar, comentar e tal"* — e é o que faz o botão aceso significar um estado, e
+ * não um contador de vezes.
+ */
+function CaixaDeCompartilhar({ post, onPronto }: { post: Post; onPronto: () => void }) {
+  const { toast } = useToast();
+  const meu = meuCompartilhamentoDe(post.id);
+  const [texto, setTexto] = useState(meu?.texto ?? "");
+
+  return (
+    <div
+      className="mt-2.5 rounded-xl bg-white/[0.05] p-2.5 ring-1 ring-inset ring-white/10"
+      data-testid={`caixa-compartilhar-${post.id}`}
+    >
+      <textarea
+        value={texto}
+        onChange={(evento) => setTexto(evento.target.value.slice(0, MAX_POST))}
+        placeholder="Escreva algo sobre isto (opcional)…"
+        autoFocus
+        rows={2}
+        className="w-full resize-none bg-transparent px-1 text-[13.5px] leading-relaxed placeholder:text-white/30 focus:outline-none"
+        data-testid="texto-do-compartilhamento"
+      />
+
+      <div className="mt-1.5 flex items-center justify-end gap-2">
+        {meu && (
+          <button
+            onClick={() => {
+              desfazerCompartilhamento(post.id);
+              onPronto();
+              toast({ title: "Compartilhamento desfeito" });
+            }}
+            className="mr-auto rounded-full px-2.5 py-1.5 text-[11.5px] font-semibold text-white/40 transition-colors hover:text-white/80"
+            data-testid="desfazer-compartilhamento"
+          >
+            Desfazer
+          </button>
+        )}
+        <button
+          onClick={onPronto}
+          className="rounded-full px-2.5 py-1.5 text-[11.5px] font-semibold text-white/35 transition-colors hover:text-white/70"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={() => {
+            compartilharPost(post.id, texto);
+            onPronto();
+            toast({
+              title: meu ? "Compartilhamento atualizado" : "Compartilhado",
+              description: meu
+                ? undefined
+                : texto.trim()
+                  ? "Está no seu perfil e no feed, com o que você escreveu."
+                  : "Está no seu perfil e no feed, com o seu nome em cima.",
+            });
+          }}
+          className="rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-black"
+          data-testid="confirmar-compartilhamento"
+        >
+          {meu ? "Salvar" : "Compartilhar"}
+        </button>
+      </div>
+    </div>
   );
 }
 
