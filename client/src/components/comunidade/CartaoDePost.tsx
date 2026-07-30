@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ArrowRight, CalendarClock, HelpCircle, Users } from "lucide-react";
+import { ArrowRight, CalendarClock, HelpCircle, Repeat2, Users } from "lucide-react";
 
 import AcoesDoPost from "@/components/comunidade/AcoesDoPost";
 import CampoComMencao from "@/components/comunidade/CampoComMencao";
@@ -43,9 +43,15 @@ export default function CartaoDePost({
   post,
   /** Na página de um post só, a conversa já vem aberta. */
   abrirSempre,
+  compartilhamento,
 }: {
   post: Post;
   abrirSempre?: boolean;
+  /**
+   * Quem republicou este post, quando ele chega ao feed por compartilhamento.
+   * `porSlug` ausente = **você**.
+   */
+  compartilhamento?: { porSlug?: string; date: string };
 }) {
   const membro = post.autorSlug ? findMember(post.autorSlug) : undefined;
   const meuPerfil = readProfile();
@@ -64,6 +70,37 @@ export default function CartaoDePost({
       className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-3.5"
       data-testid={`post-${post.id}`}
     >
+      {/*
+        **A linha de quem compartilhou, e não uma caixa dentro da caixa.**
+        Aninhar o cartão original dentro de um segundo cartão dobra as bordas e
+        empurra a capa para dentro de uma moldura menor — num feed de capas,
+        isso é perder o que faz o cartão funcionar. Uma linha em cima diz a mesma
+        coisa e devolve o espaço ao conteúdo. É o que o Twitter faz, e pelo mesmo
+        motivo.
+      */}
+      {compartilhamento && (
+        <p
+          className="mb-2.5 flex items-center gap-1.5 text-[11.5px] text-white/40"
+          data-testid="linha-compartilhado"
+        >
+          <Repeat2 className="h-3.5 w-3.5 shrink-0" />
+          {compartilhamento.porSlug ? (
+            <>
+              <Link
+                href={`/user/${compartilhamento.porSlug}`}
+                className="font-semibold text-white/60 underline-offset-2 hover:underline"
+              >
+                {findMember(compartilhamento.porSlug)?.name ?? "Alguém"}
+              </Link>
+              compartilhou
+            </>
+          ) : (
+            <span className="font-semibold text-white/60">Você compartilhou</span>
+          )}
+          <span className="text-white/25">· {quando(compartilhamento.date)}</span>
+        </p>
+      )}
+
       <header className="flex items-center gap-2.5">
         <Link href={href} className="flex min-w-0 flex-1 items-center gap-2.5">
           {ehMeu && meuPerfil.photo ? (
@@ -419,7 +456,7 @@ function CartaoDePessoa({ slug }: { slug: string }) {
  * vagas**. O "Entrar" é explícito, porque o cartão de clube é, na prática, um
  * convite.
  */
-function CartaoDoClube({ clubeId }: { clubeId: string }) {
+export function CartaoDoClube({ clubeId }: { clubeId: string }) {
   const clube = clubePorId(clubeId);
   if (!clube) return null;
   const livro = catalog.find((item) => item.id === clube.ciclo.bookId);

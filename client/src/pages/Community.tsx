@@ -5,8 +5,11 @@ import { Check, ChevronRight, HelpCircle, Plus } from "lucide-react";
 import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
 import ConversasDeAgora from "@/components/ConversasDeAgora";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
+import { ConviteDeClube, ConviteDeForum } from "@/components/comunidade/CartaoDeConvite";
 import Compositor from "@/components/comunidade/Compositor";
-import { POSTS_EVENT, postsDeQuemVoceSegue, todosOsPosts, type Post } from "@/lib/posts";
+import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
+import { COMPARTILHADOS_EVENT } from "@/lib/compartilhados";
+import { montarFeed, type ItemDoFeed, type Lente } from "@/lib/feedDaComunidade";
 import { MURAL_EVENT } from "@/lib/mural";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -41,9 +44,6 @@ import { catalog } from "@/lib/books";
  */
 
 type Aba = "agora" | "grupos" | "pessoas";
-
-/** As duas lentes do feed: a comunidade toda, ou só quem você segue (§4.58). */
-type Lente = "todos" | "seguindo";
 
 const LENTES: { key: Lente; label: string }[] = [
   { key: "todos", label: "Todos" },
@@ -166,42 +166,41 @@ function AbaAgora() {
  * O feed — a Comunidade nova (ROTEIRO §4.53–§4.58).
  *
  * **O que já está de pé:** o cartão nas quatro formas, o **compositor** no topo,
- * curtir, editar e apagar. **Ainda falta** (item 3 da ordem da §4.58): as duas
- * lentes Feed · Seguindo, comentar, compartilhar, e os cartões de clube e fórum
- * intercalados.
+ * as duas lentes, curtir, comentar, editar, apagar, **compartilhar** e os
+ * **cartões de clube e de fórum intercalados** — com isso o item 3 da ordem da
+ * §4.58 fecha.
  *
- * Ordem cronológica pura, sem algoritmo — decisão registrada na §4.58.
+ * Ordem cronológica pura, sem algoritmo — decisão registrada na §4.58. Quem
+ * monta a lista (e onde os cartões de convite entram) é `lib/feedDaComunidade`.
  */
 function FeedDePosts() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [itens, setItens] = useState<ItemDoFeed[]>([]);
   const [lente, setLente] = useState<Lente>("todos");
-  const [seguindo, setSeguindo] = useState<string[]>([]);
+  const [perguntas, setPerguntas] = useState(0);
 
   useEffect(() => {
     const atualizar = () => {
-      setPosts(todosOsPosts());
-      setSeguindo(readFollowing());
+      setItens(montarFeed(lente, readFollowing()));
+      setPerguntas(todosOsPosts().filter((post) => post.pergunta).length);
     };
     atualizar();
-    /* Dois eventos porque há dois formatos de post seu: o novo
-       (`allbook_posts`) e os herdados do mural. Ver `CHAVE_POSTS`. */
+    /* Três eventos: os dois formatos de post seu — o novo (`allbook_posts`) e os
+       herdados do mural (ver `CHAVE_POSTS`) — mais o compartilhar, que muda a
+       lista sem criar post nenhum. */
     window.addEventListener(POSTS_EVENT, atualizar);
     window.addEventListener(MURAL_EVENT, atualizar);
+    window.addEventListener(COMPARTILHADOS_EVENT, atualizar);
     return () => {
       window.removeEventListener(POSTS_EVENT, atualizar);
       window.removeEventListener(MURAL_EVENT, atualizar);
+      window.removeEventListener(COMPARTILHADOS_EVENT, atualizar);
     };
-  }, []);
-
-  /*
-    **As duas lentes, e a regra que o Matheus deu** (§4.58): *"o post dela
-    aparece tanto na parte do Feed de notícia geral do aplicativo como na parte
-    do Seguindo… O que não aparece nos dois são atividades"*. Então **post é o
-    mesmo nas duas**; o que muda é de quem. A atividade ("Carla está ouvindo X")
-    é que será exclusiva do Seguindo — e é o item 4 da ordem, ainda por fazer.
-  */
-  const mostrados = lente === "seguindo" ? postsDeQuemVoceSegue(seguindo) : posts;
-  const perguntas = posts.filter((post) => post.pergunta).length;
+    /*
+      **A lente entra nas dependências**, e isso é o que faz trocar de lente
+      remontar a lista: sem ela, o efeito guardaria para sempre a lente do
+      primeiro desenho, e "Seguindo" mostraria o feed inteiro.
+    */
+  }, [lente]);
 
   return (
     <div className="px-5 pt-4" data-testid="feed-de-posts">
@@ -259,9 +258,22 @@ function FeedDePosts() {
       </div>
 
       <div className="mt-3 space-y-3">
-        {mostrados.map((post) => (
-          <CartaoDePost key={post.id} post={post} />
-        ))}
+        {itens.map((item) => {
+          if (item.tipo === "post") return <CartaoDePost key={item.chave} post={item.post} />;
+          if (item.tipo === "compartilhado")
+            return (
+              <CartaoDePost
+                key={item.chave}
+                post={item.post}
+                compartilhamento={{ porSlug: item.porSlug, date: item.data }}
+              />
+            );
+          if (item.tipo === "clube")
+            return (
+              <ConviteDeClube key={item.chave} clube={item.clube} comecando={item.comecando} />
+            );
+          return <ConviteDeForum key={item.chave} grupo={item.grupo} topico={item.topico} />;
+        })}
       </div>
 
       {/*
@@ -269,10 +281,10 @@ function FeedDePosts() {
         lista com os próprios posts e nada mais — e não saberia por quê. A porta é a
         aba Pessoas, que é onde se segue gente (§4.23: nada de tela morta).
       */}
-      {lente === "seguindo" && mostrados.length === 0 && (
+      {lente === "seguindo" && itens.length === 0 && (
         <div className="mt-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] p-5">
           <p className="text-[13px] leading-relaxed text-white/55">
-            {seguindo.length === 0
+            {readFollowing().length === 0
               ? "Você ainda não segue ninguém — é por isso que aqui está vazio."
               : "Quem você segue não publicou nada ainda."}
           </p>

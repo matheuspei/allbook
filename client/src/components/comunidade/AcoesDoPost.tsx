@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, MoreHorizontal, Pencil, Trash2, Flag } from "lucide-react";
+import { Heart, MessageCircle, MoreHorizontal, Pencil, Repeat2, Trash2, Flag } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import { COMENTARIOS_EVENT, totalDeComentarios } from "@/lib/comentariosDePost";
+import { alternarCompartilhamento, euCompartilhei } from "@/lib/compartilhados";
 import { curtidasDoPost, euCurti, alternarCurtida } from "@/lib/curtidas";
 import { apagarMeuPost, type Post } from "@/lib/posts";
 
@@ -10,11 +11,16 @@ import { apagarMeuPost, type Post } from "@/lib/posts";
  * A barra de ações do post — **curtir** e o menu de "…".
  *
  * **O que está aqui e o que não está, e por quê.** A §4.58 decidiu quatro ações:
- * curtir, comentar, compartilhar e o menu. **Curtir e o menu funcionam**
- * (o menu leva editar e apagar nos seus posts, denunciar nos dos outros);
- * **comentar e compartilhar ficam de fora até terem mecanismo**, porque botão que
- * não faz nada é o beco sem saída que a §4.23 mandou varrer — e num feed ele é
- * pior: a pessoa toca, nada acontece, e ela para de tocar em tudo.
+ * curtir, comentar, compartilhar e o menu — e desde 30/07 **as quatro
+ * funcionam**. Curtir e comentar são botões na barra; **compartilhar mora dentro
+ * do "…"**, que foi como a §4.58 o listou (*editar · apagar · compartilhar ·
+ * denunciar*).
+ *
+ * **Considerado e não feito: compartilhar como terceiro botão da barra**, no
+ * estilo do "retweet". Ele seria mais visível e alternaria com um toque, mas o
+ * gesto é raro perto de curtir e comentar — e três ícones, dos quais um quase
+ * nunca é usado, encolhem os dois que são. Fica registrado porque é uma troca
+ * defensável nos dois sentidos.
  *
  * **O contador de curtidas é simulado e estável** (semente pelo id do post), como
  * o progresso dos membros do clube: sem servidor não existe curtida de ninguém
@@ -37,6 +43,7 @@ export default function AcoesDoPost({
 }) {
   const { toast } = useToast();
   const [curtido, setCurtido] = useState(() => euCurti(post.id));
+  const [compartilhado, setCompartilhado] = useState(() => euCompartilhei(post.id));
   const [menuAberto, setMenuAberto] = useState(false);
   const [comentarios, setComentarios] = useState(() => totalDeComentarios(post.id));
   const menuRef = useRef<HTMLDivElement>(null);
@@ -143,20 +150,47 @@ export default function AcoesDoPost({
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => {
-                  setMenuAberto(false);
-                  toast({
-                    title: "Denúncia enviada",
-                    description: "Ninguém é avisado de que foi você.",
-                  });
-                }}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left text-[13px] transition-colors hover:bg-white/5"
-                data-testid={`denunciar-${post.id}`}
-              >
-                <Flag className="h-4 w-4 text-white/50" />
-                Denunciar
-              </button>
+              <>
+                {/*
+                  **Compartilhar = republicar no seu perfil** (§4.58). Não existe
+                  em post seu: ele já está no seu perfil e no feed, e não há o que
+                  espalhar — por isso a opção mora só neste ramo.
+                */}
+                <button
+                  onClick={() => {
+                    const agora = alternarCompartilhamento(post.id);
+                    setCompartilhado(agora);
+                    setMenuAberto(false);
+                    toast({
+                      title: agora ? "Compartilhado" : "Compartilhamento desfeito",
+                      description: agora
+                        ? "O post aparece no seu perfil e no feed, com o seu nome em cima."
+                        : undefined,
+                    });
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-[13px] transition-colors hover:bg-white/5"
+                  data-testid={`compartilhar-${post.id}`}
+                >
+                  <Repeat2
+                    className={`h-4 w-4 ${compartilhado ? "text-primary" : "text-white/50"}`}
+                  />
+                  {compartilhado ? "Desfazer compartilhamento" : "Compartilhar"}
+                </button>
+                <button
+                  onClick={() => {
+                    setMenuAberto(false);
+                    toast({
+                      title: "Denúncia enviada",
+                      description: "Ninguém é avisado de que foi você.",
+                    });
+                  }}
+                  className="flex w-full items-center gap-3 border-t border-white/[0.06] px-4 py-3 text-left text-[13px] transition-colors hover:bg-white/5"
+                  data-testid={`denunciar-${post.id}`}
+                >
+                  <Flag className="h-4 w-4 text-white/50" />
+                  Denunciar
+                </button>
+              </>
             )}
           </div>
         )}

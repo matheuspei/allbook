@@ -224,6 +224,27 @@ const DO_ESQUELETO: Post[] = [
   },
 ];
 
+/**
+ * O que a comunidade fictícia republicou.
+ *
+ * **Existe pelo mesmo motivo dos posts acima: para a forma existir no dia 1.**
+ * Sem nenhum compartilhamento à vista, quem abre a Comunidade não descobre que a
+ * ação existe — e um recurso que só aparece depois de você mesmo usá-lo é um
+ * recurso que ninguém usa. Uma pergunta é o melhor caso possível para mostrar:
+ * republicar uma pergunta é o gesto de quem quer ajudar a achar a resposta.
+ */
+const COMPARTILHADOS_DO_ESQUELETO: { porSlug: string; postId: string; date: string }[] = [
+  { porSlug: "felipe-g", postId: "p-esq-2", date: atras(3) },
+];
+
+export function compartilhamentosDoEsqueleto(): {
+  porSlug: string;
+  postId: string;
+  date: string;
+}[] {
+  return COMPARTILHADOS_DO_ESQUELETO;
+}
+
 /* ------------------------------------------------------------------ *
  * Os seus posts — escrever, editar, apagar
  * ------------------------------------------------------------------ */

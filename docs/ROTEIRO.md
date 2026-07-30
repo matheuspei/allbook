@@ -4990,11 +4990,11 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
    o tipo **pergunta** e o post de texto puro com tratamento tipográfico. Entraram
    junto a **menção com `@`**, o **editar** com selo, e o **filtro "Perguntas"** —
    este último porque sem ele o botão de pergunta era decoração. Detalhe na **§4.60**.
-3. 🔸 **QUASE — O feed** com as duas lentes (Feed · Seguindo), os cartões de
-   clube/fórum intercalados, curtir/comentar raso e compartilhar. **Feito em 30/07:**
-   as duas lentes, **comentar raso** (com curtir no comentário e a página
-   `/post/:id`). **Falta:** compartilhar e os cartões de clube/fórum intercalados.
-   Detalhe na **§4.62**. *(Curtir ainda falta no mural do clube, no fórum e no mural.)*
+3. ✅ **FEITO 30/07 — O feed** com as duas lentes (Feed · Seguindo), os cartões de
+   clube/fórum intercalados, curtir/comentar raso e compartilhar. As duas lentes e o
+   **comentar raso** (com curtir no comentário e a página `/post/:id`) estão na
+   **§4.62**; **compartilhar** e os **cartões de convite**, na **§4.64**.
+   *(Curtir ainda falta no mural do clube, no fórum e no mural — ver adiante.)*
 4. **O Seguindo**: atividade em linha + "ouvindo agora" + "combina com você"
    como cartão ocasional.
 5. **Convite para clube** pela página da pessoa, com aceitar no sino.
@@ -5476,6 +5476,87 @@ mesma coisa.
 
 *(E sim: mencionar autor e narrador **já funcionava** desde a §4.61, gerando link
 para `/person/:slug`. A dúvida dele era legítima — nada na tela dizia isso.)*
+
+---
+
+## 4.64 O item 3 fechado: compartilhar e os cartões de convite (30/07, noite)
+
+Faltavam duas peças do item 3 da ordem da §4.58 — **compartilhar** e os **cartões
+de clube e fórum intercalados**. As duas foram construídas na mesma passada, e o
+que se decidiu construindo está aqui.
+
+### Compartilhar guarda um id, nunca uma cópia
+
+A escolha parece detalhe de armazenamento e não é: **copiar o texto congelaria o
+post**. O autor pode editar (§4.58), e o selo "editado" existe justamente para
+avisar que o sentido mudou — uma cópia mostraria para sempre a versão antiga,
+sem selo nenhum. Guardando só o id (`lib/compartilhados.ts`), o compartilhamento
+**acompanha** o original: se ele muda, muda junto; se o autor apaga, some junto.
+Republicar não dá posse do que o outro escreveu.
+
+**Compartilhar post seu não existe** — ele já está no seu perfil e no feed, não
+há o que espalhar. A opção nem aparece no menu.
+
+### Ficou no "…", e não como terceiro botão da barra
+
+A §4.58 listou compartilhar dentro dos três pontinhos (*editar · apagar ·
+compartilhar · denunciar*), e ficou lá. **A alternativa considerada** era um
+terceiro ícone na barra, no estilo do "retweet": mais visível, alterna com um
+toque. Perdeu por uma razão de proporção — o gesto é raro perto de curtir e
+comentar, e três ícones, dos quais um quase nunca é usado, encolhem os dois que
+são. Fica registrado porque é troca defensável nos dois sentidos.
+
+### Linha em cima, não caixa dentro de caixa
+
+O post republicado aparece com uma linha *"Fulano compartilhou · há 3 h"* acima
+do cartão normal. **Aninhar o cartão original dentro de um segundo cartão foi
+rejeitado:** dobra as bordas e empurra a capa para dentro de uma moldura menor —
+num feed que se sustenta em capas, é perder exatamente o que faz o cartão
+funcionar (§4.59: capa não se corta).
+
+### O defeito que só a tela mostrou: o mesmo post duas vezes
+
+Compartilhado o post do Ricardo, o feed passou a mostrá-lo **duas vezes** — a
+versão com "Felipe compartilhou" e, três cartões abaixo, a original. As grandes
+redes convivem com isso porque entre as duas cópias passam centenas de posts;
+**aqui passam dois**, e a tela parece quebrada.
+
+**Regra que ficou: um post aparece uma vez, e quem ganha é o compartilhamento.**
+Como a lista é cronológica e o compartilhamento é sempre posterior, guardar a
+primeira ocorrência resolve sozinho. Nada se perde — o cartão continua com o
+autor, o texto e a data dele. E a limpeza é **por lente**: na "Seguindo" de quem
+não segue o Felipe, o compartilhamento nem entrou, e o original fica no lugar.
+
+### Os cartões de convite: onde entram, e por que ali
+
+Clube e fórum entram em **posições fixas contadas do topo** (o clube depois do 3º
+item, o fórum depois do 8º), e não por data — eles não têm data que valha. Assim
+a cronologia dos posts continua previsível, que era a decisão da §4.58.
+
+- **Nunca no topo.** A Comunidade é das pessoas; abrir com o app oferecendo coisa
+  inverte isso. Depois de três posts, quem chegou já leu gente antes de receber
+  convite.
+- **Nada é intercalado com menos de 4 itens.** Convite no meio de dois posts é
+  tempero; no meio de um, é a tela inteira.
+- **Só na lente "Todos".** A "Seguindo" responde a uma pergunta precisa — *o que
+  fez quem eu sigo* —, e clube que ninguém que você segue mencionou não é resposta
+  para ela.
+- **Etiqueta obrigatória em cima** (*"começa em 3 dias — dá para entrar do
+  começo"*, *"conversa no fórum"*). Sem ela o cartão lê como anúncio, e a pessoa
+  passa a desconfiar do resto da lista. A etiqueta é o que separa convite de
+  propaganda.
+
+**Qual clube:** prefere o que **ainda vai estrear**, e aqui está a diferença para
+a vitrine da tela de Clubes (que de propósito exclui esses, porque lá eles têm
+prateleira própria). No feed não há prateleira, e clube que não começou é o de
+maior valor para quem chega: dá para entrar no capítulo 1 em vez de alcançar a
+turma no meio do livro. **Clube lotado não entra** — convite para porta fechada é
+o beco sem saída da §4.23.
+
+**Qual tópico de fórum:** por **atividade recente**, não por tamanho. Um fio com
+40 respostas de três meses atrás está morto; um com 4 de ontem está acontecendo.
+Fio seu não entra: você não precisa ser convidado para a conversa que você mesmo
+começou.
 
 ---
 
