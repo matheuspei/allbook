@@ -6,6 +6,8 @@ import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import PageHeader from "@/components/PageHeader";
 import SeloDeMedalha from "@/components/SeloDeMedalha";
 import { ItemDoFeed } from "@/components/MuralDaComunidade";
+import CartaoDePost from "@/components/comunidade/CartaoDePost";
+import { postsDe } from "@/lib/posts";
 import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
 import { findMember, recommendationsOf } from "@/lib/community";
@@ -61,6 +63,7 @@ export default function UserProfile() {
   }
 
   const books = recommendationsOf(member);
+  const postsDela = postsDe(member.slug);
   // A atividade na língua do mural: avaliações e comentários, com a trava.
   // Recomendações ficam de fora — têm a vitrine própria nesta página.
   const atividade = muralDe(member.slug, ["avaliou", "comentou"]);
@@ -203,6 +206,29 @@ export default function UserProfile() {
               </p>
             </div>
           </Link>
+        </section>
+      )}
+
+      {/*
+        **Os posts dela vêm antes das recomendações** — a mesma decisão da §4.56
+        aplicada à página dos outros, e pela mesma razão: quem abre o perfil de
+        alguém quer ler o que a pessoa escreveu. Recomendação descreve o gosto
+        dela; o post é ela falando.
+
+        Some quando não há post nenhum: aqui não há caixa de escrever para
+        oferecer no lugar (a página é de outra pessoa), e um título com um vazio
+        embaixo é o que a §4.23 manda varrer.
+      */}
+      {postsDela.length > 0 && (
+        <section className="px-5 py-5 border-t border-white/10" data-testid="section-user-posts">
+          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+            Posts de {primeiroNome}
+          </h2>
+          <div className="space-y-3">
+            {postsDela.slice(0, 5).map((post) => (
+              <CartaoDePost key={post.id} post={post} semSeguir />
+            ))}
+          </div>
         </section>
       )}
 

@@ -19,97 +19,12 @@ import {
 import { playbackPercent, readPlaybackList, type Playback } from "@/lib/playback";
 import { readMyComments } from "@/lib/myComments";
 import { MURAL_EVENT, readMeusPosts } from "@/lib/mural";
-import { POSTS_EVENT, meusPosts, postPorId, type Post } from "@/lib/posts";
-import { findMember } from "@/lib/community";
-import { findPerson } from "@/lib/people";
+import { POSTS_EVENT, postsDe, type Post } from "@/lib/posts";
+import CartaoDePost from "@/components/comunidade/CartaoDePost";
+import Compositor from "@/components/comunidade/Compositor";
 import { readSettings } from "@/lib/settings";
 import { SEGUIDORES_EVENT, meusSeguidores, pedidosPendentes } from "@/lib/seguidores";
 import { catalog, type Book } from "@/lib/books";
-
-/**
- * Um post da Comunidade nova, reduzido ao que esta seção mostra: capa, rótulo,
- * destino e o texto que vai entre aspas.
- *
- * **Post sem capa nenhuma fica de fora** (devolve `undefined`), e não é
- * esquecimento: a lista é uma fileira de capinhas, e uma linha sem imagem abriria
- * um buraco no meio dela. O post continua vivo no feed — o que falta é o perfil
- * ganhar a forma de cartão, que é o item 6 da ordem da §4.58.
- */
-function alvoDoPost(
-  post: Post,
-): { texto: string; destino: { capa: string; rotulo: string; href: string } } | undefined {
-  const objeto = post.objeto;
-  if (!objeto) return undefined;
-
-  if (objeto.tipo === "livro") {
-    const livro = catalog.find((item) => item.id === objeto.bookId);
-    return livro
-      ? {
-          texto: post.texto,
-          destino: { capa: livro.cover, rotulo: livro.title, href: `/book/${livro.id}` },
-        }
-      : undefined;
-  }
-
-  if (objeto.tipo === "trecho") {
-    const livro = catalog.find((item) => item.id === objeto.citacao.bookId);
-    return livro
-      ? {
-          texto: post.texto,
-          destino: {
-            capa: livro.cover,
-            rotulo: `Trecho de ${livro.title}`,
-            href: `/post/${post.id}`,
-          },
-        }
-      : undefined;
-  }
-
-  if (objeto.tipo === "clube") {
-    const clube = clubePorId(objeto.clubeId);
-    const daVez = clube ? catalog.find((item) => item.id === clube.ciclo.bookId) : undefined;
-    return clube && daVez
-      ? {
-          texto: post.texto,
-          destino: {
-            capa: daVez.cover,
-            rotulo: `No clube ${clube.nome}`,
-            href: `/clube/${clube.id}`,
-          },
-        }
-      : undefined;
-  }
-
-  if (objeto.tipo === "pessoa") {
-    const pessoa = findPerson(objeto.slug);
-    const capa = pessoa ? [...pessoa.narrated, ...pessoa.wrote][0]?.cover : undefined;
-    return pessoa && capa
-      ? {
-          texto: post.texto,
-          destino: { capa, rotulo: pessoa.name, href: `/person/${pessoa.slug}` },
-        }
-      : undefined;
-  }
-
-  /*
-    **Compartilhamento.** A capa é a do post citado, e o texto é o seu — ou, no
-    recompartilhamento simples, o do autor original: sem isso a linha ficaria com
-    aspas vazias, que é pior do que não aparecer.
-  */
-  const citado = postPorId(objeto.postId);
-  if (!citado) return undefined;
-  const dele = alvoDoPost(citado);
-  if (!dele) return undefined;
-  const autor = citado.autorSlug ? findMember(citado.autorSlug)?.name : undefined;
-  return {
-    texto: post.texto.trim() || citado.texto,
-    destino: {
-      capa: dele.destino.capa,
-      rotulo: autor ? `Compartilhou de ${autor}` : "Compartilhou",
-      href: `/post/${citado.id}`,
-    },
-  };
-}
 
 /**
  * Uma fala sua — comentário num livro ou post do mural (de livro ou de
@@ -159,6 +74,8 @@ export default function Profile() {
   const [resumo, setResumo] = useState<ResumoDeAudicao | null>(null);
   const [tocando, setTocando] = useState<Playback | null>(null);
   const [falas, setFalas] = useState<FalaMinha[]>([]);
+  /** Os seus posts, em cartão — a peça que faltava no perfil (§4.56). */
+  const [postsNoPerfil, setMeusPostsNoPerfil] = useState<Post[]>([]);
   const [clubes, setClubes] = useState<Clube[]>([]);
   /** Prévia honesta: esconde tudo que só o dono vê. */
   const [visitante, setVisitante] = useState(false);
@@ -238,27 +155,12 @@ export default function Profile() {
       return alvo ? [{ id: item.id, texto: item.texto, date: item.date, ...alvo }] : [];
     });
 
-    /*
-      **Os posts da Comunidade nova entram aqui** (30/07).
-
-      O perfil lia só os comentários e o mural antigo, e por isso **o que você
-      compartilhava não aparecia na sua página** — o que fazia a promessa do
-      compartilhar ("republicar no seu perfil", §4.58) ser meia verdade. Isto é o
-      remendo honesto até o item 6 da ordem chegar (o perfil girando em torno dos
-      posts, §4.56), que é quando esta seção deixa de ser uma lista de três
-      linhas e passa a mostrar os cartões inteiros.
-    */
-    const dosNovosPosts: FalaMinha[] = meusPosts().flatMap((post) => {
-      const alvo = alvoDoPost(post);
-      if (!alvo) return [];
-      return [{ id: post.id, texto: alvo.texto, date: post.date, ...alvo.destino }];
-    });
-
     setFalas(
-      [...dosComentarios, ...dosPosts, ...dosNovosPosts]
+      [...dosComentarios, ...dosPosts]
         .sort((a, b) => b.date.localeCompare(a.date))
         .slice(0, 3),
     );
+    setMeusPostsNoPerfil(postsDe());
   }
 
   const selos = resumo
@@ -520,6 +422,44 @@ export default function Profile() {
           </Link>
         </section>
       )}
+
+      {/*
+        **Os posts vêm antes de tudo** — item 6 da ordem da §4.58, decidido na
+        §4.56 com estas palavras do Matheus: *"os posts que a pessoa escreveu têm
+        que estar aqui no perfil, e não estão hoje. Isso é um erro gravíssimo."*
+        Ele tem razão pelo que o perfil é: quem abre a página de alguém quer ler o
+        que a pessoa escreveu. Recomendação, clube e comentário descrevem; o post
+        **é** a pessoa falando.
+
+        **E dá para publicar daqui**, sem passar pela Comunidade — o outro pedido
+        da §4.56. O post nasce no perfil e vai para o feed geral do mesmo jeito:
+        o que se escreve é público (regra assimétrica da §4.53), e ter dois
+        lugares de escrever com resultados diferentes seria a armadilha.
+      */}
+      <section className="border-b border-white/10 px-5 py-5" data-testid="section-profile-posts">
+        <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+          {visitante ? "Posts" : "Meus posts"}
+        </h2>
+
+        {!visitante && <Compositor />}
+
+        {postsNoPerfil.length > 0 ? (
+          <div className={`space-y-3 ${visitante ? "" : "mt-3"}`}>
+            {postsNoPerfil.slice(0, 5).map((post) => (
+              <CartaoDePost key={post.id} post={post} />
+            ))}
+          </div>
+        ) : (
+          /* Sem post nenhum a seção **não some**: sumir esconderia justamente o
+             lugar de começar. Some só na prévia de visitante, onde uma caixa de
+             escrever não faz sentido. */
+          !visitante && (
+            <p className="mt-3 text-[12px] leading-relaxed text-white/35">
+              O que você escrever aqui aparece na sua página e no feed da Comunidade.
+            </p>
+          )
+        )}
+      </section>
 
       <section className="border-b border-white/10 px-5 py-5" data-testid="section-profile-recommendations">
         <div className="mb-4 flex items-center justify-between">

@@ -707,6 +707,18 @@ export function todosOsPosts(): Post[] {
   ].sort((a, b) => b.date.localeCompare(a.date));
 }
 
+/**
+ * Os posts de uma pessoa, para a página dela. **Sem slug = os seus.**
+ *
+ * Sai de `todosOsPosts` de propósito, e não de `lerMeus`: os seus posts moram em
+ * **dois** armazenamentos (o novo e o mural herdado), e a página do perfil não
+ * tem por que saber disso. É a mesma razão pela qual `apagarMeuPost` tenta nos
+ * dois.
+ */
+export function postsDe(slug?: string): Post[] {
+  return todosOsPosts().filter((post) => post.autorSlug === slug);
+}
+
 /** Só os de quem você segue (mais os seus) — a lente "Seguindo". */
 export function postsDeQuemVoceSegue(seguindo: string[]): Post[] {
   return todosOsPosts().filter(

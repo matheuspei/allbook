@@ -4999,7 +4999,10 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
    quem você segue) + "combina com você" como cartão ocasional. Junto morreu a
    aba Pessoas, e a Comunidade ficou com duas abas. Detalhe na **§4.65**.
 5. **Convite para clube** pela página da pessoa, com aceitar no sino.
-6. **O perfil girando em torno dos posts** (§4.56) — depende de 1 e 2.
+6. 🔸 **QUASE — O perfil girando em torno dos posts** (§4.56). **Feito em 30/07:**
+   os posts em cartão na sua página e na dos outros, e publicar direto do perfil.
+   **Falta:** recomendações/comentários/clubes virarem ícones no topo — depende de
+   páginas de destino que ainda não existem. Detalhe na **§4.66**.
 
 **Fora do caminho crítico, e independentes** (dá para fazer a qualquer momento):
 renomear o clube · votação de 2 a 5 opções · lista de espera com teto de 250 ·
@@ -5653,6 +5656,42 @@ gente de novo.
   **Ressalva registrada:** com isso o app ficou **sem nenhuma lista de todos os
   leitores**, e a Busca hoje não procura pessoas. Se isso incomodar, o lugar
   dessa lista é a **Busca**, não uma aba da Comunidade.
+
+---
+
+## 4.66 O perfil ganhou os posts (30/07, noite) — item 6, em parte
+
+A §4.56 registrou o diagnóstico do Matheus com todas as letras: *"os posts que a
+pessoa escreveu têm que estar aqui no perfil, e não estão hoje. Isso é um erro
+gravíssimo."* Ele estava guardado esperando o post existir no formato novo. Agora
+existe.
+
+### O que entrou
+
+1. **Os posts vêm primeiro**, em cartão inteiro (o mesmo do feed), na sua página
+   e na dos outros. Recomendação, clube e comentário **descrevem** a pessoa; o
+   post **é** a pessoa falando — e quem abre um perfil quer ler isso.
+2. **Dá para publicar do perfil** (o compositor no topo da seção), sem passar
+   pela Comunidade. O post nasce ali e vai para o feed geral do mesmo jeito: o
+   que se escreve é público (§4.53), e dois lugares de escrever com resultados
+   diferentes seriam armadilha.
+3. **Sem post nenhum, a seção não some na sua página** — some só na prévia de
+   visitante. Sumir esconderia justamente o lugar de começar.
+4. **O "Seguir" sai dos cartões dentro da página da pessoa** (`semSeguir`): o
+   botão já está no alto, e repeti-lo em cinco cartões é oferecer cinco vezes a
+   mesma coisa — a poluição que eu temia quando ele entrou no cartão (§4.58). No
+   feed ele continua, porque lá cada cartão é de alguém diferente.
+
+### O que ficou de fora, e por quê
+
+**O item 2 da §4.56 — recomendações, comentários e clubes virarem ícones no topo,
+cada um abrindo a sua página.** Não foi construído porque **as páginas de destino
+não existem**: hoje `/profile/recommendations` é a tela de *editar* a lista, e
+não há página de "os comentários de fulano" nem de "os clubes de fulano". Fazer o
+ícone antes do destino seria criar três botões mortos, que é o oposto da §4.23.
+
+**Fica como o próximo passo do item 6**, e é uma decisão de forma que vale ver
+desenhada antes de sair construindo: três ícones no topo mudam a cara da página.
 
 ---
 

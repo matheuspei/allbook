@@ -55,9 +55,19 @@ export default function CartaoDePost({
   /** Na página de um post só, a conversa já vem aberta. */
   abrirSempre,
   compartilhamento,
+  semSeguir,
 }: {
   post: Post;
   abrirSempre?: boolean;
+  /**
+   * Esconde o "Seguir" do cabeçalho.
+   *
+   * Existe para a **página da pessoa**: ali o botão já está no alto, e repeti-lo
+   * em cada post é oferecer cinco vezes a mesma coisa — a poluição que eu temia
+   * quando o botão entrou no cartão (§4.58). No feed ele continua, porque lá cada
+   * cartão é de alguém diferente e é a única chance de seguir.
+   */
+  semSeguir?: boolean;
   /**
    * Quem republicou este post, quando ele chega ao feed por compartilhamento.
    * `porSlug` ausente = **você**.
@@ -95,6 +105,7 @@ export default function CartaoDePost({
       <CartaoDePost
         post={citado}
         abrirSempre={abrirSempre}
+        semSeguir={semSeguir}
         compartilhamento={{ porSlug: post.autorSlug, date: post.date }}
       />
     );
@@ -165,7 +176,7 @@ export default function CartaoDePost({
           poder **deixar de seguir** dali mesmo. O estado apagado (sem anel,
           texto fraco) é o que evita a poluição que me preocupava.
         */}
-        {!ehMeu && (
+        {!ehMeu && !semSeguir && (
           <button
             onClick={() => {
               if (post.autorSlug) setSeguindo(toggleFollow(post.autorSlug));
