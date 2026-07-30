@@ -3,6 +3,7 @@ import { EyeOff, Lock, Shield, Trash2 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import AnexarTrecho from "@/components/AnexarTrecho";
+import BotaoDeCurtir from "@/components/comunidade/BotaoDeCurtir";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { type Citacao } from "@/lib/citacoes";
 import { EU, capituloCombinado, corDoMembro, meuCapitulo, souDono, type Clube } from "@/lib/clubes";
@@ -269,6 +270,15 @@ function Mensagem({
           {/* O trecho fica junto do texto, atrás do mesmo véu: 40 segundos do
               capítulo 9 entregam tanto quanto a frase (ROTEIRO 4.43). */}
           {mensagem.citacao && <CitacaoDeAudio citacao={mensagem.citacao} />}
+
+          {/* **Curtir chegou ao mural do clube** (30/07). A §4.58 tinha medido a
+              falta: a mesma ação existia na conversa do livro e no feed e não
+              aqui, e ação que existe em metade dos lugares obriga a pessoa a
+              tentar para descobrir onde vale. Fica **debaixo do véu**: curtir uma
+              fala que você ainda não pode ler seria curtir no escuro. */}
+          <div className="mt-2">
+            <BotaoDeCurtir id={mensagem.id} deOutraPessoa={!ehMinha} />
+          </div>
         </>
       )}
 

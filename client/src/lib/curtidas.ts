@@ -63,12 +63,27 @@ export function alternarCurtida(postId: string): boolean {
  * esqueleto são `p-esq-…` (post) e `c-esq-…` (comentário); os seus são `…-meu-…` e
  * caem no zero.
  */
-export function curtidasDoPost(id: string): number {
-  const doEsqueleto = id.startsWith("p-esq-") || id.startsWith("c-esq-");
-  if (!doEsqueleto) return 0;
+export function curtidasDoPost(
+  id: string,
+  opcoes: {
+    /**
+     * A fala é de outra pessoa? **Quem sabe é a tela**, e por isso isto é
+     * parâmetro em vez de adivinhação: no fórum e no mural do clube os ids não
+     * seguem um padrão que diga de quem é (`t-x-r0` para o esqueleto,
+     * `minha-r-…` para as suas), e adivinhar pelo formato faria o app fingir
+     * curtidas no que **você** escreveu — a mentira mais fácil de perceber.
+     */
+    deOutraPessoa?: boolean;
+    /** "fala" é a escala pequena: resposta de fórum, comentário, mural. */
+    escala?: "post" | "fala";
+  } = {},
+): number {
+  const deOutra = opcoes.deOutraPessoa ?? (id.startsWith("p-esq-") || id.startsWith("c-esq-"));
+  if (!deOutra) return 0;
   let semente = 0;
   for (let i = 0; i < id.length; i += 1) semente = (semente * 31 + id.charCodeAt(i)) % 9973;
   /* Comentário ganha número menor que post: uma resposta com 12 corações e o
      post com 3 seria a hierarquia invertida, e a tela contaria uma mentira. */
-  return id.startsWith("c-esq-") ? semente % 6 : semente % 14;
+  const escala = opcoes.escala ?? (id.startsWith("c-esq-") ? "fala" : "post");
+  return escala === "fala" ? semente % 6 : semente % 14;
 }

@@ -4994,7 +4994,7 @@ Fundação"*. Sem menção, o segundo livro é texto morto.
    clube/fórum intercalados, curtir/comentar raso e compartilhar. As duas lentes e o
    **comentar raso** (com curtir no comentário e a página `/post/:id`) estão na
    **§4.62**; **compartilhar** e os **cartões de convite**, na **§4.64**.
-   *(Curtir ainda falta no mural do clube, no fórum e no mural — ver adiante.)*
+   *(O curtir que faltava no fórum e no mural do clube entrou em 30/07 — §4.67.)*
 4. ✅ **FEITO 30/07 — O Seguindo**: atividade em linha + "ouvindo agora" (só de
    quem você segue) + "combina com você" como cartão ocasional. Junto morreu a
    aba Pessoas, e a Comunidade ficou com duas abas. Detalhe na **§4.65**.
@@ -5692,6 +5692,44 @@ não há página de "os comentários de fulano" nem de "os clubes de fulano". Fa
 
 **Fica como o próximo passo do item 6**, e é uma decisão de forma que vale ver
 desenhada antes de sair construindo: três ícones no topo mudam a cara da página.
+
+---
+
+## 4.67 O curtir deixou de existir pela metade (30/07, noite)
+
+A §4.58 registrou uma desconfiança do Matheus, medida e confirmada: **curtir
+existia só na conversa do livro e no feed** — faltava no fórum e no mural do
+clube. Ação que existe em metade dos lugares obriga a pessoa a **tentar** para
+descobrir onde vale, e é assim que ela para de tentar em tudo.
+
+**Agora existe um componente só** (`BotaoDeCurtir`), usado nos dois lugares que
+faltavam. Ter um componente é o que impede a metade de voltar: quem criar a
+próxima lista de falas usa ele, em vez de decidir de novo.
+
+Três decisões que vieram com ele:
+
+- **Alvo de toque grande** (`py-3 -my-3`), a lição da §4.63 aplicada antes de o
+  defeito acontecer: o padding faz os 44px que Apple e Google pedem, e a margem
+  negativa devolve o espaço ao layout.
+- **Quem é o autor é a tela que diz**, não o formato do id (`deOutraPessoa`). No
+  fórum e no mural os ids não seguem padrão que revele o dono, e adivinhar faria
+  o app fingir curtidas no que **você** escreveu.
+- **No mural do clube, o curtir fica debaixo do véu de spoiler**: curtir uma fala
+  que você ainda não pode ler seria curtir no escuro.
+
+### "Não ter servidor não impede" — a régua repetida pelo Matheus
+
+Ele voltou ao ponto que já tinha vencido na §4.58 (item 8):
+
+> *"A questão de não haver ainda um servidor não impede que você faça isso,
+> porque o servidor vai existir já na segunda etapa do app."*
+
+**Vale como régua permanente:** a ausência de back-end **não** é argumento para
+não construir, nem para construir menos. O app inteiro é maquete esperando
+servidor; se isso bloqueasse, bloquearia tudo. O que a falta de servidor muda é
+só **de onde vem o número** — e isso é uma troca de fonte, não uma mudança de
+tela. Quando aparecer a vontade de escrever "isto fica para quando houver
+servidor", o certo é construir e deixar a fonte de dados isolada.
 
 ---
 
