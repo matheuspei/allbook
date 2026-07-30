@@ -4882,9 +4882,9 @@ adiante, com as recomendações, para se entender de onde cada decisão veio.**
    interações** (curtiram, comentaram, responderam ao seu comentário).
    - **Curtidas chegam agrupadas** — *"Ana e mais 3 curtiram seu post"*, nunca
      um aviso por curtida: sino em enxurrada é sino que se ignora.
-   - **Descurtida: recomendo não notificar** (em aberto, decisão dele). É a
-     única da lista que não gera ação nenhuma — não dá para responder,
-     corrigir nem conversar com ela. Só machuca.
+   - **Descurtida NÃO gera notificação** — recomendei e o Matheus concordou. É a
+     única da lista que não gera ação nenhuma: não dá para responder, corrigir
+     nem conversar com ela. Só machuca. **Decidido.**
 3. **Editar o próprio post: pode** — o Matheus discordou de mim e venceu com a
    prática das grandes plataformas. **Condição que ficou: selo "editado"**, que
    resolve a objeção original (sem ele, o autor vira o sentido do texto e faz os
@@ -4894,7 +4894,9 @@ adiante, com as recomendações, para se entender de onde cada decisão veio.**
 5. **Botão "seguir" no cartão do post: entra** — eu era contra por poluição, ele
    discordou. **Refinamento aceito:** aparece **só se você ainda não segue**, e
    some depois — não vira "Seguindo ✓" ocupando espaço para sempre.
-6. **A caixa de escrever fica no topo do feed** (e a mesma no perfil, §4.56).
+6. **A caixa de escrever fica no topo do feed** (e a mesma no perfil, §4.56) —
+   **assumido por mim, sem objeção dele**, não confirmado em palavras. Registrado
+   assim de propósito: quando ele revisar, sabe que este é meu e não dele.
    Sem botão flutuante, que tapa conteúdo. *(Termo "compositor" era jargão meu;
    ele pediu para explicar, e está explicado aqui.)*
 
@@ -4999,6 +5001,112 @@ renomear o clube · votação de 2 a 5 opções · lista de espera com teto de 2
 
 ---
 
+## 4.59 O cartão do post, construído — e o que se decidiu construindo (29/07)
+
+**A primeira peça da Comunidade nova foi ao código.** As decisões abaixo nasceram
+**fazendo e olhando**, e é por isso que estão aqui e não na §4.58: aquela é o
+plano; esta é o que a mão descobriu.
+
+### A regra que vale para todo cartão do app: capa não se corta
+
+Meu primeiro cartão punha a capa numa faixa horizontal com `object-cover`. Capa
+de livro é **retrato** (2:3) — o recorte comia a arte, e no cartão do Duna o
+título do livro sumia. O Matheus achou perguntando *"o que você acha desse
+formato?"*, e a cobrança seguinte foi mais dura e certeira: eu tinha consertado
+**só o cartão de livro** e deixado o de clube e o de trecho com o mesmo defeito.
+
+> **Se cortar a arte é ruim num, é ruim nos três.** Num app onde a capa é a peça
+> de design mais cuidada do produto, usá-la como textura de fundo é desperdício.
+
+**O formato que ficou, igual nos três:** capa **inteira** em retrato à esquerda; o
+fundo é **ela mesma desfocada** (o truque que o topo do player já usava — não é
+invenção, é a identidade da casa); as informações à direita. O que muda entre eles
+é só o que cada um precisa: barra de play no trecho, selo + rodapé no clube, botão
+no livro. **Três cartões, uma gramática.**
+
+### "Quem aparece no app tem página"
+
+O Matheus notou que *"moderado por Elias"* não era clicável. A causa era funda: os
+**16 figurantes** dos clubes eram declarados dentro de `clubes.ts` com só slug,
+nome e cor — **não existiam como pessoas em lugar nenhum**. Foram promovidos a
+`community.ts`, com bio, e a lista duplicada saiu (nome em dois lugares diverge
+cedo ou tarde).
+
+> **Nome que a interface mostra e não deixa abrir é beco sem saída.** Vale para
+> qualquer tela nova: se aparece um nome, ele tem página.
+
+Entraram com **bio e nada mais inventado** — sem horas fabricadas em massa, sem
+recomendações falsas.
+
+### Cada parte do cartão leva ao seu lugar
+
+Pedido dele, aplicado nos três: título → a ficha; **autor e narrador** →
+`/person/:slug` (a tela já servia os dois desde sempre); o livro da vez do clube →
+a ficha dele; o moderador → a página dele; **"4 pessoas"** → a folha com a turma,
+cada nome clicável; **"6 etapas"** → o clube; e o **carimbo do momento** no trecho
+→ o player naquele ponto.
+
+Duas coisas que isso ensinou:
+
+- **Número que descreve algo existente e não leva até ele é informação que morre
+  na tela.**
+- **A folha da turma abre sem sair do feed**, porque ver quem está numa turma é
+  curiosidade de passagem — trocar de tela por isso faria perder o lugar na
+  rolagem.
+
+### O trecho toca dentro do cartão
+
+*"Não faz sentido nenhum ele te levar para o áudio do livro; ele tem que ser
+reproduzido aqui dentro."* Certo — um trecho de 40s que exige trocar de tela não é
+trecho, é link. O play deixou de navegar; a capa continua sendo a porta do livro.
+
+⚠️ **Limitação registrada no código:** o AllBook **não tem áudio** — nem o player
+do livro toca som, ele avança um relógio. O componente faz o **comportamento**
+certo (toca, a onda acende, o tempo corre, para no fim); quando o áudio existir,
+entra um `<audio>` no lugar do relógio e a tela não muda.
+
+### Curtir: só curtir, sem descurtir
+
+**Decisão nova, tomada construindo.** `reactions.ts` tem os dois lados, mas é da
+**conversa do livro**, onde a discordância visível é parte do jogo (§4.39). No
+feed é diferente: **post é fala de alguém**, e um contador de "não gostei" embaixo
+dela azeda o feed. Então `lib/curtidas.ts` só sabe curtir.
+
+- **O contador dos outros é simulado e estável** (semente pelo id), como o
+  progresso dos membros do clube: instável, o número mudaria a cada desenho e a
+  interface mentiria de forma visível.
+- **Os seus posts começam em zero.** Fingir que estranhos curtiram o que você
+  acabou de escrever é a mentira mais fácil de perceber — e a que desmoraliza
+  todo o resto.
+
+### O que foi deixado de fora, e não é esquecimento
+
+- **Comentar e compartilhar** não entraram na barra ainda: **botão sem mecanismo é
+  beco sem saída**, e num feed é pior — a pessoa toca, nada acontece, e para de
+  tocar em tudo. Entram com o modelo próprio de posts.
+- **O selo "Perguntou" foi removido.** Dúvida dele: *"fico me questionando se ele
+  faz sentido"*. Faz — mas só quando existirem as respostas embaixo e o filtro
+  "sem resposta". Sozinho é rótulo. `post.pergunta` continua no modelo, esperando.
+- **"Seguindo" em vez de o botão sumir:** eu queria que ele desaparecesse depois
+  de cumprir a função; ele discordou (*"é o padrão das redes sociais"*) e ganhou
+  um argumento que eu não tinha: assim dá para **deixar de seguir** dali mesmo.
+  Usei estado apagado para atender à minha preocupação com poluição.
+- **Post não aponta para fórum.** Os objetos são três: livro, trecho, clube. Eu
+  recomendei deixar o fórum de fora e ele não objetou — três formas já dão
+  trabalho de desenhar bem, e "post que aponta para um tópico" é raro na prática.
+- **Os posts antigos do mural foram herdados**, não apagados. Quando perguntei,
+  ele disse *"tanto faz; pode deixar os que já tem lá"* — e herdar é o que mantém
+  o Perfil funcionando sem alteração.
+
+### Detalhe de data, que veio de um mal-entendido útil
+
+Eu havia escrito que não acrescentaria "selo de novo" (o tempo já está no cartão),
+e ele leu como se eu fosse tirar a data — e defendeu que **data é importante**.
+Está: "há 2 h", "ontem". A conversa rendeu uma melhoria de verdade: **passados 7
+dias, vira data absoluta** ("12 jul"), porque "há 3 semanas" obriga a fazer conta.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
@@ -5044,6 +5152,25 @@ para tarefas maiores. Enviar pro GitHub com frequência (backup + histórico).
 O fluxo de como o trabalho pensado na nuvem chega ao computador está definido:
 construção via Claude Code, no Cursor. Detalhes no documento "AllBook — Fluxo de
 Trabalho", no Cowork.
+
+### Qual modelo usar neste projeto (perguntado em 29/07)
+
+O Matheus perguntou qual modelo da Anthropic seria melhor, pensando só em
+qualidade. A recomendação, e o motivo é **específico daqui**:
+
+- **Opus, com contexto grande e esforço alto**, para desenho e decisão. O
+  trabalho difícil no AllBook não é escrever React — é **não contradizer o que já
+  foi decidido**: este roteiro passa de 5.000 linhas e as seções se referem umas
+  às outras ("a §4.53 decidiu X, então a §4.57 não pode Y"). Isso pede contexto
+  grande e raciocínio longo.
+- **Sonnet**, para trabalho mecânico e em volume: aplicar um padrão em vinte
+  arquivos, renomear, migrar.
+- **Sobre o Fable: não há recomendação** — quem respondeu não conhecia o perfil
+  dele o bastante para opinar sem chutar. Fica registrado como não avaliado.
+
+**E o que pesa mais que o modelo:** construir em pedaços pequenos e verificáveis,
+testar cada um no navegador antes de seguir, e registrar a decisão na hora. Foi
+isso que fez o dia 29/07 render seis seções deste roteiro.
 
 ---
 
