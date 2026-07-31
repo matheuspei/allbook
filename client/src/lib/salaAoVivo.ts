@@ -375,10 +375,6 @@ export function souAnfitriao(sala: SalaAoVivo): boolean {
   return sala.anfitriao === EU;
 }
 
-export function estouDentro(sala: SalaAoVivo): boolean {
-  return sala.presentes.includes(EU);
-}
-
 /* ------------------------------------------------------------------ */
 /* O que a tela mostra                                                 */
 /* ------------------------------------------------------------------ */

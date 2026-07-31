@@ -110,10 +110,6 @@ export function enquetesDe(grupoId: string): Enquete[] {
   );
 }
 
-export function enquetePorId(id: string): Enquete | undefined {
-  return [...SEMEADAS, ...ler<Enquete>(ENQUETES_CHAVE)].find((item) => item.id === id);
-}
-
 /** Cria uma enquete. Precisa de pergunta e de ao menos duas opções com texto. */
 export function criarEnquete(
   grupoId: string,

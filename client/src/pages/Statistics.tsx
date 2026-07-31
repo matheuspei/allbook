@@ -26,7 +26,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
 import { achievements, unlockedCountFor } from "@/lib/achievements";
 import { catalog, slugify } from "@/lib/books";
 import { readFollowing } from "@/lib/following";
@@ -45,7 +44,6 @@ import {
   porDiaDaSemana,
   porFaixaDoDia,
   porLivro,
-  segundosNaJanela,
   prazoLegivel,
   previsaoDeTermino,
   serieDiaria,
@@ -131,7 +129,6 @@ function somarDias(data: Date, dias: number): Date {
 }
 
 export default function Statistics() {
-  const { toast } = useToast();
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
   /**
    * O gráfico abre em "12 semanas", não em "7 dias": a seção "Sua semana" logo

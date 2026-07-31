@@ -5,7 +5,6 @@ import { BookHeart, Check, MessageSquareQuote, Plus, UserPlus, Users } from "luc
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import PageHeader from "@/components/PageHeader";
 import SeloDeMedalha from "@/components/SeloDeMedalha";
-import { ItemDoFeed } from "@/components/ItemDoFeed";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
 import PortasDoPerfil from "@/components/PortasDoPerfil";
 import { postsDe } from "@/lib/posts";

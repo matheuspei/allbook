@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { avatarDeLeitor } from "@/lib/community";
 import { Link } from "wouter";
-import { ArrowRight, CalendarDays, MessageSquare, Plus, Search, Sparkles, Users, X } from "lucide-react";
+import { CalendarDays, MessageSquare, Plus, Search, Sparkles, Users, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { catalog, type Book } from "@/lib/books";
@@ -12,12 +11,10 @@ import {
   clubesComecando,
   buscarClubes,
   clubesParaDescobrir,
-  corDoMembro,
   dataCurta,
   estreiaEmTexto,
   meuCapitulo,
   meusClubes,
-  nomeDoMembro,
   prazoEmTexto,
   todosOsClubes,
   topicosDeClube,
@@ -283,31 +280,6 @@ function Secao({
       </h2>
       {children}
     </section>
-  );
-}
-
-/** Avatares empilhados + contagem — quem já está lá dentro. */
-function Avatares({ clube }: { clube: Clube }) {
-  return (
-    <span className="flex min-w-0 items-center gap-2">
-      <span className="flex shrink-0">
-        {clube.membros.slice(0, 4).map((slug, indice) => (
-          <span
-            key={slug}
-            className={`grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(
-              slug,
-            )} font-display text-[11px] font-bold ring-2 ring-black/40 ${indice > 0 ? "-ml-2.5" : ""}`} {...avatarDeLeitor(
-              slug,
-            )}
-          >
-            {nomeDoMembro(slug).charAt(0)}
-          </span>
-        ))}
-      </span>
-      <span className="truncate text-[11px] text-white/45">
-        {clube.membros.length} {clube.membros.length === 1 ? "pessoa" : "pessoas"}
-      </span>
-    </span>
   );
 }
 

@@ -7,8 +7,6 @@ import Topicos from "@/components/forum/TopicosDoForum";
 import {
   AvatarDoForum,
   Bloco,
-  BotaoDoForum,
-  CAMPO,
   Campo,
   CapaDaComunidade,
   LinkDoForum,
@@ -30,22 +28,11 @@ import {
   membrosDo,
   pedirEntrada,
   porExtenso,
-  possoCriar,
   possoLer,
   situacaoDe,
   souModerador,
 } from "@/lib/forum";
-import {
-  MAX_TITULO,
-  GRUPOS_EVENT,
-  alternarParticipacao,
-  alternarFixado,
-  alternarTopicoEscondido,
-  apagarMeuTopico,
-  criarTopico,
-  topicosDa,
-  type TopicoNaTela,
-} from "@/lib/grupos";
+import { GRUPOS_EVENT, alternarParticipacao } from "@/lib/grupos";
 
 /**
  * A página de uma **comunidade** (`/forum/:id`).
@@ -81,9 +68,6 @@ export default function Grupo() {
   const id = params.id ?? "";
 
   const [grupo, setGrupo] = useState(() => forumNaTela(id));
-  const [topicos, setTopicos] = useState<TopicoNaTela[]>([]);
-  const [criando, setCriando] = useState(false);
-  const [titulo, setTitulo] = useState("");
   /* Só para redesenhar quando algo muda por fora do React (ver o comentário
      junto ao `<div>` do corpo). O número em si não é lido. */
   const [, setVersao] = useState(0);
@@ -91,7 +75,6 @@ export default function Grupo() {
   useEffect(() => {
     const atualizar = () => {
       setGrupo(forumNaTela(id));
-      setTopicos(topicosDa(id));
       setVersao((n) => n + 1);
     };
     atualizar();
@@ -118,7 +101,6 @@ export default function Grupo() {
 
   const config = configDo(id);
   const situacao = situacaoDe(id);
-  const dentro = situacao === "dentro";
   const membros = membrosDo(id);
   const moderadores = membros.filter((m) => m.papel === "moderador");
   const dono = donoDo(id);

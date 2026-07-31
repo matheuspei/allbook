@@ -1086,14 +1086,6 @@ export function criarGrupo(nome: string, emoji: string, descricao: string): Grup
   return grupo;
 }
 
-/** Apaga um grupo seu — os tópicos e respostas que você criou nele vão junto. */
-export function apagarMeuGrupo(id: string): void {
-  gravarLista(MEUS_GRUPOS_KEY, lerLista<Grupo>(MEUS_GRUPOS_KEY).filter((g) => g.id !== id));
-  gravarLista(PARTICIPO_KEY, lerLista<string>(PARTICIPO_KEY).filter((p) => p !== id));
-  for (const topico of meusTopicos().filter((t) => t.grupoId === id)) {
-    apagarMeuTopico(topico.id);
-  }
-}
 
 /** Todos os grupos que existem: os semeados e os seus. */
 export function todosOsGrupos(): Grupo[] {
@@ -1483,28 +1475,6 @@ export function alternarSpoiler(grupoId: string, respostaId: string): boolean {
   return alternar(grupoId, "spoilers", respostaId);
 }
 
-/** O que você escondeu neste fórum — para poder devolver. */
-export function escondidosDo(grupoId: string): { topicos: string[]; respostas: string[] } {
-  const estado = lerModeracao();
-  const idsDoGrupo = new Set(topicosSemeados.filter((t) => t.grupoId === grupoId).map((t) => t.id));
-  for (const meu of meusTopicos().filter((t) => t.grupoId === grupoId)) idsDoGrupo.add(meu.id);
-  return {
-    topicos: estado.topicos.filter((id) => idsDoGrupo.has(id)),
-    respostas: estado.respostas,
-  };
-}
-
-/**
- * Dá para apagar este fórum?
- *
- * Só enquanto ele for **só seu**: nenhum tópico de outra pessoa dentro. Depois
- * disso, apagar destruiria o que os outros escreveram — e a tela oferece
- * esconder conteúdo, não demolir a casa.
- */
-export function podeApagarGrupo(grupoId: string): boolean {
-  if (!souDonoDo(grupoId)) return false;
-  return topicosDa(grupoId, { incluirEscondidos: true }).every((topico) => topico.meu);
-}
 
 /** Os tópicos de umo grupo: fixado primeiro, depois pela última atividade. */
 export function topicosDa(

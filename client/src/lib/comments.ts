@@ -23,7 +23,6 @@
  * gente de verdade.
  */
 
-import { catalog, type Book } from "@/lib/books";
 import { findMember, type CommunityMember } from "@/lib/community";
 
 export interface Comment {

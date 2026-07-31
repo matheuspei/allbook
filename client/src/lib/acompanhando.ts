@@ -143,11 +143,6 @@ export function linkDoAlvo(alvo: Alvo): string {
   return `/person/${alvo.slug}`;
 }
 
-/** A foto do alvo, quando existe — as editoras e o Studio não têm. */
-export function fotoDoAlvo(alvo: Alvo): string | undefined {
-  return alvo.tipo === "pessoa" ? findPerson(alvo.slug)?.photo : undefined;
-}
-
 /** O papel por extenso, para a linha embaixo do nome na lista. */
 export function papelDoAlvo(alvo: Alvo): string {
   if (alvo.tipo === "editora") return "Editora";

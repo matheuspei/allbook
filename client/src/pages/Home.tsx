@@ -1,6 +1,6 @@
 import { Play, Star, ChevronRight, ChevronDown, Info, MoreVertical, X } from "lucide-react";
 import { useLocation } from "wouter";
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 import {
   catalog,

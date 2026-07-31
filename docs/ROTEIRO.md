@@ -7397,6 +7397,41 @@ tomada — todas recuperáveis no git, no commit desta seção):
    lista, downloads e progresso, mas **não zera as horas das Estatísticas** —
    decidir se deve zerar é decisão de produto, em aberto.
 
+### Segunda passada, na mesma noite — *"não tem mais nada pra ser limpo?"*
+
+Ele perguntou, e tinha. Três frentes que a primeira passada não cobriu:
+
+1. **Os 8 exports adiados caíram.** As libs de clube e fórum saíram de obra
+   (árvore limpa, quadro sem faixa declarada), e `estouNaFila`, `estouDentro`,
+   `ehModerador`, `enquetePorId`, `apagarMeuGrupo`, `escondidosDo`,
+   `podeApagarGrupo` e `fotoDoAlvo` continuavam com **zero usos** — cortados.
+   ⚠️ `apagarMeuGrupo`/`podeApagarGrupo` são a versão antiga (pré-§4.74) do
+   apagar fórum; se "excluir comunidade" precisar da regra "só enquanto for só
+   seu", ela está no git, neste commit.
+2. **41 sobras dentro dos arquivos, em 16 arquivos** — achadas com
+   `npx tsc --noEmit --noUnusedLocals`, que o `npm run check` **não** roda.
+   Imports e variáveis que ficaram órfãos conforme as telas foram refeitas
+   (o `Grupo.tsx` tinha 13, rastro da tabela que virou `TopicosDoForum`;
+   `Clubes.tsx` tinha um componente `Avatares` inteiro que nada renderizava).
+   **Duas eram rastro da minha própria faxina de ontem** (`comments.ts`,
+   `sala.ts`): cortei funções sem notar o import de cima órfão. **A lição, para
+   a próxima faxina:** depois de cortar função, rodar o tsc com
+   `--noUnusedLocals` — o check normal deixa passar.
+3. **10 dependências mortas desinstaladas** (`fuse.js`, `@hookform/resolvers`,
+   `@jridgewell/trace-mapping`, `date-fns`, `zod-validation-error`,
+   `tailwindcss-animate`, `ws` + `@types/ws`, `autoprefixer`, `postcss`) —
+   critério: zero menções no código E fora da infra planejada. **O depcheck
+   sozinho teria enganado:** ele acusava também `tailwindcss` e
+   `tw-animate-css` (vivas — importadas na 1ª linha do `index.css`, que ele não
+   lê) e o time do backend futuro (`passport`, `express-session`,
+   `connect-pg-simple`, `memorystore` + types), que **fica** — é a stack
+   documentada no `CLAUDE.md` para a hora das contas.
+
+**Apurado sem nada a fazer:** as 59 capas em `covers/` têm todas um livro no
+`books.ts` (zero órfãs), `people/` está vazia, e `attached_assets/` existe de
+propósito (backlog §5). Verificação: `npm run check` limpo, o tsc apertado com
+**zero avisos**, e o app respondendo na porta 3000.
+
 ---
 
 ## 4.91 "Ele só expande, e não faz sentido": a página de tópicos de verdade, e a capa (31/07, noite)

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AtSign, HelpCircle, Send, UsersRound, X } from "lucide-react";
+import { AtSign, HelpCircle, Send, X } from "lucide-react";
 
 import AnexarTrecho from "@/components/AnexarTrecho";
 import CampoComMencao from "@/components/comunidade/CampoComMencao";

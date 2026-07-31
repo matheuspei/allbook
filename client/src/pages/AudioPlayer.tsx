@@ -1,6 +1,5 @@
-import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, Pencil, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Timer, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Undo2, Search as SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, Pencil, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Undo2, Search as SearchIcon } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
   Drawer,
@@ -198,17 +197,6 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const formatRemaining = (totalSeconds: number, currentSeconds: number) => {
-    const remaining = Math.max(0, totalSeconds - currentSeconds);
-    const h = Math.floor(remaining / 3600);
-    const m = Math.floor((remaining % 3600) / 60);
-    const s = Math.floor(remaining % 60);
-    
-    if (h > 0) {
-      return `${h}h ${m}m ${s}s restantes`;
-    }
-    return `${m}m ${s}s restantes`;
-  };
   /*
    * **O player lembra a velocidade** (31/07, §4.85).
    *

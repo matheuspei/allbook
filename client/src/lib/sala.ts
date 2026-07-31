@@ -30,7 +30,7 @@
  */
 
 import { chapterAtSec } from "@/lib/chapters";
-import { comments, type Comment } from "@/lib/comments";
+import { type Comment } from "@/lib/comments";
 import { readPlaybackList } from "@/lib/playback";
 
 export type EstadoNaSala =

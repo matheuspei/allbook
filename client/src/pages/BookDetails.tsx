@@ -1,12 +1,10 @@
-import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, BookMarked, Quote, User, Check, Plus, Clock, Headphones, AudioLines } from "lucide-react";
+import { ArrowLeft, Play, Star, ChevronRight, MoreVertical, BookOpen, BookMarked, Check, Plus, Clock, Headphones, AudioLines } from "lucide-react";
 import BookActionsMenu from "@/components/BookActionsMenu";
 import MarcacoesDoLivro from "@/components/MarcacoesDoLivro";
 import { BOOKMARK_EVENT, bookmarksFor, type Bookmark } from "@/lib/bookmarks";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -323,7 +321,7 @@ function buildFromCatalog(id: string) {
 }
 
 export default function BookDetails({ params }: { params: { id: string } }) {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isAdded, setIsAdded] = useState(false);
 

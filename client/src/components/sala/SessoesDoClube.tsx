@@ -51,7 +51,6 @@ export default function SessoesDoClube({
    *
    * Aqui fica o que **não é agenda**: a sala no ar, que existe enquanto dura.
    */
-  const [, navigate] = useLocation();
   const [marcando, setMarcando] = useState(false);
   const agora = salasDoClube(clube.id).filter((sala) => sala.porta !== "marcada");
   const membro = souMembro(clube);

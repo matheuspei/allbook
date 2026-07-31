@@ -968,11 +968,6 @@ function filaSemeada(clube: Clube): string[] {
     .map((membro) => membro.slug);
 }
 
-/** Você está na fila deste clube? */
-export function estouNaFila(clubeId: string): boolean {
-  return readEstado().naFila.includes(clubeId);
-}
-
 /** A sua posição na fila, começando em 1. `undefined` se você não está nela. */
 export function minhaPosicaoNaFila(clubeId: string): number | undefined {
   const posicao = filaDoClube(clubeId).indexOf(EU);

@@ -32,7 +32,6 @@
  * guardada como `data:` URL no `localStorage` — alguns quilobytes, zero servidor.
  */
 
-import { catalog } from "@/lib/books";
 import { EU } from "@/lib/clubes";
 import { community } from "@/lib/community";
 import { grupoPorId, GRUPOS_EVENT, todosOsGrupos, type Grupo } from "@/lib/grupos";
@@ -320,10 +319,6 @@ export function souDono(grupoId: string): boolean {
 /** Dono **ou** moderador — a maioria dos poderes é dos dois, como no Orkut. */
 export function souModerador(grupoId: string): boolean {
   return souDono(grupoId) || configDo(grupoId).moderadores.includes(EU);
-}
-
-export function ehModerador(grupoId: string, slug: string): boolean {
-  return donoDo(grupoId) === slug || configDo(grupoId).moderadores.includes(slug);
 }
 
 /**
