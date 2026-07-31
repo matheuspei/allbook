@@ -7162,6 +7162,87 @@ metade dos trechos quentes, e isso precisa estar na conta.
 
 ---
 
+## 4.82 A segunda leva da sala, e a auditoria de design (31/07, noite)
+
+> *"Tem várias coisas que eu comentei com relação ao clube que não estão aqui…
+> você consegue me dizer exatamente quais são?"* — e, depois: *"eu quero que você
+> comece a averiguar coisas que podem ser acrescentadas e coisas que podem ser
+> tiradas, inclusive no design e na proposta dessa atividade"*.
+
+Ele auditou o que foi construído contra o que tinha pedido e achou **oito
+lacunas**. Todas foram construídas na mesma sessão, por decisão dele:
+*"vamos construir tudo de uma vez"*.
+
+### As oito, e o que cada uma revelou
+
+1. **O clube fechado não existia.** Ele defendeu a privacidade da sala apoiado
+   num poder do moderador — *"privar o clube e aceitar quem entra"* — que o app
+   **não tinha**. Havia limite de vagas e fila de espera, que controlam
+   **quantos**, nunca **quem**. Agora: clube aberto ou fechado (na criação e no
+   Gerenciar), pedidos de entrada com aceitar/recusar, e **banir**.
+   ⚠️ **Banir ≠ remover:** removido volta (porta, fila ou convite); banido não
+   volta por caminho nenhum. Sem essa distinção, banir seria só um rótulo mais
+   duro.
+2. **O clube ao vivo.** A sessão só nascia do **player** — para marcar uma do
+   clube era preciso abrir o livro e achar o menu. Agora o clube pode **nascer ao
+   vivo**, e marcar/abrir sala acontece na página dele, com o livro do ciclo já
+   preenchido. *Não é um segundo tipo de clube*: é uma vocação, e a rodada
+   continua sem hora (§4.39).
+3. **Confirmar presença.** A agenda dizia "3 confirmados" contando quem estava
+   dentro da sala — um número que não podia subir. Agora `confirmados` é campo
+   próprio, separado de `presentes`.
+4. **O botão que acende na hora.** "Quinta às 21h" era um rótulo: o link entrava
+   na sala a qualquer momento. Agora, antes da hora, a tela é um **combinado**
+   (quem vai, quanto falta) e vira sala sozinha quando chega a hora.
+5. **Moderação dentro da sala.** O anfitrião só podia **encerrar tudo** — punir a
+   sala inteira pelo comportamento de um. Agora tira alguém, e quem saiu não
+   volta enquanto a sala durar.
+6. **Convidar com a sala no ar.** Dava só na criação; sala que esvaziava não
+   tinha como chamar reforço.
+7. **O sino não sabia de sala.** Quinto destino de notificação (`salaId`), com
+   três momentos: abriu no seu clube, te chamaram, e a sessão começa em 15 min.
+   ⚠️ O lembrete roda **quando o app está aberto** — sem servidor não existe
+   alarme, e fingir que existe seria pior.
+8. **A "aba de discussão do capítulo" não existia.** Ele usou esse lugar para
+   defender que o chat ao vivo não vira lixo: *"são coisas diferentes"*. O
+   argumento é bom e **dependia de um lugar que o clube não tinha**. Agora a
+   conversa aparece **pelos marcos do ciclo**, e é a **mesma** `ConversaDoTrecho`
+   do player — não um segundo sistema de mensagens.
+
+### A auditoria de design: o que eu tirei
+
+- **A conversa por trecho só mostra o que você já liberou.** Ela nasceu listando
+  os quatro marcos, três deles repetindo "abre quando você chegar aqui" — 341px
+  para dizer três vezes a mesma coisa. Agora encolhe sozinha (174px com um trecho
+  liberado) e usa a trava de spoiler que já existe.
+- **A sala não convida para onde você já está.** O cartão no feed e a faixa no
+  player sumiam ou não conforme o caso; agora os dois somem quando você já entrou
+  — a barrinha do rodapé já representa a sala o tempo todo.
+- **Uma agenda só no clube** (feito antes, §4.81): evento de comunidade e sessão
+  de escuta na mesma lista, com selo `AO VIVO`.
+
+### O que eu NÃO tirei, e é decisão dele
+
+> **A tela do clube tem 7 seções e ~3,5 telas de rolagem.** Medido em 31/07.
+
+A §4.57 mediu **4,5 telas com cinco seções** e chamou aquilo de *"o defeito de
+escala mais grave, e piora sozinho com o uso"*. A reorganização desenhada lá
+(abas *Conversa · Rodada · Ritmo · Estante*) **nunca foi construída** — e eu
+acabei de acrescentar duas seções àquela mesma tela. As duas são coisas que ele
+pediu, e nenhuma delas é supérflua isoladamente; o problema é a soma.
+
+**Três consequências que ficam registradas, sem decisão tomada:**
+
+1. **Abas no clube** — a decisão em aberto da §4.57, agora mais cara de adiar.
+2. **Mural e conversa-por-trecho são duas conversas na mesma página.** Uma
+   pergunta ("onde a turma fala?"), dois lugares. Candidatas a fundir.
+3. **A sala não aparece na Home**, que é a tela mais vista do app; e **ninguém é
+   avisado de que uma sessão acabou** e deixou rastro para ouvir depois — o que
+   enfraquece justamente a "função de continuar" que ele elegeu a melhor de
+   todas.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
