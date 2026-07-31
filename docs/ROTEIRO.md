@@ -6695,13 +6695,94 @@ solução não é vetar, é **nomear diferente**:
 **Regra registrada:** a palavra *encontro*, sozinha, **não** é usada em tela de
 clube — ela é ambígua desde a §4.79. Cada coisa com o seu nome.
 
-### O que falta bater o martelo
+### ✔ Decisões 2 e 4, e o que foi descartado — tudo fechado em 31/07
 
-1. ~~**Chat corrido ou conversa nas pausas?**~~ → **decidido: corrido** (acima).
-2. **A sessão deixa rastro ou evapora?** (Sugerido: privada **nunca** deixa.)
-3. ~~**A sala marcada pode virar o encontro do clube?**~~ → **decidido: pode, e é
-   opcional** (acima).
-4. **Voz (D) entra agora ou fica anotada?**
+**As quatro perguntas estão respondidas.** O que segue é o desenho fechado.
+
+#### B descartada — e o argumento dele derruba o meu de vez
+
+> *"Se eu não quero falar, se eu acho que isso vai me atrapalhar, eu simplesmente
+> não falo. Ou, se eu não quiser participar da conversa, eu vou lá e abro um livro
+> para me ouvir. Quem abriu aqui o chat é para participar."*
+
+**Ele está certo, e isto encerra o assunto do "canal único".** Eu tratava o chat
+como imposição; ele não é. **A sala é um lugar de escolha:** quem entra escolheu
+conversar, quem não quer conversar tem o app inteiro para ouvir sozinho. Desenhar
+turnos obrigatórios para proteger alguém que **não precisava ter entrado** é
+proteger de nada e estragar para quem entrou.
+
+**Fica de pé só o barato:** *recolher o chat* e as reações ao lado do campo — são
+saídas, não estrutura.
+
+#### D descartada, sem meio-termo
+
+> *"O D tá completamente descartado. É muita complexidade, é muito problema."*
+
+Voz ao vivo **sai**, e não fica nem como desejo anotado. Quem propuser de novo:
+foi descartado por custo e complexidade, com o AllBook ainda sem servidor.
+
+#### C adotada — e "continuar de onde parou" é a joia
+
+> *"Eu gosto bastante da ideia C, principalmente do fato de você continuar de onde
+> parou, mesmo se a pessoa não puder ter ouvido. A melhor função até agora que você
+> citou: a função de continuar."*
+
+**A conversa da sessão fica guardada.** Ele chegou a defender apagar (medo de
+spoiler e de conversa solta) e **mudou de posição no meio do raciocínio** —
+registrado porque o caminho importa: *"a gente pode até esquecer o que eu falei
+antes de apagar o chat, porque isso passa a ser interessante"*.
+
+**Os dois medos que o fizeram querer apagar já têm resposta, e é por isso que dá
+para guardar:**
+
+1. **Spoiler:** a trava da `lib/sala.ts` já existe — quem ouve depois **só vê as
+   falas até o ponto onde chegou**. Não é regra nova; é a peça que o app já usa.
+2. **Conversa solta virando lixo:** o argumento é dele e é bom — *"são coisas
+   diferentes: uma coisa é o chat ao vivo, outra é a aba de discussão do que foi
+   falado no capítulo"*. **O chat da sessão não se mistura com os tópicos do
+   clube.** Acrescentado por mim, para o argumento se sustentar na tela: o rastro
+   fica **marcado como "da sessão"**, numa camada própria que dá para desligar —
+   senão ele cai na mesma lista dos comentários do livro e a separação some.
+
+#### Moderação: o poder já existe, não se inventa nada
+
+> *"O anfitrião tem opção de privar o clube e escolher quem pode entrar. Então,
+> teoricamente, ele já tem poder de banir ou de escolher quem entra."*
+
+Privacidade do que se diz na sala **não é problema novo**: resolve-se com o poder
+de moderação que o clube já tem (clube privado, aprovar quem entra, banir).
+
+### Requisito novo: quem assiste precisa se situar
+
+> *"Por mais que a pessoa que entrou na sala não possa pausar, é importante ela se
+> situar onde ela está no livro — qual capítulo está aparecendo, tá no capítulo 3 e
+> faltam tantos minutos para o capítulo acabar e virar."*
+
+**Quem entra vê o player inteiro; o que ela não tem é o controle.**
+
+| Vê | Não pode |
+| --- | --- |
+| capítulo atual e o nome dele | tocar / pausar |
+| **quanto falta para o capítulo virar** | arrastar a barra |
+| posição e tempo total | pular capítulo |
+
+Isto corrige um erro do meu próprio desenho: eu tinha tirado a barra de progresso
+de quem assiste ("só o dono arrasta") e, junto com o controle, tirei a
+**informação**. Perder o controle é a regra; perder o mapa é defeito.
+
+### O clube ao vivo — a ideia que fecha tudo
+
+> *"O clube do livro pode ser como já é, mas também pode ser ao vivo. A ideia é
+> poder fazer um clube do livro com hora marcada e as pessoas interagirem ao vivo."*
+
+O clube não ganha só um botão: ganha um **jeito de ser**. Os dois convivem, e a
+escolha é de quem cria:
+
+- **clube como já é** — rodada sem hora, responde quando der (§4.39);
+- **clube ao vivo** — sessões de escuta marcadas, todo mundo no mesmo segundo.
+
+**Nomes distintos continuam valendo:** *rodada* (sem hora) × *sessão de escuta*
+(com hora).
 
 ---
 
