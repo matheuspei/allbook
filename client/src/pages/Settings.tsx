@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { ChevronRight, LogIn } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import {
@@ -14,18 +14,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { readSession, signOut, type Session } from "@/lib/auth";
 import { clearPlayback } from "@/lib/playback";
-import {
-  SPEED_PRESETS,
-  formatSpeed,
-  readSettings,
-  saveSettings,
-  type Settings as AppSettings,
-} from "@/lib/settings";
 
 /**
- * Configurações (`/settings`).
+ * **Neste aparelho** (`/settings`) — o que o AllBook guarda no seu navegador.
  *
  * **Só entra aqui o que o app obedece de verdade.** Ficaram de fora, de
  * propósito, os suspeitos de sempre: chave de notificações (não há aviso que
@@ -34,8 +26,24 @@ import {
  * que não muda nada é enfeite — o mesmo defeito que fez a primeira versão do
  * Perfil ser rejeitada.
  *
- * O que sobra é honesto: a velocidade com que o player abre, o espaço ocupado
- * neste aparelho e a conta.
+ * ---
+ *
+ * ⚠️ **Esvaziada em 31/07 (§4.85), e o motivo é do Matheus:** *"quando você vai
+ * em perfil e clica em reprodução e download, tem muita coisa nessa página que é
+ * ruim. A configuração de reprodução não faz sentido, você já muda isso no
+ * player. E ter editar conta aqui não faz sentido — nem entrar ou criar
+ * conta."*
+ *
+ * Ele está certo nas duas, e as duas saíram:
+ *
+ * - **A velocidade** virou responsabilidade do player, que agora **lembra** a
+ *   que você escolheu (antes ele esquecia, e era por isso que existia um ajuste
+ *   aqui). Duas telas para a mesma decisão é uma a mais.
+ * - **Conta, editar perfil e entrar** eram de outro assunto. Já moram no painel
+ *   `/you`, na seção "Conta", e no lápis do perfil — aqui só faziam a porta
+ *   mentir sobre o destino.
+ *
+ * O que sobra é o que o nome promete: **o espaço ocupado neste aparelho**.
  */
 
 /** Chaves do localStorage que a faxina apaga, com o nome que a pessoa reconhece. */
@@ -44,18 +52,12 @@ const DATA_KEYS = [
   { key: "allbook_library", label: "títulos na lista" },
 ] as const;
 
-type Confirmation = "signOut" | "clearData" | null;
-
 export default function Settings() {
   const { toast } = useToast();
-  const [settings, setSettings] = useState<AppSettings>(readSettings);
-  const [session, setSession] = useState<Session | null>(readSession);
   const [counts, setCounts] = useState<Record<string, number>>({});
-  const [confirming, setConfirming] = useState<Confirmation>(null);
+  const [confirmando, setConfirmando] = useState(false);
 
   useEffect(() => {
-    setSettings(readSettings());
-    setSession(readSession());
     setCounts(readCounts());
   }, []);
 
@@ -72,28 +74,12 @@ export default function Settings() {
     return result;
   }
 
-  function pickSpeed(speed: number) {
-    const next = { ...settings, speed };
-    setSettings(next);
-    saveSettings(next);
-  }
-
-  function handleSignOut() {
-    signOut();
-    setSession(null);
-    setConfirming(null);
-    toast({
-      title: "Você saiu da conta",
-      description: "Sua lista e seus downloads continuam neste aparelho.",
-    });
-  }
-
   /** Apaga lista, downloads e progresso de escuta. Não mexe no perfil nem na sessão. */
   function handleClearData() {
     for (const { key } of DATA_KEYS) localStorage.removeItem(key);
     clearPlayback();
     setCounts(readCounts());
-    setConfirming(null);
+    setConfirmando(false);
     toast({ title: "Dados apagados", description: "Lista, downloads e progresso de escuta voltaram ao zero." });
   }
 
@@ -101,32 +87,9 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="settings-page">
-      <PageHeader title="Configurações" fallback="/profile" />
+      <PageHeader title="Neste aparelho" fallback="/you" />
 
-      <Section title="Reprodução">
-        <p className="text-xs text-white/40 leading-relaxed pb-4">
-          A velocidade com que o player começa. Dentro do player dá para mudar a qualquer
-          momento — isto é só o ponto de partida.
-        </p>
-        <div className="flex flex-wrap gap-2 pb-1" data-testid="settings-speed">
-          {SPEED_PRESETS.map((preset) => (
-            <button
-              key={preset}
-              onClick={() => pickSpeed(preset)}
-              className={`px-3.5 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                settings.speed === preset
-                  ? "border-primary text-primary bg-primary/10"
-                  : "border-white/10 text-white/60 hover:border-white/25 hover:text-white"
-              }`}
-              data-testid={`settings-speed-${preset}`}
-            >
-              {formatSpeed(preset)}
-            </button>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Neste aparelho">
+      <Section title="O que está guardado">
         <p className="text-xs text-white/40 leading-relaxed pb-4">
           Sua lista e seus downloads ficam guardados no navegador, não numa conta. Apagar
           aqui não mexe no catálogo do AllBook.
@@ -142,7 +105,7 @@ export default function Settings() {
           ))}
         </div>
         <button
-          onClick={() => setConfirming("clearData")}
+          onClick={() => setConfirmando(true)}
           disabled={storedTotal === 0}
           className="text-sm text-white/50 hover:text-white disabled:text-white/20 disabled:hover:text-white/20 transition-colors"
           data-testid="button-clear-data"
@@ -151,71 +114,44 @@ export default function Settings() {
         </button>
       </Section>
 
-      <Section title="Conta">
-        {/*
-          Sem sessão não mostramos e-mail nenhum: o do perfil é só um valor
-          padrão, e exibi-lo ao lado de "explorando sem conta" faria a tela se
-          contradizer.
-        */}
-        <div className="pb-4">
-          {session ? (
-            <>
-              <p className="text-sm text-white/70" data-testid="settings-account-email">
-                {session.email}
-              </p>
-              <p className="text-xs text-white/30 mt-1">Conta neste navegador</p>
-            </>
-          ) : (
-            <p className="text-sm text-white/50" data-testid="settings-account-email">
-              Você está explorando sem conta
-            </p>
-          )}
-        </div>
-
+      {/* A porta para o que está baixado — quem chega aqui querendo mexer nos
+          downloads quer ver quais são, não só o número. */}
+      <Section title="Os arquivos">
         <Link
-          href="/profile/edit"
-          className="w-full flex items-center gap-4 py-3.5 text-left text-sm border-t border-white/10 hover:text-white/70 transition-colors"
-          data-testid="settings-item-edit-profile"
+          href="/downloads"
+          className="flex w-full items-center gap-4 py-1 text-left text-sm transition-colors hover:text-white/70"
+          data-testid="settings-item-downloads"
         >
-          <span className="flex-1">Editar perfil</span>
-          <ChevronRight className="w-4 h-4 text-white/20 shrink-0" />
+          <span className="flex-1">Ver os títulos baixados</span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-white/20" />
         </Link>
-
-        {session ? (
-          <button
-            onClick={() => setConfirming("signOut")}
-            className="w-full py-3.5 text-left text-sm text-white/50 border-t border-white/10 hover:text-white transition-colors"
-            data-testid="settings-item-logout"
-          >
-            Sair da conta
-          </button>
-        ) : (
-          <Link
-            href="/login"
-            className="w-full flex items-center gap-4 py-3.5 text-left text-sm border-t border-white/10 hover:text-white/70 transition-colors"
-            data-testid="settings-item-login"
-          >
-            <LogIn className="w-[18px] h-[18px] text-white/40 shrink-0" strokeWidth={1.75} />
-            <span className="flex-1">Entrar ou criar conta</span>
-            <ChevronRight className="w-4 h-4 text-white/20 shrink-0" />
-          </Link>
-        )}
       </Section>
+
+      {/* Conta saiu daqui em 31/07 (§4.85) — mora no painel `/you`. A linha
+          abaixo existe para quem veio procurar aqui não achar que ela sumiu. */}
+      <div className="px-5 pt-5">
+        <p className="text-xs leading-relaxed text-white/30">
+          Conta, perfil e privacidade ficam em{" "}
+          <Link href="/you" className="font-semibold text-primary">
+            Você
+          </Link>
+          .
+        </p>
+      </div>
 
       <div className="px-5 py-8">
         <p className="text-xs text-white/25">AllBook · versão de desenvolvimento</p>
       </div>
 
-      <AlertDialog open={confirming !== null} onOpenChange={(open) => !open && setConfirming(null)}>
+      <AlertDialog open={confirmando} onOpenChange={setConfirmando}>
         <AlertDialogContent className="bg-[#1c1c1c] border-white/10 text-white">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display tracking-tight">
-              {confirming === "signOut" ? "Sair da conta?" : "Apagar lista e downloads?"}
+              Apagar lista e downloads?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-white/50">
-              {confirming === "signOut"
-                ? "Sua lista, seus downloads e suas recomendações continuam salvos neste aparelho. Só o perfil volta ao padrão."
-                : "Os livros que você guardou saem da sua lista e dos downloads. Isso não dá para desfazer."}
+              Os livros que você guardou saem da sua lista e dos downloads. Isso não dá para
+              desfazer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -223,11 +159,11 @@ export default function Settings() {
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirming === "signOut" ? handleSignOut : handleClearData}
+              onClick={handleClearData}
               className="bg-primary text-black hover:bg-primary/90"
               data-testid="button-confirm-settings"
             >
-              {confirming === "signOut" ? "Sair" : "Apagar"}
+              Apagar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

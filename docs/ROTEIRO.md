@@ -7029,6 +7029,49 @@ editoras dos mais bem avaliados.
 
 ---
 
+## 4.85 "Reprodução e download" prometia o que a tela não entregava (31/07)
+
+> *"Quando você vai em perfil e clica em reprodução e download, tem muita coisa
+> nessa página que é ruim. 1. A configuração de reprodução não faz sentido aí,
+> porque você já pode alterar isso no player. 2. Ter que editar a conta aqui não
+> faz sentido, se o botão é reprodução e download. Bem como entrar ou criar
+> conta."*
+
+**Certo nas duas, e a primeira tinha uma causa técnica que ninguém veria pela
+tela.**
+
+### A velocidade: o defeito real era o player esquecer
+
+O player abria em `settings.speed` mas **nunca escrevia de volta**: mudar para
+1,5× valia só para aquela sessão, e no livro seguinte voltava ao padrão. Era
+*por isso* que existia um ajuste em Configurações — para fixar um número que o
+player teimava em esquecer.
+
+**Conserto na raiz: o player passou a lembrar.** Mudou lá, fica assim para os
+próximos livros. Com isso o ajuste na tela ficou redundante de verdade e saiu —
+duas telas para a mesma decisão é uma a mais. (Testado: escolhi 1,5× no player e
+`allbook_settings.speed` virou 1.5.)
+
+### A conta: a porta mentia sobre o destino
+
+Editar perfil, sair e "entrar ou criar conta" não têm nada a ver com reprodução
+nem com download — e **já existem** no painel `/you`, na seção Conta, e no lápis
+do perfil. Saíram daqui; ficou uma linha dizendo onde estão, para quem procurou
+no lugar errado não achar que sumiram.
+
+### Como ficou
+
+- A tela virou **"Neste aparelho"**: o que está guardado (lista, downloads),
+  apagar, e a porta para os títulos baixados.
+- O item no painel deixou de se chamar "Reprodução e download" e virou **"Espaço
+  neste aparelho"** — o nome agora descreve o que há do outro lado.
+
+**A régua:** *quando uma tela junta assuntos que não se encontram, o nome dela
+vira promessa vaga.* E antes de tirar um ajuste "redundante", vale checar se o
+lugar principal realmente faz o trabalho — aqui não fazia.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
