@@ -35,6 +35,9 @@ import { GRUPOS_EVENT, criarGrupo, topicosDa, type Grupo } from "@/lib/grupos";
 /** O Orkut paginava a busca de comunidades. */
 const POR_PAGINA = 10;
 
+/** Quantas das suas a grade mostra antes do "ver todas" (§4.92). */
+const RESUMO_DE_MINHAS = 6;
+
 /**
  * **Comunidades** (`/forum`) — a porta de entrada dos fóruns.
  *
@@ -66,7 +69,11 @@ export default function Comunidades() {
   const [versao, setVersao] = useState(0);
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("");
-  const [criando, setCriando] = useState(false);
+  /* `?criar=1` já abre o formulário: é como o "Criar comunidade" do menu “…” da
+     Comunidade chega aqui, sem inventar uma segunda tela de criação (§4.92). */
+  const [criando, setCriando] = useState(
+    () => new URLSearchParams(window.location.search).get("criar") === "1",
+  );
   const [pagina, setPagina] = useState(0);
 
   useEffect(() => {
@@ -276,10 +283,20 @@ export default function Comunidades() {
               </span>
             }
           >
-            {/* **Aqui a grade está certa**: são as que você já conhece, e a
-                imagem basta para reconhecê-las (§4.78). */}
+            {/*
+              **Aqui a grade está certa**: são as que você já conhece, e a imagem
+              basta para reconhecê-las (§4.78).
+
+              **Mas ela para em seis** desde 01/08 (§4.92), a pedido do Matheus:
+              *"deveria ter sempre um link que eu pudesse clicar em Minhas
+              comunidades, onde eu abrisse uma página que mostrasse todas"*. É a
+              mesma regra que a página de tópicos estreou (§4.91): **conteúdo que
+              cresce sem limite não mora na página de entrada** — com 20
+              comunidades esta grade empurrava categorias e todo o resto para
+              baixo, e não havia para onde ir ver as antigas.
+            */}
             <div className="grid grid-cols-3 gap-3">
-              {minhas.map((grupo) => (
+              {minhas.slice(0, RESUMO_DE_MINHAS).map((grupo) => (
                 <Link
                   key={grupo.id}
                   href={`/forum/${grupo.id}`}
@@ -299,6 +316,17 @@ export default function Comunidades() {
                 </Link>
               ))}
             </div>
+
+            {/* A porta para a página. Aparece **sempre** que houver comunidade,
+                e o texto muda para não prometer "mais" quando tudo coube — a
+                página tem busca e ordenação que a grade não tem. */}
+            <p className="mt-3 border-t border-white/[0.06] pt-2.5">
+              <LinkDoForum href="/forum/minhas" testid="ver-todas-as-minhas">
+                {minhas.length > RESUMO_DE_MINHAS
+                  ? `ver todas as minhas (${minhas.length}) »`
+                  : "abrir minhas comunidades »"}
+              </LinkDoForum>
+            </p>
           </Bloco>
         )}
 

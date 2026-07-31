@@ -650,6 +650,23 @@ export function forunsVisiveis(): Grupo[] {
     .map((grupo) => forumNaTela(grupo.id) ?? grupo);
 }
 
+/**
+ * **As comunidades que são suas** — as que você participa **e** as que você
+ * criou.
+ *
+ * ⚠️ **Existe porque duas telas discordavam** (01/08, §4.92). O menu “…” contava
+ * `gruposQueParticipo()`, que lê só a lista de participação do `localStorage`, e
+ * a página `/forum/minhas` contava `situacaoDe() === "dentro"`, que inclui os
+ * fóruns de que você é **dono** — e dono não precisa entrar na própria casa. O
+ * menu dizia 4 e a página listava 5, com a diferença sendo exatamente os seus.
+ *
+ * Quem for contar ou listar as suas comunidades usa **esta** função, e nenhuma
+ * outra: a mesma conta em todo lugar é o que impede o número de mentir.
+ */
+export function minhasComunidades(): Grupo[] {
+  return forunsVisiveis().filter((grupo) => situacaoDe(grupo.id) === "dentro");
+}
+
 /* ------------------------------------------------------------------ *
  * A capa da comunidade
  * ------------------------------------------------------------------ */

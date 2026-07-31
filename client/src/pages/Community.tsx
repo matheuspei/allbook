@@ -1,31 +1,28 @@
 import { useEffect, useState } from "react";
 import { avatarDeLeitor } from "@/lib/community";
-import { Link, useLocation } from "wouter";
-import { ChevronRight, HelpCircle, Plus } from "lucide-react";
+import { Link } from "wouter";
+import { ChevronRight, HelpCircle } from "lucide-react";
 
-import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
-import ConversasDeAgora from "@/components/ConversasDeAgora";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
 import CartaoDeSugestoes from "@/components/comunidade/CartaoDeSugestoes";
 import LinhaDeAtividade from "@/components/comunidade/LinhaDeAtividade";
 import { ConviteDeClube, ConviteDeForum, TrechosQuentes } from "@/components/comunidade/CartaoDeConvite";
 import Compositor from "@/components/comunidade/Compositor";
+import MenuDaComunidade from "@/components/comunidade/MenuDaComunidade";
 import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
 import { montarFeed, type ItemDoFeed, type Lente } from "@/lib/feedDaComunidade";
 import SalasAoVivoNoFeed from "@/components/sala/SalasAoVivoNoFeed";
 import { MURAL_EVENT } from "@/lib/mural";
-import { useToast } from "@/hooks/use-toast";
 import { ouvindoAgoraNaComunidade, type AudicaoDeAgora } from "@/lib/activity";
 import { readFollowing } from "@/lib/following";
-import { GRUPOS_EVENT, criarGrupo, resumoDosGrupos } from "@/lib/grupos";
 
 /**
- * Comunidade (`/community`) — **duas abas** desde 30/07.
+ * Comunidade (`/community`) — **uma tela só: o feed**, desde 01/08 (§4.92).
  *
- * - **Feed** — o que as pessoas escreveram, nas duas lentes (Todos · Seguindo),
- *   com os cartões de clube e de fórum intercalados.
- * - **Fóruns** — o assunto: as conversas da semana, os fóruns (Orkut: fórum →
- *   tópico → respostas, com CRIAR) e os clubes.
+ * O que as pessoas escreveram, nas duas lentes (Todos · Seguindo), com os
+ * cartões de clube e de fórum intercalados. Fórum e clube se acham pelo **“…”**
+ * do cabeçalho e por esses cartões — a aba "Fóruns" que existia aqui era um
+ * link disfarçado de aba, e saiu com o resto da fileira morta.
  *
  * **A aba "Pessoas" morreu em 30/07**, e não por espaço: é a decisão 7 da
  * §4.58. Ela tinha três blocos e cada um teve um destino —
@@ -40,66 +37,65 @@ import { GRUPOS_EVENT, criarGrupo, resumoDosGrupos } from "@/lib/grupos";
  *   uma aba da Comunidade.)*
  */
 
-type Aba = "agora" | "grupos";
-
 const LENTES: { key: Lente; label: string }[] = [
   { key: "todos", label: "Todos" },
   { key: "seguindo", label: "Seguindo" },
 ];
 
-const ABAS: { key: Aba; label: string }[] = [
-  // "Fóruns" diz o que a aba é sem confundir com o clube de leitura — a troca
-  // de 28/07 (ROTEIRO 4.44).
-  { key: "agora", label: "Feed" },
-  { key: "grupos", label: "Fóruns" },
-];
-
+/**
+ * **O topo da Comunidade** — uma fileira só, e o “…” ao lado do título
+ * (ROTEIRO §4.92).
+ *
+ * ---
+ *
+ * **O que estava aqui e saiu.** Havia uma fileira `Feed · Fóruns` acima do
+ * compositor, e a §4.72 encontrou três defeitos nela de uma vez:
+ *
+ * - **“Feed” era botão morto** — você já está nele; tocar não mudava nada.
+ * - **“Fóruns” não era aba**, era um `setLocation("/forum")` vestido de pastilha:
+ *   parecia trocar de conteúdo e trocava de tela.
+ * - **`AbaGrupos` nunca era desenhada.** O estado `"grupos"` deixou de existir
+ *   quando os fóruns viraram destino (§4.74), e a função ficou no arquivo por
+ *   mais um dia inteiro — 128 linhas de código morto.
+ *
+ * **E a decisão original já dizia isso**, desde 29/07 (§4.57): *“A Comunidade
+ * abre no feed, sem fileira de ícones no topo. **Feed · Seguindo são as únicas
+ * coisas fixas ali** — e não são destinos: são duas lentes do mesmo conteúdo.”*
+ *
+ * Fórum e clube não sumiram: estão no **“…”** (para quem procura) e nos
+ * **cartões do feed** (para quem só está passando) — que é exatamente a divisão
+ * que a §4.57 desenhou.
+ */
 export default function Community() {
-  const [aba, setAba] = useState<Aba>("agora");
-  const [, setLocation] = useLocation();
-
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="community-page">
-      <header className="relative overflow-hidden px-5 pt-7 pb-4">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-28 left-1/2 h-56 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
-        />
-        <h1
-          className="relative font-display text-3xl font-bold tracking-tight"
-          data-testid="text-community-title"
-        >
-          Comunidade
-        </h1>
-        <p className="relative mt-1.5 text-sm text-white/45">
-          Quem está ouvindo, conversando e recomendando
-        </p>
-
-        {/* As duas abas — o mesmo desenho de pílulas dos filtros da Biblioteca.
-            **"Fóruns" deixou de ser uma aba desta tela e virou destino** (31/07,
-            §4.74): as comunidades agora são o Orkut, com layout próprio e tela
-            cheia. Mantê-las aqui dentro seria mostrar meia comunidade numa moldura
-            que não é a delas. */}
-        <div className="relative mt-4 flex gap-2" data-testid="community-tabs">
-          {ABAS.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => (item.key === "grupos" ? setLocation("/forum") : setAba(item.key))}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
-                aba === item.key
-                  ? "bg-white text-black"
-                  : "border border-white/15 text-white/50 hover:text-white/80"
-              }`}
-              data-testid={`community-tab-${item.key}`}
+      {/* ⚠️ **Sem `overflow-hidden` aqui**, e é decisão, não descuido: ele existia
+          para conter o brilho do fundo, e **cortava o menu “…”** — que é absoluto e
+          desce para fora do cabeçalho. O brilho ganhou a própria moldura recortada
+          logo abaixo; o cabeçalho ficou livre para deixar o menu passar. */}
+      <header className="relative px-5 pt-7 pb-4">
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-28 left-1/2 h-56 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+        </div>
+        <div className="relative flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1
+              className="font-display text-3xl font-bold tracking-tight"
+              data-testid="text-community-title"
             >
-              {item.label}
-            </button>
-          ))}
+              Comunidade
+            </h1>
+            <p className="mt-1.5 text-sm text-white/45">
+              Quem está ouvindo, conversando e recomendando
+            </p>
+          </div>
+          <div className="mt-1.5">
+            <MenuDaComunidade />
+          </div>
         </div>
       </header>
 
-      {aba === "agora" && <FeedDePosts />}
-      {aba === "grupos" && <AbaGrupos />}
+      <FeedDePosts />
     </div>
   );
 }
@@ -311,135 +307,6 @@ function FeedDePosts() {
           </button>
         </div>
       )}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Fóruns — o assunto: salas da semana, fóruns, clubes
- * ------------------------------------------------------------------ */
-
-function AbaGrupos() {
-  const { toast } = useToast();
-  const [grupos, setGrupos] = useState(() => resumoDosGrupos());
-  const [criando, setCriando] = useState(false);
-  const [nome, setNome] = useState("");
-  const [emoji, setEmoji] = useState("");
-  const [descricao, setDescricao] = useState("");
-
-  useEffect(() => {
-    const atualizar = () => setGrupos(resumoDosGrupos());
-    atualizar();
-    window.addEventListener(GRUPOS_EVENT, atualizar);
-    return () => window.removeEventListener(GRUPOS_EVENT, atualizar);
-  }, []);
-
-  /** Cria o grupo e limpa o formulário — quem cria já entra participando. */
-  function publicarGrupo() {
-    const novo = criarGrupo(nome, emoji, descricao);
-    if (novo) {
-      setNome("");
-      setEmoji("");
-      setDescricao("");
-      setCriando(false);
-      toast({ title: `Fórum "${novo.nome}" criado`, description: "Você já participa — crie o primeiro tópico." });
-    }
-  }
-
-  return (
-    <div data-testid="community-grupos">
-      {/* A fusão: o "top da semana" e as portas eram as mesmas salas. */}
-      <ConversasDeAgora />
-
-      <section className="px-5 pt-5 pb-4 border-b border-white/10" data-testid="community-grupos-lista">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            Fóruns
-          </h2>
-          {/* O que faltava (28/07): criar grupo é de quem usa, não só do app. */}
-          <button
-            onClick={() => setCriando((v) => !v)}
-            className="flex items-center gap-1 text-xs font-semibold text-primary"
-            data-testid="button-create-group"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Criar fórum
-          </button>
-        </div>
-
-        {criando && (
-          <div className="mb-3 rounded-xl border border-white/10 bg-white/[0.03] p-3.5" data-testid="group-composer">
-            <div className="flex gap-2">
-              <input
-                value={emoji}
-                onChange={(event) => setEmoji(event.target.value.slice(0, 4))}
-                placeholder="💬"
-                className="w-12 rounded-lg border border-white/10 bg-transparent py-2 text-center text-base focus:outline-none focus:border-primary/50"
-                aria-label="Ícone do fórum (um emoji)"
-                data-testid="group-emoji"
-              />
-              <input
-                value={nome}
-                onChange={(event) => setNome(event.target.value.slice(0, 40))}
-                placeholder="Nome do fórum…"
-                autoFocus
-                className="min-w-0 flex-1 rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
-                data-testid="group-name"
-              />
-            </div>
-            <input
-              value={descricao}
-              onChange={(event) => setDescricao(event.target.value.slice(0, 160))}
-              placeholder="Sobre o que é? (opcional)"
-              className="mt-2 w-full rounded-lg border border-white/10 bg-transparent px-3 py-2 text-xs focus:outline-none focus:border-primary/50"
-              data-testid="group-description"
-            />
-            <div className="mt-2.5 flex justify-end">
-              <button
-                onClick={publicarGrupo}
-                disabled={nome.trim().length === 0}
-                className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-black disabled:opacity-30"
-                data-testid="group-publish"
-              >
-                Criar
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-2.5">
-          {grupos.map(({ grupo, totalTopicos, totalPessoas, participo }) => (
-            <Link
-              key={grupo.id}
-              href={`/forum/${grupo.id}`}
-              className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06]"
-              data-testid={`grupo-card-${grupo.id}`}
-            >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] ring-1 ring-white/10 text-xl">
-                {grupo.emoji}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">
-                  {grupo.nome}
-                  {participo && (
-                    <span className="ml-2 text-[9px] font-bold uppercase tracking-wide text-primary">
-                      você participa
-                    </span>
-                  )}
-                </p>
-                <p className="mt-0.5 text-[11px] text-white/40">
-                  {totalPessoas} pessoas · {totalTopicos}{" "}
-                  {totalTopicos === 1 ? "tópico" : "tópicos"}
-                </p>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-white/20" />
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* O compromisso: os clubes (da janela A), intactos. */}
-      <ClubesNaComunidade />
     </div>
   );
 }

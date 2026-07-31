@@ -26,6 +26,7 @@ import Comunidades from "@/pages/Comunidades";
 import MembrosDoForum from "@/pages/MembrosDoForum";
 import EnquetesDaComunidade from "@/pages/EnquetesDaComunidade";
 import TopicosDaComunidade from "@/pages/TopicosDaComunidade";
+import MinhasComunidades from "@/pages/MinhasComunidades";
 import EventosDaComunidade from "@/pages/EventosDaComunidade";
 import Topico from "@/pages/Topico";
 import Clubes from "@/pages/Clubes";
@@ -195,6 +196,8 @@ function Router() {
             <Route path="/forum/:id/topico/:topicoId" component={Topico} />
             {/* Ordem importa: `/gerenciar` e `/membros` antes de `/forum/:id`,
                 senão a rota curta captura as duas. */}
+            {/* `/forum/minhas` antes de `/forum/:id`, senão "minhas" vira id. */}
+            <Route path="/forum/minhas" component={MinhasComunidades} />
             <Route path="/forum/:id/gerenciar" component={GerenciarForum} />
             <Route path="/forum/:id/membros" component={MembrosDoForum} />
             <Route path="/forum/:id/topicos" component={TopicosDaComunidade} />
