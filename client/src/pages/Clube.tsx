@@ -34,6 +34,7 @@ import {
 } from "@/lib/clubes";
 import { forumNaTela } from "@/lib/forum";
 import SessoesDoClube from "@/components/sala/SessoesDoClube";
+import ConversaDoCiclo from "@/components/clube/ConversaDoCiclo";
 import {
   confirmarPresenca,
   euConfirmei,
@@ -407,6 +408,9 @@ export default function Clube({ params }: { params: { id: string } }) {
             */}
             <PautaNoClube clube={clube} />
             <RodadaDoClube clube={clube} />
+            {/* A discussão por trecho do livro do ciclo (§4.81) — a "aba de
+                conversa do capítulo" que ele achava que já existia. */}
+            <ConversaDoCiclo clube={clube} />
             <MuralDoClube clube={clube} />
             <VotacaoDoClube clube={clube} />
           </>
