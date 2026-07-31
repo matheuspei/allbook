@@ -7200,7 +7200,7 @@ eu aprovar, você constrói no código. Se não, a gente exclui tudo mesmo."*
 
 ---
 
-## 4.82 A segunda leva da sala, e a auditoria de design (31/07, noite)
+## 4.89 A segunda leva da sala, e a auditoria de design (31/07, noite)
 
 > *"Tem várias coisas que eu comentei com relação ao clube que não estão aqui…
 > você consegue me dizer exatamente quais são?"* — e, depois: *"eu quero que você
@@ -7312,7 +7312,7 @@ nunca apaga deixa de significar coisa alguma.
 
 ---
 
-## 4.83 A comunidade não tinha página de tópicos (31/07, noite)
+## 4.90 A comunidade não tinha página de tópicos (31/07, noite)
 
 > *"Esses tópicos aqui tá muito ruim, tanto os tópicos como as enquetes. Por
 > quê? Porque deveríamos ter uma página onde abríssemos todos os tópicos, e hoje
@@ -7396,6 +7396,107 @@ tomada — todas recuperáveis no git, no commit desta seção):
    que a criou). O defeito real que fica: a faxina de "Neste aparelho" apaga
    lista, downloads e progresso, mas **não zera as horas das Estatísticas** —
    decidir se deve zerar é decisão de produto, em aberto.
+
+---
+
+## 4.91 "Ele só expande, e não faz sentido": a página de tópicos de verdade, e a capa (31/07, noite)
+
+O Matheus abriu a página de tópicos que eu tinha acabado de fazer (§4.90) e
+reprovou, com razão:
+
+> *"Não gosto disso. Na verdade, acho que seria mais interessante criar uma outra
+> página para esses tópicos e fazer com que ela fosse mais completa e com mais
+> vida. Da forma como tá, ele só expande, e não faz sentido. A gente teria que
+> criar uma página completamente diferente, com mais conteúdo e mais informações,
+> coisa que a gente não tem hoje. Principalmente com o poder de colocar capa nos
+> tópicos… ou até exportar imagens, ou até colocar a possibilidade de capas dos
+> livros nos tópicos."*
+
+**Ele está certo, e o defeito tem nome.** A §4.90 resolveu *onde* a lista mora,
+e não resolveu *o que* ela mostra: `/forum/:id/topicos` era literalmente o mesmo
+componente com `modo="todos"`. Uma "página" que não acrescenta informação não é
+uma página — é um botão de rolar.
+
+### A crítica que fiz da ideia dele, e onde ela procede
+
+**Capa em todo tópico, do tamanho de cartão, destrói a lista.** Fórum é uma
+lista para **varrer com o olho** — foi por isso que a busca de comunidades
+voltou a ser lista (§4.76). Quinze cartões grandes são quinze telas de rolagem
+para ler quinze títulos. **A capa entrou, mas em dois tamanhos:** miniatura de
+40×58 na lista, e grande **só nos dois destaques** do topo. O que dá destaque é
+ser exceção.
+
+**Das três coisas que ele citou, uma é claramente melhor que as outras — e não
+por ser mais barata.** A **capa do livro de que o tópico fala** é *informação*:
+num app de audiolivro a maioria dos tópicos é sobre um livro, e saber qual antes
+de tocar poupa o toque. De quebra, o tópico ganha um **link para o livro**, e a
+busca passa a achar tópico **pelo nome do livro** (testado: buscar "paciente"
+acha *"Me indiquem: suspense curto pra maratonar"*, cujo título não tem a
+palavra). A **imagem enviada** entrou também, e é a saída para o tópico que não
+é sobre livro nenhum ("quantos minutos vocês põem no temporizador?") — sem ela,
+esses ficariam todos iguais.
+
+⚠️ **O que eu NÃO argumentei, e o registro é para não regredir:** que upload não
+dá sem servidor. Esse argumento já foi derrubado por ele duas vezes, e o próprio
+`lib/forum.ts` guarda a resposta — `encolherImagem` reduz a foto no navegador
+(canvas, JPEG) e grava como `data:` URL. Aqui usa 320px em vez dos 140 da capa
+de comunidade, porque esta imagem também aparece grande.
+
+### O que a página tem que a lista da comunidade não tem
+
+| | Resumo na comunidade | `/forum/:id/topicos` |
+| --- | --- | --- |
+| Tópicos | 5 | 15 por página |
+| Busca (título, livro, última fala) | — | ✅ |
+| Recentes · Mais falados · Sem resposta · Os meus | — | ✅ |
+| Destaques com capa grande | — | ✅ (máx. 2) |
+| Régua da comunidade | — | ✅ tópicos · mensagens · o que se mexeu |
+
+**"Sem resposta" e "Os meus" são os que mais valem**, e não são enfeite de
+ordenação: o primeiro é o que salva tópico abandonado, o segundo é a única
+forma de achar o que você escreveu numa comunidade grande.
+
+### Três defeitos que só apareceram testando
+
+1. **A capa de livro esticada num banner deitado vira uma tira do meio da arte.**
+   Da capa de *Garota Exemplar* sobrava a palavra FLYNN. Capa de livro é
+   **retrato**; o cartaz agora mostra a capa em pé sobre **o borrão dela
+   mesma**, escurecido — funciona igual para retrato (livro), quadrado (foto
+   enviada) e degradê (sem imagem), que é o que nenhum recorte único atenderia.
+2. **A busca vazia escondia o filtro.** Com "Sem resposta" ligado, buscar
+   "paciente" dizia só *"nenhum tópico com paciente"* — e existia um, tirado pelo
+   filtro. Agora a mensagem confessa o filtro e oferece soltá-lo.
+3. **O título aparecia três vezes** na tela do tópico (trilha, cartaz e cabeçalho
+   do bloco). Com capa, o bloco passou a dizer "Mensagens".
+
+### A decisão sobre o link, que mudou de sinal
+
+Na §4.90 eu escrevi que *"ver todos (5)" numa lista de 5 é um toque para não ver
+nada novo* — e o link só aparecia quando algo não coubesse. **Isso deixou de
+valer**, porque agora a página tem busca, filtros e destaques. O link aparece
+sempre que houver tópico, e **o texto muda** para não prometer "mais" quando não
+há mais: *"abrir a página dos tópicos »"*.
+
+### E o que faltava não era só tela: era conversa
+
+A página nasceu com busca e quatro filtros e abriu mostrando **três linhas**.
+Ferramenta de achar coisa numa lista que cabe inteira na tela é enfeite. Foram
+semeados **17 tópicos novos** (de 19 para 36), a maioria apontando um livro do
+catálogo — Suspense & Mistério passou de 3 para 10. É o mesmo diagnóstico da
+§4.82, quando cinco comunidades não faziam uma aba viva: **o problema não era a
+tela, era não haver o que procurar.**
+
+**A regra que fica:** *quando uma tela nova oferece ferramenta de navegação
+(busca, filtro, paginação), conferir se existe conteúdo que a justifique — senão
+a ferramenta denuncia o vazio em vez de escondê-lo.*
+
+### Nota de numeração
+
+As seções §4.82, §4.83 e §4.84 tinham **dois donos** — a janela A e a B
+escreveram cada uma a sua no mesmo dia. As da janela B foram renumeradas para
+**§4.89** (as abas do clube) e **§4.90** (a primeira página de tópicos); as
+referências no código foram ajustadas junto. As da janela A ficaram onde
+estavam.
 
 ---
 
