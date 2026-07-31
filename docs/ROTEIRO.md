@@ -7198,6 +7198,33 @@ lado, **debate com título e spoiler solto** do outro.
 produto (`client/public/_pontes-prototipo.html`, temporário, fora do git). *"Se
 eu aprovar, você constrói no código. Se não, a gente exclui tudo mesmo."*
 
+### As quatro propostas, na folha de escolha (01/08)
+
+Ele pediu depois uma folha **no molde da janela B** (`_pendencias-comunidade-B.html`),
+com quatro propostas e escolha por parte: `client/public/_4-propostas-conversas-A.html`.
+São **quatro filosofias**, não quatro layouts — cada uma resolve por um lugar
+diferente:
+
+- **A · Costura** — as duas convivem e passam a se apontar (o protótipo já testado);
+- **B · Cada livro vira um fórum** — a sala vira o tópico fixo "Enquanto ouço";
+- **C · O fórum não fala de livro** — o app desvia quem escreve o nome de um livro;
+- **D · O livro absorve o debate** — a conversa ganha as lentes *Enquanto ouço* e
+  *Depois do fim*, e o fórum não muda.
+
+**Recomendei D como base + A por cima**, e o motivo é a causa e não o sintoma:
+hoje quem terminou o livro **não tem onde falar do final** (a sala trava por
+posição), e é isso que empurra a pessoa para o fórum. Dando o lugar, o motivo de
+abrir tópico sobre livro quase some; a costura trata o resto. **C fica registrada
+como rejeitada por mim**: depende de adivinhar pelo título (o mesmo erro do
+"carro"×"Carrie" da §4.18) e a saída "publicar mesmo assim" denuncia a regra —
+com ela, é enfeite; sem ela, o app proíbe a pessoa de escrever. **B** é a reforma
+mais cara e cobra um preço de leitura: a conversa hoje se lê **rolando**, com
+tópicos passa a exigir **escolher** antes de ler.
+
+Mais quatro decisões de tela na mesma folha: onde mora o "depois do fim", a ponte
+do livro para o fórum, o que acontece quando alguém abre tópico sobre um livro, e
+como o aviso de spoiler aparece. **Nada disso está decidido — a folha é dele.**
+
 ---
 
 ## 4.89 A segunda leva da sala, e a auditoria de design (31/07, noite)
