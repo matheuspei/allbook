@@ -346,11 +346,6 @@ function gravarMeus(lista: Post[]): void {
   window.dispatchEvent(new Event(POSTS_EVENT));
 }
 
-/** Os seus posts, do mais recente para o mais antigo. */
-export function meusPosts(): Post[] {
-  return lerMeus().sort((a, b) => b.date.localeCompare(a.date));
-}
-
 /**
  * Publica. Devolve o post — ou `null` se não havia nada de fato para publicar.
  *

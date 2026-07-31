@@ -1,7 +1,7 @@
 import { Link, useParams } from "wouter";
 
 import PageHeader from "@/components/PageHeader";
-import { ItemDoFeed } from "@/components/MuralDaComunidade";
+import { ItemDoFeed } from "@/components/ItemDoFeed";
 import { catalog } from "@/lib/books";
 import { findMember } from "@/lib/community";
 import { muralDe } from "@/lib/mural";

@@ -229,16 +229,6 @@ export function temExemplo(diario: Diario): boolean {
   return Object.values(diario).some((dia) => dia.exemplo);
 }
 
-/** Apaga o diário (usado pela faxina das Configurações). */
-export function limparDiario(): void {
-  try {
-    localStorage.removeItem(DIARIO_KEY);
-    notificar();
-  } catch {
-    /* nada a fazer */
-  }
-}
-
 /* ------------------------------------------------------------------ *
  * Consultas
  * ------------------------------------------------------------------ */

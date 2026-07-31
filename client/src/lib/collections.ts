@@ -131,10 +131,6 @@ export const homeRows: Collection[] = [
   },
 ];
 
-export function findCollectionBySlug(slug: string): Collection | undefined {
-  return collections.find((colecao) => colecao.slug === slug);
-}
-
 /**
  * Acha uma lista de livros por slug, seja um card colorido (`collections`) ou
  * uma fileira da Início (`homeRows`) — as duas abrem a mesma tela `/collection`.

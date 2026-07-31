@@ -353,25 +353,7 @@ export function repliesTo(commentId: string): Comment[] {
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
-/**
- * O que uma pessoa andou comentando. É o que o perfil dela mostra.
- *
- * Só o primeiro nível: resposta solta, fora da conversa em que nasceu, não se
- * entende — "Discordo, ele não ficou parecido com o noticiário" sem a pergunta
- * acima é ruído.
- */
-export function commentsByAuthor(authorSlug: string): Comment[] {
-  return comments
-    .filter((item) => item.authorSlug === authorSlug && !item.parentId && item.bookId !== undefined)
-    .sort(byNewest);
-}
-
 /** Quem escreveu, já resolvido. `undefined` se o slug não existir mais. */
 export function authorOf(comment: Comment): CommunityMember | undefined {
   return findMember(comment.authorSlug);
-}
-
-/** O livro comentado, já resolvido. `undefined` num comentário de pessoa. */
-export function bookOf(comment: Comment): Book | undefined {
-  return catalog.find((book) => book.id === comment.bookId);
 }

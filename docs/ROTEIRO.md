@@ -7344,6 +7344,61 @@ no quadro de `COORDENACAO.md`.
 
 ---
 
+## 4.88 A faxina: arquivos mortos, código morto e a pergunta dos testes (31/07, noite)
+
+Pedido do Matheus à janela C: *"limpar todo o código morto e arquivos mortos;
+deletar os testes que não precisam estar aqui"*.
+
+**Testes: não existem — nada a deletar.** Varredura por `*.test.*`, `*.spec.*`
+e nomes com "teste": zero arquivos; o `package.json` não tem jest, vitest nem
+script de teste. O que havia de "experimento" eram as folhas de protótipo.
+
+**As folhas de `client/public/`: 13 apagadas, 3 ficaram.** Apagadas as de
+28–29/07 (comparações, o duelo de Comunidade A×B×C, as propostas do clube) —
+todas de decisões já tomadas e registradas aqui (§4.53–§4.58, §4.57/§4.82).
+Ficaram, com motivo: `_ponte-conversas.html` e `_pontes-prototipo.html`
+(a proposta da §4.87 **ainda espera a decisão dele** — "se eu aprovar, você
+constrói; se não, a gente exclui tudo") e `_sala-ao-vivo-B.html` (declarada em
+uso pela janela B no quadro). Cópia das 13 no scratchpad da sessão C.
+
+**Código morto: 17 exports mortos cortados em 12 arquivos**, confirmados um a
+um (ts-prune + busca de texto). O caso maior: o componente-feed
+`MuralDaComunidade` (o mural de 28/07 com caixa de publicar) morreu quando a
+Comunidade foi refeita (§4.58), mas duas páginas ainda usavam o `ItemDoFeed` de
+dentro dele — o arquivo foi reescrito só com a peça viva e renomeado
+`components/ItemDoFeed.tsx`, para o nome parar de mentir.
+
+**O que ficou de fora do corte, de propósito:**
+
+- `components/ui/*` (shadcn) — é biblioteca local, não código morto: o Vite já
+  exclui do app final o que não é usado, e apagar obrigaria a recriar peça a
+  peça quando uma tela nova precisar.
+- `lib/clubes.ts`, `lib/salaAoVivo.ts` (faixa declarada da B) e `lib/forum.ts`,
+  `lib/forumConteudo.ts`, `lib/grupos.ts` (outra janela estava commitando no
+  fórum durante a faxina — §4.83) — cada um tem 1–3 exports mortos; cortar
+  embaixo de quem está construindo era pedir conflito.
+- `apiRequest` (`lib/queryClient.ts`) — infraestrutura documentada no
+  `CLAUDE.md` para a hora do backend.
+- `fotoDoAlvo` (`lib/acompanhando.ts`) — o arquivo nasceu **hoje** pela A;
+  cedo demais para chamar de morto.
+
+**Três mortas que parecem lacunas de produto, não lixo** (apurado, sem decisão
+tomada — todas recuperáveis no git, no commit desta seção):
+
+1. `alreadyRequested` (`lib/requests.ts`) — a regra "você já pediu este
+   título" existia e **nenhuma tela nunca a chamou**: pedir o mesmo livro duas
+   vezes passa em silêncio.
+2. `pautasEncerradas` + `opcaoVencedora` (`lib/pautas.ts`) — o histórico "o
+   que o clube já decidiu" foi escrito e nunca ganhou tela; pauta encerrada
+   simplesmente some.
+3. `limparDiario` (`lib/listening.ts`) — a docstring dizia "usado pela faxina
+   das Configurações" e **nunca foi verdade** (um único commit no histórico, o
+   que a criou). O defeito real que fica: a faxina de "Neste aparelho" apaga
+   lista, downloads e progresso, mas **não zera as horas das Estatísticas** —
+   decidir se deve zerar é decisão de produto, em aberto.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

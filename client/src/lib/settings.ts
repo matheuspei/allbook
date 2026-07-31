@@ -130,8 +130,3 @@ export function readSettings(): Settings {
 export function saveSettings(settings: Settings): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 }
-
-/** "1.0" → "1x", "1.2" → "1,2x" — como se lê em português. */
-export function formatSpeed(speed: number): string {
-  return `${String(speed).replace(".", ",").replace(",0", "")}x`;
-}

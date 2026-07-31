@@ -189,23 +189,3 @@ export function notaDaComunidade(bookId: number): {
   const media = total > 0 ? notas.reduce((soma, nota) => soma + nota, 0) / total : 0;
   return { media, total, suficiente: total >= MINIMO_PARA_MEDIA };
 }
-
-/**
- * A nota para estampar na tela, junto com a origem dela.
- *
- * `origem: "catalogo"` é a nota curada à mão que o app sempre teve — mostrada
- * enquanto a comunidade não tem volume. **Quem chama precisa respeitar a
- * origem**: só a de comunidade pode ser apresentada como "nota dos ouvintes",
- * senão o app promete uma coisa e entrega outra.
- */
-export function notaExibida(book: { id: number; rating: number }): {
-  valor: number;
-  origem: "comunidade" | "catalogo";
-  total: number;
-} {
-  const comunidade = notaDaComunidade(book.id);
-  if (comunidade.suficiente) {
-    return { valor: comunidade.media, origem: "comunidade", total: comunidade.total };
-  }
-  return { valor: book.rating, origem: "catalogo", total: comunidade.total };
-}

@@ -178,15 +178,6 @@ export function alreadyInCatalog(title: string): Book | null {
   return catalog.find((livro) => normalizar(livro.title).includes(alvo)) ?? null;
 }
 
-/**
- * Já pedi este título? Compara sem acento e sem caixa, porque quem pede duas
- * vezes normalmente digitou diferente ("Duna" e "duna"), não pediu dois livros.
- */
-export function alreadyRequested(title: string): boolean {
-  const alvo = normalizar(title);
-  return readRequests().some((pedido) => normalizar(pedido.title) === alvo);
-}
-
 function normalizar(texto: string): string {
   return texto
     .normalize("NFD")

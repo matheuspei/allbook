@@ -103,18 +103,6 @@ export function pautaAberta(clubeId: string): Pauta | undefined {
   );
 }
 
-/** O que o clube já decidiu — o histórico, do mais recente para o mais antigo. */
-export function pautasEncerradas(clubeId: string): Pauta[] {
-  const estado = readEstado();
-  return estado.criadas
-    .filter(
-      (pauta) =>
-        pauta.clubeId === clubeId &&
-        (estado.encerradas.includes(pauta.id) || diasAte(pauta.fecha) < 0),
-    )
-    .sort((a, b) => b.criadaEm.localeCompare(a.criadaEm));
-}
-
 export function meuVotoNaPauta(pautaId: string): number | undefined {
   return readEstado().votos[pautaId];
 }
@@ -155,19 +143,6 @@ export function apuracaoDaPauta(
   }
 
   return pauta.opcoes.map((opcao, indice) => ({ opcao, indice, votos: contagem[indice] }));
-}
-
-/** Quantos já votaram — o número que diz se a decisão tem peso. */
-export function totalDeVotos(pauta: Pauta, clube: Clube): number {
-  return apuracaoDaPauta(pauta, clube).reduce((soma, item) => soma + item.votos, 0);
-}
-
-/** A opção na frente. Empate devolve a primeira escrita, e a tela avisa. */
-export function opcaoVencedora(pauta: Pauta, clube: Clube): { opcao: string; votos: number; empatada: boolean } {
-  const apuracao = [...apuracaoDaPauta(pauta, clube)].sort((a, b) => b.votos - a.votos);
-  const topo = apuracao[0];
-  const empatada = apuracao.length > 1 && apuracao[1].votos === topo.votos;
-  return { opcao: topo.opcao, votos: topo.votos, empatada };
 }
 
 /* ------------------------------------------------------------------ *

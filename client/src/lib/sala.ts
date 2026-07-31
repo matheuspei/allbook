@@ -119,50 +119,6 @@ export function comentariosNoTrecho(
     .sort((a, b) => (a.positionSec ?? 0) - (b.positionSec ?? 0));
 }
 
-/**
- * Os livros com conversa, do mais movimentado para o menos — o que a tela
- * Comunidade mostra.
- *
- * **Por que isto existe:** a Comunidade era uma lista de *gente*, e quem não
- * seguia ninguém não tinha o que ver. Livro é um endereço melhor do que pessoa:
- * você entra numa conversa porque o assunto interessa, não porque conhece quem
- * está falando (ROTEIRO 4.39).
- *
- * A prévia respeita a trava: só volta o que **aquela pessoa** já pode ler
- * naquele livro, e nunca um comentário marcado como spoiler — numa vitrine, a
- * pessoa não escolheu abrir nada.
- */
-export function livrosComConversa(limite = 6): {
-  bookId: number;
-  total: number;
-  liberadas: number;
-  previa: Comment[];
-}[] {
-  const porLivro = new Map<number, Comment[]>();
-
-  for (const comment of comments) {
-    if (comment.bookId === undefined || comment.parentId) continue;
-    const lista = porLivro.get(comment.bookId) ?? [];
-    lista.push(comment);
-    porLivro.set(comment.bookId, lista);
-  }
-
-  // `Array.from` e não spread: o alvo do TypeScript deste projeto não itera Map
-  // direto (TS2802), e mudar o alvo por causa de uma linha não vale.
-  return Array.from(porLivro.entries())
-    .map(([bookId, lista]) => {
-      const { visiveis } = separarSala(lista, posicaoNoLivro(bookId));
-      return {
-        bookId,
-        total: lista.length,
-        liberadas: visiveis.length,
-        previa: visiveis.filter((item) => !item.spoiler).slice(0, 2),
-      };
-    })
-    .sort((a, b) => b.total - a.total)
-    .slice(0, limite);
-}
-
 /** "12:40" ou "1:12:40" — o mesmo formato do player. */
 export function formatarPosicao(segundos: number): string {
   const total = Math.max(0, Math.floor(segundos));

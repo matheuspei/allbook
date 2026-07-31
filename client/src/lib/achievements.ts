@@ -382,11 +382,6 @@ export function unlockedCountFor(dados: DadosDeConquista): number {
   return achievementsFor(dados).filter((item) => item.unlocked).length;
 }
 
-/** Só as conquistadas — usadas onde se quer mostrar o que já foi ganho. */
-export function unlockedAchievementsFor(dados: DadosDeConquista): Achievement[] {
-  return achievementsFor(dados).filter((item) => item.unlocked);
-}
-
 /**
  * Carimba a data das medalhas recém-ganhas e devolve **só as novas** — é assim
  * que o app sabe que tem uma novidade para anunciar.

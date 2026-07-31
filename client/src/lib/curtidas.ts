@@ -114,11 +114,6 @@ export function alternarReacao(id: string, reacao: Reacao): Reacao | undefined {
   return reacao;
 }
 
-/** Atalho de leitura, para quem só quer saber do coração. */
-export function euCurti(id: string): boolean {
-  return minhaReacao(id) === "curtiu";
-}
-
 export interface OpcoesDeReacao {
   /**
    * A fala é de outra pessoa? **Quem sabe é a tela**, e por isso isto é
@@ -244,9 +239,4 @@ export function quemReagiu(
  */
 export function curtidasDoPost(id: string, opcoes: OpcoesDeReacao = {}): number {
   return quemReagiu(id, "curtiu", opcoes).length;
-}
-
-/** O mesmo do outro lado. */
-export function descurtidasDoPost(id: string, opcoes: OpcoesDeReacao = {}): number {
-  return quemReagiu(id, "descurtiu", opcoes).length;
 }

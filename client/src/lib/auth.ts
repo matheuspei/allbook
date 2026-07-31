@@ -40,10 +40,6 @@ export function readSession(): Session | null {
   }
 }
 
-export function isSignedIn(): boolean {
-  return readSession() !== null;
-}
-
 /**
  * Entrar com uma conta que "já existe".
  *
