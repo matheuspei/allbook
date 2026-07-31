@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
+import { Lock } from "lucide-react";
 
-import { BarraOrkut, Caixa, FotoOrkut, LinkOrkut, PaginaOrkut } from "@/components/forum/Orkut";
+import { AvatarDoForum, Bloco, LinkDoForum, PaginaDoForum } from "@/components/forum/Pecas";
 import { EU } from "@/lib/clubes";
 import { findMember } from "@/lib/community";
 import { forumNaTela, membrosDo, possoLer, souModerador } from "@/lib/forum";
@@ -10,12 +11,9 @@ import { GRUPOS_EVENT } from "@/lib/grupos";
 /**
  * **Todos os membros de uma comunidade** (`/forum/:id/membros`).
  *
- * O Orkut tinha esta página, e ela existe aqui pelo mesmo motivo prático: a
- * página da comunidade mostra oito rostos e um "ver todos" — e *rótulo que nomeia
- * um conjunto e não leva até ele morre na tela* (§4.59). Numa comunidade de trinta
- * pessoas, os oito primeiros não respondem "quem está aqui dentro?".
- *
- * A ordem é a de lá: **dono, moderadores, depois o resto**.
+ * Existe pelo mesmo motivo de sempre: a página da comunidade mostra dez rostos e
+ * um "ver todos" — e *rótulo que nomeia um conjunto e não leva até ele morre na
+ * tela* (§4.59). A ordem é dono → moderadores → resto.
  */
 export default function MembrosDoForum() {
   const params = useParams<{ id: string }>();
@@ -29,64 +27,55 @@ export default function MembrosDoForum() {
   }, []);
 
   const grupo = forumNaTela(id);
+
   if (!grupo) {
     return (
-      <PaginaOrkut testid="membros-missing">
-        <BarraOrkut />
-        <div className="p-2.5">
-          <Caixa titulo="membros">
-            <p className="text-[#666]">Esta comunidade não existe mais.</p>
-            <p className="mt-2">
-              <LinkOrkut href="/forum">« voltar para as comunidades</LinkOrkut>
-            </p>
-          </Caixa>
+      <PaginaDoForum titulo="Membros" voltarPara="/forum" testid="membros-missing">
+        <div className="px-5 pt-4">
+          <Bloco>
+            <p className="text-[13px] text-white/55">Esta comunidade não existe mais.</p>
+            <div className="mt-3">
+              <LinkDoForum href="/forum">Ver todas as comunidades</LinkDoForum>
+            </div>
+          </Bloco>
         </div>
-      </PaginaOrkut>
+      </PaginaDoForum>
     );
   }
 
-  /* Comunidade privada esconde a lista junto com o conteúdo: saber quem está
-     dentro é metade do que uma comunidade fechada guarda. */
   if (!possoLer(id)) {
     return (
-      <PaginaOrkut testid="membros-privado">
-        <BarraOrkut onde={grupo.nome} />
-        <div className="p-2.5">
-          <Caixa titulo="comunidade privada">
-            <p className="text-[#666]">Só quem participa vê os membros desta comunidade.</p>
-            <p className="mt-2">
-              <LinkOrkut href={`/forum/${id}`}>« ver a comunidade</LinkOrkut>
+      <PaginaDoForum titulo={grupo.nome} voltarPara={`/forum/${id}`} testid="membros-privado">
+        <div className="px-5 pt-4">
+          <Bloco>
+            <p className="flex items-start gap-2.5 text-[13px] leading-relaxed text-white/55">
+              <Lock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              Só quem participa vê os membros desta comunidade.
             </p>
-          </Caixa>
+          </Bloco>
         </div>
-      </PaginaOrkut>
+      </PaginaDoForum>
     );
   }
 
   const membros = membrosDo(id);
 
   return (
-    <PaginaOrkut testid="membros-do-forum">
-      <BarraOrkut onde={`${grupo.nome} › membros`} />
-
-      <div className="p-2.5" key={versao}>
-        <p className="mb-1.5 text-[10px] text-[#666]">
-          <LinkOrkut href={`/forum/${id}`}>{grupo.nome}</LinkOrkut>
-          {" › membros"}
-        </p>
-
-        <Caixa
-          titulo={`membros (${membros.length})`}
-          testid="lista-completa"
-          acao={
-            souModerador(id) ? (
-              <LinkOrkut href={`/forum/${id}/gerenciar`} testid="ir-gerenciar">
-                gerenciar »
-              </LinkOrkut>
-            ) : undefined
-          }
-        >
-          <div className="grid grid-cols-3 gap-2.5">
+    <PaginaDoForum
+      titulo={grupo.nome}
+      voltarPara={`/forum/${id}`}
+      testid="membros-do-forum"
+      acao={
+        souModerador(id) ? (
+          <LinkDoForum href={`/forum/${id}/gerenciar`} testid="ir-gerenciar">
+            Gerenciar
+          </LinkDoForum>
+        ) : undefined
+      }
+    >
+      <div className="px-5 pt-4" key={versao}>
+        <Bloco titulo={`Membros · ${membros.length}`} testid="lista-completa">
+          <div className="-my-1">
             {membros.map(({ slug, papel }) => {
               const membro = slug === EU ? undefined : findMember(slug);
               const nome = slug === EU ? "Você" : (membro?.name ?? "Alguém");
@@ -94,30 +83,29 @@ export default function MembrosDoForum() {
                 <Link
                   key={slug}
                   href={slug === EU ? "/profile" : `/user/${slug}`}
-                  className="text-center"
+                  className="flex items-center gap-3 border-b border-white/[0.06] py-2.5 last:border-0"
                   data-testid={`membro-${slug}`}
                 >
-                  <span className="mx-auto block w-[68px]">
-                    <FotoOrkut nome={nome} tamanho={68} />
-                  </span>
-                  <span className="mt-1 block truncate text-[10px] text-[#1a4fa0] hover:underline">
-                    {nome}
-                  </span>
-                  {papel !== "membro" && (
-                    <span className="block text-[9px] text-[#888]">
-                      {papel === "dono" ? "dono" : "moderador"}
+                  <AvatarDoForum nome={nome} cor={membro?.color} tamanho={40} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13.5px] font-semibold">
+                      {nome}
+                      {papel !== "membro" && (
+                        <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-white/50">
+                          {papel === "dono" ? "dono" : "modera"}
+                        </span>
+                      )}
                     </span>
-                  )}
+                    {membro?.bio && (
+                      <span className="block truncate text-[11px] text-white/35">{membro.bio}</span>
+                    )}
+                  </span>
                 </Link>
               );
             })}
           </div>
-        </Caixa>
-
-        <p className="mt-2 text-center text-[10px]">
-          <LinkOrkut href={`/forum/${id}`}>« voltar para a comunidade</LinkOrkut>
-        </p>
+        </Bloco>
       </div>
-    </PaginaOrkut>
+    </PaginaDoForum>
   );
 }

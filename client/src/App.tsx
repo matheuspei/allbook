@@ -96,16 +96,14 @@ function Router() {
   const isPlayerPage = location.startsWith('/player');
   /** Login é tela cheia como o player: sem menus, sem MiniPlayer. */
   const isLoginPage = location === '/login';
-  /**
-   * **As comunidades (`/forum`) são o Orkut**, e o Orkut tinha a barra dele.
-   *
-   * Decisão do Matheus em 31/07 (*"esquece o aplicativo; tal e como era no
-   * Orkut"*): ali dentro o cabeçalho escuro e o menu inferior do AllBook sairiam
-   * pela metade de qualquer jeito — laranja sobre branco, duas identidades na
-   * mesma tela. A saída não some: a barra azul do topo tem "voltar ao app".
+  /*
+   * **As comunidades voltaram a ter o cabeçalho e o menu do app** (31/07, fim do
+   * dia). Elas ficaram brancas e azuis por algumas horas, quando a aba copiava o
+   * Orkut inteiro (§4.74); o Matheus então pediu *"deixar essa página com a cara
+   * do AllBook"* mantendo as funções. Sem a pele de fora, não há mais motivo para
+   * esconder a navegação da casa.
    */
-  const isForumPage = location.startsWith('/forum');
-  const isBare = isPlayerPage || isLoginPage || isForumPage;
+  const isBare = isPlayerPage || isLoginPage;
 
   const isHomePage = location === '/';
 
@@ -200,7 +198,7 @@ function Router() {
           </Switch>
         </div>
       </div>
-      {!isLoginPage && !isForumPage && <MiniPlayer />}
+      {!isLoginPage && <MiniPlayer />}
       {!isBare && <BottomNav />}
     </div>
   );

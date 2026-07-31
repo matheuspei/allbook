@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
+import { Plus, Search } from "lucide-react";
 
 import {
-  BarraOrkut,
-  BotaoOrkut,
-  Caixa,
-  LinkOrkut,
-  PaginaOrkut,
-} from "@/components/forum/Orkut";
+  Bloco,
+  BotaoDoForum,
+  CAMPO,
+  LinkDoForum,
+  PaginaDoForum,
+} from "@/components/forum/Pecas";
 import { useToast } from "@/hooks/use-toast";
 import {
   CATEGORIAS,
@@ -20,15 +21,16 @@ import {
 import { GRUPOS_EVENT, criarGrupo, topicosDa, type Grupo } from "@/lib/grupos";
 
 /**
- * **Comunidades** (`/forum`) — a lista, no formato do Orkut.
+ * **Comunidades** (`/forum`) — a lista.
  *
- * Lá isto era a página "minhas comunidades": uma **grade de imagens quadradas**
- * com o nome embaixo, a busca por nome, o filtro por categoria e o link de criar.
- * A ordem também é a de lá: as suas primeiro, o resto depois.
+ * A organização é a do Orkut e continua igual: **grade de imagens quadradas** com
+ * o nome embaixo, busca por nome, filtro por categoria, as suas primeiro. O que
+ * mudou é a pele (§4.74, virada do fim do dia): fundo escuro, cantos
+ * arredondados, laranja no que é ação.
  *
- * **A imagem é o item.** No Orkut a grade era só imagem e nome — e era isso que
- * fazia a página parecer cheia de gente mesmo com dez comunidades. Aqui, sem
- * imagem enviada, entra o emoji num quadrado cinza, no mesmo tamanho.
+ * **A imagem é o item**, e isso não é decoração: era o que fazia a página do
+ * Orkut parecer cheia com dez comunidades. Sem imagem enviada, entra o emoji num
+ * quadrado, no mesmo tamanho.
  */
 export default function Comunidades() {
   const { toast } = useToast();
@@ -44,7 +46,6 @@ export default function Comunidades() {
   }, []);
 
   const todas = useMemo(() => forunsVisiveis(), [versao]);
-
   const minhas = todas.filter((grupo) => situacaoDe(grupo.id) === "dentro");
   const outras = todas.filter((grupo) => situacaoDe(grupo.id) !== "dentro");
 
@@ -55,132 +56,126 @@ export default function Comunidades() {
       if (categoria && config.categoria !== categoria) return false;
       if (!termo) return true;
       return (
-        grupo.nome.toLowerCase().includes(termo) ||
-        grupo.descricao.toLowerCase().includes(termo)
+        grupo.nome.toLowerCase().includes(termo) || grupo.descricao.toLowerCase().includes(termo)
       );
     });
   }
 
   return (
-    <PaginaOrkut testid="comunidades-page">
-      <BarraOrkut onde="comunidades" />
-
-      <div className="p-2.5" key={versao}>
-        <Caixa
-          titulo="buscar comunidades"
-          testid="busca-de-comunidades"
-          acao={
-            <LinkOrkut onClick={() => setCriando((v) => !v)} testid="criar-comunidade">
-              criar comunidade »
-            </LinkOrkut>
-          }
-        >
-          <div className="flex gap-1.5">
-            <input
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="nome da comunidade"
-              className="min-w-0 flex-1 border border-[#b5b5b5] bg-white px-1.5 py-1 text-[11px] text-[#333] focus:border-[#5b7ab5] focus:outline-none"
-              data-testid="campo-busca"
-            />
-            <select
-              value={categoria}
-              onChange={(e) => setCategoria(e.target.value)}
-              className="border border-[#b5b5b5] bg-white px-1 py-1 text-[10px] text-[#333] focus:outline-none"
-              data-testid="filtro-categoria"
-            >
-              <option value="">todas as categorias</option>
-              {CATEGORIAS.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {criando && <FormularioDeCriacao onPronto={() => setCriando(false)} />}
-        </Caixa>
-
-        <Caixa titulo={`minhas comunidades (${minhas.length})`} testid="minhas-comunidades">
-          {filtrar(minhas).length === 0 ? (
-            <p className="text-[#666]">
-              Você ainda não participa de nenhuma comunidade
-              {busca || categoria ? " que bata com a busca" : ""}.
-            </p>
-          ) : (
-            <Grade lista={filtrar(minhas)} />
-          )}
-        </Caixa>
-
-        <Caixa titulo="outras comunidades" testid="outras-comunidades">
-          {filtrar(outras).length === 0 ? (
-            <p className="text-[#666]">Nenhuma comunidade encontrada.</p>
-          ) : (
-            <Grade lista={filtrar(outras)} comFicha />
-          )}
-        </Caixa>
-
-        <p className="mt-2 text-center text-[10px]">
-          <LinkOrkut href="/community" testid="voltar-app">
-            « voltar ao AllBook
-          </LinkOrkut>
-        </p>
-      </div>
-    </PaginaOrkut>
-  );
-
-  function FormularioDeCriacao({ onPronto }: { onPronto: () => void }) {
-    const [nome, setNome] = useState("");
-    const [emoji, setEmoji] = useState("");
-    const [descricao, setDescricao] = useState("");
-    const [cat, setCat] = useState<string>("");
-
-    return (
-      <div className="mt-2.5 border border-[#dcdcdc] bg-[#f8f8f8] p-2" data-testid="form-criar">
-        <p className="mb-1.5 font-bold text-[#2b4a80]">criar uma comunidade</p>
-        <div className="space-y-1.5">
-          <div className="flex gap-1.5">
-            <input
-              value={emoji}
-              onChange={(e) => setEmoji(e.target.value.slice(0, 4))}
-              placeholder="💬"
-              className="w-11 border border-[#b5b5b5] bg-white px-1 py-1 text-center text-[13px] focus:outline-none"
-              aria-label="ícone"
-              data-testid="novo-emoji"
-            />
-            <input
-              value={nome}
-              onChange={(e) => setNome(e.target.value.slice(0, 60))}
-              placeholder="nome da comunidade"
-              autoFocus
-              className="min-w-0 flex-1 border border-[#b5b5b5] bg-white px-1.5 py-1 text-[11px] focus:border-[#5b7ab5] focus:outline-none"
-              data-testid="novo-nome"
-            />
-          </div>
-          <textarea
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value.slice(0, 400))}
-            placeholder="sobre o que é esta comunidade?"
-            rows={2}
-            className="w-full resize-none border border-[#b5b5b5] bg-white px-1.5 py-1 text-[11px] focus:border-[#5b7ab5] focus:outline-none"
-            data-testid="nova-descricao"
+    <PaginaDoForum titulo="Comunidades" voltarPara="/community" testid="comunidades-page">
+      <div className="px-5 pt-4" key={versao}>
+        {/* Busca e filtro, no desenho da Biblioteca. */}
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+          <input
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar comunidade…"
+            className={`${CAMPO} pl-9`}
+            data-testid="campo-busca"
           />
+        </div>
+
+        <div className="mt-2.5 flex items-center gap-2">
           <select
-            value={cat}
-            onChange={(e) => setCat(e.target.value)}
-            className="w-full border border-[#b5b5b5] bg-white px-1 py-1 text-[11px] focus:outline-none"
-            data-testid="nova-categoria"
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+            className="min-w-0 flex-1 rounded-full border border-white/15 bg-transparent px-3 py-1.5 text-[11.5px] font-semibold text-white/60 focus:outline-none"
+            data-testid="filtro-categoria"
           >
-            <option value="">— categoria —</option>
+            <option value="">Todas as categorias</option>
             {CATEGORIAS.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
             ))}
           </select>
+          <BotaoDoForum primario onClick={() => setCriando((v) => !v)} testid="criar-comunidade">
+            <Plus className="mr-0.5 inline h-3.5 w-3.5 align-[-2px]" />
+            Criar
+          </BotaoDoForum>
         </div>
-        <div className="mt-2 flex gap-2">
-          <BotaoOrkut
+
+        {criando && <FormularioDeCriacao onPronto={() => setCriando(false)} />}
+
+        <div className="mt-4">
+          <Bloco titulo={`Suas comunidades · ${minhas.length}`} testid="minhas-comunidades">
+            {filtrar(minhas).length === 0 ? (
+              <p className="text-[13px] text-white/40">
+                Você ainda não participa de nenhuma comunidade
+                {busca || categoria ? " que bata com a busca" : ""}.
+              </p>
+            ) : (
+              <Grade lista={filtrar(minhas)} />
+            )}
+          </Bloco>
+
+          <Bloco titulo="Descobrir" testid="outras-comunidades">
+            {filtrar(outras).length === 0 ? (
+              <p className="text-[13px] text-white/40">Nenhuma comunidade encontrada.</p>
+            ) : (
+              <Grade lista={filtrar(outras)} comFicha />
+            )}
+          </Bloco>
+        </div>
+      </div>
+    </PaginaDoForum>
+  );
+
+  function FormularioDeCriacao({ onPronto }: { onPronto: () => void }) {
+    const [nome, setNome] = useState("");
+    const [emoji, setEmoji] = useState("");
+    const [descricao, setDescricao] = useState("");
+    const [cat, setCat] = useState("");
+
+    return (
+      <div
+        className="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3"
+        data-testid="form-criar"
+      >
+        <div className="flex gap-2">
+          <input
+            value={emoji}
+            onChange={(e) => setEmoji(e.target.value.slice(0, 4))}
+            placeholder="💬"
+            className={`${CAMPO} w-14 text-center text-[16px]`}
+            aria-label="Ícone"
+            data-testid="novo-emoji"
+          />
+          <input
+            value={nome}
+            onChange={(e) => setNome(e.target.value.slice(0, 60))}
+            placeholder="Nome da comunidade"
+            autoFocus
+            className={CAMPO}
+            data-testid="novo-nome"
+          />
+        </div>
+        <textarea
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value.slice(0, 400))}
+          placeholder="Sobre o que é?"
+          rows={2}
+          className={`${CAMPO} mt-2 resize-none`}
+          data-testid="nova-descricao"
+        />
+        <select
+          value={cat}
+          onChange={(e) => setCat(e.target.value)}
+          className={`${CAMPO} mt-2`}
+          data-testid="nova-categoria"
+        >
+          <option value="">— categoria —</option>
+          {CATEGORIAS.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+
+        <div className="mt-3 flex justify-end gap-2">
+          <BotaoDoForum onClick={onPronto}>Cancelar</BotaoDoForum>
+          <BotaoDoForum
             primario
             disabled={nome.trim().length === 0}
             onClick={() => {
@@ -189,31 +184,24 @@ export default function Comunidades() {
               if (cat) salvarConfig(novo.id, { categoria: cat });
               onPronto();
               toast({
-                title: `Comunidade "${novo.nome}" criada`,
-                description: "Você é o dono — dá para editar tudo em «editar comunidade».",
+                title: `"${novo.nome}" criada`,
+                description: "Você é o dono — o resto se ajusta em Gerenciar.",
               });
             }}
             testid="confirmar-criar"
           >
-            criar comunidade
-          </BotaoOrkut>
-          <BotaoOrkut onClick={onPronto}>cancelar</BotaoOrkut>
+            Criar comunidade
+          </BotaoDoForum>
         </div>
       </div>
     );
   }
 }
 
-/**
- * A grade de comunidades — imagem quadrada e nome embaixo.
- *
- * `comFicha` acrescenta membros e tópicos numa linha de apoio: na lista de
- * **descobrir** isso é o que decide se vale entrar, enquanto nas suas o nome
- * basta (você já sabe o que são).
- */
+/** A grade — imagem quadrada e nome embaixo, três por linha. */
 function Grade({ lista, comFicha }: { lista: Grupo[]; comFicha?: boolean }) {
   return (
-    <div className="grid grid-cols-3 gap-2.5" data-testid="grade-de-comunidades">
+    <div className="grid grid-cols-3 gap-3" data-testid="grade-de-comunidades">
       {lista.map((grupo) => {
         const config = configDo(grupo.id);
         return (
@@ -227,24 +215,32 @@ function Grade({ lista, comFicha }: { lista: Grupo[]; comFicha?: boolean }) {
               <img
                 src={config.imagem}
                 alt={grupo.nome}
-                className="mx-auto h-[68px] w-[68px] border border-[#c9c9c9] object-cover"
+                className="mx-auto aspect-square w-full rounded-xl object-cover ring-1 ring-white/10 transition-transform hover:scale-[1.03]"
               />
             ) : (
-              <span className="mx-auto grid h-[68px] w-[68px] place-items-center border border-[#c9c9c9] bg-[#f4f4f4] text-[30px]">
+              <span className="mx-auto grid aspect-square w-full place-items-center rounded-xl bg-white/[0.06] text-[28px] ring-1 ring-white/10 transition-transform hover:scale-[1.03]">
                 {grupo.emoji}
               </span>
             )}
-            <span className="mt-1 block text-[10px] leading-tight text-[#1a4fa0] hover:underline">
+            <span className="mt-1.5 block text-[11px] font-medium leading-tight text-white/75">
               {grupo.nome}
             </span>
-            {comFicha && (
-              <span className="block text-[9px] text-[#999]">
-                {membrosDo(grupo.id).length} membros · {topicosDa(grupo.id).length} tópicos
-              </span>
-            )}
+            {comFicha && <FichaCurta grupo={grupo} />}
           </Link>
         );
       })}
     </div>
+  );
+}
+
+/** Quantas pessoas e quantos tópicos — o que decide se vale entrar. */
+function FichaCurta({ grupo }: { grupo: Grupo }) {
+  const pessoas = membrosDo(grupo.id).length;
+  const topicos = topicosDa(grupo.id).length;
+  return (
+    <span className="mt-0.5 block text-[10px] text-white/30">
+      {pessoas} {pessoas === 1 ? "pessoa" : "pessoas"} · {topicos}{" "}
+      {topicos === 1 ? "tópico" : "tópicos"}
+    </span>
   );
 }

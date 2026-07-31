@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "wouter";
+import { Lock, Send } from "lucide-react";
 
 import AnexarTrecho from "@/components/AnexarTrecho";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import Reacoes from "@/components/comunidade/Reacoes";
 import {
-  BarraOrkut,
-  BotaoOrkut,
-  Caixa,
-  FotoOrkut,
-  LinkOrkut,
-  PaginaOrkut,
-} from "@/components/forum/Orkut";
+  AvatarDoForum,
+  Bloco,
+  CAMPO,
+  LinkDoForum,
+  PaginaDoForum,
+} from "@/components/forum/Pecas";
 import { type Citacao } from "@/lib/citacoes";
 import { useToast } from "@/hooks/use-toast";
+import { relativeDate } from "@/lib/activity";
 import { readProfile } from "@/lib/profile";
 import { forumNaTela, possoLer, situacaoDe, souModerador } from "@/lib/forum";
 import {
@@ -28,21 +29,18 @@ import {
   type RespostaNaTela,
 } from "@/lib/grupos";
 
-/** O Orkut paginava o fórum de 10 em 10. */
+/** Herdado do Orkut, e mantido: fio longo cansa mais rolando do que paginando. */
 const POR_PAGINA = 10;
 
 /**
- * Um tópico (`/forum/:id/topico/:topicoId`) — **o fórum do Orkut**.
+ * Um tópico (`/forum/:id/topico/:topicoId`).
  *
- * Refeito em 31/07 com o resto da aba (§4.74). A forma é a de lá: cada mensagem
- * é uma **linha numerada**, com a foto quadrada do autor à esquerda, o nome em
- * azul, a data à direita e o texto embaixo. A caixa de responder fica no fim, e a
- * lista pagina **de 10 em 10** — o Orkut paginava, e num fio de quarenta
- * mensagens a rolagem infinita esconde onde a conversa está.
+ * **A forma é a do fórum do Orkut; a pele é a do AllBook** (§4.74). O que ficou
+ * de lá porque é bom: a mensagem **numerada** (dá para dizer "concordo com a 7"),
+ * o autor à esquerda, a data à direita e a **paginação de 10 em 10**.
  *
- * **Moderar aqui é apagar de verdade a mensagem de qualquer um** (pedido do
- * Matheus, §4.74). Continua sendo *esconder* por baixo, para o erro ter volta —
- * mas quem lê vê o que o Orkut mostrava: a mensagem sai.
+ * **Moderar é remover a mensagem de qualquer um** — por baixo continua sendo
+ * esconder, para o erro ter volta.
  */
 export default function Topico() {
   const params = useParams<{ id: string; topicoId: string }>();
@@ -57,7 +55,6 @@ export default function Topico() {
   const [texto, setTexto] = useState("");
   const [trecho, setTrecho] = useState<Citacao | undefined>(undefined);
   const [pagina, setPagina] = useState(0);
-  /* Revelar é por sessão e por resposta: fechar a tela cobre tudo de novo. */
   const [revelados, setRevelados] = useState<string[]>([]);
 
   useEffect(() => {
@@ -69,33 +66,34 @@ export default function Topico() {
 
   if (!grupo || !topico) {
     return (
-      <PaginaOrkut testid="topico-missing">
-        <BarraOrkut />
-        <div className="p-2.5">
-          <Caixa titulo="tópico">
-            <p className="text-[#666]">Este tópico não existe mais.</p>
-            <p className="mt-2">
-              <LinkOrkut href={`/forum/${grupoId}`}>« voltar para a comunidade</LinkOrkut>
-            </p>
-          </Caixa>
+      <PaginaDoForum titulo="Tópico" voltarPara="/forum" testid="topico-missing">
+        <div className="px-5 pt-4">
+          <Bloco>
+            <p className="text-[13px] text-white/55">Este tópico não existe mais.</p>
+            <div className="mt-3">
+              <LinkDoForum href={`/forum/${grupoId}`}>Voltar para a comunidade</LinkDoForum>
+            </div>
+          </Bloco>
         </div>
-      </PaginaOrkut>
+      </PaginaDoForum>
     );
   }
 
   if (!possoLer(grupoId)) {
     return (
-      <PaginaOrkut testid="topico-privado">
-        <BarraOrkut onde={grupo.nome} />
-        <div className="p-2.5">
-          <Caixa titulo="comunidade privada">
-            <p className="text-[#666]">Só quem participa desta comunidade lê os tópicos dela.</p>
-            <p className="mt-2">
-              <LinkOrkut href={`/forum/${grupoId}`}>« ver a comunidade</LinkOrkut>
+      <PaginaDoForum titulo={grupo.nome} voltarPara={`/forum/${grupoId}`} testid="topico-privado">
+        <div className="px-5 pt-4">
+          <Bloco>
+            <p className="flex items-start gap-2.5 text-[13px] leading-relaxed text-white/55">
+              <Lock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              Só quem participa desta comunidade lê os tópicos dela.
             </p>
-          </Caixa>
+            <div className="mt-3">
+              <LinkDoForum href={`/forum/${grupoId}`}>Ver a comunidade</LinkDoForum>
+            </div>
+          </Bloco>
         </div>
-      </PaginaOrkut>
+      </PaginaDoForum>
     );
   }
 
@@ -105,8 +103,7 @@ export default function Topico() {
   const visiveis = fio.slice(pagina * POR_PAGINA, pagina * POR_PAGINA + POR_PAGINA);
 
   function publicar() {
-    const nova = responder(topico!.id, texto, trecho);
-    if (nova) {
+    if (responder(topico!.id, texto, trecho)) {
       setTexto("");
       setTrecho(undefined);
       /* Quem responde quer ver o que escreveu: a última página é onde ela cai. */
@@ -116,120 +113,110 @@ export default function Topico() {
   }
 
   return (
-    <PaginaOrkut testid="topico-page">
-      <BarraOrkut onde={`${grupo.nome} › ${topico.titulo}`} />
+    <PaginaDoForum titulo={grupo.nome} voltarPara={`/forum/${grupoId}`} testid="topico-page">
+      <div className="px-5 pt-4">
+        <header className="mb-4">
+          <h1 className="font-display text-lg font-bold leading-snug tracking-tight">
+            {topico.titulo}
+          </h1>
+          <p className="mt-1 text-[11.5px] text-white/35">
+            por {topico.meu ? "você" : (topico.autor?.name ?? "alguém")} ·{" "}
+            <Link href={`/forum/${grupoId}`} className="text-white/50">
+              {grupo.nome}
+            </Link>{" "}
+            · {fio.length} {fio.length === 1 ? "mensagem" : "mensagens"}
+          </p>
+        </header>
 
-      <div className="p-2.5">
-        <p className="mb-1.5 text-[10px] text-[#666]">
-          <LinkOrkut href={`/forum/${grupoId}`}>{grupo.nome}</LinkOrkut>
-          {" › "}
-          <span>{topico.titulo}</span>
-        </p>
+        {fio.length === 0 ? (
+          <p className="py-6 text-[13px] text-white/35">
+            Ninguém respondeu ainda — seja a primeira voz.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {visiveis.map((resposta, indice) => {
+              const numero = pagina * POR_PAGINA + indice + 1;
+              const nome = resposta.minha ? "Você" : (resposta.autor?.name ?? "Alguém");
+              const coberta = resposta.spoiler && !revelados.includes(resposta.id);
+              const href = resposta.minha ? "/profile" : `/user/${resposta.autor?.slug ?? ""}`;
 
-        <Caixa
-          titulo={topico.titulo}
-          testid="fio-do-topico"
-          acao={
-            <span className="text-[10px] text-[#666]">
-              {fio.length} {fio.length === 1 ? "mensagem" : "mensagens"}
-            </span>
-          }
-        >
-          {fio.length === 0 ? (
-            <p className="text-[#666]">Nenhuma mensagem ainda. Seja o primeiro a escrever.</p>
-          ) : (
-            <div>
-              {visiveis.map((resposta, indice) => {
-                const numero = pagina * POR_PAGINA + indice + 1;
-                const nome = resposta.minha ? "Você" : (resposta.autor?.name ?? "Alguém");
-                const coberta = resposta.spoiler && !revelados.includes(resposta.id);
+              return (
+                <article
+                  key={resposta.id}
+                  className="flex gap-2.5"
+                  data-testid={`resposta-${resposta.id}`}
+                >
+                  <Link href={href} className="shrink-0 self-start">
+                    <AvatarDoForum
+                      nome={nome}
+                      src={resposta.minha ? perfil.photo : undefined}
+                      cor={resposta.autor?.color}
+                      tamanho={36}
+                    />
+                  </Link>
 
-                return (
-                  <div
-                    key={resposta.id}
-                    className="flex gap-2 border-b border-[#eee] py-2 last:border-0"
-                    data-testid={`resposta-${resposta.id}`}
-                  >
-                    {/* A coluna da esquerda do Orkut: número, foto e nome. */}
-                    <div className="w-[46px] shrink-0 text-center">
-                      <span className="mb-0.5 block text-[9px] text-[#999]">{numero}</span>
-                      {resposta.minha ? (
-                        <Link href="/profile">
-                          <FotoOrkut nome={perfil.name} src={perfil.photo} tamanho={40} />
-                        </Link>
-                      ) : (
-                        <Link href={`/user/${resposta.autor?.slug ?? ""}`}>
-                          <FotoOrkut nome={nome} tamanho={40} />
-                        </Link>
-                      )}
-                    </div>
+                  <div className="min-w-0 flex-1 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-2.5">
+                    <p className="flex items-baseline gap-2">
+                      <Link href={href} className="text-[13px] font-semibold hover:text-primary">
+                        {nome}
+                      </Link>
+                      <span className="text-[10.5px] text-white/25">
+                        {relativeDate(resposta.date)}
+                      </span>
+                      {/* O número da mensagem, herdado do Orkut: é o que permite
+                          "concordo com a 7" numa conversa de quarenta. */}
+                      <span className="ml-auto text-[10.5px] text-white/15">#{numero}</span>
+                    </p>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="flex items-baseline justify-between gap-2">
-                        {resposta.minha ? (
-                          <LinkOrkut href="/profile" className="font-bold">
-                            Você
-                          </LinkOrkut>
-                        ) : (
-                          <LinkOrkut href={`/user/${resposta.autor?.slug ?? ""}`} className="font-bold">
-                            {nome}
-                          </LinkOrkut>
+                    {coberta ? (
+                      <button
+                        onClick={() => setRevelados((atual) => [...atual, resposta.id])}
+                        className="mt-1.5 flex w-full items-center gap-2 rounded-lg bg-white/[0.05] px-3 py-2 text-left text-[11.5px] text-white/45 transition-colors hover:bg-white/10"
+                        data-testid={`revelar-${resposta.id}`}
+                      >
+                        Marcada como spoiler — toque para ler assim mesmo.
+                      </button>
+                    ) : (
+                      <>
+                        {resposta.texto && (
+                          <p className="mt-1 whitespace-pre-line text-[13.5px] leading-relaxed text-white/80">
+                            {resposta.texto}
+                          </p>
                         )}
-                        <span className="shrink-0 text-[10px] text-[#999]">
-                          {new Date(resposta.date).toLocaleDateString("pt-BR")}
-                        </span>
-                      </p>
+                        {resposta.citacao && <CitacaoDeAudio citacao={resposta.citacao} />}
+                        <div className="mt-1.5">
+                          <Reacoes id={resposta.id} deOutraPessoa={!resposta.minha} />
+                        </div>
+                      </>
+                    )}
 
-                      {coberta ? (
-                        <LinkOrkut
-                          onClick={() => setRevelados((atual) => [...atual, resposta.id])}
-                          testid={`revelar-${resposta.id}`}
-                        >
-                          [mensagem marcada como spoiler — clique para ler]
-                        </LinkOrkut>
-                      ) : (
-                        <>
-                          {resposta.texto && (
-                            <p className="mt-0.5 whitespace-pre-line leading-[1.6] text-[#333]">
-                              {resposta.texto}
-                            </p>
-                          )}
-                          {resposta.citacao && (
-                            <div className="mt-1.5">
-                              <CitacaoDeAudio citacao={resposta.citacao} />
-                            </div>
-                          )}
-                          <div className="mt-1">
-                            <Reacoes id={resposta.id} deOutraPessoa={!resposta.minha} claro />
-                          </div>
-                        </>
-                      )}
-
-                      {/* As ações em linha de links, como as do Orkut. */}
-                      <p className="mt-1 flex flex-wrap gap-2.5 text-[10px]">
+                    {(resposta.minha || modero) && (
+                      <div className="mt-1 flex flex-wrap gap-3">
                         {resposta.minha && (
-                          <LinkOrkut
+                          <LinkDoForum
                             onClick={() => {
                               apagarMinhaResposta(resposta.id);
                               toast({ title: "Mensagem apagada" });
                             }}
+                            className="text-[10.5px] text-white/30 hover:text-red-300"
                             testid={`resposta-delete-${resposta.id}`}
                           >
                             apagar
-                          </LinkOrkut>
+                          </LinkDoForum>
                         )}
                         {modero && !resposta.minha && (
                           <>
-                            <LinkOrkut
+                            <LinkDoForum
                               onClick={() => {
                                 const cobriu = alternarSpoiler(grupoId, resposta.id);
                                 toast({ title: cobriu ? "Coberta como spoiler" : "Descoberta" });
                               }}
+                              className="text-[10.5px] text-white/30 hover:text-white/70"
                               testid={`spoiler-${resposta.id}`}
                             >
                               {resposta.spoiler ? "descobrir" : "marcar spoiler"}
-                            </LinkOrkut>
-                            <LinkOrkut
+                            </LinkDoForum>
+                            <LinkDoForum
                               onClick={() => {
                                 alternarRespostaEscondida(grupoId, resposta.id);
                                 toast({
@@ -237,82 +224,82 @@ export default function Topico() {
                                   description: "Sai do fórum para todo mundo.",
                                 });
                               }}
+                              className="text-[10.5px] text-white/30 hover:text-red-300"
                               testid={`esconder-resposta-${resposta.id}`}
                             >
                               remover
-                            </LinkOrkut>
+                            </LinkDoForum>
                           </>
                         )}
-                      </p>
-                    </div>
+                      </div>
+                    )}
                   </div>
-                );
-              })}
-
-              {/* A paginação numerada do Orkut. */}
-              {paginas > 1 && (
-                <p className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-[#eee] pt-2 text-[10px]">
-                  <span className="text-[#666]">páginas:</span>
-                  {Array.from({ length: paginas }, (_, n) => (
-                    <button
-                      key={n}
-                      onClick={() => setPagina(n)}
-                      className={
-                        n === pagina
-                          ? "font-bold text-[#333]"
-                          : "text-[#1a4fa0] hover:underline"
-                      }
-                      data-testid={`pagina-${n + 1}`}
-                    >
-                      {n + 1}
-                    </button>
-                  ))}
-                </p>
-              )}
-            </div>
-          )}
-        </Caixa>
-
-        {/* Responder — no Orkut a caixa ficava no fim do fio. */}
-        {dentro ? (
-          <Caixa titulo="responder" testid="topico-composer">
-            <textarea
-              value={texto}
-              onChange={(evento) => setTexto(evento.target.value.slice(0, MAX_RESPOSTA))}
-              rows={4}
-              className="w-full resize-none border border-[#b5b5b5] bg-white px-1.5 py-1 text-[11px] leading-[1.6] text-[#333] focus:border-[#5b7ab5] focus:outline-none"
-              data-testid="topico-input"
-            />
-            <div className="mt-1.5">
-              <AnexarTrecho citacao={trecho} onEscolher={setTrecho} />
-            </div>
-            <div className="mt-2 flex items-center gap-2">
-              <BotaoOrkut
-                primario
-                onClick={publicar}
-                disabled={texto.trim().length === 0 && !trecho}
-                testid="topico-publish"
-              >
-                enviar mensagem
-              </BotaoOrkut>
-              <span className="text-[10px] text-[#999]">
-                {texto.length}/{MAX_RESPOSTA}
-              </span>
-            </div>
-          </Caixa>
-        ) : (
-          <Caixa titulo="responder">
-            <p className="text-[#666]">
-              Só quem participa da comunidade escreve aqui.{" "}
-              <LinkOrkut href={`/forum/${grupoId}`}>entrar na comunidade »</LinkOrkut>
-            </p>
-          </Caixa>
+                </article>
+              );
+            })}
+          </div>
         )}
 
-        <p className="mt-2 text-center text-[10px]">
-          <LinkOrkut href={`/forum/${grupoId}`}>« voltar para a comunidade</LinkOrkut>
-        </p>
+        {/* A paginação, com a pele da casa: pílulas em vez de números soltos. */}
+        {paginas > 1 && (
+          <div className="mt-4 flex flex-wrap items-center gap-1.5">
+            {Array.from({ length: paginas }, (_, n) => (
+              <button
+                key={n}
+                onClick={() => setPagina(n)}
+                className={`h-7 min-w-7 rounded-full px-2 text-[11.5px] font-semibold transition-colors ${
+                  n === pagina
+                    ? "bg-white text-black"
+                    : "border border-white/15 text-white/50 hover:text-white/80"
+                }`}
+                data-testid={`pagina-${n + 1}`}
+              >
+                {n + 1}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Responder — no fim, onde a leitura termina. */}
+        {dentro ? (
+          <div
+            className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-2.5"
+            data-testid="topico-composer"
+          >
+            <div className="flex items-end gap-2">
+              <textarea
+                value={texto}
+                onChange={(evento) => setTexto(evento.target.value.slice(0, MAX_RESPOSTA))}
+                placeholder="Responder ao tópico…"
+                rows={2}
+                className={`${CAMPO} min-h-[44px] resize-none border-0 bg-transparent`}
+                data-testid="topico-input"
+              />
+              <button
+                onClick={publicar}
+                disabled={texto.trim().length === 0 && !trecho}
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-[12px] font-bold text-black transition-opacity disabled:opacity-30"
+                data-testid="topico-publish"
+              >
+                <Send className="h-3.5 w-3.5" />
+                Enviar
+              </button>
+            </div>
+            <div className="mt-2 px-1">
+              <AnexarTrecho citacao={trecho} onEscolher={setTrecho} />
+            </div>
+          </div>
+        ) : (
+          <Bloco>
+            <p className="text-[13px] leading-relaxed text-white/55">
+              Só quem participa da comunidade escreve aqui.
+            </p>
+            <div className="mt-2.5">
+              <LinkDoForum href={`/forum/${grupoId}`}>Entrar na comunidade</LinkDoForum>
+            </div>
+          </Bloco>
+        )}
       </div>
-    </PaginaOrkut>
+    </PaginaDoForum>
   );
 }

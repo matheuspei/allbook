@@ -6223,6 +6223,39 @@ Três coisas que a construção resolveu e vale registrar:
   mesma regra das curtidas (§4.73): fingir que doze pessoas votaram no que você
   acabou de perguntar é a mentira mais fácil de perceber.
 
+### A pele voltou a ser a do AllBook, no fim do mesmo dia
+
+Horas depois de a aba ficar pronta em branco e azul, o Matheus mudou o rumo de
+novo — e desta vez pelo caminho que faltava:
+
+> *"Sem mexer nessa questão das funções, vamos deixar essa página com a cara do
+> AllBook, seguindo os mesmos layouts. Vamos deixar mais ou menos no mesmo
+> formato."*
+
+**A distinção que isso cria é a coisa mais útil desta seção inteira:**
+
+- **A pele saiu:** nada de branco, azul, Verdana 11px, caixa com cabeçalho
+  azul-claro, avatar quadrado. Voltou o #141414, o laranja, Outfit/Inter, os
+  cantos de 12–16px, o avatar redondo com gradiente e o cabeçalho da casa.
+- **A estrutura ficou inteira:** a ficha com os mesmos campos e na mesma ordem, a
+  grade de comunidades, a lista de tópicos, a mensagem **numerada** com autor à
+  esquerda, a **paginação de 10 em 10**, a enquete com barra e porcentagem, o
+  evento com **vou · talvez · não vou**. **E a governança não foi tocada** — era a
+  condição dele.
+
+Ou seja: **o que o Orkut ensinou sobre como organizar uma comunidade ficou; o que
+ele tinha de 2004 na aparência, não.** Vale como método para a próxima vez que a
+referência for um produto antigo.
+
+Três decisões pequenas na conversão:
+
+- **A trava "quem pode criar" virou interruptor**, não menu: são dois estados, e
+  um menu de dois itens pede um toque a mais para dizer a mesma coisa.
+- **O número da mensagem ficou** (`#7`, apagado no canto). Era o que permitia
+  *"concordo com a 7"* num fio de quarenta, e nenhuma rede moderna tem substituto.
+- **O cabeçalho e o menu do app voltaram** a `/forum/*`: sem a pele de fora, não
+  havia mais motivo para esconder a navegação da casa.
+
 ### O que ainda não existe
 
 **Convidar amigos** (o Orkut tinha, e depende de uma lista de quem convidar), a
