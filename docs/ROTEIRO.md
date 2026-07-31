@@ -6758,9 +6758,32 @@ clube — ela é ambígua desde a §4.79. Cada coisa com o seu nome.
   O cinza chapado fazia as comunidades novas parecerem buracos ao lado das cinco
   que têm foto.
 
+### Correção na hora seguinte: a roleta volta, e as 36 aparecem
+
+> *"Eu gostava dos ícones que estavam de categoria, de buscar por categoria.
+> Aqui diz 36 no total, mas não aparecem as 36, e você não consegue pesquisar —
+> tem que digitar uma por uma. Não gostei da forma como está."*
+
+Dois erros meus na mesma tacada, e ele pegou os dois:
+
+1. **Tirei a roleta de categoria** achando que as pastilhas bastavam. Não
+   bastam: pastilha serve para **ver o que existe**, roleta serve para **achar o
+   que você já tem em mente**. São gestos diferentes, e a tela precisa dos dois.
+   Voltou, em ordem alfabética, com o número de comunidades ao lado.
+2. **As pastilhas mostravam só as categorias com comunidade** — doze —, embaixo
+   de um "36 no total". A tela prometia 36 e entregava 12. Agora aparecem
+   **todas**: as vazias ficam apagadas, mas **continuam clicáveis**, e quem toca
+   recebe o convite para criar a primeira comunidade daquele assunto.
+
+E os **ícones por categoria** entraram (`ICONE_DA_CATEGORIA`), que era o que ele
+gostava no Orkut. Com 36 pastilhas, o emoji é o que deixa a lista ser varrida
+com o olho em vez de lida palavra por palavra.
+
 **A régua que fica:** *tela vazia raramente é problema de layout — é falta do que
 mostrar.* Antes de redesenhar uma aba morta, contar quantas coisas ela tem para
-oferecer.
+oferecer. E, ao trocar um controle por outro mais bonito, perguntar **qual gesto
+o antigo servia** — se ninguém mais serve aquele gesto, ele não foi substituído,
+foi removido.
 
 **Pendente, se ele quiser:** as 10 comunidades novas usam degradê + emoji; as 5
 antigas têm foto real (`assets/images/comunidades/`). Baixar 10 fotos deixa a

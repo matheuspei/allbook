@@ -13,7 +13,7 @@
  */
 
 import { readFollowing } from "@/lib/following";
-import { categoriaDe, forunsVisiveis, membrosDo, situacaoDe } from "@/lib/forum";
+import { CATEGORIAS, categoriaDe, forunsVisiveis, membrosDo, situacaoDe } from "@/lib/forum";
 import { topicosDa, type Grupo, type TopicoNaTela } from "@/lib/grupos";
 
 /** A janela do "esta semana" — sete dias, como em toda parte do app. */
@@ -101,16 +101,29 @@ export function acontecendoAgora(limite = 5): { grupo: Grupo; topico: TopicoNaTe
     .slice(0, limite);
 }
 
-/** Quantas comunidades há em cada categoria — só as que têm ao menos uma. */
+/**
+ * Quantas comunidades há em cada categoria — **todas as categorias, sempre**.
+ *
+ * ⚠️ **Devolvia só as que tinham comunidade, e isso estava errado** (31/07): a
+ * tela dizia "36 no total" e mostrava doze pastilhas, o que o Matheus pegou na
+ * hora — *"não aparecem as 36 categorias, e você não consegue pesquisar"*. Uma
+ * categoria vazia é um lugar legítimo para ir: quem chega lá vê que está livre
+ * e ganha o convite para criar a primeira comunidade do assunto.
+ *
+ * A ordem é a útil: as com gente primeiro (por tamanho), as vazias depois, em
+ * ordem alfabética.
+ */
 export function porCategoria(): { categoria: string; total: number }[] {
   const conta = new Map<string, number>();
+  for (const categoria of CATEGORIAS) conta.set(categoria, 0);
   for (const grupo of forunsVisiveis()) {
     const categoria = categoriaDe(grupo.id);
     if (!categoria) continue;
     conta.set(categoria, (conta.get(categoria) ?? 0) + 1);
   }
-  return Array.from(conta, ([categoria, total]) => ({ categoria, total }))
-    .sort((a, b) => b.total - a.total || a.categoria.localeCompare(b.categoria));
+  return Array.from(conta, ([categoria, total]) => ({ categoria, total })).sort(
+    (a, b) => b.total - a.total || a.categoria.localeCompare(b.categoria),
+  );
 }
 
 /**

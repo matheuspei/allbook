@@ -17,6 +17,7 @@ import {
   categoriaDe,
   configDo,
   forunsVisiveis,
+  iconeDaCategoria,
   membrosDo,
   salvarConfig,
   situacaoDe,
@@ -100,6 +101,9 @@ export default function Comunidades() {
   const agora = procurando ? [] : acontecendoAgora(4);
   const sugeridas = procurando ? [] : sugestoes(3);
   const categorias = porCategoria();
+  /* A roleta é para **achar uma categoria que você já tem em mente** — e para
+     isso a ordem alfabética ganha da ordem por tamanho, que é a das pastilhas. */
+  const categoriasAZ = [...categorias].sort((a, b) => a.categoria.localeCompare(b.categoria));
   const numeros = numerosDoForum();
 
   function limpar() {
@@ -135,8 +139,35 @@ export default function Comunidades() {
             />
           </div>
 
-          {/* O filtro em uso aparece como pastilha, com o X que o desfaz —
-              nunca uma roleta que a pessoa precisa lembrar de voltar ao "todas". */}
+          {/*
+            **A roleta de categoria voltou** (31/07, pedido dele: *"eu gostava
+            dos ícones que estavam de categoria, de você buscar por categoria"*).
+            Ela some do caminho de quem só quer digitar, mas dá o **atalho para
+            as 36** — nas pastilhas, achar uma categoria específica exige varrer
+            a lista com o olho; aqui é uma rolagem só, em ordem alfabética, com
+            o número de comunidades ao lado.
+          */}
+          <label className="mt-2 block">
+            <span className="mb-1 block text-[10px] text-white/35">buscar por categoria</span>
+            <select
+              value={categoria}
+              onChange={(e) => {
+                setCategoria(e.target.value);
+                setPagina(0);
+              }}
+              className={CAMPO}
+              data-testid="filtro-categoria"
+            >
+              <option value="">todas as categorias</option>
+              {categoriasAZ.map((item) => (
+                <option key={item.categoria} value={item.categoria}>
+                  {iconeDaCategoria(item.categoria)} {item.categoria} ({item.total})
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {/* O filtro em uso aparece também como pastilha, com o X que o desfaz. */}
           {procurando && (
             <p className="mt-2 flex flex-wrap items-center gap-2">
               {categoria && (
@@ -287,8 +318,19 @@ export default function Comunidades() {
           <Bloco
             titulo="Categorias"
             testid="categorias"
-            acao={<span className="text-[10.5px] text-white/35">{CATEGORIAS.length} no total</span>}
+            acao={
+              <span className="text-[10.5px] text-white/35">
+                {categorias.length} · toque para filtrar
+              </span>
+            }
           >
+            {/*
+              ⚠️ **Aparecem TODAS, inclusive as vazias** (31/07). Antes só vinham
+              as que já tinham comunidade, e o cabeçalho dizia "36 no total" — a
+              tela prometia 36 e mostrava 12. Categoria vazia fica apagada, mas
+              **continua clicável**: quem toca vê que o assunto está livre e
+              recebe o convite para criar a primeira comunidade dele.
+            */}
             <div className="flex flex-wrap gap-1.5">
               {categorias.map((item) => (
                 <button
@@ -300,12 +342,15 @@ export default function Comunidades() {
                   className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
                     categoria === item.categoria
                       ? "bg-primary text-black"
-                      : "border border-white/12 text-white/60 hover:border-primary/40 hover:text-white"
+                      : item.total === 0
+                        ? "border border-white/[0.07] text-white/30 hover:border-primary/30 hover:text-white/60"
+                        : "border border-white/12 text-white/70 hover:border-primary/40 hover:text-white"
                   }`}
                   data-testid={`categoria-${item.categoria}`}
                 >
+                  <span className="mr-1">{iconeDaCategoria(item.categoria)}</span>
                   {item.categoria}
-                  <span className="ml-1 font-normal opacity-50">{item.total}</span>
+                  {item.total > 0 && <span className="ml-1 font-normal opacity-50">{item.total}</span>}
                 </button>
               ))}
             </div>
@@ -412,7 +457,7 @@ export default function Comunidades() {
           <option value="">— categoria —</option>
           {CATEGORIAS.map((item) => (
             <option key={item} value={item}>
-              {item}
+              {iconeDaCategoria(item)} {item}
             </option>
           ))}
         </select>
@@ -481,7 +526,7 @@ function LinhaDaComunidade({ grupo, motivo }: { grupo: Grupo; motivo?: string })
         <span className="mt-0.5 block text-[10.5px] text-white/30">
           {pessoas} {pessoas === 1 ? "membro" : "membros"} · {topicos}{" "}
           {topicos === 1 ? "tópico" : "tópicos"}
-          {categoria && ` · ${categoria}`}
+          {categoria && ` · ${iconeDaCategoria(categoria)} ${categoria}`}
         </span>
         {motivo && <span className="mt-0.5 block text-[10.5px] text-primary">{motivo}</span>}
       </span>

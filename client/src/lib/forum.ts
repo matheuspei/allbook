@@ -179,6 +179,59 @@ export const CATEGORIAS = [
   "Outros",
 ] as const;
 
+/**
+ * O **ícone de cada categoria** — o Orkut tinha um por categoria, e o Matheus
+ * pediu de volta em 31/07 (*"eu gostava dos ícones que estavam de categoria"*).
+ *
+ * Serve para mais do que enfeite: com 36 categorias em pastilhas, o emoji é o
+ * que deixa a lista ser **varrida com o olho** em vez de lida palavra por
+ * palavra.
+ */
+export const ICONE_DA_CATEGORIA: Record<string, string> = {
+  Autores: "✍️",
+  "Ciência e Natureza": "🔬",
+  "Cinema, Séries e Adaptações": "🎬",
+  Clássicos: "📜",
+  "Comédia e Humor": "😂",
+  "Dinheiro e Negócios": "💸",
+  "Escuta e hábitos": "🎧",
+  "Esporte e Aventura": "⛰️",
+  "Estudo e Idiomas": "🎓",
+  "Família e Infância": "👨‍👩‍👧",
+  "Fantasia e Ficção Científica": "🐉",
+  "Filosofia e Ideias": "🤔",
+  Gêneros: "🏷️",
+  "História e Biografia": "🏛️",
+  "Infantil e Juvenil": "🧸",
+  "Literatura Brasileira": "🇧🇷",
+  "Mitologia e Folclore": "🐺",
+  "Narração e vozes": "🎙️",
+  "Não-ficção": "📗",
+  "Ouvir dormindo": "😴",
+  "Ouvir na academia": "🏃",
+  "Ouvir no trânsito": "🚗",
+  "Poesia e Crônica": "🕯️",
+  "Política e Sociedade": "🗳️",
+  "Quadrinhos e Mangá": "💥",
+  Relacionamentos: "💬",
+  "Religião e Espiritualidade": "🕊️",
+  Romance: "💛",
+  "Saúde e Bem-estar": "🌿",
+  "Suspense e Mistério": "🕵️",
+  Tecnologia: "💻",
+  Terror: "👻",
+  "Trabalho e Carreira": "💼",
+  "True Crime": "🔎",
+  "Viagem e Lugares": "🧭",
+  Outros: "📌",
+};
+
+/** O ícone da categoria, com um padrão para as criadas fora da lista. */
+export function iconeDaCategoria(categoria?: string): string {
+  if (!categoria) return "📌";
+  return ICONE_DA_CATEGORIA[categoria] ?? "📌";
+}
+
 /* ------------------------------------------------------------------ *
  * Leitura e escrita
  * ------------------------------------------------------------------ */
