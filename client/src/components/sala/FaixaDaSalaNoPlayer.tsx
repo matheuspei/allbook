@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Radio, Users } from "lucide-react";
 import { avatarDeLeitor, findMember } from "@/lib/community";
 import { salaDoLivro, situacaoDaSala } from "@/lib/salaAoVivo";
+import { EU } from "@/lib/clubes";
 
 /**
  * **A sala deste livro, dentro do player.**
@@ -14,6 +15,14 @@ import { salaDoLivro, situacaoDaSala } from "@/lib/salaAoVivo";
 export default function FaixaDaSalaNoPlayer({ bookId }: { bookId: number }) {
   const sala = salaDoLivro(bookId);
   if (!sala) return null;
+
+  /*
+   * **Não convida para onde você já está.** Se você já entrou nesta sala, a
+   * barrinha do rodapé já a representa o tempo todo — repetir aqui "entrar te
+   * leva ao ponto deles" é oferecer uma porta que a pessoa já atravessou. Mesma
+   * correção feita no cartão do feed.
+   */
+  if (sala.presentes.includes(EU)) return null;
 
   const anfitriao = findMember(sala.anfitriao);
   const situacao = situacaoDaSala(sala);
