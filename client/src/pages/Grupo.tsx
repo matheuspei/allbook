@@ -10,6 +10,7 @@ import {
   LinkOrkut,
   PaginaOrkut,
 } from "@/components/forum/Orkut";
+import { Enquetes, Eventos } from "@/components/forum/ConteudoDaComunidade";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { EU } from "@/lib/clubes";
@@ -428,6 +429,10 @@ export default function Grupo() {
                 </table>
               )}
             </Caixa>
+
+            {/* As outras duas abas do Orkut, na ordem de lá (§4.74). */}
+            <Enquetes grupoId={id} />
+            <Eventos grupoId={id} />
           </>
         )}
 

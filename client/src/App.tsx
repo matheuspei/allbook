@@ -22,6 +22,7 @@ import PostUnico from "@/pages/PostUnico";
 import Grupo from "@/pages/Grupo";
 import GerenciarForum from "@/pages/GerenciarForum";
 import Comunidades from "@/pages/Comunidades";
+import MembrosDoForum from "@/pages/MembrosDoForum";
 import Topico from "@/pages/Topico";
 import Clubes from "@/pages/Clubes";
 import Clube from "@/pages/Clube";
@@ -149,6 +150,7 @@ function Router() {
             {/* Ordem importa: `/gerenciar` e `/membros` antes de `/forum/:id`,
                 senão a rota curta captura as duas. */}
             <Route path="/forum/:id/gerenciar" component={GerenciarForum} />
+            <Route path="/forum/:id/membros" component={MembrosDoForum} />
             <Route path="/forum/:id" component={Grupo} />
             <Route path="/forum" component={Comunidades} />
             {/* `/clubes/novo` antes de `/clubes` e de `/clube/:id`: rota mais

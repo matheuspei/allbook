@@ -6192,11 +6192,42 @@ isso: é a **aba inteira com a cara do Orkut**.
 "aprovar" e "recusar" nascerem botões mortos — o mesmo argumento da lista de
 espera do clube (§4.69).
 
-### O que falta desta aba
+### A aba inteira, construída no mesmo dia
 
-A lista de comunidades em `/forum`, a página de membros, o **tópico** no formato
-de lá (mensagens numeradas com a foto do autor à esquerda) e as **enquetes** e
-**eventos** — que hoje só existem como trava de permissão, sem o conteúdo.
+Tudo o que faltava entrou logo depois:
+
+- **`/forum`** — a lista, na grade de imagens quadradas do Orkut, com busca,
+  filtro por categoria, "minhas comunidades" primeiro e criar.
+- **`/forum/:id/topico/:id`** — o fórum de lá: mensagens **numeradas**, foto
+  quadrada do autor à esquerda, data à direita, **paginação de 10 em 10** e a
+  moderação em linha de links (marcar spoiler · remover).
+- **`/forum/:id/membros`** — a lista completa, na ordem dono → moderadores → resto.
+- **Enquetes** — 2 a 10 opções, um voto por pessoa que **muda de ideia**, barra de
+  porcentagem e encerrar. Em `lib/forumConteudo.ts`.
+- **Eventos** — data, hora, local, descrição e as três respostas de lá (**vou ·
+  talvez · não vou**), com o bloco de data quadrado.
+
+**A aba "Fóruns" da Comunidade deixou de ser aba e virou destino:** tocar nela
+leva a `/forum`. Meia comunidade dentro da moldura escura seria a mistura que a
+decisão dele manda evitar.
+
+Três coisas que a construção resolveu e vale registrar:
+
+- **Moderação de conteúdo passou a valer para moderador**, não só para quem criou
+  o fórum. A checagem em `grupos.ts` é um **espelho** curto da regra de
+  `forum.ts` — as duas libs não podem se importar em ciclo, e a alternativa
+  (extrair o esqueleto para um terceiro módulo) não se paga por dez linhas.
+- **Os polegares de curtir sumiam no fundo branco** (`text-white/40` sobre
+  branco): o `Reacoes` ganhou variante `claro`. Defeito que só a tela mostra.
+- **Enquete sua nasce com zero voto**, e só a semeada tem votos fictícios —
+  mesma regra das curtidas (§4.73): fingir que doze pessoas votaram no que você
+  acabou de perguntar é a mentira mais fácil de perceber.
+
+### O que ainda não existe
+
+**Convidar amigos** (o Orkut tinha, e depende de uma lista de quem convidar), a
+**denúncia com destino** (hoje o link só confirma) e a **paginação da lista de
+comunidades**. Nada disso está pendurado na interface como botão morto.
 
 ---
 
