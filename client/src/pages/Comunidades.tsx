@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 import {
   Bloco,
@@ -66,42 +66,48 @@ export default function Comunidades() {
   return (
     <PaginaDoForum titulo="Comunidades" voltarPara="/community" testid="comunidades-page">
       <div className="px-5 pt-4" key={versao}>
-        {/* Busca e filtro, no desenho da Biblioteca. */}
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
-          <input
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar comunidade…"
-            className={`${CAMPO} pl-9`}
-            data-testid="campo-busca"
-          />
-        </div>
-
-        <div className="mt-2.5 flex items-center gap-2">
+        {/* **A caixa de busca é uma caixa**, como em `/forum` do Orkut: campo,
+            filtro de categoria e o link de criar no canto do cabeçalho. Eu tinha
+            soltado os três no topo da tela e trocado o link por um botão — era
+            uma das mudanças de estrutura que o Matheus cobrou (§4.77). */}
+        <Bloco
+          titulo="Buscar comunidades"
+          testid="busca-de-comunidades"
+          acao={
+            <LinkDoForum onClick={() => setCriando((v) => !v)} testid="criar-comunidade">
+              criar comunidade »
+            </LinkDoForum>
+          }
+        >
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+            <input
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="nome da comunidade"
+              className={`${CAMPO} pl-9`}
+              data-testid="campo-busca"
+            />
+          </div>
           <select
             value={categoria}
             onChange={(e) => setCategoria(e.target.value)}
-            className="min-w-0 flex-1 rounded-full border border-white/15 bg-transparent px-3 py-1.5 text-[11.5px] font-semibold text-white/60 focus:outline-none"
+            className={`${CAMPO} mt-2`}
             data-testid="filtro-categoria"
           >
-            <option value="">Todas as categorias</option>
+            <option value="">todas as categorias</option>
             {CATEGORIAS.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
             ))}
           </select>
-          <BotaoDoForum primario onClick={() => setCriando((v) => !v)} testid="criar-comunidade">
-            <Plus className="mr-0.5 inline h-3.5 w-3.5 align-[-2px]" />
-            Criar
-          </BotaoDoForum>
-        </div>
 
-        {criando && <FormularioDeCriacao onPronto={() => setCriando(false)} />}
+          {criando && <FormularioDeCriacao onPronto={() => setCriando(false)} />}
+        </Bloco>
 
-        <div className="mt-4">
-          <Bloco titulo={`Suas comunidades · ${minhas.length}`} testid="minhas-comunidades">
+        <div>
+          <Bloco titulo={`Minhas comunidades (${minhas.length})`} testid="minhas-comunidades">
             {filtrar(minhas).length === 0 ? (
               <p className="text-[13px] text-white/40">
                 Você ainda não participa de nenhuma comunidade
@@ -112,7 +118,7 @@ export default function Comunidades() {
             )}
           </Bloco>
 
-          <Bloco titulo="Descobrir" testid="outras-comunidades">
+          <Bloco titulo="Outras comunidades" testid="outras-comunidades">
             {filtrar(outras).length === 0 ? (
               <p className="text-[13px] text-white/40">Nenhuma comunidade encontrada.</p>
             ) : (

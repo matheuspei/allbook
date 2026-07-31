@@ -74,8 +74,10 @@ export default function MembrosDoForum() {
       }
     >
       <div className="px-5 pt-4" key={versao}>
-        <Bloco titulo={`Membros · ${membros.length}`} testid="lista-completa">
-          <div className="-my-1">
+        {/* **Grade de três colunas**, como na página de membros do Orkut — e não
+            a lista vertical que eu tinha posto na troca de pele (§4.77). */}
+        <Bloco titulo={`Membros (${membros.length})`} testid="lista-completa">
+          <div className="grid grid-cols-3 gap-3">
             {membros.map(({ slug, papel }) => {
               const membro = slug === EU ? undefined : findMember(slug);
               const nome = slug === EU ? "Você" : (membro?.name ?? "Alguém");
@@ -83,28 +85,24 @@ export default function MembrosDoForum() {
                 <Link
                   key={slug}
                   href={slug === EU ? "/profile" : `/user/${slug}`}
-                  className="flex items-center gap-3 border-b border-white/[0.06] py-2.5 last:border-0"
+                  className="text-center"
                   data-testid={`membro-${slug}`}
                 >
-                  <AvatarDoForum nome={nome} slug={slug} cor={membro?.color} tamanho={40} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13.5px] font-semibold">
-                      {nome}
-                      {papel !== "membro" && (
-                        <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-white/50">
-                          {papel === "dono" ? "dono" : "modera"}
-                        </span>
-                      )}
-                    </span>
-                    {membro?.bio && (
-                      <span className="block truncate text-[11px] text-white/35">{membro.bio}</span>
-                    )}
+                  <span className="mx-auto block w-[68px]">
+                    <AvatarDoForum nome={nome} slug={slug} cor={membro?.color} tamanho={68} />
                   </span>
+                  <span className="mt-1.5 block truncate text-[11px] text-white/70">{nome}</span>
+                  {papel !== "membro" && (
+                    <span className="block text-[9px] font-semibold uppercase tracking-wide text-primary/80">
+                      {papel === "dono" ? "dono" : "modera"}
+                    </span>
+                  )}
                 </Link>
               );
             })}
           </div>
         </Bloco>
+
       </div>
     </PaginaDoForum>
   );

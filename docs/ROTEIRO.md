@@ -6377,6 +6377,48 @@ pedido que eu tinha atendido.
 
 ---
 
+## 4.77 "Eu pedi para mudar o layout, você mudou tudo" (31/07)
+
+> *"Eu pedi para você fazer a aba da comunidade idêntica à do Orkut. Agora eu
+> peguei apenas para você mudar o layout, e você simplesmente mudou tudo. Já não
+> é mais a parte de como era no Orkut."*
+
+**Ele está certo, e eu tinha escrito o contrário no commit** (*"com a estrutura
+intacta"*). Fui conferir contra a versão anterior, em vez de confiar na memória,
+e achei **cinco mudanças de estrutura** que eu não tinha percebido fazer:
+
+| O que era | O que eu fiz | Restaurado |
+| --- | --- | --- |
+| Ficha com 7 campos | `categoria` e `membros` viraram subtítulo | os 7 campos, na ordem |
+| Links de ação em lista (`» participar`, `» denunciar`, `» editar`) | botão "Participar" + linha pequena + ícone de engrenagem | a lista, um por linha |
+| Grade de membros | fita que rola de lado | a grade |
+| Tabela de tópicos com coluna **msgs** | lista com seta | a tabela |
+| Mensagem em linha numerada | **bolha de chat** com avatar ao lado | a linha numerada |
+| Caixa "buscar comunidades" com `criar comunidade »` | campos soltos no topo + botão "Criar" | a caixa |
+| "minhas comunidades" / "outras comunidades" | "Suas comunidades" / "Descobrir" | os nomes de lá |
+| Membros em grade de 3 colunas | lista vertical | a grade |
+
+### A lição, que vale além desta tela
+
+**"Trocar a pele" tem uma fronteira, e ela não é óbvia enquanto se escreve.** Cor,
+fonte, canto e sombra são pele. **Já é estrutura:** que campos existem e em que
+ordem; se uma ação é link ou botão; se uma coleção é grade, fita ou tabela; se
+uma coluna de dado aparece; e como um item da lista se organiza por dentro.
+
+Eu atravessei essa fronteira **oito vezes** achando que estava escolhendo cores —
+e cada uma parecia uma melhoria isolada, o que é justamente o que torna o erro
+difícil de ver de dentro.
+
+**A regra que fica:** conversão de aparência se faz **comparando com a versão
+anterior, elemento por elemento**, não reescrevendo a tela do zero com a paleta
+nova. Reescrever do zero é o que faz a estrutura se perder sem ninguém decidir
+perdê-la.
+
+O cabeçalho de `Grupo.tsx` e o de `Topico.tsx` agora **listam a estrutura** que
+tem de ficar de pé, para a próxima conversão ter contra o que conferir.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
