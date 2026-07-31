@@ -27,6 +27,7 @@ import {
 } from "@/lib/salaAoVivo";
 import { formatarPosicao } from "@/lib/sala";
 import { ultimaTelaNavegavel } from "@/lib/navegacao";
+import PessoasNaSala from "@/components/sala/PessoasNaSala";
 import { useToast } from "@/hooks/use-toast";
 
 /**
@@ -57,6 +58,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
   const [texto, setTexto] = useState("");
   /** Quantas falas havia quando o chat foi recolhido — vira o "N novas". */
   const [marcaDoRecolher, setMarcaDoRecolher] = useState(0);
+  const [vendoPessoas, setVendoPessoas] = useState(false);
 
   const sala = useMemo(() => salaPorId(params.id), [params.id, versao]);
 
@@ -209,7 +211,15 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
           {euMando ? "sua transmissão" : `Sala de ${anfitriao?.name ?? "alguém"}`} ·{" "}
           {sala.presentes.length} ouvindo
         </span>
-        <Presentes slugs={sala.presentes} />
+        {/* Tocar nos rostos abre quem está na sala — é onde moram tirar alguém
+            (só o anfitrião) e chamar mais gente (§4.81). */}
+        <button
+          onClick={() => setVendoPessoas(true)}
+          aria-label="Ver quem está na sala"
+          data-testid="button-ver-pessoas"
+        >
+          <Presentes slugs={sala.presentes} />
+        </button>
       </div>
 
       {/* Quem foi chamado e ainda não chegou. Some sozinho conforme entram —
@@ -380,6 +390,10 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
             </span>
           )}
         </button>
+      )}
+
+      {vendoPessoas && (
+        <PessoasNaSala sala={sala} onFechar={() => setVendoPessoas(false)} />
       )}
 
       {/* Sair é ação explícita, e é diferente de minimizar. Para o anfitrião a

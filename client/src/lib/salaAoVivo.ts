@@ -48,7 +48,7 @@
  * e nenhuma tela.
  */
 
-import { EU } from "@/lib/clubes";
+import { clubePorId, EU } from "@/lib/clubes";
 import { chapterAtSec, chapterStartSec, getChapters } from "@/lib/chapters";
 
 const CHAVE = "allbook_salas_ao_vivo";
@@ -131,6 +131,15 @@ export interface SalaAoVivo {
    * lacunas que o Matheus achou na auditoria.
    */
   confirmados?: string[];
+  /**
+   * **Quem o anfitrião tirou da sala.** Não volta enquanto a sala durar.
+   *
+   * Mesma distinção do clube (§4.81): tirar da sala é decisão do momento, e
+   * morre com a sala; banir do clube atravessa ciclos. Sem esta lista, "tirar"
+   * seria decorativo — a pessoa voltaria no toque seguinte, porque a porta da
+   * sala aberta é justamente aberta.
+   */
+  barrados?: string[];
   falas: FalaDaSala[];
   abertaEm: number;
   /** Preenchido ao encerrar: daí em diante a sala é rastro, não é sala. */
@@ -521,11 +530,76 @@ export function entrarNaSala(id: string): void {
   /* Sessão marcada antes da hora não é sala: entrar ali seria furar o combinado
      que a própria tela acabou de mostrar. */
   if (!sessaoNoAr(sala)) return;
+  if (!podeEntrarNaSala(sala)) return;
 
   // A sala fictícia não está no `localStorage`: entrar nela grava uma cópia sua,
   // com a posição congelada no instante em que você entrou — daí em diante ela
   // continua andando pelo relógio, como qualquer transmissão.
   salvarMinha({ ...sala, presentes: [...sala.presentes, EU] });
+}
+
+/**
+ * **Você pode entrar nesta sala?**
+ *
+ * Duas portas, e as duas vieram de coisas que o Matheus pediu:
+ *
+ * 1. **Tirado pelo anfitrião não volta** (§4.81) — enquanto a sala durar.
+ * 2. **Sala de clube fechado é só da turma.** Foi o argumento dele para a
+ *    privacidade da sala: *"se as pessoas estão comentando ali, o anfitrião já
+ *    tem poder de escolher quem entra"*. Esse poder agora existe no clube, e
+ *    esta linha é o que faz ele valer também aqui — senão o clube fechado teria
+ *    uma porta dos fundos aberta pela sala.
+ */
+export function podeEntrarNaSala(sala: SalaAoVivo): boolean {
+  if ((sala.barrados ?? []).includes(EU)) return false;
+
+  if (sala.clubeId) {
+    const clube = clubePorId(sala.clubeId);
+    if (clube?.privado && !clube.membros.includes(EU)) return false;
+  }
+  return true;
+}
+
+/**
+ * **O anfitrião tira alguém da sala.**
+ *
+ * O poder que faltava, e que o Matheus citou como se já existisse: *"o anfitrião
+ * já tem poder de banir as pessoas"*. Dentro da sala não tinha nenhum — ele só
+ * podia encerrar tudo, o que é punir a sala inteira pelo comportamento de um.
+ */
+export function tirarDaSala(salaId: string, slug: string): void {
+  const sala = salaPorId(salaId);
+  if (!sala || !souAnfitriao(sala) || slug === sala.anfitriao) return;
+
+  salvarMinha({
+    ...sala,
+    presentes: sala.presentes.filter((item) => item !== slug),
+    barrados: [...(sala.barrados ?? []), slug],
+    convidados: (sala.convidados ?? []).filter((item) => item !== slug),
+  });
+}
+
+/**
+ * Chamar mais gente **com a sala já no ar**.
+ *
+ * Faltava: dava para convidar só na criação, e sala que esvazia não tinha como
+ * chamar reforço. Quem já está dentro ou já foi chamado é ignorado, para o
+ * mesmo nome não entrar duas vezes na lista de espera.
+ */
+export function convidarParaSala(salaId: string, slugs: string[]): void {
+  const sala = salaPorId(salaId);
+  if (!sala || sala.encerradaEm) return;
+
+  const novos = slugs.filter(
+    (slug) =>
+      !sala.presentes.includes(slug) &&
+      !(sala.convidados ?? []).includes(slug) &&
+      !(sala.barrados ?? []).includes(slug),
+  );
+  if (novos.length === 0) return;
+
+  salvarMinha({ ...sala, convidados: [...(sala.convidados ?? []), ...novos] });
+  responderAoConvite(salaId, novos);
 }
 
 export function sairDaSala(id: string): void {
