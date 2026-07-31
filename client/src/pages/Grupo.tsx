@@ -1,321 +1,446 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
-import { Check, EyeOff, MessageSquare, Pin, Plus, Shield, Trash2, Undo2, UserPlus } from "lucide-react";
 
-import PageHeader from "@/components/PageHeader";
+import {
+  BarraOrkut,
+  BotaoOrkut,
+  Caixa,
+  Campo,
+  FotoOrkut,
+  LinkOrkut,
+  PaginaOrkut,
+} from "@/components/forum/Orkut";
 import { useToast } from "@/hooks/use-toast";
-import { relativeDate } from "@/lib/activity";
 import { useLocation } from "wouter";
+import { EU } from "@/lib/clubes";
+import { findMember } from "@/lib/community";
+import {
+  configDo,
+  criadaEm,
+  desistirDoPedido,
+  donoDo,
+  ehModerador,
+  filaDe,
+  foiExcluido,
+  forumNaTela,
+  membrosDo,
+  pedirEntrada,
+  porExtenso,
+  possoCriar,
+  possoLer,
+  situacaoDe,
+  souModerador,
+} from "@/lib/forum";
 import {
   MAX_TITULO,
   GRUPOS_EVENT,
   alternarParticipacao,
   alternarFixado,
   alternarTopicoEscondido,
-  apagarMeuGrupo,
   apagarMeuTopico,
   criarTopico,
-  participoDa,
-  grupoPorId,
-  escondidosDo,
-  podeApagarGrupo,
   topicosDa,
   type TopicoNaTela,
 } from "@/lib/grupos";
 
 /**
- * A tela de um **fórum** (`/forum/:id`) — a "comunidade" do Orkut, por dentro.
+ * A página de uma **comunidade** (`/forum/:id`) — o layout do Orkut.
  *
- * Na tela é "Fórum"; no código, `grupo` (o porquê está em `lib/grupos.ts`).
+ * Refeita em 31/07 a pedido do Matheus: *"a gente vai fazer tudo tal e como era
+ * no Orkut… esquece o aplicativo"*. A ordem da informação é a de lá, de cima para
+ * baixo: **a ficha** (imagem quadrada à esquerda, nome, descrição e os campos
+ * `categoria / criada em / dono / tipo / idioma / membros`), **os links de ação**
+ * em lista com «», **a grade de membros** e **a tabela de tópicos**.
  *
- * Cabeçalho com o assunto, botão de participar, e a lista de **tópicos** —
- * cada um com autor, contagem de respostas e última atividade. Criar tópico é
- * para quem entrou; quem toca em "Criar" sem ter entrado, entra junto (um
- * atrito a menos, e o gesto já diz a intenção).
+ * O que mudou junto (e mora em `lib/forum.ts`): entrar deixou de ser sempre um
+ * toque — depende de a comunidade ser **aberta, moderada ou fechada** —, e
+ * comunidade **privada** não se lê de fora.
  */
 export default function Grupo() {
   const params = useParams<{ id: string }>();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const grupo = grupoPorId(params.id ?? "");
+  const id = params.id ?? "";
 
+  const [grupo, setGrupo] = useState(() => forumNaTela(id));
   const [topicos, setTopicos] = useState<TopicoNaTela[]>([]);
-  const [dentro, setDentro] = useState(false);
   const [criando, setCriando] = useState(false);
   const [titulo, setTitulo] = useState("");
-  const [podeApagar, setPodeApagar] = useState(false);
-  const [escondidos, setEscondidos] = useState<{ topicos: string[]; respostas: string[] }>({
-    topicos: [],
-    respostas: [],
-  });
+  const [versao, setVersao] = useState(0);
 
   useEffect(() => {
     const atualizar = () => {
-      setTopicos(grupo ? topicosDa(grupo.id) : []);
-      setPodeApagar(grupo ? podeApagarGrupo(grupo.id) : false);
-      setEscondidos(grupo ? escondidosDo(grupo.id) : { topicos: [], respostas: [] });
-      setDentro(grupo ? participoDa(grupo.id) : false);
+      setGrupo(forumNaTela(id));
+      setTopicos(topicosDa(id));
+      setVersao((n) => n + 1);
     };
     atualizar();
     window.addEventListener(GRUPOS_EVENT, atualizar);
     return () => window.removeEventListener(GRUPOS_EVENT, atualizar);
-  }, [params.id]);
+  }, [id]);
 
-  if (!grupo) {
+  if (!grupo || foiExcluido(id)) {
     return (
-      <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="grupo-missing">
-        <PageHeader title="Fórum" fallback="/community" />
-        <div className="px-8 py-20 text-center space-y-4">
-          <p className="text-sm text-white/50">Este fórum não existe.</p>
-          <Link href="/community" className="inline-block text-sm font-bold text-primary">
-            Voltar à Comunidade
-          </Link>
+      <PaginaOrkut testid="grupo-missing">
+        <BarraOrkut />
+        <div className="p-3">
+          <Caixa titulo="comunidade">
+            <p className="text-[#666]">
+              Esta comunidade não existe mais. Ela pode ter sido excluída pelo dono.
+            </p>
+            <p className="mt-2">
+              <LinkOrkut href="/forum">« voltar para as comunidades</LinkOrkut>
+            </p>
+          </Caixa>
         </div>
-      </div>
+      </PaginaOrkut>
     );
   }
 
-  function participar() {
-    const agora = alternarParticipacao(grupo!.id);
-    toast({
-      title: agora ? `Você entrou em ${grupo!.nome}` : `Você saiu de ${grupo!.nome}`,
-      description: agora ? "Agora pode criar tópicos e responder." : undefined,
-    });
+  const config = configDo(id);
+  const situacao = situacaoDe(id);
+  const dentro = situacao === "dentro";
+  const membros = membrosDo(id);
+  const moderadores = membros.filter((m) => m.papel === "moderador");
+  const dono = donoDo(id);
+  const fila = souModerador(id) ? filaDe(id) : [];
+
+  /* Comunidade privada não se lê de fora — a ficha aparece, o conteúdo não.
+     É o comportamento do Orkut, e é o que dá sentido a "moderada". */
+  const podeLer = possoLer(id);
+
+  function entrar() {
+    if (situacao === "livre") {
+      alternarParticipacao(id);
+      toast({ title: `Você entrou em ${grupo!.nome}` });
+      return;
+    }
+    if (situacao === "pedir") {
+      pedirEntrada(id);
+      toast({
+        title: "Pedido enviado",
+        description: "Um moderador precisa aprovar a sua entrada.",
+      });
+      return;
+    }
+    if (situacao === "esperando") {
+      desistirDoPedido(id);
+      toast({ title: "Pedido cancelado" });
+      return;
+    }
+    if (situacao === "dentro") {
+      alternarParticipacao(id);
+      toast({ title: `Você saiu de ${grupo!.nome}` });
+    }
   }
 
   function publicarTopico() {
-    if (!criando) {
-      // Criar já diz a intenção: quem não entrou, entra junto.
-      if (!dentro) alternarParticipacao(grupo!.id);
-      setCriando(true);
-      return;
-    }
-    const novo = criarTopico(grupo!.id, titulo);
+    const novo = criarTopico(id, titulo);
     if (novo) {
       setTitulo("");
       setCriando(false);
-      toast({ title: "Tópico criado", description: "Ele já está no topo da lista do fórum." });
+      toast({ title: "Tópico criado" });
     }
   }
 
+  const rotuloDeEntrada: Record<typeof situacao, string> = {
+    dentro: "sair da comunidade",
+    livre: "participar desta comunidade",
+    pedir: "pedir para entrar",
+    esperando: "cancelar meu pedido",
+    "so-convidado": "esta comunidade é fechada",
+    banido: "você foi banido desta comunidade",
+  };
+
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="grupo-page">
-      <PageHeader title="Fórum" fallback="/community" />
+    <PaginaOrkut testid="grupo-page">
+      <BarraOrkut onde={grupo.nome} />
 
-      <header className="px-5 pt-6 pb-5 border-b border-white/10">
-        <div className="flex items-center gap-3.5">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/[0.06] ring-1 ring-white/10 text-3xl">
-            {grupo.emoji}
-          </span>
-          <div className="min-w-0 flex-1">
-            <h1 className="font-display text-xl font-bold tracking-tight">{grupo.nome}</h1>
-            <p className="mt-0.5 text-[11px] text-white/40">
-              {grupo.membros.length + (dentro ? 1 : 0)} pessoas
-              {dentro && " · você participa"}
-            </p>
-          </div>
-        </div>
-
-        <p className="mt-3.5 text-sm leading-relaxed text-white/55">{grupo.descricao}</p>
-
-        <div className="mt-4 flex gap-2.5">
-          <button
-            onClick={publicarTopico}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
-            data-testid="grupo-create-topic"
-          >
-            <Plus className="h-4 w-4" />
-            Criar tópico
-          </button>
-          <button
-            onClick={participar}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
-              dentro
-                ? "border border-white/15 text-white/70 hover:bg-white/5"
-                : "border border-primary/50 text-primary hover:bg-primary/10"
-            }`}
-            data-testid="grupo-join"
-          >
-            {dentro ? <Check className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-            {dentro ? "Participando" : "Participar"}
-          </button>
-        </div>
-
-        {/*
-          **Apagar só enquanto o fórum for só seu** (ROTEIRO 4.44). Assim que
-          outra pessoa abre um tópico aqui, a casa deixa de ser sua para
-          demolir — apagá-la levaria junto o que ela escreveu. O que fica no
-          lugar não é nada: é a moderação de conteúdo, logo abaixo de cada
-          tópico, que é o poder que o Matheus pediu e que resolve o problema
-          real (tirar o que não devia estar aqui).
-        */}
-        {grupo.meu && podeApagar && (
-          <button
-            onClick={() => {
-              apagarMeuGrupo(grupo.id);
-              toast({ title: `Fórum "${grupo.nome}" apagado` });
-              setLocation("/community");
-            }}
-            className="mt-3 flex w-full items-center justify-center gap-1.5 py-2 text-xs text-white/30 transition-colors hover:text-white/60"
-            data-testid="grupo-delete"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Apagar este fórum
-          </button>
-        )}
-
-        {grupo.meu && !podeApagar && (
-          <p className="mt-3 flex items-start gap-2 rounded-lg bg-white/[0.04] px-3 py-2.5 text-[11px] leading-relaxed text-white/40">
-            <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-            <span>
-              <b className="text-white/70">Você modera aqui.</b> Dá para fixar e esconder tópicos e
-              respostas. Apagar o fórum inteiro não — já tem conversa de outras pessoas dentro.
-            </span>
-          </p>
-        )}
-
-        {escondidos.topicos.length > 0 && (
-          <div className="mt-3 rounded-lg bg-white/[0.04] p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
-              Escondidos por você · {escondidos.topicos.length}
-            </p>
-            <div className="mt-2 space-y-1.5">
-              {escondidos.topicos.map((id) => (
-                <button
-                  key={id}
-                  onClick={() => {
-                    alternarTopicoEscondido(grupo.id, id);
-                    toast({ title: "Tópico devolvido ao fórum" });
-                  }}
-                  className="flex w-full items-center gap-1.5 text-left text-[11px] font-semibold text-primary"
-                  data-testid={`devolver-topico-${id}`}
+      <div className="p-2.5" key={versao}>
+        {/* ---------------- a ficha ---------------- */}
+        <Caixa titulo="comunidade" testid="ficha-da-comunidade">
+          <div className="flex gap-3">
+            <div className="shrink-0">
+              {config.imagem ? (
+                <img
+                  src={config.imagem}
+                  alt={grupo.nome}
+                  className="h-[110px] w-[110px] border border-[#c9c9c9] object-cover"
+                  data-testid="imagem-da-comunidade"
+                />
+              ) : (
+                <span
+                  className="grid h-[110px] w-[110px] place-items-center border border-[#c9c9c9] bg-[#f4f4f4] text-[44px]"
+                  data-testid="imagem-da-comunidade"
                 >
-                  <Undo2 className="h-3 w-3" />
-                  Devolver um tópico
-                </button>
-              ))}
+                  {grupo.emoji}
+                </span>
+              )}
             </div>
-          </div>
-        )}
 
-        {criando && (
-          <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] p-3" data-testid="grupo-composer">
-            <input
-              value={titulo}
-              onChange={(event) => setTitulo(event.target.value.slice(0, MAX_TITULO))}
-              placeholder="O título do seu tópico — uma pergunta funciona bem…"
-              autoFocus
-              className="w-full bg-transparent text-sm text-white placeholder:text-white/30 focus:outline-none"
-              data-testid="grupo-topic-title"
-            />
-            <div className="mt-2.5 flex items-center justify-between">
-              <span className="text-[10px] text-white/25">{titulo.length}/{MAX_TITULO}</span>
-              <button
-                onClick={publicarTopico}
-                disabled={titulo.trim().length === 0}
-                className="rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-black disabled:opacity-30"
-                data-testid="grupo-topic-publish"
-              >
-                Publicar tópico
-              </button>
-            </div>
-          </div>
-        )}
-      </header>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-[15px] font-bold leading-tight text-[#2b4a80]" data-testid="nome-da-comunidade">
+                {grupo.nome}
+              </h1>
+              <p className="mt-1 leading-[1.5] text-[#444]">{grupo.descricao}</p>
 
-      <main className="px-5 py-4">
-        <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-          Tópicos
-        </h2>
-
-        {topicos.map((topico) => (
-          <div key={topico.id} className="group relative" data-testid={`topico-${topico.id}`}>
-            <Link
-              href={`/forum/${grupo.id}/topico/${topico.id}`}
-              className="block rounded-xl border border-white/5 bg-white/[0.03] p-3.5 mb-2.5 transition-colors hover:bg-white/[0.06]"
-            >
-              {/* A folga da direita tem de caber os DOIS botões de moderação
-                  (fixar e esconder), não um: com `pr-6` o título passava por
-                  baixo do alfinete. */}
-              <p className={`text-sm font-semibold leading-snug ${grupo.meu && !topico.meu ? "pr-16" : "pr-6"}`}>
-                {topico.fixado && (
-                  <Pin className="mr-1.5 inline h-3.5 w-3.5 align-[-2px] text-primary" />
+              <div className="mt-2 space-y-0.5">
+                {config.categoria && <Campo rotulo="categoria">{config.categoria}</Campo>}
+                <Campo rotulo="criada em">{porExtenso(criadaEm(id))}</Campo>
+                <Campo rotulo="dono">
+                  {dono === EU ? (
+                    <LinkOrkut href="/profile">Você</LinkOrkut>
+                  ) : (
+                    <LinkOrkut href={`/user/${dono}`}>
+                      {findMember(dono)?.name ?? "Alguém"}
+                    </LinkOrkut>
+                  )}
+                </Campo>
+                {moderadores.length > 0 && (
+                  <Campo rotulo="moderadores">
+                    {moderadores.map((m, i) => (
+                      <span key={m.slug}>
+                        {i > 0 && ", "}
+                        {m.slug === EU ? (
+                          <LinkOrkut href="/profile">Você</LinkOrkut>
+                        ) : (
+                          <LinkOrkut href={`/user/${m.slug}`}>
+                            {findMember(m.slug)?.name ?? "Alguém"}
+                          </LinkOrkut>
+                        )}
+                      </span>
+                    ))}
+                  </Campo>
                 )}
-                {topico.titulo}
-              </p>
-              <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[11px] text-white/35">
-                <span className={topico.meu ? "text-primary/90 font-medium" : ""}>
-                  {topico.meu ? "Você" : topico.autor?.name ?? "Alguém"}
-                </span>
-                <span>·</span>
-                <span className="flex items-center gap-1">
-                  <MessageSquare className="h-3 w-3" />
-                  {topico.totalRespostas}{" "}
-                  {topico.totalRespostas === 1 ? "resposta" : "respostas"}
-                </span>
-                <span>·</span>
-                <span>{relativeDate(topico.ultimaAtividade)}</span>
-              </p>
-            </Link>
-
-            {/*
-              Moderação do dono: fixar e esconder o que é dos outros.
-
-              **Absoluto no canto do cartão**, e não em fluxo normal: em fluxo
-              os botões caíam **entre** os cartões, sem dono visível — parecia
-              que pertenciam ao tópico de baixo. O título já reserva o espaço
-              (`pr-6`), e o `relative` do embrulho é o que ancora isto aqui.
-            */}
-            {grupo.meu && !topico.meu && (
-              <div className="absolute right-2 top-2 flex items-center gap-0.5">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const fixou = alternarFixado(grupo.id, topico.id);
-                    toast({ title: fixou ? "Tópico fixado no topo" : "Tópico solto" });
-                  }}
-                  className={`rounded-md p-1.5 transition-colors ${
-                    topico.fixado ? "text-primary" : "text-white/25 hover:text-white/70"
-                  }`}
-                  aria-label={topico.fixado ? "Soltar do topo" : "Fixar no topo"}
-                  data-testid={`fixar-${topico.id}`}
-                >
-                  <Pin className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alternarTopicoEscondido(grupo.id, topico.id);
-                    toast({
-                      title: "Tópico escondido",
-                      description: "Some para todo mundo. Dá para devolver no topo da tela.",
-                    });
-                  }}
-                  className="rounded-md p-1.5 text-white/25 transition-colors hover:text-red-300"
-                  aria-label="Esconder este tópico"
-                  data-testid={`esconder-${topico.id}`}
-                >
-                  <EyeOff className="h-3.5 w-3.5" />
-                </button>
+                <Campo rotulo="tipo">
+                  {config.entrada === "aberta"
+                    ? "aberta a todos"
+                    : config.entrada === "moderada"
+                      ? "entrada moderada"
+                      : "fechada (só por convite)"}
+                  {config.visibilidade === "privada" && " · privada"}
+                </Campo>
+                <Campo rotulo="idioma">{config.idioma ?? "Português (Brasil)"}</Campo>
+                <Campo rotulo="membros">{membros.length}</Campo>
               </div>
-            )}
+            </div>
+          </div>
 
-            {topico.meu && (
-              <button
-                onClick={() => {
-                  apagarMeuTopico(topico.id);
-                  toast({ title: "Tópico apagado" });
-                }}
-                className="absolute right-3 top-3 p-1 text-white/20 transition-colors hover:text-white/60"
-                aria-label="Apagar este tópico"
-                data-testid={`topico-delete-${topico.id}`}
+          {/* Os links de ação, em lista com «», como no Orkut. */}
+          <div className="mt-3 space-y-1 border-t border-[#e4e4e4] pt-2.5">
+            {situacao !== "banido" && situacao !== "so-convidado" && (
+              <p>
+                <LinkOrkut onClick={entrar} testid="grupo-join">
+                  » {rotuloDeEntrada[situacao]}
+                </LinkOrkut>
+              </p>
+            )}
+            {(situacao === "banido" || situacao === "so-convidado") && (
+              <p className="text-[#a00]" data-testid="grupo-bloqueado">
+                {rotuloDeEntrada[situacao]}
+              </p>
+            )}
+            <p>
+              <LinkOrkut
+                onClick={() =>
+                  toast({
+                    title: "Denúncia enviada",
+                    description: "Ninguém é avisado de que foi você.",
+                  })
+                }
+                testid="grupo-denunciar"
               >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
+                » denunciar abuso
+              </LinkOrkut>
+            </p>
+            {souModerador(id) && (
+              <p>
+                <LinkOrkut href={`/forum/${id}/gerenciar`} testid="grupo-gerenciar">
+                  » editar comunidade
+                  {fila.length > 0 && (
+                    <span className="ml-1.5 rounded-[2px] bg-[#c00] px-1 py-px text-[9px] font-bold text-white">
+                      {fila.length}
+                    </span>
+                  )}
+                </LinkOrkut>
+              </p>
             )}
           </div>
-        ))}
-      </main>
-    </div>
+
+          {config.regras && (
+            <div className="mt-2.5 border-t border-[#e4e4e4] pt-2.5" data-testid="regras-da-comunidade">
+              <p className="font-bold text-[#2b4a80]">regras da comunidade</p>
+              <p className="mt-1 whitespace-pre-line leading-[1.6] text-[#444]">{config.regras}</p>
+            </div>
+          )}
+        </Caixa>
+
+        {!podeLer ? (
+          <Caixa titulo="conteúdo" testid="grupo-privado">
+            <p className="text-[#666]">
+              Esta comunidade é <b>privada</b>. Só quem participa vê os tópicos daqui.
+            </p>
+          </Caixa>
+        ) : (
+          <>
+            {/* ---------------- membros ---------------- */}
+            <Caixa
+              titulo={`membros (${membros.length})`}
+              testid="grupo-membros"
+              acao={
+                <LinkOrkut href={`/forum/${id}/membros`} testid="ver-todos-membros">
+                  ver todos »
+                </LinkOrkut>
+              }
+            >
+              <div className="flex flex-wrap gap-2">
+                {membros.slice(0, 8).map(({ slug, papel }) => {
+                  const membro = slug === EU ? undefined : findMember(slug);
+                  const nome = slug === EU ? "Você" : (membro?.name ?? "Alguém");
+                  return (
+                    <Link
+                      key={slug}
+                      href={slug === EU ? "/profile" : `/user/${slug}`}
+                      className="w-[52px] text-center"
+                      data-testid={`membro-${slug}`}
+                    >
+                      <FotoOrkut nome={nome} tamanho={52} />
+                      <span className="mt-0.5 block truncate text-[10px] text-[#1a4fa0] hover:underline">
+                        {nome.split(" ")[0]}
+                      </span>
+                      {papel !== "membro" && (
+                        <span className="block text-[9px] text-[#888]">
+                          {papel === "dono" ? "dono" : "moderador"}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </Caixa>
+
+            {/* ---------------- fóruns (tópicos) ---------------- */}
+            <Caixa
+              titulo="fóruns"
+              testid="grupo-topicos"
+              acao={
+                possoCriar(id, "topicos") ? (
+                  <LinkOrkut onClick={() => setCriando((v) => !v)} testid="grupo-create-topic">
+                    criar tópico »
+                  </LinkOrkut>
+                ) : dentro ? (
+                  <span className="text-[10px] text-[#888]">só moderadores criam</span>
+                ) : undefined
+              }
+            >
+              {criando && (
+                <div className="mb-2.5 border border-[#dcdcdc] bg-[#f8f8f8] p-2" data-testid="grupo-composer">
+                  <p className="mb-1 text-[10px] text-[#666]">assunto do tópico:</p>
+                  <input
+                    value={titulo}
+                    onChange={(evento) => setTitulo(evento.target.value.slice(0, MAX_TITULO))}
+                    autoFocus
+                    className={`w-full border border-[#b5b5b5] px-1.5 py-1 text-[11px] text-[#333] focus:outline-none focus:border-[#5b7ab5]`}
+                    data-testid="grupo-topic-title"
+                  />
+                  <div className="mt-2 flex items-center gap-2">
+                    <BotaoOrkut
+                      primario
+                      onClick={publicarTopico}
+                      disabled={titulo.trim().length === 0}
+                      testid="grupo-topic-publish"
+                    >
+                      criar tópico
+                    </BotaoOrkut>
+                    <BotaoOrkut onClick={() => setCriando(false)}>cancelar</BotaoOrkut>
+                  </div>
+                </div>
+              )}
+
+              {topicos.length === 0 ? (
+                <p className="text-[#666]">Nenhum tópico ainda.</p>
+              ) : (
+                <table className="w-full border-collapse" data-testid="tabela-de-topicos">
+                  <thead>
+                    <tr className="border-b border-[#dcdcdc] text-left text-[10px] text-[#666]">
+                      <th className="pb-1 font-normal">tópico</th>
+                      <th className="pb-1 pl-2 text-right font-normal">msgs</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topicos.map((topico) => (
+                      <tr
+                        key={topico.id}
+                        className="border-b border-[#f0f0f0] align-top"
+                        data-testid={`topico-${topico.id}`}
+                      >
+                        <td className="py-1.5 pr-2">
+                          <LinkOrkut href={`/forum/${id}/topico/${topico.id}`}>
+                            {topico.fixado && <span className="mr-1">📌</span>}
+                            {topico.titulo}
+                          </LinkOrkut>
+                          <span className="block text-[10px] text-[#888]">
+                            por {topico.meu ? "Você" : (topico.autor?.name ?? "Alguém")} ·{" "}
+                            {new Date(topico.ultimaAtividade).toLocaleDateString("pt-BR")}
+                          </span>
+                          {souModerador(id) && !topico.meu && (
+                            <span className="mt-0.5 flex gap-2 text-[10px]">
+                              <LinkOrkut
+                                onClick={() => {
+                                  const fixou = alternarFixado(id, topico.id);
+                                  toast({ title: fixou ? "Tópico fixado" : "Tópico solto" });
+                                }}
+                                testid={`fixar-${topico.id}`}
+                              >
+                                {topico.fixado ? "soltar" : "fixar"}
+                              </LinkOrkut>
+                              <LinkOrkut
+                                onClick={() => {
+                                  alternarTopicoEscondido(id, topico.id);
+                                  toast({ title: "Tópico removido do fórum" });
+                                }}
+                                testid={`esconder-${topico.id}`}
+                              >
+                                remover
+                              </LinkOrkut>
+                            </span>
+                          )}
+                          {topico.meu && (
+                            <span className="mt-0.5 block text-[10px]">
+                              <LinkOrkut
+                                onClick={() => {
+                                  apagarMeuTopico(topico.id);
+                                  toast({ title: "Tópico apagado" });
+                                }}
+                                testid={`topico-delete-${topico.id}`}
+                              >
+                                apagar
+                              </LinkOrkut>
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-1.5 pl-2 text-right text-[#666]">
+                          {topico.totalRespostas}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </Caixa>
+          </>
+        )}
+
+        <p className="mt-3 text-center text-[10px] text-[#999]">
+          <LinkOrkut href="/community" testid="voltar-app">
+            voltar ao AllBook
+          </LinkOrkut>
+        </p>
+      </div>
+    </PaginaOrkut>
   );
 }
+
+/* `ehModerador` fica importado de propósito: a tela de membros (próximo passo)
+   usa a mesma regra, e deixá-la aqui evita duas versões da mesma pergunta. */
+void ehModerador;

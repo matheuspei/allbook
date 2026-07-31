@@ -6143,6 +6143,63 @@ Duas coisas que só a conversa do livro exigiu, porque lá os contadores são
 
 ---
 
+## 4.74 A aba Fóruns vira o Orkut — decisão e escopo (31/07)
+
+**Decisão do Matheus, dita duas vezes e sem margem:**
+
+> *"A gente vai fazer tudo tal e como era no Orkut: replicar tudo, com todas as
+> coisas iguais. Não vamos fazer nada de diferente."* · *"Inclusive as imagens,
+> tudo tal. Esquece o aplicativo, esquece tudo. Copiar tudo, layout, tudo — não
+> só regras de governança. Depois nós editamos."*
+
+A segunda frase corrige a minha primeira leitura, que era **estreita**: eu tinha
+entendido "governança do Orkut com a cara do AllBook" e comecei por aí. Não é
+isso: é a **aba inteira com a cara do Orkut**.
+
+### O que isso reverte, e fica registrado
+
+1. **§4.44 — "quem cria modera o conteúdo, não a casa".** Aquela decisão dizia
+   que o dono **não** pode apagar um fórum com gente dentro, porque ali está o
+   trabalho de outras pessoas. No Orkut o dono **excluía a comunidade inteira**, e
+   é o que passa a valer. O argumento antigo continua bom e está aqui para o caso
+   de ele querer voltar.
+2. **A identidade visual da casa não vale nesta aba.** O AllBook é escuro,
+   laranja, Outfit/Inter. As comunidades são **brancas, azuis, Verdana 11px**, com
+   caixas de cabeçalho azul-claro e links sublinhados. As peças estão num arquivo
+   só (`components/forum/Orkut.tsx`) justamente para a mistura não vazar.
+3. **O cabeçalho e o menu do app somem em `/forum/*`.** Duas identidades na mesma
+   tela seriam pior que qualquer uma das duas. A saída é a barra azul do topo, que
+   tem "voltar ao app" — o Orkut também tinha a navegação dele.
+4. **A imagem da comunidade é enviada de verdade.** Eu tinha proposto emoji ou
+   capa de livro, alegando a rejeição de upload da §4.58; ele corrigiu, e estava
+   certo — **aquela rejeição era sobre outra coisa** (upload num feed público
+   custa servidor, banda e moderação de imagem). Aqui a foto é escolhida pelo dono,
+   **encolhida no próprio navegador** (canvas, 140×140, JPEG ~8 KB) e guardada como
+   `data:` URL. Zero servidor.
+
+### O que já está construído (31/07)
+
+- **`lib/forum.ts`** — a governança inteira, guardada por fora do esqueleto:
+  dono, moderadores, banidos, fila de pedidos, convidados, tipo de entrada
+  (aberta · moderada · fechada), visibilidade (pública · privada), trava de
+  criação por tipo de conteúdo, transferência de propriedade e exclusão.
+- **A página da comunidade** (`/forum/:id`), no layout de lá: imagem quadrada à
+  esquerda, ficha com `categoria / criada em / dono / moderadores / tipo / idioma
+  / membros`, os links de ação com «», a grade de membros e a tabela de tópicos.
+- **Editar comunidade** (`/forum/:id/gerenciar`) com os dez poderes da lista dele.
+
+**A fila de pedidos é semeada** (estável, pelo id): fila sempre vazia faria
+"aprovar" e "recusar" nascerem botões mortos — o mesmo argumento da lista de
+espera do clube (§4.69).
+
+### O que falta desta aba
+
+A lista de comunidades em `/forum`, a página de membros, o **tópico** no formato
+de lá (mensagens numeradas com a foto do autor à esquerda) e as **enquetes** e
+**eventos** — que hoje só existem como trava de permissão, sem o conteúdo.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

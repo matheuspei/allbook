@@ -20,6 +20,7 @@ import Community from "@/pages/Community";
 import Perguntas from "@/pages/Perguntas";
 import PostUnico from "@/pages/PostUnico";
 import Grupo from "@/pages/Grupo";
+import GerenciarForum from "@/pages/GerenciarForum";
 import Topico from "@/pages/Topico";
 import Clubes from "@/pages/Clubes";
 import Clube from "@/pages/Clube";
@@ -93,7 +94,16 @@ function Router() {
   const isPlayerPage = location.startsWith('/player');
   /** Login é tela cheia como o player: sem menus, sem MiniPlayer. */
   const isLoginPage = location === '/login';
-  const isBare = isPlayerPage || isLoginPage;
+  /**
+   * **As comunidades (`/forum`) são o Orkut**, e o Orkut tinha a barra dele.
+   *
+   * Decisão do Matheus em 31/07 (*"esquece o aplicativo; tal e como era no
+   * Orkut"*): ali dentro o cabeçalho escuro e o menu inferior do AllBook sairiam
+   * pela metade de qualquer jeito — laranja sobre branco, duas identidades na
+   * mesma tela. A saída não some: a barra azul do topo tem "voltar ao app".
+   */
+  const isForumPage = location.startsWith('/forum');
+  const isBare = isPlayerPage || isLoginPage || isForumPage;
 
   const isHomePage = location === '/';
 
@@ -135,6 +145,9 @@ function Router() {
             {/* Os Grupos (Orkut: comunidade → tópico → respostas).
                 A mais específica primeiro, regra deste Switch. */}
             <Route path="/forum/:id/topico/:topicoId" component={Topico} />
+            {/* Ordem importa: `/gerenciar` e `/membros` antes de `/forum/:id`,
+                senão a rota curta captura as duas. */}
+            <Route path="/forum/:id/gerenciar" component={GerenciarForum} />
             <Route path="/forum/:id" component={Grupo} />
             {/* `/clubes/novo` antes de `/clubes` e de `/clube/:id`: rota mais
                 específica primeiro é a regra deste Switch (ver o cabeçalho). */}
@@ -183,7 +196,7 @@ function Router() {
           </Switch>
         </div>
       </div>
-      {!isLoginPage && <MiniPlayer />}
+      {!isLoginPage && !isForumPage && <MiniPlayer />}
       {!isBare && <BottomNav />}
     </div>
   );
