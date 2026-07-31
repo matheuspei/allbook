@@ -6637,9 +6637,37 @@ caso de dois sem lugar. Proposta: a sala nasce no **player** (*Ouvir junto*) e �
 **convocada** de três portas — livro (qualquer um), clube (a rodada vira sessão),
 evento de comunidade (hora marcada, §4.79).
 
+### ✔ Decisão 1, tomada no mesmo dia: a transmissão é corrida (proposta A)
+
+> *"A transmissão tem que ser corrida. O anfitrião pode pausar, pode fazer o que
+> ele quiser, mas a transmissão tem que ser corrida. Assim a pessoa pode comentar
+> em cima da transmissão."*
+
+**Eu era contra e perdi — e o registro importa.** Apresentei o defeito do canal
+único (acima, item 1) e ele escolheu assim mesmo, sabendo do preço. **O esqueleto
+é o A.** A proposta B **sai** como estrutura.
+
+**Por que a decisão dele se sustenta**, e não é só teimosia: o valor da sala é
+reagir **na hora exata em que a frase toca**. Conversa represada até a pausa já é
+outra coisa — vira comentário, que o app **já tem**. Se a sala existe para o
+momento, cortar o momento esvazia a sala.
+
+**O que a minha objeção vira (e não muda nada do que ele decidiu):**
+
+- **Recolher o chat** — vira uma faixa fina com "14 falas novas". Quem quer só
+  ouvir aquele capítulo recolhe, sem sair da sala. **Padrão: aberto.**
+- **Reações ao lado do campo de escrever**, não no lugar dele: um toque em 😱
+  participa sem tirar o ouvido da frase.
+- **O que sobra do B, como enfeite barato e opcional:** quando o anfitrião pausa,
+  o chat ganha o **trecho fixado** — ali todo mundo fala da mesma frase.
+
+**Efeito colateral registrado:** com a transmissão corrida, a proposta **C** (o
+rastro) fica **mais** útil, não menos — quem chegou atrasado ou faltou é quem mais
+precisa do chat daquele minuto depois.
+
 ### O que falta bater o martelo
 
-1. **Chat corrido ou conversa nas pausas?** É a escolha que muda tudo.
+1. ~~**Chat corrido ou conversa nas pausas?**~~ → **decidido: corrido** (acima).
 2. **A sessão deixa rastro ou evapora?** (Sugerido: privada **nunca** deixa.)
 3. **A sala marcada pode virar o encontro do clube?** Posição registrada: **não** —
    a rodada sem hora é o que faz o clube caber na vida de quem ouve dirigindo.
