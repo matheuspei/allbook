@@ -7114,6 +7114,54 @@ quer ver a barra de progresso por baixo.
 
 ---
 
+## 4.87 "A conversa do livro não virou inútil?" — apurado, e a resposta é não (31/07) — decisão em aberto
+
+> *"A gente já hoje tem várias formas de conversa sobre um livro. Talvez o ícone
+> de conversa no livro seja inútil hoje, porque a gente já tem comunidade e já
+> tem vários grupos de discussão sobre aquele livro. Você não acha que isso
+> talvez seja inútil?"*
+
+A suspeita merecia apuração — e a apuração fica aqui para ninguém refazer.
+
+### A premissa não se confirma no código
+
+**Não existe nenhum grupo de discussão sobre um livro específico.** Nenhum fórum
+e nenhum tópico carrega `bookId` (`grupos.ts` e `forumConteudo.ts`: zero
+ocorrências) — os grupos são todos por **tema** (mistério, Jane Austen, true
+crime, ouvir dormindo…). O clube lê um livro por ciclo, mas é grupo fechado. A
+conversa do livro é **a única conversa aberta sobre aquele livro em particular**,
+e existe para os 60 do catálogo.
+
+### O que só ela tem — e o que cairia junto
+
+1. **Âncora no relógio do áudio**: comentário preso ao minuto exato. *"Num app
+   de leitura isso não existe: a página não tem um relógio para pendurar a
+   conversa"* (`MarcasDaConversa.tsx`) — é a peça mais "de audiolivro" do app.
+2. **Trava de spoiler pela posição real**: o que está à frente de onde você
+   parou não aparece (só a contagem "+3 à frente"), porque o player sabe onde
+   você está. Num fórum, qualquer tópico pode entregar o final.
+3. **É fundação de peças já aprovadas**: as marcas de conversa na barra do
+   player e **metade dos trechos quentes do feed** (§4.58 item 8 — o trecho
+   "citado num comentário") nascem dela. A notificação "responderam você" e o
+   "ver a conversa inteira" do trecho apontam para lá.
+
+### O que é verdadeiro no incômodo
+
+Hoje são **seis portas de conversa** — feed da comunidade, fóruns, mural do
+clube, conversa do livro, conversa do trecho, avaliações — e **nenhuma explica
+qual serve para quê nem aponta para as outras**. A sensação de redundância é
+real; o defeito é **falta de ponte, não peça sobrando**.
+
+### Recomendação e decisão
+
+**Recomendei manter.** Se o incômodo voltar, o caminho é construir as pontes
+(a conversa do livro apontando para os grupos do tema; o grupo apontando para a
+conversa dos livros que cita), não remover. **Decisão final é do Matheus e está
+em aberto** — se ele reafirmar a remoção, ela leva junto as marcas do player e
+metade dos trechos quentes, e isso precisa estar na conta.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
