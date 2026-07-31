@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { avatarDeLeitor } from "@/lib/community";
 import { Link, useLocation } from "wouter";
-import { CalendarRange, Eye, MessageCircleQuestion, Plus, Shield, Trash2, Undo2, UserMinus, Users, Vote, X } from "lucide-react";
+import { CalendarRange, Eye, Lock, MessageCircleQuestion, Plus, Shield, Trash2, Undo2, UserMinus, Users, Vote, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { catalog } from "@/lib/books";
@@ -39,6 +39,13 @@ import {
   vagasRestantes,
   type Clube as ClubeTipo,
   type Marco,
+  aprovarEntrada,
+  banidosDoClube,
+  banirDoClube,
+  definirPrivacidade,
+  desbanir,
+  pedidosDoClube,
+  recusarEntrada,
 } from "@/lib/clubes";
 import {
   MAX_OPCAO,
@@ -143,6 +150,7 @@ export default function GerenciarClube({ params }: { params: { id: string } }) {
 
         <NomeDoClube key={`n-${versao}`} clube={clube} />
         <Vagas clube={clube} />
+        <QuemPodeEntrar key={`q-${versao}`} clube={clube} />
         <RitmoDoCiclo key={`c-${versao}`} clube={clube} />
         <Membros key={`m-${versao}`} clube={clube} />
         <ListaDeEspera key={`f-${versao}`} clube={clube} />
@@ -663,6 +671,151 @@ function RitmoDoCiclo({ clube }: { clube: ClubeTipo }) {
 }
 
 /* ================================================================== *
+ * 1.5. Quem pode entrar — clube aberto ou fechado (ROTEIRO §4.81).
+ * ================================================================== */
+
+/**
+ * **Aberto ou fechado, e quem está esperando aprovação.**
+ *
+ * Existe porque o Matheus defendeu a privacidade da sala de escuta ao vivo
+ * apoiado num poder que ele achava que o clube já tinha: *"o anfitrião tem opção
+ * de privar o clube e aceitar quem entra ou não"*. Não tinha. Havia limite de
+ * vagas e fila de espera — que controlam **quantos**, nunca **quem**.
+ *
+ * A lista de pedidos só aparece quando o clube está fechado, pelo motivo de
+ * sempre nesta tela: caixa vazia dizendo "nenhum pedido" é enfeite (§4.40).
+ */
+function QuemPodeEntrar({ clube }: { clube: ClubeTipo }) {
+  const { toast } = useToast();
+  const [versao, setVersao] = useState(0);
+  const fechado = Boolean(clube.privado);
+  const pedidos = versao >= 0 ? pedidosDoClube(clube.id) : [];
+
+  return (
+    <section>
+      <Titulo icone={<Lock className="h-4 w-4 text-primary" />} texto="Quem pode entrar" />
+
+      <div className="space-y-2">
+        <OpcaoDePorta
+          escolhida={!fechado}
+          onEscolher={() => {
+            definirPrivacidade(clube.id, false);
+            setVersao((v) => v + 1);
+            toast({ title: "Clube aberto", description: "Qualquer pessoa pode entrar." });
+          }}
+          nome="Aberto"
+          detalhe="qualquer pessoa entra pelo botão da página do clube"
+        />
+        <OpcaoDePorta
+          escolhida={fechado}
+          onEscolher={() => {
+            definirPrivacidade(clube.id, true);
+            setVersao((v) => v + 1);
+            toast({
+              title: "Clube fechado",
+              description: "Quem quiser entrar manda um pedido, e você aprova.",
+            });
+          }}
+          nome="Fechado"
+          detalhe="entrar vira um pedido, e você decide um a um"
+        />
+      </div>
+
+      {fechado && (
+        <div className="mt-4">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/25">
+            Esperando você {pedidos.length > 0 && `· ${pedidos.length}`}
+          </p>
+
+          {pedidos.length === 0 ? (
+            <p className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3.5 text-xs leading-relaxed text-white/45">
+              Nenhum pedido agora. Quem abrir a página do clube vê o botão de pedir entrada.
+            </p>
+          ) : (
+            <div className="space-y-1.5" data-testid="pedidos-de-entrada">
+              {pedidos.map((slug) => (
+                <LinhaDeMembro
+                  key={slug}
+                  slug={slug}
+                  acao={
+                    <span className="flex items-center gap-0.5">
+                      <button
+                        onClick={() => {
+                          aprovarEntrada(clube.id, slug);
+                          setVersao((v) => v + 1);
+                          toast({ title: `${nomeDoMembro(slug)} entrou no clube` });
+                        }}
+                        className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/12"
+                        data-testid={`aprovar-${slug}`}
+                      >
+                        Aceitar
+                      </button>
+                      <button
+                        onClick={() => {
+                          recusarEntrada(clube.id, slug);
+                          setVersao((v) => v + 1);
+                          toast({
+                            title: "Pedido recusado",
+                            description: "Recusar não bane — a pessoa pode pedir de novo.",
+                          });
+                        }}
+                        className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/35 transition-colors hover:bg-white/10"
+                        data-testid={`recusar-${slug}`}
+                      >
+                        Recusar
+                      </button>
+                    </span>
+                  }
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <p className="mt-3 text-[10.5px] leading-relaxed text-white/25">
+        Fechar o clube vale também para as <b className="text-white/45">sessões de escuta ao
+        vivo</b>: quem não é da turma não entra na sala.
+      </p>
+    </section>
+  );
+}
+
+function OpcaoDePorta({
+  escolhida,
+  onEscolher,
+  nome,
+  detalhe,
+}: {
+  escolhida: boolean;
+  onEscolher: () => void;
+  nome: string;
+  detalhe: string;
+}) {
+  return (
+    <button
+      onClick={onEscolher}
+      className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors ${
+        escolhida
+          ? "bg-primary/10 ring-1 ring-inset ring-primary/45"
+          : "bg-white/[0.035] ring-1 ring-inset ring-white/10 hover:bg-white/[0.06]"
+      }`}
+      data-testid={`porta-clube-${nome}`}
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13px] font-semibold">{nome}</span>
+        <span className="mt-0.5 block text-[10.5px] leading-snug text-white/35">{detalhe}</span>
+      </span>
+      <span
+        className={`h-4 w-4 shrink-0 rounded-full ${
+          escolhida ? "border-[5px] border-primary" : "border-2 border-white/20"
+        }`}
+      />
+    </button>
+  );
+}
+
+/* ================================================================== *
  * 2. Membros — tirar e devolver.
  * ================================================================== */
 
@@ -678,6 +831,7 @@ function RitmoDoCiclo({ clube }: { clube: ClubeTipo }) {
 function Membros({ clube }: { clube: ClubeTipo }) {
   const { toast } = useToast();
   const fora = membrosRemovidos(clube.id);
+  const banidos = banidosDoClube(clube.id);
   const outros = clube.membros.filter((slug) => slug !== EU);
 
   return (
@@ -698,19 +852,41 @@ function Membros({ clube }: { clube: ClubeTipo }) {
               key={slug}
               slug={slug}
               acao={
-                <button
-                  onClick={() => {
-                    removerMembro(clube.id, slug);
-                    toast({
-                      title: `${nomeDoMembro(slug)} saiu do clube`,
-                      description: "Dá para devolver logo abaixo, se foi sem querer.",
-                    });
-                  }}
-                  className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/40 transition-colors hover:bg-red-500/12 hover:text-red-300"
-                  data-testid={`remover-${slug}`}
-                >
-                  Remover
-                </button>
+                <span className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => {
+                      removerMembro(clube.id, slug);
+                      toast({
+                        title: `${nomeDoMembro(slug)} saiu do clube`,
+                        description: "Dá para devolver logo abaixo, se foi sem querer.",
+                      });
+                    }}
+                    className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/40 transition-colors hover:bg-red-500/12 hover:text-red-300"
+                    data-testid={`remover-${slug}`}
+                  >
+                    Remover
+                  </button>
+                  {/*
+                    **Banir é outra coisa, e por isso é outro botão** (§4.81).
+                    Remover é reversível e a própria tela oferece devolver;
+                    banido não volta por caminho nenhum — nem pela porta, nem
+                    pela fila, nem por convite. Juntar os dois num botão só
+                    faria a ação mais grave acontecer por engano.
+                  */}
+                  <button
+                    onClick={() => {
+                      banirDoClube(clube.id, slug);
+                      toast({
+                        title: `${nomeDoMembro(slug)} foi banido`,
+                        description: "Não entra mais por caminho nenhum. Dá para desfazer abaixo.",
+                      });
+                    }}
+                    className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/25 transition-colors hover:bg-red-500/20 hover:text-red-300"
+                    data-testid={`banir-${slug}`}
+                  >
+                    Banir
+                  </button>
+                </span>
               }
             />
           ))
@@ -739,6 +915,39 @@ function Membros({ clube }: { clube: ClubeTipo }) {
                   >
                     <Undo2 className="h-3 w-3" />
                     Devolver
+                  </button>
+                }
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {banidos.length > 0 && (
+        <div className="mt-4">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-red-300/60">
+            Banidos — não entram por caminho nenhum
+          </p>
+          <div className="space-y-1.5">
+            {banidos.map((slug) => (
+              <LinhaDeMembro
+                key={slug}
+                slug={slug}
+                apagada
+                acao={
+                  <button
+                    onClick={() => {
+                      desbanir(clube.id, slug);
+                      toast({
+                        title: `${nomeDoMembro(slug)} pode voltar a pedir`,
+                        description: "Desbanir não põe de volta no clube — só destranca a porta.",
+                      });
+                    }}
+                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/40 transition-colors hover:bg-white/10"
+                    data-testid={`desbanir-${slug}`}
+                  >
+                    <Undo2 className="h-3 w-3" />
+                    Desbanir
                   </button>
                 }
               />

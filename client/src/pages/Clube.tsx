@@ -17,6 +17,7 @@ import {
   entrarNaFila,
   filaDoClube,
   minhaPosicaoNaFila,
+  meuPedidoPendente,
   sairDaFila,
   clubePorId,
   corDoMembro,
@@ -127,6 +128,8 @@ export default function Clube({ params }: { params: { id: string } }) {
      ou sair da fila — o dado mora no localStorage, não no estado. */
   const fila = versao >= 0 ? filaDoClube(clube.id) : [];
   const posicao = minhaPosicaoNaFila(clube.id);
+  /** Clube fechado: você pediu e está esperando o moderador (§4.81). */
+  const pedidoPendente = versao >= 0 ? meuPedidoPendente(clube.id) : false;
 
   /**
    * Convidar: a folha nativa do celular quando existe, copiar o link quando
@@ -279,10 +282,43 @@ export default function Clube({ params }: { params: { id: string } }) {
               </div>
             )}
 
-            {!membro && !cheio && (
+            {/*
+              **Clube fechado: pedir, e não entrar** (§4.81). O botão diz o que
+              vai acontecer de verdade — prometer "entrar" e cair numa fila de
+              aprovação seria porta que mente, o mesmo defeito da §4.51.
+            */}
+            {!membro && !cheio && pedidoPendente && (
+              <div
+                className="flex-1 rounded-xl bg-white/[0.04] px-4 py-3"
+                data-testid="pedido-pendente"
+              >
+                <p className="text-xs leading-relaxed text-white/55">
+                  <b className="text-primary">Seu pedido está com o moderador.</b> Este clube
+                  escolhe quem entra — você é avisado quando ele responder.
+                </p>
+              </div>
+            )}
+
+            {!membro && !cheio && !pedidoPendente && (
               <button
                 onClick={() => {
-                  entrarNoClube(clube.id);
+                  const fim = entrarNoClube(clube.id);
+                  setVersao((v) => v + 1);
+
+                  if (fim === "barrado") {
+                    toast({
+                      title: "Não dá para entrar",
+                      description: "O moderador deste clube não permite a sua entrada.",
+                    });
+                    return;
+                  }
+                  if (fim === "pediu") {
+                    toast({
+                      title: "Pedido enviado",
+                      description: `O ${clube.nome} escolhe quem entra. O moderador vai responder.`,
+                    });
+                    return;
+                  }
                   toast({
                     title: `Você entrou no ${clube.nome}`,
                     description: estaComecando(clube)
@@ -294,7 +330,11 @@ export default function Clube({ params }: { params: { id: string } }) {
                 data-testid="button-entrar-clube"
               >
                 <UserPlus className="h-4 w-4" />
-                {estaComecando(clube) ? "Quero entrar na estreia" : "Entrar no clube"}
+                {clube.privado
+                  ? "Pedir para entrar"
+                  : estaComecando(clube)
+                    ? "Quero entrar na estreia"
+                    : "Entrar no clube"}
               </button>
             )}
 

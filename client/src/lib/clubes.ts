@@ -79,6 +79,37 @@ export interface Clube {
    * pequeno e íntimo existir ao lado de um aberto e grande.
    */
   limite?: number;
+  /**
+   * **Clube fechado: entrar depende do moderador.**
+   *
+   * Nasceu de um argumento do Matheus sobre a sala de escuta ao vivo (§4.81):
+   * *"o anfitrião tem opção de privar o clube e aceitar quem entra ou não… então
+   * ele já tem poder de banir as pessoas"*. Ele defendeu a privacidade da sala
+   * apoiado neste poder — e, ao conferir, **ele não existia**. Havia limite de
+   * vagas e fila de espera, que são outra coisa: controlam *quantos*, nunca
+   * *quem*.
+   *
+   * Ausente ou `false` = qualquer um entra, como sempre foi.
+   */
+  privado?: boolean;
+  /**
+   * **Clube ao vivo** — a turma ouve junto, em sessões marcadas (§4.81).
+   *
+   * > *"O clube do livro pode ser como já é, mas também pode ser ao vivo. A
+   * > ideia é poder fazer um clube do livro com hora marcada e as pessoas
+   * > interagirem de forma ao vivo."*
+   *
+   * ⚠️ **Não é um segundo tipo de clube, é uma vocação.** Tudo continua
+   * existindo — rodada, mural, votação, estante —, e a rodada **continua sem
+   * hora** (§4.39). O que muda é o que a tela oferece primeiro: um clube ao vivo
+   * abre com "marcar a próxima sessão", e um clube comum não fala de sessão
+   * nenhuma até alguém marcar uma.
+   *
+   * Foi assim e não com dois tipos separados porque a §4.43 já registrou o que
+   * acontece quando duas coisas parecidas viram entidades diferentes: elas
+   * divergem, e o app passa a ter dois lugares para a mesma pergunta.
+   */
+  aoVivo?: boolean;
 }
 
 /* ------------------------------------------------------------------ *
@@ -525,6 +556,30 @@ interface EstadoLocal {
   limites: Record<string, number>;
   /** Clubes semeados que você apagou (só acontece nos que você modera). */
   apagados: string[];
+  /**
+   * **Privacidade que o moderador mexeu:** clubeId → fechado ou não.
+   *
+   * Por fora, como todo o resto, para o esqueleto ficar intacto: assim um clube
+   * semeado pode ser fechado por você sem reescrever a semente.
+   */
+  privacidade: Record<string, boolean>;
+  /**
+   * **Quem pediu para entrar num clube fechado:** clubeId → slugs.
+   *
+   * A sua vez também mora aqui (`EU`), e é o que faz a tela dizer "seu pedido
+   * está com o moderador" em vez de fingir que você entrou.
+   */
+  pedidos: Record<string, string[]>;
+  /**
+   * **Quem foi banido:** clubeId → slugs.
+   *
+   * ⚠️ **Banir não é remover, e a diferença é o ponto.** Removido pode voltar —
+   * inclusive por convite, que é uma decisão nova do moderador (ver
+   * `adicionarMembro`). Banido **não volta**: nem entrando, nem pela fila, nem
+   * por convite. Sem essa distinção, "banir" seria só um botão com nome mais
+   * forte, e a proteção que o Matheus descreveu não existiria.
+   */
+  banidos: Record<string, string[]>;
 }
 
 const VAZIO: EstadoLocal = {
@@ -538,6 +593,9 @@ const VAZIO: EstadoLocal = {
   naFila: [],
   limites: {},
   apagados: [],
+  privacidade: {},
+  pedidos: {},
+  banidos: {},
 };
 
 function readEstado(): EstadoLocal {
@@ -555,6 +613,9 @@ function readEstado(): EstadoLocal {
       naFila: Array.isArray(guardado.naFila) ? guardado.naFila : [],
       limites: guardado.limites ?? {},
       apagados: Array.isArray(guardado.apagados) ? guardado.apagados : [],
+      privacidade: guardado.privacidade ?? {},
+      pedidos: guardado.pedidos ?? {},
+      banidos: guardado.banidos ?? {},
     };
   } catch {
     return VAZIO;
@@ -604,11 +665,18 @@ function moderado(clube: Clube, estado: EstadoLocal): Clube {
   );
   const membros = [...clube.membros, ...convidados];
 
+  /* Banido sai da lista de membros junto com quem foi removido: quem não pode
+     voltar também não pode continuar dentro. */
+  const banidos = estado.banidos[clube.id] ?? [];
+  const foraDeVez = [...(fora ?? []), ...banidos];
+  const privado = estado.privacidade[clube.id];
+
   return {
     ...clube,
     ...(renomeado ? { nome: renomeado.nome, descricao: renomeado.descricao } : {}),
-    membros: fora ? membros.filter((slug) => !fora.includes(slug)) : membros,
+    membros: foraDeVez.length ? membros.filter((slug) => !foraDeVez.includes(slug)) : membros,
     ...(limite !== undefined ? { limite } : {}),
+    ...(privado !== undefined ? { privado } : {}),
   };
 }
 
@@ -954,17 +1022,179 @@ export function chamarOProximoDaFila(clubeId: string): string | undefined {
   return primeiro;
 }
 
-export function entrarNoClube(id: string): void {
+/**
+ * Entrar num clube.
+ *
+ * **Devolve o que aconteceu**, porque agora há três finais possíveis e a tela
+ * precisa dizer qual foi:
+ *
+ * - `"entrou"` — clube aberto, você está dentro;
+ * - `"pediu"` — clube **fechado**: o pedido foi para o moderador (§4.81);
+ * - `"barrado"` — você foi banido daqui, ou o clube está cheio.
+ *
+ * A checagem mora aqui e não só na tela pelo motivo de sempre: tela se contorna.
+ */
+export function entrarNoClube(id: string): "entrou" | "pediu" | "barrado" {
   const estado = readEstado();
-  if (estado.criados.some((clube) => clube.id === id)) return;
-  if (estado.entrou.includes(id)) return;
+  if (estado.criados.some((clube) => clube.id === id)) return "entrou";
+  if (estado.entrou.includes(id)) return "entrou";
+
+  const clube = clubePorId(id);
+
+  /* Banido não entra, e é aqui que "banir" deixa de ser um botão com nome
+     bonito: sem esta linha, quem foi banido voltaria no toque seguinte. */
+  if (clube && (estado.banidos[id] ?? []).includes(EU)) return "barrado";
 
   /* O limite vale de verdade: entrar em clube lotado não pode ser possível só
      porque a tela deixou o botão aceso. A tela também esconde o botão. */
-  const clube = clubePorId(id);
-  if (clube && clubeCheio(clube)) return;
+  if (clube && clubeCheio(clube)) return "barrado";
+
+  /* Clube fechado: vira pedido. Entrar sozinho num clube que escolheu quem
+     entra desfaria a escolha inteira. */
+  if (clube?.privado) {
+    const fila = estado.pedidos[id] ?? [];
+    if (!fila.includes(EU)) {
+      salvar({ ...estado, pedidos: { ...estado.pedidos, [id]: [...fila, EU] } });
+    }
+    return "pediu";
+  }
 
   salvar({ ...estado, entrou: [...estado.entrou, id] });
+  return "entrou";
+}
+
+/* ------------------------------------------------------------------ *
+ * Clube fechado: quem entra é escolhido (ROTEIRO §4.81)
+ * ------------------------------------------------------------------ */
+
+/** Abrir ou fechar o clube. Só o moderador. */
+export function definirPrivacidade(clubeId: string, privado: boolean): void {
+  const clube = clubePorId(clubeId);
+  if (!clube || !souDono(clube)) return;
+  const estado = readEstado();
+  salvar({ ...estado, privacidade: { ...estado.privacidade, [clubeId]: privado } });
+}
+
+/**
+ * Quem está esperando aprovação.
+ *
+ * ⚠️ **Os pedidos de outras pessoas são simulados e estáveis** (semente pelo id
+ * do clube), como o progresso dos membros: sem servidor ninguém pede nada de
+ * verdade. Um clube fechado sem nenhum pedido para aprovar seria uma tela de
+ * moderação que nunca modera — e aí o poder que o Matheus pediu existiria só no
+ * papel.
+ */
+export function pedidosDoClube(clubeId: string): string[] {
+  const clube = clubePorId(clubeId);
+  if (!clube?.privado) return [];
+
+  const estado = readEstado();
+  const meus = estado.pedidos[clubeId] ?? [];
+  const recusados = estado.banidos[clubeId] ?? [];
+
+  const semente = clubeId.split("").reduce((soma, letra) => soma + letra.charCodeAt(0), 0);
+  const forasteiros = community
+    .filter((pessoa) => !clube.membros.includes(pessoa.slug))
+    .filter((_, i) => (semente + i) % 7 === 0)
+    .slice(0, 3)
+    .map((pessoa) => pessoa.slug);
+
+  return [...meus, ...forasteiros].filter(
+    (slug, i, lista) =>
+      lista.indexOf(slug) === i && !recusados.includes(slug) && !clube.membros.includes(slug),
+  );
+}
+
+/** O moderador deixou entrar. */
+export function aprovarEntrada(clubeId: string, slug: string): void {
+  const clube = clubePorId(clubeId);
+  if (!clube || !souDono(clube)) return;
+
+  const estado = readEstado();
+  const semOPedido = {
+    ...estado.pedidos,
+    [clubeId]: (estado.pedidos[clubeId] ?? []).filter((item) => item !== slug),
+  };
+
+  if (slug === EU) {
+    salvar({ ...estado, pedidos: semOPedido, entrou: [...estado.entrou, clubeId] });
+    return;
+  }
+  salvar({
+    ...estado,
+    pedidos: semOPedido,
+    convidados: {
+      ...estado.convidados,
+      [clubeId]: [...(estado.convidados[clubeId] ?? []), slug],
+    },
+  });
+}
+
+/**
+ * O moderador recusou.
+ *
+ * Recusar **não bane** — só tira o pedido da fila. Quem foi recusado pode pedir
+ * de novo, e é assim que deve ser: uma recusa não é uma sentença.
+ */
+export function recusarEntrada(clubeId: string, slug: string): void {
+  const clube = clubePorId(clubeId);
+  if (!clube || !souDono(clube)) return;
+  const estado = readEstado();
+  salvar({
+    ...estado,
+    pedidos: {
+      ...estado.pedidos,
+      [clubeId]: (estado.pedidos[clubeId] ?? []).filter((item) => item !== slug),
+    },
+  });
+}
+
+/** Você pediu para entrar e ainda não teve resposta? */
+export function meuPedidoPendente(clubeId: string): boolean {
+  return (readEstado().pedidos[clubeId] ?? []).includes(EU);
+}
+
+/**
+ * **Banir — e banido não volta.**
+ *
+ * A diferença para `removerMembro` é o ponto todo: removido pode voltar (pela
+ * porta, pela fila ou por convite); banido não entra por caminho nenhum. Sem
+ * essa distinção, "banir" seria só um rótulo mais duro no mesmo botão.
+ */
+export function banirDoClube(clubeId: string, slug: string): void {
+  const clube = clubePorId(clubeId);
+  if (!clube || !souDono(clube) || slug === clube.donoSlug) return;
+
+  const estado = readEstado();
+  salvar({
+    ...estado,
+    banidos: { ...estado.banidos, [clubeId]: [...(estado.banidos[clubeId] ?? []), slug] },
+    /* Sai também de onde ele poderia voltar sozinho. */
+    convidados: {
+      ...estado.convidados,
+      [clubeId]: (estado.convidados[clubeId] ?? []).filter((item) => item !== slug),
+    },
+    pedidos: {
+      ...estado.pedidos,
+      [clubeId]: (estado.pedidos[clubeId] ?? []).filter((item) => item !== slug),
+    },
+  });
+}
+
+/** Desfazer o banimento — decisão nova do moderador, como readmitir. */
+export function desbanir(clubeId: string, slug: string): void {
+  const estado = readEstado();
+  salvar({
+    ...estado,
+    banidos: {
+      ...estado.banidos,
+      [clubeId]: (estado.banidos[clubeId] ?? []).filter((item) => item !== slug),
+    },
+  });
+}
+
+export function banidosDoClube(clubeId: string): string[] {
+  return readEstado().banidos[clubeId] ?? [];
 }
 
 export function sairDoClube(id: string): void {
@@ -1105,6 +1335,17 @@ export function criarClube(dados: {
   marcos: Marco[];
   /** Quantas pessoas cabem. Ausente = sem limite (ROTEIRO 4.40). */
   limite?: number;
+  /** Clube fechado desde o nascimento: entrar vira pedido (§4.81). */
+  privado?: boolean;
+  /**
+   * **O clube nasce ao vivo** (§4.81): a turma combina de ouvir junto, em
+   * sessões com hora, em vez de só responder à rodada quando der.
+   *
+   * Não muda o mecanismo — muda o que a tela do clube oferece primeiro e o que
+   * ela ensina. Pedido do Matheus: *"o clube do livro pode ser como já é, mas
+   * também pode ser ao vivo"*.
+   */
+  aoVivo?: boolean;
 }): Clube {
   const estado = readEstado();
   const livro = catalog.find((book) => book.id === dados.bookId);
@@ -1124,6 +1365,8 @@ export function criarClube(dados: {
     estante: [],
     genero: livro?.genre ?? "Geral",
     ...(dados.limite !== undefined ? { limite: dados.limite } : {}),
+    ...(dados.privado ? { privado: true } : {}),
+    ...(dados.aoVivo ? { aoVivo: true } : {}),
   };
 
   salvar({ ...estado, criados: [clube, ...estado.criados] });

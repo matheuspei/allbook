@@ -70,6 +70,8 @@ export default function NovoClube() {
   const [inicio, setInicio] = useState(hojeIso());
   const [fim, setFim] = useState(somarDiasIso(hojeIso(), 28));
   const [limite, setLimite] = useState<number | undefined>(undefined);
+  const [privado, setPrivado] = useState(false);
+  const [aoVivo, setAoVivo] = useState(false);
   const [marcos, setMarcos] = useState<Marco[]>([]);
 
   const encontrados = busca.trim()
@@ -285,6 +287,56 @@ export default function NovoClube() {
         </Campo>
 
         {/*
+          **Como o clube se encontra** (§4.81) e **quem entra**. Os dois nasceram
+          da mesma conversa: o Matheus pediu o clube ao vivo e, para defender a
+          privacidade da sala, citou um poder de fechar o clube que ainda não
+          existia. Ficam aqui, na criação, porque as duas coisas mudam o que a
+          turma espera antes de a primeira pessoa entrar.
+        */}
+        <Campo titulo="Como a turma se encontra">
+          <div className="space-y-2">
+            <Escolha
+              escolhida={!aoVivo}
+              onEscolher={() => setAoVivo(false)}
+              nome="No ritmo de cada um"
+              detalhe="a rodada fica aberta por dias — cada um responde quando der"
+              testid="clube-ritmo-livre"
+            />
+            <Escolha
+              escolhida={aoVivo}
+              onEscolher={() => setAoVivo(true)}
+              nome="Ao vivo, com hora marcada"
+              detalhe="a turma ouve junto em sessões marcadas, no mesmo segundo"
+              testid="clube-ritmo-ao-vivo"
+            />
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-white/35">
+            {aoVivo
+              ? "A rodada continua existindo e continua sem hora — o ao vivo é um extra, não o substituto."
+              : "Dá para marcar uma sessão ao vivo depois, mesmo assim. Isto só escolhe o que o clube oferece primeiro."}
+          </p>
+        </Campo>
+
+        <Campo titulo="Quem pode entrar">
+          <div className="space-y-2">
+            <Escolha
+              escolhida={!privado}
+              onEscolher={() => setPrivado(false)}
+              nome="Aberto"
+              detalhe="qualquer pessoa entra pelo botão da página do clube"
+              testid="clube-porta-aberto"
+            />
+            <Escolha
+              escolhida={privado}
+              onEscolher={() => setPrivado(true)}
+              nome="Fechado"
+              detalhe="entrar vira um pedido, e você aprova um a um"
+              testid="clube-porta-fechado"
+            />
+          </div>
+        </Campo>
+
+        {/*
           **Quando acaba virou uma data, não um número de semanas** (ROTEIRO
           4.42). O Matheus: *"nas semanas também, ele não consegue dizer qual é o
           dia que ele quer que acabe"*. Os atalhos de 2/4/6 semanas continuam,
@@ -350,6 +402,8 @@ export default function NovoClube() {
               encontro: fim,
               marcos,
               limite,
+              privado,
+              aoVivo,
             });
             toast({
               title: estreiaHoje ? "Clube criado" : "Clube criado — estreia marcada",
@@ -372,6 +426,44 @@ export default function NovoClube() {
         </p>
       </div>
     </div>
+  );
+}
+
+/** Uma escolha entre poucas — o mesmo desenho da folha de abrir sala. */
+function Escolha({
+  escolhida,
+  onEscolher,
+  nome,
+  detalhe,
+  testid,
+}: {
+  escolhida: boolean;
+  onEscolher: () => void;
+  nome: string;
+  detalhe: string;
+  testid: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onEscolher}
+      className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors ${
+        escolhida
+          ? "bg-primary/10 ring-1 ring-inset ring-primary/45"
+          : "bg-white/[0.035] ring-1 ring-inset ring-white/10 hover:bg-white/[0.06]"
+      }`}
+      data-testid={testid}
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13px] font-semibold">{nome}</span>
+        <span className="mt-0.5 block text-[10.5px] leading-snug text-white/35">{detalhe}</span>
+      </span>
+      <span
+        className={`h-4 w-4 shrink-0 rounded-full ${
+          escolhida ? "border-[5px] border-primary" : "border-2 border-white/20"
+        }`}
+      />
+    </button>
   );
 }
 
