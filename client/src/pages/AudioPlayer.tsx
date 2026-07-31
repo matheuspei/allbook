@@ -16,6 +16,7 @@ import MarcasDaConversa from "@/components/MarcasDaConversa";
 import FaixaDaTurmaNoPlayer from "@/components/clube/FaixaDaTurmaNoPlayer";
 import FaixaDaSalaNoPlayer, { ItemOuvirJunto } from "@/components/sala/FaixaDaSalaNoPlayer";
 import ContinuarDaTurma from "@/components/sala/ContinuarDaTurma";
+import { ultimaTelaNavegavel } from "@/lib/navegacao";
 import AbrirSala from "@/components/sala/AbrirSala";
 import { SALA_AO_VIVO_EVENT } from "@/lib/salaAoVivo";
 import { MAX_CITACAO_SEC, criarCitacao, rotuloDaCitacao } from "@/lib/citacoes";
@@ -38,7 +39,7 @@ import {
   bookmarkCount,
   type Bookmark as Marcacao,
 } from "@/lib/bookmarks";
-import { readSettings } from "@/lib/settings";
+import { readSettings, saveSettings } from "@/lib/settings";
 import { readPlayback, readPlaying, savePlayback, savePlaying, showMiniPlayer } from "@/lib/playback";
 import { getChapters, chaptersTotalSec, chapterStartSec, chapterAtSec, formatChapterDuration } from "@/lib/chapters";
 import { ToastAction } from "@/components/ui/toast";
@@ -208,9 +209,25 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     }
     return `${m}m ${s}s restantes`;
   };
-  // Começa na velocidade escolhida em Configurações; mudar aqui vale só para
-  // esta sessão de audição, sem alterar a preferência.
+  /*
+   * **O player lembra a velocidade** (31/07, §4.85).
+   *
+   * Era assim: o player abria na velocidade guardada em Configurações e, se
+   * você mudasse aqui, a mudança valia só para aquela sessão — na próxima
+   * abertura voltava ao padrão. Isso obrigava a existir uma tela de
+   * configuração só para fixar o número, e o Matheus reclamou dela com razão:
+   * *"a configuração de reprodução não faz sentido nessa página, você já pode
+   * alterar isso no player"*.
+   *
+   * Agora quem manda é o player: mudou aqui, fica assim para os próximos
+   * livros. A tela de configuração some, e a preferência continua existindo —
+   * só que escrita pelo lugar onde a pessoa de fato decide.
+   */
   const [speed, setSpeed] = useState(() => readSettings().speed);
+  useEffect(() => {
+    const atual = readSettings();
+    if (atual.speed !== speed) saveSettings({ ...atual, speed });
+  }, [speed]);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showTimerMenu, setShowTimerMenu] = useState(false);
   const [selectedTimer, setSelectedTimer] = useState("Desligado");
@@ -543,7 +560,19 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
       {/* Top Bar */}
       <header className="relative px-4 py-3 flex items-center justify-between shrink-0">
-        <button onClick={() => window.history.back()} className="p-2 hover:bg-white/10 rounded-full transition-colors" aria-label="Voltar">
+        {/*
+          **Minimizar devolve à última tela com menu** (31/07, §4.81). Era
+          `window.history.back()`, e isso tinha dois furos: quem abriu o app
+          direto num endereço de player **saía do app**, e — depois que a sala ao
+          vivo nasceu — voltar podia cair na sala, que é outra tela cheia, e as
+          duas se empurravam sem fim ("*ele fica nesse limbo*", o Matheus).
+          A regra mora em `lib/navegacao.ts`.
+        */}
+        <button
+          onClick={() => setLocation(ultimaTelaNavegavel(), { replace: true })}
+          className="p-2 hover:bg-white/10 rounded-full transition-colors"
+          aria-label="Minimizar o player"
+        >
           <ChevronDown className="w-8 h-8" />
         </button>
         <div className="flex items-center gap-1">

@@ -6843,6 +6843,27 @@ feed** — cartão convidando para onde você já foi é convite falso.
 > **Regra que fica:** tela cheia nova no AllBook precisa de um jeito de
 > **minimizar**, não só de sair. Sem isso ela vira beco.
 
+**O limbo entre duas telas cheias — segunda queixa, no mesmo dia.** A primeira
+correção minimizava a sala **indo para o player**, e o player minimiza com
+`history.back()`, que voltava para a sala:
+
+> *"Você clica no ícone de baixar, ele volta para o player. Aí você clica de
+> novo, ele volta para a sala ao vivo — ele fica nesse limbo. A forma de sair
+> disso é clicar em voltar [do navegador], mas as pessoas deveriam poder voltar
+> dentro do aplicativo mesmo."*
+
+Ele está certo, e o defeito era estrutural: **duas telas cheias devolvendo uma
+para a outra nunca chegam a uma tela com menu.**
+
+**A regra, agora em `lib/navegacao.ts` e valendo para as duas:** minimizar
+devolve para a **última tela do app que tinha navegação** — nunca para outra tela
+cheia —, com `replace` para o voltar do navegador não trazer a tela cheia de
+volta. Sem histórico nenhum (quem abre o app direto num endereço de sala), cai na
+Comunidade.
+
+**Isto corrigiu de quebra um furo antigo do player:** `history.back()` fazia quem
+abrisse o app direto em `/player/:id` **sair do app** ao minimizar.
+
 **Os botões de reação saíram — e o argumento é dele.** *"Você só colocou dois
 botões de reação. Se vai ter dois, é melhor não ter nenhum. A pessoa já pode
 digitar um monte deles, então não faz sentido ter botão de reação."* Eu tinha

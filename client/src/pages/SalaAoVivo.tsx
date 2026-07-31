@@ -22,6 +22,7 @@ import {
   type SalaAoVivo as Sala,
 } from "@/lib/salaAoVivo";
 import { formatarPosicao } from "@/lib/sala";
+import { ultimaTelaNavegavel } from "@/lib/navegacao";
 import { useToast } from "@/hooks/use-toast";
 
 /**
@@ -122,7 +123,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
 
   function sair() {
     sairDaSala(sala!.id);
-    navigate(`/player/${sala!.bookId}`);
+    navigate(ultimaTelaNavegavel(), { replace: true });
   }
 
   function encerrar() {
@@ -134,7 +135,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
           ? "Sala privada não deixa rastro — a conversa não ficou guardada."
           : "A conversa ficou guardada no livro, no minuto de cada fala.",
     });
-    navigate(`/player/${sala!.bookId}`);
+    navigate(ultimaTelaNavegavel(), { replace: true });
   }
 
   return (
@@ -157,10 +158,16 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
         prendia a pessoa lá dentro. Agora fechar a tela deixa você **dentro da
         sala**, com a barrinha do rodapé provando isso, e sair virou ação
         explícita, embaixo.
+
+        ⚠️ **Devolve para a última tela com menu, nunca para o player.** A
+        primeira versão minimizava indo para o player — que também é tela cheia
+        —, e as duas passaram a se empurrar uma para a outra: *"ele fica nesse
+        limbo"*. `replace` em vez de empilhar, para o voltar do navegador não
+        trazer a sala de volta. A regra mora em `lib/navegacao.ts`.
       */}
       <div className="flex items-center gap-2 px-4 pb-2 pt-4">
         <button
-          onClick={() => navigate(`/player/${sala.bookId}`)}
+          onClick={() => navigate(ultimaTelaNavegavel(), { replace: true })}
           className="text-white/55 transition-colors hover:text-white"
           aria-label="Minimizar a sala"
           data-testid="button-minimizar-sala"

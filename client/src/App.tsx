@@ -57,6 +57,7 @@ import AudioPlayer from "@/pages/AudioPlayer";
 import SalaAoVivo from "@/pages/SalaAoVivo";
 import BarraDaSala from "@/components/sala/BarraDaSala";
 import { minhaSalaAberta, SALA_AO_VIVO_EVENT } from "@/lib/salaAoVivo";
+import { guardarTelaNavegavel } from "@/lib/navegacao";
 import BottomNav from "@/components/layout/BottomNav";
 import TopNav from "@/components/layout/TopNav";
 import MiniPlayer from "@/components/layout/MiniPlayer";
@@ -121,6 +122,15 @@ function Router() {
     atualizar();
     window.addEventListener(SALA_AO_VIVO_EVENT, atualizar);
     return () => window.removeEventListener(SALA_AO_VIVO_EVENT, atualizar);
+  }, [location]);
+
+  /*
+   * Anota a última tela **com menu** por onde a pessoa passou. É daqui que as
+   * telas cheias sabem para onde devolver — sem isto, sala e player ficavam se
+   * empurrando um para o outro e nunca chegavam ao app (ver `lib/navegacao.ts`).
+   */
+  useEffect(() => {
+    guardarTelaNavegavel(location);
   }, [location]);
   /*
    * **As comunidades voltaram a ter o cabeçalho e o menu do app** (31/07, fim do
