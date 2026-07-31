@@ -48,7 +48,8 @@
  * e nenhuma tela.
  */
 
-import { clubePorId, EU } from "@/lib/clubes";
+import { clubePorId, EU, nomeDoMembro } from "@/lib/clubes";
+import { addNotification } from "@/lib/notifications";
 import { chapterAtSec, chapterStartSec, getChapters } from "@/lib/chapters";
 
 const CHAVE = "allbook_salas_ao_vivo";
@@ -487,7 +488,35 @@ export function abrirSala(dados: {
   };
   salvarMinha(sala);
   if (dados.convidados?.length) responderAoConvite(sala.id, dados.convidados);
+  avisarQueAbriu(sala);
   return sala;
+}
+
+/**
+ * **Avisa a turma de que a sala existe.**
+ *
+ * Uma sala que ninguém sabe que abriu é uma sala vazia — e sala vazia é o
+ * cenário que este desenho inteiro tenta evitar (§4.81). O aviso é do **clube**,
+ * porque é lá que existe uma turma para avisar; sala solta não tem a quem
+ * avisar, e sala privada não avisa ninguém de propósito.
+ *
+ * ⚠️ O aviso chega **para você**, no seu próprio sino: sem servidor não há como
+ * entregar nada a outra pessoa. É a mesma honestidade do resto do app — o
+ * mecanismo é real, o destinatário é você.
+ */
+function avisarQueAbriu(sala: SalaAoVivo): void {
+  if (sala.porta === "privada" || !sala.clubeId) return;
+  const clube = clubePorId(sala.clubeId);
+  if (!clube) return;
+
+  const marcada = sala.porta === "marcada";
+  addNotification({
+    fromSlug: sala.anfitriao === EU ? (clube.membros.find((m) => m !== EU) ?? EU) : sala.anfitriao,
+    salaId: sala.id,
+    text: marcada
+      ? `Sessão de escuta marcada no ${clube.nome}${sala.data ? ` para ${sala.data.split("-").reverse().slice(0, 2).join("/")}` : ""}${sala.hora ? `, ${sala.hora}` : ""}.`
+      : `Uma sala de escuta abriu no ${clube.nome}. Entrar te leva ao ponto da turma.`,
+  });
 }
 
 /**
@@ -600,6 +629,14 @@ export function convidarParaSala(salaId: string, slugs: string[]): void {
 
   salvarMinha({ ...sala, convidados: [...(sala.convidados ?? []), ...novos] });
   responderAoConvite(salaId, novos);
+
+  /* O convite também vira aviso: sem isto, chamar alguém era um botão que
+     mudava um número e nada mais. */
+  addNotification({
+    fromSlug: sala.anfitriao === EU ? novos[0] : sala.anfitriao,
+    salaId: sala.id,
+    text: `Você chamou ${novos.map(nomeDoMembro).join(", ")} para ouvir junto.`,
+  });
 }
 
 export function sairDaSala(id: string): void {
@@ -720,4 +757,65 @@ export function ondeATurmaParou(bookId: number): { posicaoSec: number; sala: Sal
   const ultima = sessoesEncerradas(bookId)[0];
   if (!ultima) return undefined;
   return { posicaoSec: ultima.posicaoSec, sala: ultima };
+}
+
+/* ------------------------------------------------------------------ *
+ * O lembrete da sessão que vai começar
+ * ------------------------------------------------------------------ */
+
+const CHAVE_LEMBRADAS = "allbook_sessoes_lembradas";
+
+/** Quantos minutos antes o lembrete sai. */
+const ANTECEDENCIA_MIN = 15;
+
+/**
+ * **Avisa que a sessão marcada está para começar.**
+ *
+ * Sem servidor não existe alarme: ninguém pode ser acordado por uma sessão
+ * enquanto o app está fechado. O que dá para fazer com honestidade é olhar,
+ * **quando o app abre**, se alguma sessão confirmada por você começa nos
+ * próximos {@link ANTECEDENCIA_MIN} minutos — e avisar uma vez só.
+ *
+ * A lista de já-avisadas existe para o lembrete não voltar a cada troca de tela.
+ * Com servidor isto vira uma notificação de verdade, e a tela não muda.
+ */
+export function lembrarSessoesProximas(): void {
+  let lembradas: string[] = [];
+  try {
+    const guardado = JSON.parse(localStorage.getItem(CHAVE_LEMBRADAS) || "[]");
+    lembradas = Array.isArray(guardado) ? guardado : [];
+  } catch {
+    lembradas = [];
+  }
+
+  const novas: string[] = [];
+
+  for (const sala of todasAsSalas()) {
+    if (sala.porta !== "marcada" || sala.encerradaEm) continue;
+    if (lembradas.includes(sala.id)) continue;
+    /* Só lembra quem disse que vem: avisar quem não confirmou é notificação não
+       pedida, que é o começo do app que ninguém quer no bolso. */
+    if (!(sala.confirmados ?? []).includes(EU)) continue;
+
+    const inicio = comecaEm(sala);
+    if (inicio === undefined) continue;
+
+    const faltamMin = (inicio - Date.now()) / 60000;
+    if (faltamMin > ANTECEDENCIA_MIN || faltamMin < -30) continue;
+
+    const clube = sala.clubeId ? clubePorId(sala.clubeId) : undefined;
+    addNotification({
+      fromSlug: sala.anfitriao === EU ? (clube?.membros.find((m) => m !== EU) ?? EU) : sala.anfitriao,
+      salaId: sala.id,
+      text:
+        faltamMin > 0
+          ? `A sessão ${clube ? `do ${clube.nome} ` : ""}começa em ${Math.max(1, Math.round(faltamMin))} min.`
+          : `A sessão ${clube ? `do ${clube.nome} ` : ""}já começou — entre quando quiser.`,
+    });
+    novas.push(sala.id);
+  }
+
+  if (novas.length > 0) {
+    localStorage.setItem(CHAVE_LEMBRADAS, JSON.stringify([...lembradas, ...novas]));
+  }
 }

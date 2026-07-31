@@ -56,7 +56,7 @@ import Collection from "@/pages/Collection";
 import AudioPlayer from "@/pages/AudioPlayer";
 import SalaAoVivo from "@/pages/SalaAoVivo";
 import BarraDaSala from "@/components/sala/BarraDaSala";
-import { minhaSalaAberta, SALA_AO_VIVO_EVENT } from "@/lib/salaAoVivo";
+import { lembrarSessoesProximas, minhaSalaAberta, SALA_AO_VIVO_EVENT } from "@/lib/salaAoVivo";
 import { guardarTelaNavegavel } from "@/lib/navegacao";
 import BottomNav from "@/components/layout/BottomNav";
 import TopNav from "@/components/layout/TopNav";
@@ -132,6 +132,17 @@ function Router() {
   useEffect(() => {
     guardarTelaNavegavel(location);
   }, [location]);
+
+  /*
+   * O lembrete da sessão que vai começar (§4.81). Roda ao abrir o app e a cada
+   * minuto: sem servidor não há alarme de verdade, e olhar quando o app está
+   * aberto é o mais honesto que dá para fazer.
+   */
+  useEffect(() => {
+    lembrarSessoesProximas();
+    const relogio = window.setInterval(lembrarSessoesProximas, 60_000);
+    return () => window.clearInterval(relogio);
+  }, []);
   /*
    * **As comunidades voltaram a ter o cabeçalho e o menu do app** (31/07, fim do
    * dia). Elas ficaram brancas e azuis por algumas horas, quando a aba copiava o

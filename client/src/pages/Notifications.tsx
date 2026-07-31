@@ -107,6 +107,8 @@ type Aviso = {
   postId?: string;
   /** Resposta a um **convite de evento**: o toque abre a comunidade do fórum. */
   forumId?: string;
+  /** Aviso de **sala de escuta ao vivo**: o toque abre `/sala/:id` (§4.81). */
+  salaId?: string;
   lida: boolean;
 };
 
@@ -215,7 +217,11 @@ function deResposta(item: ReplyNotification): Aviso {
       abre esperando uma coisa e encontra outra.
     */
     titulo:
-      item.clubeId || item.forumId
+      item.salaId
+      ? /* Aviso de sala: o texto já diz tudo ("abriu uma sala", "te chamou",
+           "começa em 10 min"). Um título com "respondeu você" mentiria. */
+        `${membro?.name ?? "Um leitor"} · ao vivo`
+      : item.clubeId || item.forumId
       ? /* Resposta a convite: o texto já conta o desfecho ("entrou", "não pôde",
            "vai"), então o título só nomeia o assunto. Dizer "respondeu você"
            aqui era o mesmo defeito de descrição pego logo acima — visto na tela
@@ -225,7 +231,7 @@ function deResposta(item: ReplyNotification): Aviso {
         ? `${membro?.name ?? "Um leitor"} ${ehMeuPost(item.postId) ? "comentou no seu post" : "respondeu seu comentário"}`
         : `${membro?.name ?? "Um leitor"} respondeu você`,
     /* Convite não vai entre aspas: não é fala de ninguém, é o que aconteceu. */
-    corpo: item.clubeId || item.forumId ? item.text : `“${item.text}”`,
+    corpo: item.clubeId || item.forumId || item.salaId ? item.text : `“${item.text}”`,
     data: item.date,
     // A cor do avatar da própria pessoa: é assim que ela aparece nas outras
     // telas, e reconhecer a cor é reconhecer quem falou.
@@ -236,6 +242,7 @@ function deResposta(item: ReplyNotification): Aviso {
     clubeId: item.clubeId,
     postId: item.postId,
     forumId: item.forumId,
+    salaId: item.salaId,
     lida: item.read,
   };
 }
@@ -443,6 +450,12 @@ export default function Notifications() {
        é a turma que a pessoa quer ver. */
     if (aviso.clubeId) {
       setLocation(`/clube/${aviso.clubeId}`);
+      return;
+    }
+    /* Sala ao vivo vem antes de tudo: é a única coisa perecível do sino — se o
+       toque levar a outro lugar, quando a pessoa voltar a sala já acabou. */
+    if (aviso.salaId) {
+      setLocation(`/sala/${aviso.salaId}`);
       return;
     }
     /* Resposta a convite de evento leva **à comunidade**: é lá que o evento

@@ -61,6 +61,15 @@ export interface ReplyNotification {
    * evento mora com a contagem de quem vai.
    */
   forumId?: string;
+  /**
+   * A **sala de escuta ao vivo** (31/07, §4.81) — o quinto destino.
+   *
+   * O toque abre `/sala/:id`. Entrou porque a sala nascia muda: ninguém ficava
+   * sabendo que uma tinha aberto, nem que fora chamado para uma, nem que a
+   * sessão marcada ia começar. Uma sala que ninguém sabe que existe é uma sala
+   * vazia — o cenário que o desenho inteiro tenta evitar.
+   */
+  salaId?: string;
   /** O trecho da resposta, mostrado no aviso. */
   text: string;
   /** ISO. */
@@ -79,11 +88,12 @@ export function readNotifications(): ReplyNotification[] {
           typeof item.fromSlug === "string" &&
           typeof item.text === "string" &&
           typeof item.date === "string" &&
-          // Um destino, sempre: livro, post, clube ou comunidade do fórum.
+          // Um destino, sempre: livro, post, clube, comunidade ou sala ao vivo.
           (typeof item.bookId === "number" ||
             typeof item.postId === "string" ||
             typeof item.clubeId === "string" ||
-            typeof item.forumId === "string"),
+            typeof item.forumId === "string" ||
+            typeof item.salaId === "string"),
       )
       .sort((a, b) => b.date.localeCompare(a.date));
   } catch {
@@ -141,11 +151,12 @@ export function unreadNotificationCount(): number {
 
 export function addNotification(entry: {
   fromSlug: string;
-  /** Um dos quatro: livro, post do feed, clube ou comunidade do fórum. */
+  /** Um dos cinco: livro, post, clube, comunidade do fórum ou sala ao vivo. */
   bookId?: number;
   postId?: string;
   clubeId?: string;
   forumId?: string;
+  salaId?: string;
   text: string;
 }): ReplyNotification[] {
   const notification: ReplyNotification = {
@@ -155,6 +166,7 @@ export function addNotification(entry: {
     ...(entry.postId !== undefined ? { postId: entry.postId } : {}),
     ...(entry.clubeId !== undefined ? { clubeId: entry.clubeId } : {}),
     ...(entry.forumId !== undefined ? { forumId: entry.forumId } : {}),
+    ...(entry.salaId !== undefined ? { salaId: entry.salaId } : {}),
     text: entry.text,
     date: new Date().toISOString(),
     read: false,
