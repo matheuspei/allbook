@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { Search } from "lucide-react";
 
 import {
   Bloco,
@@ -22,24 +21,45 @@ import {
 } from "@/lib/forum";
 import { GRUPOS_EVENT, criarGrupo, topicosDa, type Grupo } from "@/lib/grupos";
 
+/** O Orkut paginava a busca de comunidades. */
+const POR_PAGINA = 10;
+
+/** Onde procurar o termo — a roleta "buscar em" do Orkut. */
+type Onde = "nome" | "descricao" | "ambos";
+
 /**
- * **Comunidades** (`/forum`) — a lista.
+ * **Comunidades** (`/forum`) — a busca de comunidades do Orkut.
  *
- * A organização é a do Orkut e continua igual: **grade de imagens quadradas** com
- * o nome embaixo, busca por nome, filtro por categoria, as suas primeiro. O que
- * mudou é a pele (§4.74, virada do fim do dia): fundo escuro, cantos
- * arredondados, laranja no que é ação.
+ * ---
  *
- * **A imagem é o item**, e isso não é decoração: era o que fazia a página do
- * Orkut parecer cheia com dez comunidades. Sem imagem enviada, entra o emoji num
- * quadrado, no mesmo tamanho.
+ * ⚠️ **Refeita em 31/07, e o motivo importa.** Eu tinha montado a tela inteira
+ * como **grade de quadradinhos**, e o Matheus cobrou: *"quando você clica em
+ * Comunidade tem só uns quadradinhos, e eu acho que não era assim no Orkut… não
+ * era bem assim que era para você pesquisar na aba de comunidade"*.
+ *
+ * Ele tem razão, e a confusão foi minha: no Orkut **eram duas coisas diferentes**.
+ *
+ * - **A grade de miniaturas** era a caixa *"minhas comunidades"* — aquelas de que
+ *   você já participa, que você reconhece pela imagem e não precisa ler.
+ * - **A busca** devolvia **uma lista**, em linhas: miniatura pequena à esquerda,
+ *   **nome em link**, a descrição e *"N membros"*. Porque ali você **não** conhece
+ *   as comunidades — precisa ler para escolher, e num quadradinho de 68px não cabe
+ *   descrição nenhuma.
+ *
+ * Por isso esta tela tem as duas formas, cada uma no seu lugar: grade em cima
+ * para as suas, **lista** embaixo para descobrir e para o resultado da busca.
+ *
+ * Do Orkut vêm também: **"buscar em"** (nome · descrição · ambos), o filtro de
+ * categoria, a **contagem de resultados** e a **paginação**.
  */
 export default function Comunidades() {
   const { toast } = useToast();
   const [versao, setVersao] = useState(0);
   const [busca, setBusca] = useState("");
+  const [onde, setOnde] = useState<Onde>("ambos");
   const [categoria, setCategoria] = useState("");
   const [criando, setCriando] = useState(false);
+  const [pagina, setPagina] = useState(0);
 
   useEffect(() => {
     const atualizar = () => setVersao((n) => n + 1);
@@ -49,27 +69,28 @@ export default function Comunidades() {
 
   const todas = useMemo(() => forunsVisiveis(), [versao]);
   const minhas = todas.filter((grupo) => situacaoDe(grupo.id) === "dentro");
-  const outras = todas.filter((grupo) => situacaoDe(grupo.id) !== "dentro");
 
-  function filtrar(lista: Grupo[]) {
-    const termo = busca.trim().toLowerCase();
-    return lista.filter((grupo) => {
+  /** O que a busca devolve — as que você **não** participa, filtradas. */
+  const resultados = todas
+    .filter((grupo) => situacaoDe(grupo.id) !== "dentro")
+    .filter((grupo) => {
       const config = configDo(grupo.id);
       if (categoria && config.categoria !== categoria) return false;
+      const termo = busca.trim().toLowerCase();
       if (!termo) return true;
-      return (
-        grupo.nome.toLowerCase().includes(termo) || grupo.descricao.toLowerCase().includes(termo)
-      );
+      const noNome = grupo.nome.toLowerCase().includes(termo);
+      const naDescricao = grupo.descricao.toLowerCase().includes(termo);
+      return onde === "nome" ? noNome : onde === "descricao" ? naDescricao : noNome || naDescricao;
     });
-  }
+
+  const paginas = Math.max(1, Math.ceil(resultados.length / POR_PAGINA));
+  const pagina0 = Math.min(pagina, paginas - 1);
+  const visiveis = resultados.slice(pagina0 * POR_PAGINA, pagina0 * POR_PAGINA + POR_PAGINA);
 
   return (
     <PaginaDoForum titulo="Comunidades" voltarPara="/community" testid="comunidades-page">
       <div className="px-5 pt-4" key={versao}>
-        {/* **A caixa de busca é uma caixa**, como em `/forum` do Orkut: campo,
-            filtro de categoria e o link de criar no canto do cabeçalho. Eu tinha
-            soltado os três no topo da tela e trocado o link por um botão — era
-            uma das mudanças de estrutura que o Matheus cobrou (§4.77). */}
+        {/* ---------------- a busca ---------------- */}
         <Bloco
           titulo="Buscar comunidades"
           testid="busca-de-comunidades"
@@ -79,53 +100,125 @@ export default function Comunidades() {
             </LinkDoForum>
           }
         >
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
-            <input
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="nome da comunidade"
-              className={`${CAMPO} pl-9`}
-              data-testid="campo-busca"
-            />
+          <input
+            value={busca}
+            onChange={(e) => {
+              setBusca(e.target.value);
+              setPagina(0);
+            }}
+            placeholder="nome da comunidade"
+            className={CAMPO}
+            data-testid="campo-busca"
+          />
+
+          {/* "buscar em" — a roleta que o Orkut tinha ao lado do campo. */}
+          <div className="mt-2 flex gap-2">
+            <label className="min-w-0 flex-1">
+              <span className="mb-1 block text-[10px] text-white/35">buscar em</span>
+              <select
+                value={onde}
+                onChange={(e) => setOnde(e.target.value as Onde)}
+                className={CAMPO}
+                data-testid="buscar-em"
+              >
+                <option value="ambos">nome e descrição</option>
+                <option value="nome">só o nome</option>
+                <option value="descricao">só a descrição</option>
+              </select>
+            </label>
+            <label className="min-w-0 flex-1">
+              <span className="mb-1 block text-[10px] text-white/35">categoria</span>
+              <select
+                value={categoria}
+                onChange={(e) => {
+                  setCategoria(e.target.value);
+                  setPagina(0);
+                }}
+                className={CAMPO}
+                data-testid="filtro-categoria"
+              >
+                <option value="">todas</option>
+                {CATEGORIAS.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
-          <select
-            value={categoria}
-            onChange={(e) => setCategoria(e.target.value)}
-            className={`${CAMPO} mt-2`}
-            data-testid="filtro-categoria"
-          >
-            <option value="">todas as categorias</option>
-            {CATEGORIAS.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
 
           {criando && <FormularioDeCriacao onPronto={() => setCriando(false)} />}
         </Bloco>
 
-        <div>
+        {/* ---------------- minhas comunidades: a grade ---------------- */}
+        {minhas.length > 0 && (
           <Bloco titulo={`Minhas comunidades (${minhas.length})`} testid="minhas-comunidades">
-            {filtrar(minhas).length === 0 ? (
-              <p className="text-[13px] text-white/40">
-                Você ainda não participa de nenhuma comunidade
-                {busca || categoria ? " que bata com a busca" : ""}.
-              </p>
-            ) : (
-              <Grade lista={filtrar(minhas)} />
-            )}
+            {/* **Aqui a grade está certa**: são as que você já conhece, e a
+                imagem basta para reconhecê-las. */}
+            <div className="grid grid-cols-3 gap-3">
+              {minhas.map((grupo) => (
+                <Link
+                  key={grupo.id}
+                  href={`/forum/${grupo.id}`}
+                  className="text-center"
+                  data-testid={`comunidade-${grupo.id}`}
+                >
+                  <CapaDaComunidade
+                    imagem={configDo(grupo.id).imagem}
+                    foto={capaDaComunidade(grupo.id)}
+                    emoji={grupo.emoji}
+                    className="transition-transform hover:scale-[1.03]"
+                  />
+                  <span className="mt-1.5 block text-[11px] font-medium leading-tight text-white/75">
+                    {grupo.nome}
+                  </span>
+                </Link>
+              ))}
+            </div>
           </Bloco>
+        )}
 
-          <Bloco titulo="Outras comunidades" testid="outras-comunidades">
-            {filtrar(outras).length === 0 ? (
-              <p className="text-[13px] text-white/40">Nenhuma comunidade encontrada.</p>
-            ) : (
-              <Grade lista={filtrar(outras)} comFicha />
-            )}
-          </Bloco>
-        </div>
+        {/* ---------------- o resultado: a lista ---------------- */}
+        <Bloco
+          titulo={busca.trim() || categoria ? "Resultado da busca" : "Comunidades"}
+          testid="outras-comunidades"
+          acao={
+            <span className="text-[10.5px] text-white/35" data-testid="total-de-resultados">
+              {resultados.length} {resultados.length === 1 ? "comunidade" : "comunidades"}
+            </span>
+          }
+        >
+          {visiveis.length === 0 ? (
+            <p className="text-[13px] text-white/40">
+              Nenhuma comunidade encontrada
+              {busca.trim() && ` para "${busca.trim()}"`}.
+            </p>
+          ) : (
+            <div className="-my-1">
+              {visiveis.map((grupo) => (
+                <LinhaDaComunidade key={grupo.id} grupo={grupo} />
+              ))}
+            </div>
+          )}
+
+          {paginas > 1 && (
+            <p className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-white/[0.06] pt-2.5">
+              <span className="text-[10.5px] text-white/35">páginas:</span>
+              {Array.from({ length: paginas }, (_, n) => (
+                <button
+                  key={n}
+                  onClick={() => setPagina(n)}
+                  className={`text-[11.5px] font-semibold transition-colors ${
+                    n === pagina0 ? "text-white" : "text-primary hover:opacity-80"
+                  }`}
+                  data-testid={`pagina-${n + 1}`}
+                >
+                  {n + 1}
+                </button>
+              ))}
+            </p>
+          )}
+        </Bloco>
       </div>
     </PaginaDoForum>
   );
@@ -138,9 +231,10 @@ export default function Comunidades() {
 
     return (
       <div
-        className="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3"
+        className="mt-3 rounded-xl border border-white/10 bg-white/[0.04] p-2.5"
         data-testid="form-criar"
       >
+        <p className="mb-1.5 text-[11px] font-semibold text-white/60">criar uma comunidade</p>
         <div className="flex gap-2">
           <input
             value={emoji}
@@ -153,7 +247,7 @@ export default function Comunidades() {
           <input
             value={nome}
             onChange={(e) => setNome(e.target.value.slice(0, 60))}
-            placeholder="Nome da comunidade"
+            placeholder="nome da comunidade"
             autoFocus
             className={CAMPO}
             data-testid="novo-nome"
@@ -162,7 +256,7 @@ export default function Comunidades() {
         <textarea
           value={descricao}
           onChange={(e) => setDescricao(e.target.value.slice(0, 400))}
-          placeholder="Sobre o que é?"
+          placeholder="sobre o que é esta comunidade?"
           rows={2}
           className={`${CAMPO} mt-2 resize-none`}
           data-testid="nova-descricao"
@@ -181,8 +275,7 @@ export default function Comunidades() {
           ))}
         </select>
 
-        <div className="mt-3 flex justify-end gap-2">
-          <BotaoDoForum onClick={onPronto}>Cancelar</BotaoDoForum>
+        <div className="mt-2.5 flex gap-2">
           <BotaoDoForum
             primario
             disabled={nome.trim().length === 0}
@@ -193,57 +286,58 @@ export default function Comunidades() {
               onPronto();
               toast({
                 title: `"${novo.nome}" criada`,
-                description: "Você é o dono — o resto se ajusta em Gerenciar.",
+                description: "Você é o dono — o resto se ajusta em «editar comunidade».",
               });
             }}
             testid="confirmar-criar"
           >
             Criar comunidade
           </BotaoDoForum>
+          <BotaoDoForum onClick={onPronto}>Cancelar</BotaoDoForum>
         </div>
       </div>
     );
   }
 }
 
-/** A grade — imagem quadrada e nome embaixo, três por linha. */
-function Grade({ lista, comFicha }: { lista: Grupo[]; comFicha?: boolean }) {
-  return (
-    <div className="grid grid-cols-3 gap-3" data-testid="grade-de-comunidades">
-      {lista.map((grupo) => {
-        const config = configDo(grupo.id);
-        return (
-          <Link
-            key={grupo.id}
-            href={`/forum/${grupo.id}`}
-            className="text-center"
-            data-testid={`comunidade-${grupo.id}`}
-          >
-            <CapaDaComunidade
-              imagem={config.imagem}
-              foto={capaDaComunidade(grupo.id)}
-              emoji={grupo.emoji}
-              className="transition-transform hover:scale-[1.03]"
-            />
-            <span className="mt-1.5 block text-[11px] font-medium leading-tight text-white/75">
-              {grupo.nome}
-            </span>
-            {comFicha && <FichaCurta grupo={grupo} />}
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Quantas pessoas e quantos tópicos — o que decide se vale entrar. */
-function FichaCurta({ grupo }: { grupo: Grupo }) {
+/**
+ * Uma comunidade **na lista** — miniatura, nome, descrição e a contagem.
+ *
+ * É a forma do resultado de busca do Orkut, e ela existe porque **quem procura
+ * não conhece**: sem a descrição e sem "N membros", escolher entre dez nomes é
+ * chute. A grade de quadradinhos serve para as suas, que você reconhece de
+ * relance — é a distinção que a §4.78 registrou.
+ */
+function LinhaDaComunidade({ grupo }: { grupo: Grupo }) {
+  const config = configDo(grupo.id);
   const pessoas = membrosDo(grupo.id).length;
   const topicos = topicosDa(grupo.id).length;
+
   return (
-    <span className="mt-0.5 block text-[10px] text-white/30">
-      {pessoas} {pessoas === 1 ? "pessoa" : "pessoas"} · {topicos}{" "}
-      {topicos === 1 ? "tópico" : "tópicos"}
-    </span>
+    <Link
+      href={`/forum/${grupo.id}`}
+      className="flex gap-3 border-b border-white/[0.06] py-2.5 last:border-0"
+      data-testid={`comunidade-${grupo.id}`}
+    >
+      <CapaDaComunidade
+        imagem={config.imagem}
+        foto={capaDaComunidade(grupo.id)}
+        emoji={grupo.emoji}
+        lado={56}
+      />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[13.5px] font-semibold text-primary">
+          {grupo.nome}
+        </span>
+        <span className="mt-0.5 line-clamp-2 block text-[11.5px] leading-relaxed text-white/45">
+          {grupo.descricao}
+        </span>
+        <span className="mt-0.5 block text-[10.5px] text-white/30">
+          {pessoas} {pessoas === 1 ? "membro" : "membros"} · {topicos}{" "}
+          {topicos === 1 ? "tópico" : "tópicos"}
+          {config.categoria && ` · ${config.categoria}`}
+        </span>
+      </span>
+    </Link>
   );
 }

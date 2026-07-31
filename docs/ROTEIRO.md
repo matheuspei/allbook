@@ -6419,6 +6419,42 @@ tem de ficar de pé, para a próxima conversão ter contra o que conferir.
 
 ---
 
+## 4.78 A busca de comunidades não era grade de quadradinhos (31/07)
+
+> *"Quando você clica em Comunidade tem só uns quadradinhos, e eu acho que não
+> era assim no Orkut… não era bem assim que era para você pesquisar na aba de
+> comunidade. É isso que tem que ser totalmente reformulado."*
+
+**Ele está certo, e a confusão foi minha: no Orkut eram duas coisas diferentes,
+e eu usei uma delas para as duas.**
+
+| Onde | Forma | Por quê |
+| --- | --- | --- |
+| **Minhas comunidades** | grade de miniaturas | você já conhece; a imagem basta para reconhecer |
+| **Buscar comunidades** | **lista em linhas** | você **não** conhece: precisa da descrição e do tamanho para escolher |
+
+Num quadradinho de 68px não cabe descrição nenhuma — e escolher entre dez nomes
+sem ler o que cada comunidade é, com quantas pessoas, é chute. Era exatamente o
+que a minha tela pedia.
+
+### Como ficou
+
+- **Caixa de busca** com o campo, o **"buscar em"** (nome · descrição · ambos) e
+  o filtro de categoria — a roleta que o Orkut tinha ao lado do campo.
+- **Minhas comunidades** continua em grade, que ali é a forma certa.
+- **O resultado vira lista**: miniatura de 56px, **nome em link**, a descrição em
+  até duas linhas, e `N membros · N tópicos · categoria`.
+- **Contagem de resultados** no cabeçalho e **paginação de 10 em 10**, as duas de
+  lá.
+
+**A regra por trás, que vale para qualquer lista do app:** *grade é para o que se
+reconhece; lista é para o que se lê antes de escolher.* Foi o terceiro erro
+seguido meu na mesma aba (§4.76, §4.77 e este) e os três têm a mesma raiz —
+**decidir a forma pelo que fica bonito, e não pelo que a pessoa precisa saber
+naquele momento.**
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
