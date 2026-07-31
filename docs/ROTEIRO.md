@@ -6828,6 +6828,28 @@ vez de negá-la — a separação que ele defendeu só existe se a tela a ensina
 escrito "os outros não têm barra de progresso"; junto com o controle, eu tinha
 tirado a **informação**. Perder o controle é a regra; perder o mapa era defeito.
 
+### Duas correções depois do primeiro uso dele (31/07, noite)
+
+**A sala prendia quem entrava.** *"Eu não consigo minimizar o player, fazer
+outras coisas dentro do aplicativo."* A sala nasceu tela cheia e sem saída
+lateral — quando o app inteiro já sabe fazer o contrário com o livro. **Corrigido
+com a mesma gramática do player:** a seta para baixo **minimiza** (você continua
+dentro), a `BarraDaSala` no rodapé prova isso e devolve para lá com um toque, e
+**sair** virou ação explícita, separada. A barra **substitui o MiniPlayer**
+enquanto dura: duas barrinhas seriam duas transmissões disputando o rodapé, e a
+do livro está parada desde que você entrou. E a sala em que você já está **sai do
+feed** — cartão convidando para onde você já foi é convite falso.
+
+> **Regra que fica:** tela cheia nova no AllBook precisa de um jeito de
+> **minimizar**, não só de sair. Sem isso ela vira beco.
+
+**Os botões de reação saíram — e o argumento é dele.** *"Você só colocou dois
+botões de reação. Se vai ter dois, é melhor não ter nenhum. A pessoa já pode
+digitar um monte deles, então não faz sentido ter botão de reação."* Eu tinha
+posto dois emojis fixos ao lado do campo. Dois é escolha arbitrária minha, o
+teclado já dá todos, e era **redundância com cara de recurso**. Nada substituiu:
+o campo de escrever ocupa a linha inteira de novo.
+
 ---
 
 ## 4.82 "Essa aba está crua, sem vida nenhuma" (31/07)

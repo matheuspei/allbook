@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { ChevronLeft, Lock, MessageCircle, Pause, Play, Radio, Send, X } from "lucide-react";
+import { ChevronDown, Lock, MessageCircle, Pause, Play, Radio, Send, X } from "lucide-react";
 import { catalog } from "@/lib/books";
 import { avatarDeLeitor, findMember } from "@/lib/community";
 import { EU } from "@/lib/clubes";
@@ -151,14 +151,21 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
       {/* ---------------------------------------------------------------- */}
       {/* Cabeçalho                                                         */}
       {/* ---------------------------------------------------------------- */}
+      {/*
+        **A seta para baixo minimiza, não sai** — a mesma gramática do player
+        (ROTEIRO §4.81). O Matheus cobrou isso no primeiro uso: entrar na sala
+        prendia a pessoa lá dentro. Agora fechar a tela deixa você **dentro da
+        sala**, com a barrinha do rodapé provando isso, e sair virou ação
+        explícita, embaixo.
+      */}
       <div className="flex items-center gap-2 px-4 pb-2 pt-4">
         <button
-          onClick={sair}
+          onClick={() => navigate(`/player/${sala.bookId}`)}
           className="text-white/55 transition-colors hover:text-white"
-          aria-label="Sair da sala"
-          data-testid="button-sair-da-sala"
+          aria-label="Minimizar a sala"
+          data-testid="button-minimizar-sala"
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ChevronDown className="h-6 w-6" />
         </button>
         <span className="flex-1 text-center text-[11px] font-bold uppercase tracking-[0.13em] text-white/35">
           {euMando ? "Sua sala" : "Sala ao vivo"}
@@ -353,15 +360,26 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
         </button>
       )}
 
-      {euMando && !encerrada && (
-        <button
-          onClick={encerrar}
-          className="mx-4 mb-5 rounded-xl bg-red-500/[0.14] py-3 text-[13px] font-bold text-red-300 ring-1 ring-inset ring-red-500/30"
-          data-testid="button-encerrar-sala"
-        >
-          Encerrar a sala
-        </button>
-      )}
+      {/* Sair é ação explícita, e é diferente de minimizar. Para o anfitrião a
+          saída é encerrar — a sala é dele e não sobrevive sem ele. */}
+      {!encerrada &&
+        (euMando ? (
+          <button
+            onClick={encerrar}
+            className="mx-4 mb-5 rounded-xl bg-red-500/[0.14] py-3 text-[13px] font-bold text-red-300 ring-1 ring-inset ring-red-500/30"
+            data-testid="button-encerrar-sala"
+          >
+            Encerrar a sala
+          </button>
+        ) : (
+          <button
+            onClick={sair}
+            className="mx-4 mb-5 rounded-xl bg-white/[0.05] py-3 text-[13px] font-semibold text-white/55 ring-1 ring-inset ring-white/10"
+            data-testid="button-sair-da-sala"
+          >
+            Sair da sala
+          </button>
+        ))}
     </div>
   );
 }
@@ -490,8 +508,15 @@ function ChatDaSala({
       </div>
 
       {!encerrada && (
-        <div className="mx-4 mb-4 mt-2.5 flex items-center gap-2">
-          <div className="flex flex-1 items-center gap-2 rounded-full bg-white/[0.055] px-3.5 py-2.5 ring-1 ring-inset ring-white/10">
+        /*
+          **Sem botões de reação, e o argumento é do Matheus** (31/07): *"se ela
+          já pode digitar um monte deles, então não faz sentido ter botão de
+          reação"*. Eu tinha posto dois emojis fixos ao lado do campo; dois é
+          escolha arbitrária minha, e o teclado já dá todos. Era redundância com
+          cara de recurso.
+        */
+        <div className="mx-4 mb-4 mt-2.5">
+          <div className="flex items-center gap-2 rounded-full bg-white/[0.055] px-3.5 py-2.5 ring-1 ring-inset ring-white/10">
             <input
               value={texto}
               onChange={(e) => onTexto(e.target.value)}
@@ -511,28 +536,8 @@ function ChatDaSala({
             </button>
           </div>
 
-          {/*
-            As reações ficam **ao lado** do campo, não no lugar dele (§4.81):
-            um toque participa sem tirar o ouvido da frase. É saída, não estrutura
-            — o chat continua sendo o caminho principal.
-          */}
-          <ReacaoRapida salaId={sala.id} emoji="😱" />
-          <ReacaoRapida salaId={sala.id} emoji="👏" />
         </div>
       )}
     </div>
-  );
-}
-
-/** Um toque manda o emoji como fala — participar sem digitar. */
-function ReacaoRapida({ salaId, emoji }: { salaId: string; emoji: string }) {
-  return (
-    <button
-      onClick={() => falarNaSala(salaId, emoji)}
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[15px] ring-1 ring-inset ring-white/10 active:scale-95"
-      data-testid={`button-reacao-${emoji}`}
-    >
-      {emoji}
-    </button>
   );
 }

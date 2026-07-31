@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -36,6 +37,7 @@ import Achievements from "@/pages/Achievements";
 import Bookmarks from "@/pages/Bookmarks";
 import Trechos from "@/pages/Trechos";
 import Seguidores from "@/pages/Seguidores";
+import Acompanhando from "@/pages/Acompanhando";
 import Privacidade from "@/pages/Privacidade";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
@@ -53,6 +55,8 @@ import CategoryBooks from "@/pages/CategoryBooks";
 import Collection from "@/pages/Collection";
 import AudioPlayer from "@/pages/AudioPlayer";
 import SalaAoVivo from "@/pages/SalaAoVivo";
+import BarraDaSala from "@/components/sala/BarraDaSala";
+import { minhaSalaAberta, SALA_AO_VIVO_EVENT } from "@/lib/salaAoVivo";
 import BottomNav from "@/components/layout/BottomNav";
 import TopNav from "@/components/layout/TopNav";
 import MiniPlayer from "@/components/layout/MiniPlayer";
@@ -105,6 +109,19 @@ function Router() {
    * (ROTEIRO §4.81).
    */
   const isSalaPage = location.startsWith('/sala/');
+
+  /**
+   * Você está dentro de alguma sala? É isto que troca a barrinha do rodapé pela
+   * da sala. Reavaliado a cada troca de rota e a cada aviso de sala — sem o
+   * ouvinte, entrar numa sala e voltar para o app não mudava nada no rodapé.
+   */
+  const [naSala, setNaSala] = useState(() => Boolean(minhaSalaAberta()));
+  useEffect(() => {
+    const atualizar = () => setNaSala(Boolean(minhaSalaAberta()));
+    atualizar();
+    window.addEventListener(SALA_AO_VIVO_EVENT, atualizar);
+    return () => window.removeEventListener(SALA_AO_VIVO_EVENT, atualizar);
+  }, [location]);
   /*
    * **As comunidades voltaram a ter o cabeçalho e o menu do app** (31/07, fim do
    * dia). Elas ficaram brancas e azuis por algumas horas, quando a aba copiava o
@@ -186,6 +203,9 @@ function Router() {
             {/* Quem te segue, com a fila de pedidos da conta privada
                 (ROTEIRO 4.54). */}
             <Route path="/seguidores" component={Seguidores} />
+            {/* Quem você segue no catálogo — autor, narrador, editora, Studio
+                (§4.84). Separada de `/seguidores`, que é gente. */}
+            <Route path="/acompanhando" component={Acompanhando} />
             <Route path="/bookmarks" component={Bookmarks} />
             {/* Os trechos de áudio têm endereço próprio, e não uma aba dentro
                 das notas: a nota é privada e por livro, o trecho é para mostrar
@@ -210,10 +230,20 @@ function Router() {
           </Switch>
         </div>
       </div>
-      {/* A sala entra na mesma regra do Login: dentro dela **você já está
-          ouvindo com gente**, e a barrinha de outro livro por cima do chat é
-          duas transmissões disputando a mesma tela. */}
-      {!isLoginPage && !isSalaPage && <MiniPlayer />}
+      {/*
+        **Uma barra só no rodapé, e a da sala ganha.**
+
+        Estar numa sala é um estado do app, como estar ouvindo um livro — o
+        Matheus cobrou isso testando (*"eu não consigo minimizar o player, fazer
+        outras coisas dentro do aplicativo"*). Então a sala minimiza como o
+        player minimiza, e a `BarraDaSala` é o que fica.
+
+        Ela **substitui** o MiniPlayer enquanto dura: duas barrinhas empilhadas
+        seriam duas transmissões disputando o mesmo rodapé, e a do livro está
+        parada desde que você entrou na sala. Dentro da própria sala não aparece
+        nenhuma das duas — você já está lá.
+      */}
+      {!isLoginPage && !isSalaPage && (naSala ? <BarraDaSala /> : <MiniPlayer />)}
       {!isBare && <BottomNav />}
     </div>
   );

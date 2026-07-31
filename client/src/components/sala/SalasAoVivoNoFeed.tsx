@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { catalog } from "@/lib/books";
 import { avatarDeLeitor, findMember } from "@/lib/community";
 import { salasAoVivo, situacaoDaSala, SALA_AO_VIVO_EVENT } from "@/lib/salaAoVivo";
+import { EU } from "@/lib/clubes";
 
 /**
  * **As salas acontecendo agora**, no alto da Comunidade (ROTEIRO §4.81).
@@ -26,7 +27,12 @@ export default function SalasAoVivoNoFeed() {
     return () => window.removeEventListener(SALA_AO_VIVO_EVENT, atualizar);
   }, []);
 
-  const agora = salas.filter((sala) => sala.porta !== "marcada");
+  /*
+   * **A sala em que você já está não aparece aqui.** Ela já tem representação
+   * permanente na barrinha do rodapé, e um cartão dizendo "entrar te leva ao
+   * ponto deles" para quem está dentro é convite para onde a pessoa já foi.
+   */
+  const agora = salas.filter((sala) => sala.porta !== "marcada" && !sala.presentes.includes(EU));
   if (agora.length === 0) return null;
 
   return (

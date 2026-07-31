@@ -263,6 +263,22 @@ export function salasDoClube(clubeId: string): SalaAoVivo[] {
   return salasAoVivo().filter((sala) => sala.clubeId === clubeId);
 }
 
+/**
+ * **A sala em que você está agora**, se houver — o que a barrinha do rodapé lê.
+ *
+ * Existe porque entrar numa sala não pode prender ninguém nela. O Matheus
+ * cobrou isso testando: *"eu não consigo minimizar o player, fazer outras coisas
+ * dentro do aplicativo"*. Estar numa sala passou a ser um **estado do app**, como
+ * estar ouvindo um livro — e não uma tela sem saída.
+ *
+ * Sala **marcada** não conta: você confirmou presença, não entrou em nada.
+ */
+export function minhaSalaAberta(): SalaAoVivo | undefined {
+  return todasAsSalas().find(
+    (sala) => !sala.encerradaEm && sala.porta !== "marcada" && sala.presentes.includes(EU),
+  );
+}
+
 export function souAnfitriao(sala: SalaAoVivo): boolean {
   return sala.anfitriao === EU;
 }
