@@ -6127,9 +6127,19 @@ toque. Então:
 ### Onde ficou
 
 Post, comentário de post, resposta de fórum e mural do clube — o mesmo componente
-(`Reacoes`), com a folha `QuemReagiu`. **A conversa do livro ainda não tem a lista
-de quem reagiu** (tem os dois botões desde 21/07): é o próximo passo da mesma
-régua.
+(`Reacoes`), com a folha `QuemReagiu`. **E a conversa do livro entrou junto**: lá
+os dois botões existiam desde 21/07 e o número não levava a lugar nenhum.
+
+Duas coisas que só a conversa do livro exigiu, porque lá os contadores são
+**curados** (escritos à mão em `comments.ts`):
+
+- **A lista aceita o total de fora** (`totais`), em vez de sortear o seu — senão a
+  folha abriria com sete nomes debaixo de um "12".
+- **"E mais N leitores" no fim.** Um comentário com **27** curtidas existe numa
+  comunidade fictícia de 26 pessoas. Havia três saídas e duas eram ruins: baixar o
+  contador (apagaria dado escrito à mão) ou mostrar 26 nomes debaixo de um "27" e
+  torcer para ninguém contar. A terceira é o que qualquer rede faz quando não
+  carrega todo mundo — **dizer quantos faltam**.
 
 ---
 

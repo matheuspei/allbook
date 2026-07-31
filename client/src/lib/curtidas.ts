@@ -134,6 +134,15 @@ export interface OpcoesDeReacao {
    * fica visível quando a lista abre, e que denunciaria a simulação.
    */
   autorSlug?: string;
+  /**
+   * Quando o número **já existe e é curado**, em vez de sorteado.
+   *
+   * É o caso da conversa do livro: os comentários de `comments.ts` trazem
+   * `likes`/`dislikes` escritos à mão, e a lista tem de **caber neles** — senão a
+   * folha abriria com sete nomes embaixo de um "12". A lista continua sendo a
+   * mesma gente estável; só o tamanho vem de fora.
+   */
+  totais?: { curtiu: number; descurtiu: number };
 }
 
 /** Números pequenos e coerentes com o tamanho da comunidade. */
@@ -169,7 +178,9 @@ export function quemReagiu(
   opcoes: OpcoesDeReacao = {},
 ): CommunityMember[] {
   const deOutra = opcoes.deOutraPessoa ?? (id.startsWith("p-esq-") || id.startsWith("c-esq-"));
-  if (!deOutra) return [];
+  /* Com total vindo de fora, a fala pode ser sua e ainda ter gente — é o caso da
+     conversa do livro, onde o comentário é seu e as curtidas são do catálogo. */
+  if (!deOutra && !opcoes.totais) return [];
 
   const escala = opcoes.escala ?? (id.startsWith("c-esq-") ? "fala" : "post");
   const candidatos = community.filter((membro) => membro.slug !== opcoes.autorSlug);
@@ -188,7 +199,20 @@ export function quemReagiu(
   const teto = TETO[escala];
   /* Os tetos são intenção, não garantia: a comunidade é pequena, e pedir 13
      nomes de uma lista de 12 devolveria menos gente do que o número promete. */
-  const quantosCurtiram = Math.min(semear(id, 3) % (teto.curtiu + 1), baralho.length);
+  const quantosCurtiram = Math.min(
+    opcoes.totais ? opcoes.totais.curtiu : semear(id, 3) % (teto.curtiu + 1),
+    baralho.length,
+  );
+
+  if (opcoes.totais) {
+    const quantosDescurtiram = Math.min(
+      opcoes.totais.descurtiu,
+      baralho.length - quantosCurtiram,
+    );
+    return reacao === "curtiu"
+      ? baralho.slice(0, quantosCurtiram)
+      : baralho.slice(quantosCurtiram, quantosCurtiram + quantosDescurtiram);
+  }
 
   /*
     **A descurtida é uma fração da curtida, nunca um número solto.** Visto na tela

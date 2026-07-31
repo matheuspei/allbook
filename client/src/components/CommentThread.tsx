@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { CornerDownRight, EyeOff, Flag, Headphones, Star, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
 
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
+import QuemReagiu from "@/components/comunidade/QuemReagiu";
 import { useToast } from "@/hooks/use-toast";
 import { repliesTo, type Comment } from "@/lib/comments";
 import { findMember, findMemberByName } from "@/lib/community";
@@ -391,13 +392,33 @@ function Acoes({
   onDenunciar?: (motivo: MotivoDaDenuncia) => void;
 }) {
   const size = small ? "w-3 h-3" : "w-3.5 h-3.5";
+  /*
+    **O número abre quem reagiu** (31/07). Aqui os dois botões existem desde
+    21/07, mas o contador não levava a lugar nenhum — a mesma régua da §4.59 que
+    o Matheus aplica sempre: *rótulo que nomeia um conjunto e não leva até ele
+    morre na tela*. Agora o ícone reage e o número abre a folha, como no feed.
+
+    Os totais vêm de fora (`likes`/`dislikes` do `comments.ts`, escritos à mão),
+    e é por isso que `quemReagiu` aceita `totais`: a lista tem de caber no
+    número que já estava na tela, não sortear o seu.
+  */
+  const totais = { curtiu: likeCount(likes, reaction), descurtiu: dislikeCount(dislikes, reaction) };
+  const [vendoQuem, setVendoQuem] = useState<Reaction | undefined>();
+  const opcoesDaLista = {
+    deOutraPessoa: true,
+    escala: "fala" as const,
+    totais: {
+      curtiu: totais.curtiu - (reaction === "like" ? 1 : 0),
+      descurtiu: totais.descurtiu - (reaction === "dislike" ? 1 : 0),
+    },
+  };
 
   return (
     <div className={`flex flex-wrap items-center gap-1 ${small ? "mt-1.5" : "pt-3"}`}>
       <button
         type="button"
         onClick={() => onReact(id, "like")}
-        className={`flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-md text-xs transition-colors ${
+        className={`flex items-center px-2 py-1 -ml-2 rounded-md text-xs transition-colors ${
           reaction === "like" ? "text-amber-500" : "text-white/40 hover:text-white/70"
         }`}
         aria-pressed={reaction === "like"}
@@ -405,13 +426,25 @@ function Acoes({
         data-testid={`button-like-${id}`}
       >
         <ThumbsUp className={size} strokeWidth={1.75} fill={reaction === "like" ? "currentColor" : "none"} />
-        {likeCount(likes, reaction)}
       </button>
+      {totais.curtiu > 0 && (
+        <button
+          type="button"
+          onClick={() => setVendoQuem("like")}
+          className={`-ml-1 rounded-md px-1.5 py-1 text-xs transition-colors ${
+            reaction === "like" ? "text-amber-500" : "text-white/40 hover:text-white"
+          }`}
+          aria-label={`Ver quem curtiu (${totais.curtiu})`}
+          data-testid={`ver-curtiram-${id}`}
+        >
+          {totais.curtiu}
+        </button>
+      )}
 
       <button
         type="button"
         onClick={() => onReact(id, "dislike")}
-        className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
+        className={`flex items-center px-2 py-1 rounded-md text-xs transition-colors ${
           reaction === "dislike" ? "text-white/80" : "text-white/40 hover:text-white/70"
         }`}
         aria-pressed={reaction === "dislike"}
@@ -419,8 +452,30 @@ function Acoes({
         data-testid={`button-dislike-${id}`}
       >
         <ThumbsDown className={size} strokeWidth={1.75} fill={reaction === "dislike" ? "currentColor" : "none"} />
-        {dislikeCount(dislikes, reaction)}
       </button>
+      {totais.descurtiu > 0 && (
+        <button
+          type="button"
+          onClick={() => setVendoQuem("dislike")}
+          className={`-ml-1 rounded-md px-1.5 py-1 text-xs transition-colors ${
+            reaction === "dislike" ? "text-white/80" : "text-white/40 hover:text-white"
+          }`}
+          aria-label={`Ver quem descurtiu (${totais.descurtiu})`}
+          data-testid={`ver-descurtiram-${id}`}
+        >
+          {totais.descurtiu}
+        </button>
+      )}
+
+      {vendoQuem && (
+        <QuemReagiu
+          id={id}
+          opcoes={opcoesDaLista}
+          inicial={vendoQuem === "like" ? "curtiu" : "descurtiu"}
+          suaReacao={reaction === "like" ? "curtiu" : reaction === "dislike" ? "descurtiu" : undefined}
+          onFechar={() => setVendoQuem(undefined)}
+        />
+      )}
 
       {/* Contador de respostas: só informa, não é botão. */}
       {replyCount !== undefined && replyCount > 0 && (

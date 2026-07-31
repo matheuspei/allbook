@@ -29,16 +29,25 @@ export default function QuemReagiu({
   id,
   opcoes,
   inicial,
+  suaReacao,
   onFechar,
 }: {
   id: string;
   opcoes?: OpcoesDeReacao;
   /** Qual aba abre primeiro — a do número que a pessoa tocou. */
   inicial: Reacao;
+  /**
+   * A sua reação, quando ela **não** mora no `curtidas.ts`.
+   *
+   * A conversa do livro guarda as reações em `reactions.ts` (`like`/`dislike`),
+   * de 21/07. Sem este parâmetro, a folha abriria lá sem o "Você" — e o próprio
+   * dono do toque não se veria na lista que o toque produziu.
+   */
+  suaReacao?: Reacao;
   onFechar: () => void;
 }) {
   const [aba, setAba] = useState<Reacao>(inicial);
-  const minha = minhaReacao(id);
+  const minha = suaReacao ?? minhaReacao(id);
   const perfil = readProfile();
 
   const listas: Record<Reacao, ReturnType<typeof quemReagiu>> = {
@@ -46,6 +55,19 @@ export default function QuemReagiu({
     descurtiu: quemReagiu(id, "descurtiu", opcoes),
   };
   const total = (reacao: Reacao) => listas[reacao].length + (minha === reacao ? 1 : 0);
+
+  /**
+   * Quantos o número promete e a lista não tem nome para mostrar.
+   *
+   * Aparece na conversa do livro, onde os contadores são curados: um comentário
+   * com **27 curtidas** existe numa comunidade fictícia menor que isso. Havia
+   * três saídas e duas eram ruins — baixar o contador (apagaria dado escrito à
+   * mão), ou mostrar 25 nomes debaixo de um "27" e torcer para ninguém contar.
+   * A terceira é o que qualquer rede faz quando não carrega todo mundo: **dizer
+   * quantos faltam.**
+   */
+  const semNome = (reacao: Reacao) =>
+    Math.max(0, (opcoes?.totais?.[reacao] ?? 0) - listas[reacao].length);
 
   /* **Os mesmos dois polegares dos botões** — a folha é o que o número abre, e
      trocar de metáfora no caminho faria a pessoa duvidar se chegou no lugar
@@ -84,7 +106,9 @@ export default function QuemReagiu({
             >
               <Icone className="h-3.5 w-3.5" />
               {label}
-              <span className={aba === key ? "text-black/55" : "text-white/30"}>{total(key)}</span>
+              <span className={aba === key ? "text-black/55" : "text-white/30"}>
+                {total(key) + semNome(key)}
+              </span>
             </button>
           ))}
         </div>
@@ -134,6 +158,12 @@ export default function QuemReagiu({
               </span>
             </Link>
           ))}
+
+          {semNome(aba) > 0 && (
+            <p className="px-2 pt-2 text-[12px] text-white/30" data-testid="reagiram-sem-nome">
+              e mais {semNome(aba)} {semNome(aba) === 1 ? "leitor" : "leitores"}
+            </p>
+          )}
 
           {/* Estado vazio com conteúdo, não sumiço: a aba existe e está vazia, e
               dizer isso é diferente de esconder a aba (§4.72). */}
