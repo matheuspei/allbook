@@ -6665,12 +6665,42 @@ momento, cortar o momento esvazia a sala.
 rastro) fica **mais** útil, não menos — quem chegou atrasado ou faltou é quem mais
 precisa do chat daquele minuto depois.
 
+### ✔ Decisão 3, tomada no mesmo dia: sim, a sala pode virar encontro do clube
+
+> *"A sala também pode virar um encontro do livro. Como você pode não fazer os
+> encontros ao vivo, a pessoa pode fazer os encontros ao vivo e ela marca, e assim
+> vai indo."*
+
+**Perdi este também, e o argumento dele é melhor que o meu.** Eu tinha registrado
+"não" apoiado na §4.39 (a rodada sem hora é o que faz o clube caber na vida de
+quem ouve dirigindo). A resposta dele desarma a objeção em uma frase: **marcar é
+opcional**. Quem ouve dirigindo não marca e usa a rodada; quem quer sessão ao vivo
+marca. A §4.39 protegia contra *obrigar* hora marcada — nunca contra *permitir*.
+
+**E não precisa de conceito novo:** a sala marcada **é o evento que já existe**.
+A §4.79 (mesma tarde) ligou evento de comunidade ↔ clube, e a página do clube já
+tem a seção *Encontros marcados*. Falta só o **botão "entrar na sala"**, que acende
+na hora. Zero peça nova no modelo de dados.
+
+**O resíduo real, e ele é de nome, não de estrutura.** A §4.79 rejeitou dar ao
+clube "um evento próprio com data e hora" porque nasceriam **dois encontros com o
+mesmo nome** e os avisos falariam de duas coisas. Esse risco continua de pé — a
+solução não é vetar, é **nomear diferente**:
+
+| O que é | Como se chama | Tem hora? |
+| --- | --- | --- |
+| A rodada do ciclo (§4.39) | **rodada** / *"responda até domingo"* | não |
+| A escuta ao vivo marcada | **sessão de escuta** | sim |
+
+**Regra registrada:** a palavra *encontro*, sozinha, **não** é usada em tela de
+clube — ela é ambígua desde a §4.79. Cada coisa com o seu nome.
+
 ### O que falta bater o martelo
 
 1. ~~**Chat corrido ou conversa nas pausas?**~~ → **decidido: corrido** (acima).
 2. **A sessão deixa rastro ou evapora?** (Sugerido: privada **nunca** deixa.)
-3. **A sala marcada pode virar o encontro do clube?** Posição registrada: **não** —
-   a rodada sem hora é o que faz o clube caber na vida de quem ouve dirigindo.
+3. ~~**A sala marcada pode virar o encontro do clube?**~~ → **decidido: pode, e é
+   opcional** (acima).
 4. **Voz (D) entra agora ou fica anotada?**
 
 ---
