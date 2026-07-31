@@ -32,6 +32,8 @@ import {
   type Clube as ClubeTipo,
 } from "@/lib/clubes";
 import { forumNaTela } from "@/lib/forum";
+import SessoesDoClube from "@/components/sala/SessoesDoClube";
+import { salasDoClube } from "@/lib/salaAoVivo";
 import { eventosDoClube } from "@/lib/forumConteudo";
 
 /**
@@ -319,6 +321,10 @@ export default function Clube({ params }: { params: { id: string } }) {
 
         <CartaoDoCiclo clube={clube} />
 
+        {/* As sessões de escuta ao vivo (§4.81) — só aparecem quando existem, e
+            o rodapé delas separa "sessão" de "rodada". */}
+        <SessoesDoClube clube={clube} />
+
         <EncontrosDoClube clube={clube} />
 
         {membro ? (
@@ -413,29 +419,69 @@ export default function Clube({ params }: { params: { id: string } }) {
  * vazias desta tela.
  */
 function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
-  const eventos = eventosDoClube(clube.id);
-  if (eventos.length === 0) return null;
+  /*
+   * **Uma agenda só, com duas origens** (31/07, §4.81).
+   *
+   * Ao construir a sessão de escuta marcada, a página do clube ficou com **duas
+   * listas de coisa-com-hora** — "Sessões de escuta" e "Encontros marcados" —
+   * uma embaixo da outra, e o primeiro item da segunda era literalmente
+   * *"Maratona: ouvir o último capítulo juntos"*. Ou seja: a mesma ideia, em dois
+   * lugares, com nomes diferentes. É o defeito que a §4.79 tinha previsto e que
+   * eu quase repeti.
+   *
+   * A correção é a que este projeto já usa em toda parte: **um lugar, um dono**.
+   * Quem tem hora mora aqui, venha de onde vier — evento de comunidade ou sessão
+   * de escuta —, ordenado por data. O que fica na seção de cima é só o que está
+   * **acontecendo agora**, que não é agenda: é do momento.
+   */
+  const eventos = eventosDoClube(clube.id).map((evento) => ({
+    chave: `evento-${evento.id}`,
+    data: evento.data,
+    hora: evento.hora,
+    titulo: evento.titulo,
+    detalhe: evento.local,
+    destino: `/forum/${evento.grupoId}`,
+    origem: forumNaTela(evento.grupoId)?.nome,
+    aoVivo: false,
+  }));
+
+  const sessoes = salasDoClube(clube.id)
+    .filter((sala) => sala.porta === "marcada" && sala.data)
+    .map((sala) => ({
+      chave: `sessao-${sala.id}`,
+      data: sala.data!,
+      hora: sala.hora,
+      titulo: sala.titulo ?? "Sessão de escuta",
+      detalhe: `${sala.presentes.length} ${
+        sala.presentes.length === 1 ? "confirmado" : "confirmados"
+      }`,
+      destino: `/sala/${sala.id}`,
+      origem: undefined,
+      aoVivo: true,
+    }));
+
+  const agenda = [...eventos, ...sessoes].sort((a, b) => a.data.localeCompare(b.data));
+  if (agenda.length === 0) return null;
 
   return (
     <section className="space-y-3" data-testid="encontros-do-clube">
       <div className="flex items-baseline justify-between">
         <h2 className="font-display text-lg font-bold">Encontros marcados</h2>
         <span className="text-xs text-white/35">
-          {eventos.length} {eventos.length === 1 ? "encontro" : "encontros"}
+          {agenda.length} {agenda.length === 1 ? "encontro" : "encontros"}
         </span>
       </div>
 
       <div className="space-y-2">
-        {eventos.map((evento) => {
-          const quando = new Date(`${evento.data}T12:00:00`);
-          const comunidade = forumNaTela(evento.grupoId);
+        {agenda.map((item) => {
+          const quando = new Date(`${item.data}T12:00:00`);
 
           return (
             <Link
-              key={evento.id}
-              href={`/forum/${evento.grupoId}`}
+              key={item.chave}
+              href={item.destino}
               className="flex gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06]"
-              data-testid={`encontro-${evento.id}`}
+              data-testid={`encontro-${item.chave}`}
             >
               <span className="w-[46px] shrink-0 overflow-hidden rounded-xl text-center ring-1 ring-inset ring-primary/25">
                 <span className="block bg-primary/15 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-primary">
@@ -448,16 +494,23 @@ function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
 
               <span className="min-w-0 flex-1">
                 <span className="block text-[13.5px] font-semibold leading-snug">
-                  {evento.titulo}
+                  {item.titulo}
+                  {/* O selo diz de que tipo é o encontro sem precisar de outra
+                      seção — foi o que permitiu juntar as duas listas. */}
+                  {item.aoVivo && (
+                    <span className="ml-1.5 align-middle text-[9px] font-extrabold tracking-[0.1em] text-red-300">
+                      AO VIVO
+                    </span>
+                  )}
                 </span>
                 <span className="mt-0.5 block truncate text-[11px] text-white/40">
                   {quando.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric" })}
-                  {evento.hora && ` · ${evento.hora}`}
-                  {evento.local && ` · ${evento.local}`}
+                  {item.hora && ` · ${item.hora}`}
+                  {item.detalhe && ` · ${item.detalhe}`}
                 </span>
-                {comunidade && (
+                {item.origem && (
                   <span className="mt-0.5 block truncate text-[10.5px] text-white/25">
-                    marcado em {comunidade.nome}
+                    marcado em {item.origem}
                   </span>
                 )}
               </span>
@@ -467,8 +520,9 @@ function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
       </div>
 
       <p className="text-[10.5px] leading-relaxed text-white/25">
-        Encontro marcado tem hora e é combinado numa comunidade. A rodada do clube continua sem
-        hora — você responde quando der.
+        Encontro marcado tem hora. Os de <b className="text-white/45">ao vivo</b> são sessões de
+        escuta: todo mundo ouve no mesmo segundo. A rodada do clube continua sem hora — você
+        responde quando der.
       </p>
     </section>
   );

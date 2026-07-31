@@ -12,6 +12,7 @@ import { ConviteDeClube, ConviteDeForum, TrechosQuentes } from "@/components/com
 import Compositor from "@/components/comunidade/Compositor";
 import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
 import { montarFeed, type ItemDoFeed, type Lente } from "@/lib/feedDaComunidade";
+import SalasAoVivoNoFeed from "@/components/sala/SalasAoVivoNoFeed";
 import { MURAL_EVENT } from "@/lib/mural";
 import { useToast } from "@/hooks/use-toast";
 import { ouvindoAgoraNaComunidade, type AudicaoDeAgora } from "@/lib/activity";
@@ -209,6 +210,11 @@ function FeedDePosts() {
   return (
     <div className="px-5 pt-4" data-testid="feed-de-posts">
       <Compositor />
+
+      {/* As salas de escuta acontecendo **agora** (§4.81). Ficam acima do feed,
+          e não dentro dele, porque sala é a coisa mais perecível do app: existe
+          enquanto dura e some quando o anfitrião encerra. */}
+      <SalasAoVivoNoFeed />
 
       {/*
         **Uma porta para `/perguntas`, e não um filtro no lugar** (30/07). Havia

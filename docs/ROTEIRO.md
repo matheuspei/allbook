@@ -6784,6 +6784,50 @@ escolha é de quem cria:
 **Nomes distintos continuam valendo:** *rodada* (sem hora) × *sessão de escuta*
 (com hora).
 
+### Construído em 31/07 (noite) — e o que se decidiu construindo
+
+Ele autorizou: *"pode continuar a construir. Você constrói tudo e só termina
+quando já estiver terminado"*. Foi feito por inteiro: `lib/salaAoVivo.ts`,
+`pages/SalaAoVivo.tsx` (rota `/sala/:id`, tela cheia como o player),
+`components/sala/*` e os pontos de entrada no player, no clube e na Comunidade.
+O que segue são as **decisões que só apareceram construindo** — o resto está no
+código.
+
+**1 · A agenda do clube virou uma só, com duas origens.** Ao pôr as sessões
+marcadas numa seção própria, a página do clube ficou com **duas listas de
+coisa-com-hora**, e o primeiro item da outra era *"Maratona: ouvir o último
+capítulo juntos"* — a mesma ideia, em dois lugares, com nomes diferentes. Era o
+defeito que a §4.79 previu e que eu quase repeti. **Correção:** *Encontros
+marcados* passou a listar evento de comunidade **e** sessão marcada, ordenados
+por data, com um selo `AO VIVO` distinguindo; a seção da sala ficou só com o que
+está **acontecendo agora**, que não é agenda.
+
+**2 · Toda sala guarda `posicaoSec` + `marcoEm`, e não só a posição.** Na
+primeira versão só a sala fictícia andava: a minha própria sala nascia **parada**
+no segundo em que eu a abria. Com o marco, a posição de verdade é "a do marco +
+o tempo desde ele", pausar congela e retomar não pula. Testado nos três casos.
+
+**3 · A sua versão da sala fictícia ganha dela.** Entrar na sala semeada grava
+uma cópia com o mesmo id; enquanto as duas conviviam na lista, `salaPorId`
+devolvia sempre a original e **tudo o que você escrevia sumia na hora**.
+
+**4 · Faltava o convite, e sem ele a porta "só quem eu chamar" não levava a lugar
+nenhum.** Buraco do meu escopo, achado ao conferir o caso que originou a ideia
+(*"ouvir um livro junto com minha namorada"*). A sala privada nascia com uma
+pessoa dentro e ninguém para convidar. Agora se escolhe entre **quem você segue**,
+e quem foi chamado entra em alguns segundos — mesmo padrão declarado do
+`convitesDeEvento.ts` (§4.79), e ~4 em 5 aceitam: convite que sempre dá certo
+também é mentira.
+
+**5 · O rastro é bloco próprio, e a tela deixou de se contradizer.** Com as falas
+da sessão embaixo, a conversa do trecho dizia *"ninguém parou para comentar por
+aqui"* logo acima de duas falas. O texto do vazio agora explica a diferença em
+vez de negá-la — a separação que ele defendeu só existe se a tela a ensinar.
+
+**6 · Quem assiste vê o player inteiro, e isso corrigiu um erro meu.** Eu tinha
+escrito "os outros não têm barra de progresso"; junto com o controle, eu tinha
+tirado a **informação**. Perder o controle é a regra; perder o mapa era defeito.
+
 ---
 
 ## 4.82 "Essa aba está crua, sem vida nenhuma" (31/07)

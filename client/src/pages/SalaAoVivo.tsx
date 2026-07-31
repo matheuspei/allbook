@@ -183,6 +183,19 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
         <Presentes slugs={sala.presentes} />
       </div>
 
+      {/* Quem foi chamado e ainda não chegou. Some sozinho conforme entram —
+          sem isto, a sala privada recém-aberta parecia um erro: uma pessoa
+          dentro e nenhum sinal de que alguém foi convidado. */}
+      {euMando && (sala.convidados?.length ?? 0) > 0 && (
+        <p className="mx-4 mt-2 text-[10.5px] text-white/30" data-testid="esperando-convidados">
+          esperando{" "}
+          {sala.convidados!
+            .map((slug) => findMember(slug)?.name ?? slug)
+            .join(", ")}
+          …
+        </p>
+      )}
+
       {/* ---------------------------------------------------------------- */}
       {/* O livro e a situação                                              */}
       {/* ---------------------------------------------------------------- */}

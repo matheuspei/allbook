@@ -112,6 +112,15 @@ export interface SalaAoVivo {
   tocando: boolean;
   /** Slugs de quem está dentro agora. */
   presentes: string[];
+  /**
+   * Quem foi chamado e ainda não entrou.
+   *
+   * **Sem isto a sala privada não serve para nada** — ela é "só quem eu chamar",
+   * e sem convite não há ninguém para chamar. Foi um buraco do meu escopo,
+   * achado ao conferir o caso que originou a ideia (*"ouvir um livro junto com
+   * minha namorada"*).
+   */
+  convidados?: string[];
   falas: FalaDaSala[];
   abertaEm: number;
   /** Preenchido ao encerrar: daí em diante a sala é rastro, não é sala. */
@@ -347,6 +356,7 @@ export function abrirSala(dados: {
   titulo?: string;
   data?: string;
   hora?: string;
+  convidados?: string[];
 }): SalaAoVivo {
   const sala: SalaAoVivo = {
     id: `sala-${Date.now()}`,
@@ -361,11 +371,47 @@ export function abrirSala(dados: {
     marcoEm: Date.now(),
     tocando: true,
     presentes: [EU],
+    convidados: dados.convidados,
     falas: [],
     abertaEm: Date.now(),
   };
   salvarMinha(sala);
+  if (dados.convidados?.length) responderAoConvite(sala.id, dados.convidados);
   return sala;
+}
+
+/**
+ * **Quem foi chamado aparece na sala** — simulação, e ela é declarada.
+ *
+ * Sem servidor ninguém entra de verdade. O app já resolve isso do mesmo jeito em
+ * `convitesDeEvento.ts` (a pessoa responde em alguns segundos), e repetir o
+ * padrão é melhor do que inventar um segundo: a sala que você abre **não fica
+ * eternamente vazia**, que seria a versão mentirosa da mesma tela.
+ *
+ * Entra ~4 em cada 5 — convite que sempre dá certo também é mentira, só que
+ * simpática.
+ */
+function responderAoConvite(salaId: string, convidados: string[]): void {
+  convidados.forEach((slug, i) => {
+    window.setTimeout(
+      () => {
+        const sala = salaPorId(salaId);
+        if (!sala || sala.encerradaEm || sala.presentes.includes(slug)) return;
+
+        /* Semente pelo slug: quem aceita é sempre o mesmo, e não muda a cada
+           vez que a tela desenha. */
+        const vem = (slug.charCodeAt(0) + slug.length) % 5 !== 0;
+        if (!vem) return;
+
+        salvarMinha({
+          ...sala,
+          presentes: [...sala.presentes, slug],
+          convidados: (sala.convidados ?? []).filter((item) => item !== slug),
+        });
+      },
+      2500 + i * 1800,
+    );
+  });
 }
 
 export function entrarNaSala(id: string): void {

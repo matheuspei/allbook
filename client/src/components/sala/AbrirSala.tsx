@@ -3,6 +3,8 @@ import { useLocation } from "wouter";
 import { CalendarDays, Globe, Lock, X } from "lucide-react";
 import { catalog } from "@/lib/books";
 import { meusClubes } from "@/lib/clubes";
+import { avatarDeLeitor, findMember, type CommunityMember } from "@/lib/community";
+import { readFollowing } from "@/lib/following";
 import { formatarPosicao } from "@/lib/sala";
 import { abrirSala, type PortaDaSala } from "@/lib/salaAoVivo";
 import { hojeIso, somarDiasIso } from "@/lib/clubes";
@@ -30,9 +32,13 @@ export default function AbrirSala({
   const [, navigate] = useLocation();
   const [porta, setPorta] = useState<PortaDaSala>("aberta");
   const [clubeId, setClubeId] = useState<string | undefined>(undefined);
+  const [escolhidos, setEscolhidos] = useState<string[]>([]);
 
   const book = catalog.find((item) => item.id === bookId);
   const clubes = meusClubes();
+  const gente = readFollowing()
+    .map((slug) => findMember(slug))
+    .filter((pessoa): pessoa is CommunityMember => pessoa !== undefined);
 
   function criar() {
     const sala = abrirSala({
@@ -46,6 +52,7 @@ export default function AbrirSala({
       data: porta === "marcada" ? somarDiasIso(hojeIso(), 1) : undefined,
       hora: porta === "marcada" ? "21:00" : undefined,
       titulo: porta === "marcada" ? `${book?.title ?? "Livro"}, ao vivo` : undefined,
+      convidados: escolhidos.length > 0 ? escolhidos : undefined,
     });
     onFechar();
     navigate(`/sala/${sala.id}`);
@@ -151,6 +158,59 @@ export default function AbrirSala({
                   } · a sessão aparece na página do clube`}
                 />
               ))}
+            </div>
+          </>
+        )}
+
+        {/*
+          **Chamar alguém.** Sem isto a porta "só quem eu chamar" não levava a
+          lugar nenhum — a sala privada nascia com uma pessoa dentro e ninguém
+          para convidar, o que é o oposto do caso que originou a ideia (*"ouvir
+          um livro junto com minha namorada"*).
+
+          A lista é **quem você segue**: é a relação que o app já tem e a única
+          que faz sentido aqui — chamar estranho para ouvir junto seria spam.
+        */}
+        {gente.length > 0 && (
+          <>
+            <h3 className="mb-2.5 mt-6 text-[11px] font-bold uppercase tracking-[0.14em] text-white/35">
+              Chamar alguém
+              {escolhidos.length > 0 && (
+                <span className="ml-2 font-normal normal-case tracking-normal text-white/25">
+                  {escolhidos.length} {escolhidos.length === 1 ? "pessoa" : "pessoas"}
+                </span>
+              )}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {gente.map((pessoa) => {
+                const marcada = escolhidos.includes(pessoa.slug);
+                return (
+                  <button
+                    key={pessoa.slug}
+                    onClick={() =>
+                      setEscolhidos((atual) =>
+                        marcada
+                          ? atual.filter((slug) => slug !== pessoa.slug)
+                          : [...atual, pessoa.slug],
+                      )
+                    }
+                    className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3.5 transition-colors ${
+                      marcada
+                        ? "bg-primary/15 ring-1 ring-inset ring-primary/45"
+                        : "bg-white/[0.05] ring-1 ring-inset ring-white/10"
+                    }`}
+                    data-testid={`convidar-${pessoa.slug}`}
+                  >
+                    <span
+                      className={`flex h-[22px] w-[22px] items-center justify-center rounded-full bg-gradient-to-br text-[9px] font-bold text-black ${pessoa.color}`}
+                      {...avatarDeLeitor(pessoa.slug)}
+                    >
+                      {pessoa.name.charAt(0)}
+                    </span>
+                    <span className="text-[12px] font-medium">{pessoa.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </>
         )}
