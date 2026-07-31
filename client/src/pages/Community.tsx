@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ChevronRight, HelpCircle, Plus } from "lucide-react";
 
 import ClubesNaComunidade from "@/components/clube/ClubesNaComunidade";
@@ -54,6 +54,7 @@ const ABAS: { key: Aba; label: string }[] = [
 
 export default function Community() {
   const [aba, setAba] = useState<Aba>("agora");
+  const [, setLocation] = useLocation();
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="community-page">
@@ -72,12 +73,16 @@ export default function Community() {
           Quem está ouvindo, conversando e recomendando
         </p>
 
-        {/* As três abas — o mesmo desenho de pílulas dos filtros da Biblioteca. */}
+        {/* As duas abas — o mesmo desenho de pílulas dos filtros da Biblioteca.
+            **"Fóruns" deixou de ser uma aba desta tela e virou destino** (31/07,
+            §4.74): as comunidades agora são o Orkut, com layout próprio e tela
+            cheia. Mantê-las aqui dentro seria mostrar meia comunidade numa moldura
+            que não é a delas. */}
         <div className="relative mt-4 flex gap-2" data-testid="community-tabs">
           {ABAS.map((item) => (
             <button
               key={item.key}
-              onClick={() => setAba(item.key)}
+              onClick={() => (item.key === "grupos" ? setLocation("/forum") : setAba(item.key))}
               className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
                 aba === item.key
                   ? "bg-white text-black"

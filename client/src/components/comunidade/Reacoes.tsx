@@ -42,6 +42,7 @@ export default function Reacoes({
   deOutraPessoa,
   autorSlug,
   escala = "fala",
+  claro,
   className = "",
 }: {
   /** O id da fala — post, comentário, resposta de fórum, mensagem de mural. */
@@ -50,6 +51,13 @@ export default function Reacoes({
   deOutraPessoa: boolean;
   /** Para o autor não aparecer reagindo a si mesmo na lista. */
   autorSlug?: string;
+  /**
+   * Fundo claro — as comunidades (§4.74) são brancas.
+   *
+   * Sem isto os polegares eram `text-white/40` sobre branco: **existiam e não se
+   * viam**. Pego na tela, e é o tipo de defeito que nenhum `tsc` acusa.
+   */
+  claro?: boolean;
   /**
    * `"post"` só desenha os polegares — quem conta e mostra **quem** reagiu é a
    * `LinhaDeRecepcao`, logo acima da barra. `"fala"` carrega o número no próprio
@@ -82,7 +90,8 @@ export default function Reacoes({
         <BotaoDeReacao
           Icone={ThumbsUp}
           ativo={minha === "curtiu"}
-          corAtiva="text-amber-500"
+          corAtiva={claro ? "text-[#c47f00]" : "text-amber-500"}
+          corParada={claro ? "text-[#8a8a8a] hover:text-[#333]" : "text-white/40 hover:text-white/75"}
           rotulo={minha === "curtiu" ? "Desfazer" : "Curtir"}
           numero={escala === "fala" ? numero("curtiu") : undefined}
           onReagir={() => setMinha(alternarReacao(id, "curtiu"))}
@@ -96,7 +105,8 @@ export default function Reacoes({
           ativo={minha === "descurtiu"}
           /* Branco, não uma cor nova: a paleta do app é laranja sobre quase-preto,
              e o negativo se distingue por **peso**, não por matiz. */
-          corAtiva="text-white/85"
+          corAtiva={claro ? "text-[#333]" : "text-white/85"}
+          corParada={claro ? "text-[#8a8a8a] hover:text-[#333]" : "text-white/40 hover:text-white/75"}
           rotulo={minha === "descurtiu" ? "Desfazer" : "Descurtir"}
           numero={escala === "fala" ? numero("descurtiu") : undefined}
           onReagir={() => setMinha(alternarReacao(id, "descurtiu"))}
@@ -128,6 +138,7 @@ function BotaoDeReacao({
   Icone,
   ativo,
   corAtiva,
+  corParada,
   rotulo,
   numero,
   onReagir,
@@ -139,6 +150,8 @@ function BotaoDeReacao({
   Icone: typeof ThumbsUp;
   ativo: boolean;
   corAtiva: string;
+  /** A cor de quando não está marcado — muda com o fundo da tela. */
+  corParada: string;
   rotulo: string;
   numero?: number;
   onReagir: () => void;
@@ -147,7 +160,7 @@ function BotaoDeReacao({
   texto: string;
   testId: string;
 }) {
-  const cor = ativo ? corAtiva : "text-white/40 hover:text-white/75";
+  const cor = ativo ? corAtiva : corParada;
 
   return (
     <span className="flex items-center">

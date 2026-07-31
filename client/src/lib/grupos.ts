@@ -550,9 +550,32 @@ export function souDonoDo(grupoId: string): boolean {
   return grupoPorId(grupoId)?.meu === true;
 }
 
-/** Liga/desliga um id numa das listas de moderação. Só o dono consegue. */
+/**
+ * Você é dono **ou moderador** desta comunidade.
+ *
+ * ⚠️ **Esta função é um espelho de `lib/forum.ts`, e é de propósito.** A regra de
+ * verdade mora lá (`souModerador`), mas `forum.ts` **importa este arquivo** — e
+ * importar de volta faria um ciclo. Como a regra é curta e estável (dono, ou
+ * estar na lista de moderadores), o espelho custa dez linhas e evita o ciclo.
+ *
+ * Se um dia a regra ficar complicada, o certo é extrair o esqueleto dos fóruns
+ * para um terceiro módulo, e as duas libs passarem a depender dele.
+ */
+function podeModerar(grupoId: string): boolean {
+  if (souDonoDo(grupoId)) return true;
+  try {
+    const mapa = JSON.parse(localStorage.getItem("allbook_forum_governanca") || "{}");
+    const config = mapa?.[grupoId];
+    if (config?.donoSlug === "voce") return true;
+    return Array.isArray(config?.moderadores) && config.moderadores.includes("voce");
+  } catch {
+    return false;
+  }
+}
+
+/** Liga/desliga um id numa das listas de moderação. Só dono e moderador. */
 function alternar(grupoId: string, campo: keyof Moderacao, id: string): boolean {
-  if (!souDonoDo(grupoId)) return false;
+  if (!podeModerar(grupoId)) return false;
   const estado = lerModeracao();
   const tinha = estado[campo].includes(id);
   gravarModeracao({
