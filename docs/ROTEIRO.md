@@ -7160,6 +7160,17 @@ conversa dos livros que cita), não remover. **Decisão final é do Matheus e es
 em aberto** — se ele reafirmar a remoção, ela leva junto as marcas do player e
 metade dos trechos quentes, e isso precisa estar na conta.
 
+**A proposta desenhada** (ele pediu: *"desenhe isso aí numa folha"*) está em
+`client/public/_ponte-conversas.html` (temporária, fora do git): o mapa das seis
+portas, a tabela mostrando que **4 pontes já existem e só o par livro↔fórum
+falta**, as duas pontes em maquete com livro e grupo reais (Mistério → Suspense
+& Mistério + True Crime; grupo de FC → Duna, 1984, Fundação, 3 Corpos, ordenados
+por falas), e os subtítulos que dizem o papel de cada porta. Regras principais:
+casamento gênero↔categoria por **mapa fixo num arquivo só** (as duas direções
+não podem discordar), bloco **some** quando não há casamento honesto, grupos de
+situação de escuta (dormindo, 2x, trânsito) ficam de fora, e a faixa do grupo
+mostra **falas, não nota** — vende a conversa, não o livro.
+
 ---
 
 ## 4.82 A segunda leva da sala, e a auditoria de design (31/07, noite)
