@@ -38,7 +38,7 @@ export default function SessoesDoClube({
    * **Só os botões de marcar e abrir**, sem a lista do que está no ar.
    *
    * A aba *Encontros* usa assim: quem está transmitindo agora aparece na aba
-   * *Agora*, e repetir a mesma sala nas duas seria a redundância que a §4.82
+   * *Agora*, e repetir a mesma sala nas duas seria a redundância que a §4.89
    * varreu do feed e do player.
    */
   soAsPortas?: boolean;

@@ -103,7 +103,7 @@ export default function Clube({ params }: { params: { id: string } }) {
   const [clube, setClube] = useState<ClubeTipo | undefined>(() => clubePorId(params.id));
   /** Muda quando você entra ou sai da fila — força a leitura de novo. */
   const [versao, setVersao] = useState(0);
-  /** A aba aberta (§4.82). Nasce em "Agora": é o que pede ação hoje. */
+  /** A aba aberta (§4.89). Nasce em "Agora": é o que pede ação hoje. */
   const [aba, setAba] = useState<AbaDoClube>("agora");
 
   useEffect(() => {
@@ -396,7 +396,7 @@ export default function Clube({ params }: { params: { id: string } }) {
         </header>
 
         {/*
-          **As abas** (§4.82). A tela tinha sete seções empilhadas e ~3,5 telas de
+          **As abas** (§4.89). A tela tinha sete seções empilhadas e ~3,5 telas de
           rolagem — o defeito que a §4.57 mediu e que a sala ao vivo agravou. O
           Matheus decidiu em 31/07: *"sim, ele vira a aba"*.
 
@@ -444,7 +444,7 @@ export default function Clube({ params }: { params: { id: string } }) {
             <MuralDoClube clube={clube} />
             {/* A discussão por trecho do livro do ciclo (§4.81) — a "aba de
                 conversa do capítulo" que ele achava que já existia. Fica **junto**
-                do mural desde a §4.82: eram duas seções respondendo à mesma
+                do mural desde a §4.89: eram duas seções respondendo à mesma
                 pergunta em páginas de rolagem diferentes. */}
             <ConversaDoCiclo clube={clube} />
           </>
@@ -697,7 +697,7 @@ function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
  *
  * Estava só no `Gerenciar`, do lado de quem modera; quem participa via a régua
  * do cartão do ciclo mas não sabia **quando** era cada etapa. Ganhou lugar na
- * aba *Estante* (§4.82), junto da memória: as duas respondem a "como esta turma
+ * aba *Estante* (§4.89), junto da memória: as duas respondem a "como esta turma
  * lê", uma para trás e outra para a frente.
  */
 function RitmoDoCiclo({ clube }: { clube: ClubeTipo }) {

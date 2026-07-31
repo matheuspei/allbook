@@ -5,14 +5,17 @@ import { Lock } from "lucide-react";
 import AnexarTrecho from "@/components/AnexarTrecho";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import Reacoes from "@/components/comunidade/Reacoes";
+import EscolherCapa from "@/components/forum/EscolherCapa";
 import {
   AvatarDoForum,
   Bloco,
   BotaoDoForum,
   CAMPO,
+  CartazDoTopico,
   LinkDoForum,
   PaginaDoForum,
 } from "@/components/forum/Pecas";
+import { catalog } from "@/lib/books";
 import { type Citacao } from "@/lib/citacoes";
 import { useToast } from "@/hooks/use-toast";
 import { readProfile } from "@/lib/profile";
@@ -23,10 +26,13 @@ import {
   alternarRespostaEscondida,
   alternarSpoiler,
   apagarMinhaResposta,
+  definirCapaDoTopico,
   fioDo,
   responder,
   tituloDoTopico,
+  type CapaDeTopico,
   type RespostaNaTela,
+  type TopicoNaTela,
 } from "@/lib/grupos";
 
 /** O Orkut paginava o fórum de 10 em 10. */
@@ -131,8 +137,13 @@ export default function Topico() {
           <span>{topico.titulo}</span>
         </p>
 
+        <CapaDoFio topico={topico} emoji={grupo.emoji} podeEditar={topico.meu || modero} />
+
+        {/* **O cartaz já diz o título — o bloco não repete.** Com capa, o título
+            aparecia três vezes na mesma tela (trilha, cartaz e este cabeçalho);
+            sem capa, este é o único lugar que o mostra em tamanho de título. */}
         <Bloco
-          titulo={topico.titulo}
+          titulo={topico.imagem || topico.bookId ? "Mensagens" : topico.titulo}
           testid="fio-do-topico"
           acao={
             <span className="text-[10.5px] text-white/35">
@@ -317,5 +328,128 @@ export default function Topico() {
         </p>
       </div>
     </PaginaDoForum>
+  );
+}
+
+/**
+ * **A capa no topo do fio** (ROTEIRO §4.91) — e o lugar de trocá-la.
+ *
+ * ---
+ *
+ * **Duas regras que decidem quando ela aparece:**
+ *
+ * 1. **Sem capa, sem banner.** Um retângulo cinza dizendo "este tópico não tem
+ *    imagem" é a praga que a §4.40 varreu do app inteiro. Quem pode pôr uma vê o
+ *    link discreto; quem não pode não vê nada.
+ * 2. **A capa de livro é clicável e leva ao livro.** É o que a torna informação
+ *    em vez de enfeite: dali dá para ir ouvir o que a conversa está discutindo.
+ */
+function CapaDoFio({
+  topico,
+  emoji,
+  podeEditar,
+}: {
+  topico: TopicoNaTela;
+  emoji?: string;
+  podeEditar: boolean;
+}) {
+  const { toast } = useToast();
+  const [editando, setEditando] = useState(false);
+  const [rascunho, setRascunho] = useState<CapaDeTopico>({});
+
+  const livro = topico.bookId ? catalog.find((item) => item.id === topico.bookId) : undefined;
+  const temCapa = Boolean(topico.imagem || livro);
+
+  function abrir() {
+    setRascunho({
+      ...(topico.imagem ? { imagem: topico.imagem } : {}),
+      ...(topico.bookId ? { bookId: topico.bookId } : {}),
+    });
+    setEditando(true);
+  }
+
+  if (editando) {
+    return (
+      <Bloco titulo="Capa do tópico" testid="editar-capa-do-topico">
+        <EscolherCapa
+          capa={rascunho}
+          onMudar={setRascunho}
+          emoji={emoji}
+          semente={topico.id}
+          lado={64}
+        />
+        <div className="mt-3 flex items-center gap-2">
+          <BotaoDoForum
+            primario
+            onClick={() => {
+              if (definirCapaDoTopico(topico.grupoId, topico.id, rascunho)) {
+                toast({ title: "Capa salva" });
+                setEditando(false);
+              }
+            }}
+            testid="salvar-capa"
+          >
+            Salvar capa
+          </BotaoDoForum>
+          <BotaoDoForum onClick={() => setEditando(false)}>Cancelar</BotaoDoForum>
+        </div>
+      </Bloco>
+    );
+  }
+
+  if (!temCapa) {
+    /* Sem capa: só quem pode pôr uma vê o convite, e ele é uma linha de texto. */
+    return podeEditar ? (
+      <p className="mb-3">
+        <LinkDoForum onClick={abrir} testid="por-capa">
+          pôr uma capa neste tópico »
+        </LinkDoForum>
+      </p>
+    ) : null;
+  }
+
+  return (
+    <div className="mb-3 overflow-hidden rounded-2xl ring-1 ring-white/10" data-testid="capa-do-fio">
+      <CartazDoTopico
+        imagem={topico.imagem}
+        capaDoLivro={livro?.cover}
+        emoji={emoji}
+        semente={topico.id}
+      >
+        <p className="font-display text-[15px] font-bold leading-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
+          {topico.titulo}
+        </p>
+        <p className="mt-1 text-[10.5px] text-white/50">
+          por {topico.meu ? "Você" : (topico.autor?.name ?? "alguém")} ·{" "}
+          {topico.totalRespostas} {topico.totalRespostas === 1 ? "mensagem" : "mensagens"}
+        </p>
+      </CartazDoTopico>
+
+      {(livro || podeEditar) && (
+        <div className="flex items-center justify-between gap-3 bg-white/[0.04] px-3 py-2">
+          {livro ? (
+            <Link
+              href={`/book/${livro.id}`}
+              className="min-w-0 truncate text-[11.5px] text-white/55 hover:text-primary"
+              data-testid="livro-do-topico"
+            >
+              sobre <span className="font-semibold text-white/80">{livro.title}</span>, de{" "}
+              {livro.author}
+            </Link>
+          ) : (
+            <span />
+          )}
+          {podeEditar && (
+            <LinkDoForum
+              onClick={abrir}
+              className="shrink-0 text-[10.5px] text-white/35 hover:text-white/70"
+              testid="trocar-capa"
+            >
+              trocar capa
+            </LinkDoForum>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

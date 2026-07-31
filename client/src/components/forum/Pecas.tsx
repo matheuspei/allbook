@@ -288,6 +288,142 @@ export function CapaDaComunidade({
   );
 }
 
+/**
+ * **A capa de um tópico** (ROTEIRO §4.91) — imagem enviada, capa do livro de que
+ * ele fala, ou um degradê com o emoji da comunidade.
+ *
+ * ---
+ *
+ * **Por que a capa de livro é a boa ideia aqui, e a imagem livre é a exceção.**
+ * O Matheus pediu as duas em 31/07. A de livro é a que **carrega informação**:
+ * num app de audiolivro a maioria dos tópicos é sobre um livro, e ver qual antes
+ * de tocar poupa o toque. A imagem enviada é para o tópico que não é sobre livro
+ * nenhum — existe porque senão esses ficariam todos iguais.
+ *
+ * **O tamanho é o cuidado.** Capa grande em lista longa destrói a varredura, que
+ * é justamente para o que uma lista de fórum serve. Por isso são dois tamanhos:
+ * `44–56px` na lista, e a versão larga só nos **destaques** do topo, que são no
+ * máximo dois.
+ */
+export function CapaDoTopico({
+  imagem,
+  capaDoLivro,
+  emoji = "💬",
+  semente,
+  lado = 52,
+  retrato,
+  className = "",
+  testid,
+}: {
+  /** `data:` URL enviada — ganha de tudo. */
+  imagem?: string;
+  /** A capa do livro do catálogo (`book.cover`). */
+  capaDoLivro?: string;
+  /** O emoji da comunidade, para quando não há imagem nenhuma. */
+  emoji?: string;
+  /** O id do tópico — dá a cor do degradê, e ela nunca muda. */
+  semente?: string;
+  /** Largura em px. Quadrado na lista; com `retrato`, vira 2×3. */
+  lado?: number;
+  /**
+   * **Proporção de capa de livro (2×3)**, para o cartaz.
+   *
+   * Conserto de 31/07: a primeira versão do destaque esticava a capa num banner
+   * 16×7 com `object-cover`, e o resultado era uma tira do meio da arte — de
+   * "Garota Exemplar" sobrava a palavra FLYNN. Capa de livro é retrato; mostrar
+   * como retrato é a única forma de ela continuar sendo a capa daquele livro.
+   */
+  retrato?: boolean;
+  className?: string;
+  testid?: string;
+}) {
+  const estilo = { width: lado, height: retrato ? Math.round(lado * 1.45) : lado };
+  const moldura = `shrink-0 overflow-hidden rounded-xl ring-1 ring-white/10 ${className}`;
+
+  const src = imagem ?? capaDoLivro;
+  if (src) {
+    return (
+      <img src={src} alt="" style={estilo} className={`${moldura} object-cover`} data-testid={testid} />
+    );
+  }
+
+  return (
+    <span
+      style={{
+        ...estilo,
+        fontSize: Math.round(lado / 2.2),
+        background: degradeDe(semente ?? emoji),
+      }}
+      className={`grid place-items-center ${moldura}`}
+      data-testid={testid}
+    >
+      <span className="opacity-60 drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]">{emoji}</span>
+    </span>
+  );
+}
+
+/**
+ * **O cartaz de um tópico** — a capa em tamanho de capa, sobre o borrão dela
+ * mesma.
+ *
+ * É a peça dos **destaques** e do topo do fio. O fundo é a própria imagem
+ * desfocada e escurecida: dá uma cor que combina com a arte sem inventar uma, e
+ * funciona igual para capa de livro (retrato), foto enviada (quadrada) e
+ * degradê (sem imagem nenhuma) — três proporções que nenhum recorte único
+ * atenderia.
+ */
+export function CartazDoTopico({
+  imagem,
+  capaDoLivro,
+  emoji,
+  semente,
+  children,
+  testid,
+}: {
+  imagem?: string;
+  capaDoLivro?: string;
+  emoji?: string;
+  semente?: string;
+  /** O texto ao lado da capa: título, selo, números. */
+  children: ReactNode;
+  testid?: string;
+}) {
+  const src = imagem ?? capaDoLivro;
+
+  return (
+    <div className="relative overflow-hidden" data-testid={testid}>
+      {src ? (
+        <img
+          src={src}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full scale-125 object-cover opacity-45 blur-xl"
+        />
+      ) : (
+        <span
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: degradeDe(semente ?? emoji ?? "💬") }}
+        />
+      )}
+      <span aria-hidden className="absolute inset-0 bg-black/55" />
+
+      <div className="relative flex items-center gap-3 p-3">
+        <CapaDoTopico
+          imagem={imagem}
+          capaDoLivro={capaDoLivro}
+          emoji={emoji}
+          semente={semente}
+          lado={64}
+          retrato
+          className="shadow-lg shadow-black/40"
+        />
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 /** Os pares de cor das capas sem foto — escuros, para o emoji sobressair. */
 const DEGRADES = [
   ["#2b1a4a", "#4c2a6b"],

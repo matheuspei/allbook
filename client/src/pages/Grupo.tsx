@@ -332,7 +332,7 @@ export default function Grupo() {
 
             {/* ---------------- 5. os tópicos ---------------- */}
             {/*
-              **Resumo aqui, lista completa em `/forum/:id/topicos`** (§4.83).
+              **Resumo aqui, lista completa em `/forum/:id/topicos`** (§4.90).
               A tabela inteira ficava solta nesta página: vinte tópicos viravam
               vinte linhas e empurravam enquetes, eventos e membros para baixo —
               o oposto do que a §4.78 já tinha corrigido nas enquetes. O

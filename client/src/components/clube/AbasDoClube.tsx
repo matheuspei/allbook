@@ -6,7 +6,7 @@ import { type Clube } from "@/lib/clubes";
 export type AbaDoClube = "agora" | "conversa" | "encontros" | "estante";
 
 /**
- * **As abas do clube** (ROTEIRO §4.82) — a decisão que estava aberta desde a
+ * **As abas do clube** (ROTEIRO §4.89) — a decisão que estava aberta desde a
  * §4.57 e que o Matheus bateu o martelo em 31/07: *"sim, ele vira a aba"*.
  *
  * ---

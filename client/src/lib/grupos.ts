@@ -76,6 +76,13 @@ export interface TopicoSemeado {
   date: string;
   /** Fixado no topo do grupo (o 📌 do Orkut). */
   fixado?: boolean;
+  /**
+   * **O livro de que este tópico fala** — a capa dele vira a capa do tópico.
+   *
+   * Ver `CapaDoTopico`, em `components/forum/Pecas.tsx`, para o porquê de a capa
+   * de livro vir **antes** da imagem enviada na hora de escolher.
+   */
+  bookId?: number;
   respostas: RespostaSemeada[];
 }
 
@@ -247,6 +254,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: 'Final de "Garota Exemplar": genial ou trapaça?',
     autorSlug: "ana-paula",
     date: "2026-07-26",
+    bookId: 3,
     fixado: true,
     respostas: [
       {
@@ -280,6 +288,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "Narrador de suspense: sussurro ou voz firme?",
     autorSlug: "marcos-v",
     date: "2026-07-24",
+    bookId: 1,
     respostas: [
       {
         autorSlug: "marcos-v",
@@ -300,6 +309,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "Me indiquem: suspense curto pra maratonar no feriado",
     autorSlug: "ricardo",
     date: "2026-07-21",
+    bookId: 106,
     respostas: [
       {
         autorSlug: "ana-paula",
@@ -352,6 +362,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "Orgulho e Preconceito: a Elizabeth do áudio supera a do papel?",
     autorSlug: "juliana-s",
     date: "2026-07-22",
+    bookId: 140,
     respostas: [
       {
         autorSlug: "juliana-s",
@@ -372,6 +383,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "1984 em áudio dá mais medo do que no papel?",
     autorSlug: "carla-lima",
     date: "2026-07-18",
+    bookId: 130,
     respostas: [
       {
         autorSlug: "juliana-s",
@@ -386,6 +398,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "Duna: dá pra começar pelo áudio ou se perde nos nomes?",
     autorSlug: "carla-lima",
     date: "2026-07-20",
+    bookId: 7,
     respostas: [
       {
         autorSlug: "carla-lima",
@@ -406,6 +419,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "Hábitos Atômicos: o que funcionou de verdade pra vocês?",
     autorSlug: "luciana",
     date: "2026-07-25",
+    bookId: 102,
     respostas: [
       {
         autorSlug: "luciana",
@@ -454,6 +468,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "Existe livro que NÃO dá para ouvir em 2x?",
     autorSlug: "marcos-v",
     date: "2026-07-29",
+    bookId: 8,
     respostas: [
       {
         autorSlug: "gustavo-a",
@@ -534,6 +549,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "Saga de 20h+: por qual começar sem se arrepender?",
     autorSlug: "felipe-g",
     date: "2026-07-26",
+    bookId: 129,
     respostas: [
       {
         autorSlug: "caio",
@@ -554,6 +570,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "Qual adaptação melhorou o livro?",
     autorSlug: "bia-costa",
     date: "2026-07-28",
+    bookId: 132,
     respostas: [
       {
         autorSlug: "gustavo-a",
@@ -573,6 +590,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "Em que capítulo você desiste?",
     autorSlug: "dani-r",
     date: "2026-07-30",
+    bookId: 302,
     respostas: [
       {
         autorSlug: "luciana",
@@ -593,6 +611,7 @@ const topicosSemeados: TopicoSemeado[] = [
     titulo: "O que você fez diferente no mês seguinte ao livro?",
     autorSlug: "ricardo",
     date: "2026-07-27",
+    bookId: 101,
     respostas: [
       {
         autorSlug: "otavio",
@@ -625,6 +644,383 @@ const topicosSemeados: TopicoSemeado[] = [
       },
     ],
   },
+
+  /* ------------------------------------------------------------------ *
+   * A segunda leva de 31/07 — porque três tópicos não fazem uma página
+   *
+   * A página `/forum/:id/topicos` (§4.91) nasceu com busca, quatro filtros e
+   * destaques, e abriu mostrando **três linhas**. Ferramenta de achar coisa
+   * numa lista que cabe inteira na tela é enfeite; o problema não era a tela,
+   * era não haver o que procurar — o mesmo diagnóstico da §4.82, quando cinco
+   * comunidades não faziam uma aba viva.
+   *
+   * A régua destes: **todo tópico é sobre uma coisa que gente de audiolivro
+   * discute de verdade** (o narrador, a velocidade, dormir no meio, largar no
+   * capítulo 4), a maioria **aponta um livro do catálogo** — que é o que dá
+   * capa e o que faz a busca por livro achar coisa —, e alguns ficam de
+   * propósito **sem livro**, porque nem toda conversa é sobre um.
+   * ------------------------------------------------------------------ */
+
+  /* — Suspense & Mistério: a comunidade dele, e a que mais precisava — */
+  {
+    id: "t-rachel-trem",
+    grupoId: "suspense-misterio",
+    titulo: "A Garota no Trem: dá para confiar em alguma coisa que a Rachel diz?",
+    autorSlug: "carla-lima",
+    date: "2026-07-30",
+    bookId: 120,
+    respostas: [
+      {
+        autorSlug: "carla-lima",
+        texto:
+          "Ouvindo é pior (melhor?): a narradora entrega o tremor na voz dela e você fica sem chão a cada capítulo.",
+        date: "2026-07-30",
+      },
+      {
+        autorSlug: "beto",
+        texto:
+          "Confiar não dá, mas é aí que está a graça. Fui anotando o que ela dizia e o que os outros diziam sobre o mesmo dia.",
+        date: "2026-07-31",
+      },
+      {
+        autorSlug: "ana-paula",
+        texto: "Eu voltei duas vezes o capítulo da estação achando que tinha perdido alguma coisa. Não tinha.",
+        date: "2026-07-31",
+      },
+    ],
+  },
+  {
+    id: "t-empregada-virada",
+    grupoId: "suspense-misterio",
+    titulo: "A empregada: quem adivinhou a virada antes da metade?",
+    autorSlug: "beto",
+    date: "2026-07-28",
+    bookId: 2,
+    respostas: [
+      {
+        autorSlug: "beto",
+        texto: "Eu não. E olha que eu me acho bom nisso.",
+        date: "2026-07-28",
+      },
+      {
+        autorSlug: "ricardo",
+        texto:
+          "Desconfiei no capítulo 9 e desisti da desconfiança no 12. Ou seja: caí redondo, com escala.",
+        date: "2026-07-29",
+      },
+      {
+        autorSlug: "carla-lima",
+        texto: "Minha irmã acertou na primeira hora e passou o livro inteiro me olhando de lado.",
+        date: "2026-07-30",
+      },
+    ],
+  },
+  {
+    id: "t-narrador-ruim",
+    grupoId: "suspense-misterio",
+    titulo: "Suspense bom com narrador ruim: vocês largam ou aguentam?",
+    autorSlug: "ana-paula",
+    date: "2026-07-27",
+    respostas: [
+      {
+        autorSlug: "ana-paula",
+        texto:
+          "Largo. Já perdi dois livros ótimos assim e não tenho mais paciência — prefiro esperar outra edição.",
+        date: "2026-07-27",
+      },
+      {
+        autorSlug: "marcos-v",
+        texto:
+          "Aguento se a história segurar. Mas voz que respira no microfone em cena de tensão me tira na hora.",
+        date: "2026-07-28",
+      },
+    ],
+  },
+  {
+    id: "t-massacre-final",
+    grupoId: "suspense-misterio",
+    titulo: "O massacre da família Hope: o final te convenceu?",
+    autorSlug: "marcos-v",
+    date: "2026-07-25",
+    bookId: 1,
+    respostas: [
+      {
+        autorSlug: "marcos-v",
+        texto: "A explicação é boa, mas chega rápido demais. Faltou um capítulo para respirar.",
+        date: "2026-07-25",
+      },
+      {
+        autorSlug: "ricardo",
+        texto: "Me convenceu. O que segura tudo é o Aurélio Prado mudando o tom nas duas linhas do tempo.",
+        date: "2026-07-26",
+      },
+    ],
+  },
+  {
+    id: "t-objetos-cortantes",
+    grupoId: "suspense-misterio",
+    titulo: "Objetos Cortantes é pesado demais para ouvir antes de dormir?",
+    autorSlug: "ana-paula",
+    date: "2026-07-23",
+    bookId: 313,
+    respostas: [
+      {
+        autorSlug: "ana-paula",
+        texto: "É. Tentei três noites e nas três eu desliguei e fui ver algo bobo na TV.",
+        date: "2026-07-23",
+      },
+      {
+        autorSlug: "carla-lima",
+        texto: "Ouvi de manhã, andando. Mesmo livro, outra experiência — recomendo trocar o horário.",
+        date: "2026-07-24",
+      },
+    ],
+  },
+  {
+    id: "t-davinci-envelheceu",
+    grupoId: "suspense-misterio",
+    titulo: "O Código Da Vinci envelheceu bem em áudio?",
+    autorSlug: "ricardo",
+    date: "2026-07-20",
+    bookId: 119,
+    respostas: [
+      {
+        autorSlug: "ricardo",
+        texto:
+          "Surpreendentemente sim. O capítulo curto que o Dan Brown usa funciona melhor ouvindo do que lendo.",
+        date: "2026-07-20",
+      },
+      {
+        autorSlug: "beto",
+        texto: "Os diálogos explicativos ficaram datados, mas a corrida contra o tempo continua boa.",
+        date: "2026-07-22",
+      },
+    ],
+  },
+  {
+    id: "t-escrito-na-agua",
+    grupoId: "suspense-misterio",
+    titulo: "Escrito na Água: perdi quem era quem. Só eu?",
+    autorSlug: "beto",
+    date: "2026-07-17",
+    bookId: 314,
+    respostas: [
+      {
+        autorSlug: "carla-lima",
+        texto: "Não é só você. São muitas vozes narrando e em áudio isso cobra o dobro de atenção.",
+        date: "2026-07-18",
+      },
+    ],
+  },
+
+  /* — Clássicos — */
+  {
+    id: "t-revolucao-bichos",
+    grupoId: "classicos",
+    titulo: "A Revolução dos Bichos: em áudio, dá vontade de rir ou de chorar?",
+    autorSlug: "luciana",
+    date: "2026-07-29",
+    bookId: 304,
+    respostas: [
+      {
+        autorSlug: "luciana",
+        texto: "As duas. O narrador faz aquilo com uma calma que deixa tudo mais assustador.",
+        date: "2026-07-29",
+      },
+      {
+        autorSlug: "ana-paula",
+        texto: "É curto e devastador. Ouvi num sábado e fiquei pensando nele a semana inteira.",
+        date: "2026-07-30",
+      },
+    ],
+  },
+  {
+    id: "t-dracula-cartas",
+    grupoId: "classicos",
+    titulo: "Drácula é um livro de cartas — isso funciona no fone?",
+    autorSlug: "carla-lima",
+    date: "2026-07-24",
+    bookId: 144,
+    respostas: [
+      {
+        autorSlug: "juliana-s",
+        texto:
+          "Funciona melhor do que no papel, porque cada carta ganha uma voz e você para de confundir os personagens.",
+        date: "2026-07-25",
+      },
+      {
+        autorSlug: "luciana",
+        texto: "O diário do Jonathan no castelo, ouvido de noite, é uma péssima ideia. Fiz mesmo assim.",
+        date: "2026-07-26",
+      },
+    ],
+  },
+
+  /* — Ficção Científica — */
+  {
+    id: "t-3corpos-dificil",
+    grupoId: "ficcao-cientifica",
+    titulo: "O Problema dos 3 Corpos: a física atrapalha ou é o melhor do livro?",
+    autorSlug: "ricardo",
+    date: "2026-07-28",
+    bookId: 109,
+    respostas: [
+      {
+        autorSlug: "ricardo",
+        texto: "Para mim é o melhor. Mas admito que ouvi dois capítulos duas vezes.",
+        date: "2026-07-28",
+      },
+      {
+        autorSlug: "carla-lima",
+        texto:
+          "Atrapalhou no começo. Depois entendi que não precisava entender tudo, e o livro ficou ótimo.",
+        date: "2026-07-30",
+      },
+    ],
+  },
+  {
+    id: "t-fundacao-ordem",
+    grupoId: "ficcao-cientifica",
+    titulo: "Fundação: ordem de publicação ou ordem cronológica?",
+    autorSlug: "felipe-g",
+    date: "2026-07-21",
+    bookId: 8,
+    respostas: [
+      {
+        autorSlug: "felipe-g",
+        texto: "Publicação, sempre. A cronológica entrega coisa que o Asimov queria que fosse surpresa.",
+        date: "2026-07-21",
+      },
+    ],
+  },
+
+  /* — True Crime: sem livro de propósito, porque a conversa não é sobre um — */
+  {
+    id: "t-true-crime-familia",
+    grupoId: "true-crime",
+    titulo: "Vocês ouviriam um caso se a família da vítima pediu que não contassem?",
+    autorSlug: "renata-v",
+    date: "2026-07-30",
+    respostas: [
+      {
+        autorSlug: "renata-v",
+        texto: "Eu não ouço. Para mim isso encerra o assunto, por melhor que seja a produção.",
+        date: "2026-07-30",
+      },
+      {
+        autorSlug: "iara",
+        texto:
+          "Concordo, e acho que devia estar escrito na ficha do livro se a família participou ou não.",
+        date: "2026-07-31",
+      },
+      {
+        autorSlug: "elias",
+        texto: "Discordo em parte: caso antigo, sem família viva, é história. O problema é o caso recente.",
+        date: "2026-07-31",
+      },
+    ],
+  },
+  {
+    id: "t-true-crime-dormir",
+    grupoId: "true-crime",
+    titulo: "Alguém mais só consegue ouvir true crime de dia?",
+    autorSlug: "sandra-l",
+    date: "2026-07-26",
+    respostas: [
+      {
+        autorSlug: "carla-lima",
+        texto: "De dia e em lugar movimentado. Em casa sozinha eu começo a ouvir barulho que não existe.",
+        date: "2026-07-27",
+      },
+    ],
+  },
+
+  /* — Vozes que eu sigo — */
+  {
+    id: "t-otavio-terror",
+    grupoId: "narradores-favoritos",
+    titulo: "O Otávio Marques em terror: exagerado ou perfeito?",
+    autorSlug: "lia-f",
+    date: "2026-07-30",
+    bookId: 105,
+    respostas: [
+      {
+        autorSlug: "lia-f",
+        texto: "Perfeito. Ele sabe onde NÃO fazer voz, e é isso que separa narrador bom de imitador.",
+        date: "2026-07-30",
+      },
+      {
+        autorSlug: "otavio",
+        texto: "No Iluminado ele segura o Jack por horas sem entregar o que vem. Aula.",
+        date: "2026-07-31",
+      },
+    ],
+  },
+  {
+    id: "t-narrador-troca",
+    grupoId: "narradores-favoritos",
+    titulo: "Livro que troca de narrador no meio da série: passa ou reprova?",
+    autorSlug: "marina-t",
+    date: "2026-07-25",
+    respostas: [
+      {
+        autorSlug: "marina-t",
+        texto: "Reprova. Já larguei uma série de seis livros no terceiro por causa disso.",
+        date: "2026-07-25",
+      },
+      {
+        autorSlug: "paulo-s",
+        texto:
+          "Passa se avisarem. O que me irrita é descobrir no capítulo 1, quando já comprei o livro inteiro.",
+        date: "2026-07-27",
+      },
+    ],
+  },
+
+  /* — Quem ouve no trânsito — */
+  {
+    id: "t-transito-ficcao",
+    grupoId: "quem-ouve-no-transito",
+    titulo: "Ficção no trânsito: vocês conseguem, ou só não-ficção?",
+    autorSlug: "ricardo",
+    date: "2026-07-29",
+    bookId: 102,
+    respostas: [
+      {
+        autorSlug: "ricardo",
+        texto:
+          "Só não-ficção. Romance eu perco o fio na primeira freada e chego em casa sem saber quem morreu.",
+        date: "2026-07-29",
+      },
+      {
+        autorSlug: "marcos-v",
+        texto: "Comigo é o contrário: livro de hábito eu esqueço, história eu lembro até do trecho.",
+        date: "2026-07-30",
+      },
+    ],
+  },
+
+  /* — Durmo antes do fim do capítulo — */
+  {
+    id: "t-dormir-releitura",
+    grupoId: "ouvir-dormindo",
+    titulo: "Vocês voltam onde dormiram ou seguem em frente?",
+    autorSlug: "bia-costa",
+    date: "2026-07-31",
+    respostas: [
+      {
+        autorSlug: "bia-costa",
+        texto: "Volto sempre um capítulo. Já aceitei que metade do livro eu ouço duas vezes.",
+        date: "2026-07-31",
+      },
+      {
+        autorSlug: "nara",
+        texto:
+          "Sigo. Se o livro é bom eu percebo que perdi alguma coisa e volto; se não percebo, é porque não fazia falta.",
+        date: "2026-07-31",
+      },
+    ],
+  },
 ];
 
 /* ------------------------------------------------------------------ *
@@ -636,6 +1032,8 @@ export interface MeuTopico {
   grupoId: string;
   titulo: string;
   date: string;
+  /** O livro de que ele fala — a capa sai daqui. */
+  bookId?: number;
 }
 
 export interface MinhaResposta {
@@ -722,8 +1120,18 @@ export function meusTopicos(): MeuTopico[] {
   return lerLista<MeuTopico>(MEUS_TOPICOS_KEY);
 }
 
-/** Cria um tópico seu numo grupo. Título vazio não cria. */
-export function criarTopico(grupoId: string, titulo: string): MeuTopico | null {
+/**
+ * Cria um tópico seu num grupo. Título vazio não cria.
+ *
+ * A `capa` é opcional e tem dois formatos, que são as duas coisas que o Matheus
+ * pediu em 31/07: `{ bookId }` (a capa de um livro do catálogo) ou
+ * `{ imagem }` (uma foto sua, já encolhida). Ver `capaDoTopico`, abaixo.
+ */
+export function criarTopico(
+  grupoId: string,
+  titulo: string,
+  capa?: CapaDeTopico,
+): MeuTopico | null {
   const clean = titulo.trim().slice(0, MAX_TITULO);
   if (!clean || !grupoPorId(grupoId)) return null;
   const topico: MeuTopico = {
@@ -731,8 +1139,12 @@ export function criarTopico(grupoId: string, titulo: string): MeuTopico | null {
     grupoId,
     titulo: clean,
     date: new Date().toISOString(),
+    ...(capa?.bookId ? { bookId: capa.bookId } : {}),
   };
   gravarLista(MEUS_TOPICOS_KEY, [...meusTopicos(), topico]);
+  /* A imagem enviada mora no mapa de capas, e não dentro do tópico: assim ela
+     serve igual para tópico seu e para tópico semeado que você modera. */
+  if (capa?.imagem) gravarCapa(topico.id, { imagem: capa.imagem });
   return topico;
 }
 
@@ -743,6 +1155,98 @@ export function apagarMeuTopico(id: string): void {
     MINHAS_RESPOSTAS_KEY,
     minhasRespostas().filter((item) => item.topicoId !== id),
   );
+  // E a capa também: imagem órfã no `localStorage` é lixo que ninguém vê.
+  tirarCapaDoTopico(id);
+}
+
+/* ------------------------------------------------------------------ *
+ * A capa do tópico (ROTEIRO §4.91)
+ *
+ * **Pedido do Matheus em 31/07**, ao reprovar a primeira página de tópicos:
+ * *"principalmente com o poder de colocar capa nos tópicos… ou até exportar
+ * imagens, ou até colocar a possibilidade de capas dos livros nos tópicos"*.
+ *
+ * **As duas coisas entram, e nesta ordem de importância:**
+ *
+ * 1. **A capa de um livro do catálogo.** É a que mais vale, e não por ser
+ *    barata: num app de audiolivro, a maioria dos tópicos É sobre um livro, e
+ *    dizer *qual* antes do toque é **informação**, não enfeite. De quebra, o
+ *    tópico passa a ter um link para o livro (e o livro, mais tarde, para o
+ *    tópico).
+ * 2. **Uma imagem sua**, para o tópico que não é sobre livro nenhum ("quantos
+ *    minutos vocês põem no temporizador?"). Mesmo caminho da capa de
+ *    comunidade: encolhida no navegador por `encolherImagem` e guardada como
+ *    `data:` URL — alguns quilobytes, zero servidor.
+ *
+ * **Por que a capa mora aqui, e não dentro do tópico.** Tópico semeado é
+ * código; se a capa morasse nele, ninguém poderia trocar a de um tópico que já
+ * existe. O mapa por fora vale para os dois casos e é a mesma solução da
+ * moderação, logo abaixo, e dos clubes renomeados (§4.69).
+ * ------------------------------------------------------------------ */
+
+const CAPAS_KEY = "allbook_grupos_capas";
+
+export interface CapaDeTopico {
+  /** `data:` URL enviada pela pessoa — ganha da capa de livro. */
+  imagem?: string;
+  /** Id de um livro do `catalog`. */
+  bookId?: number;
+}
+
+function lerCapas(): Record<string, CapaDeTopico> {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(CAPAS_KEY) || "{}");
+    return guardado && typeof guardado === "object" && !Array.isArray(guardado) ? guardado : {};
+  } catch {
+    return {};
+  }
+}
+
+function gravarCapa(topicoId: string, capa: CapaDeTopico): void {
+  const mapa = lerCapas();
+  try {
+    localStorage.setItem(CAPAS_KEY, JSON.stringify({ ...mapa, [topicoId]: capa }));
+  } catch {
+    /* localStorage cheio: a capa não persiste, mas a tela já mostrou o efeito */
+  }
+  window.dispatchEvent(new Event(GRUPOS_EVENT));
+}
+
+/**
+ * A capa **escolhida** para um tópico — o que a pessoa gravou, se gravou.
+ *
+ * Não devolve a do esqueleto de propósito: quem junta as duas é `topicosDa`,
+ * pela mesma razão de sempre (a tela não deve lembrar de casar duas fontes).
+ */
+export function capaEscolhida(topicoId: string): CapaDeTopico | undefined {
+  return lerCapas()[topicoId];
+}
+
+/**
+ * Põe (ou troca) a capa de um tópico. Só o **autor** ou um **moderador** —
+ * é a mesma régua de fixar e esconder.
+ */
+export function definirCapaDoTopico(
+  grupoId: string,
+  topicoId: string,
+  capa: CapaDeTopico,
+): boolean {
+  const meu = meusTopicos().some((topico) => topico.id === topicoId);
+  if (!meu && !podeModerar(grupoId)) return false;
+  gravarCapa(topicoId, capa);
+  return true;
+}
+
+/** Tira a capa escolhida — o tópico volta à do esqueleto, ou a nenhuma. */
+export function tirarCapaDoTopico(topicoId: string): void {
+  const mapa = lerCapas();
+  delete mapa[topicoId];
+  try {
+    localStorage.setItem(CAPAS_KEY, JSON.stringify(mapa));
+  } catch {
+    /* idem */
+  }
+  window.dispatchEvent(new Event(GRUPOS_EVENT));
 }
 
 export function minhasRespostas(): MinhaResposta[] {
@@ -796,22 +1300,65 @@ export interface TopicoNaTela {
   escondido: boolean;
   totalRespostas: number;
   ultimaAtividade: string;
+
+  /* — o que a lista de tópicos mostra além do título (§4.91) — */
+
+  /** A capa: imagem enviada, se houver. */
+  imagem?: string;
+  /** A capa: o livro de que o tópico fala. */
+  bookId?: number;
+  /**
+   * **A última coisa que alguém disse ali.** É o que faz querer entrar — a
+   * lista antiga mostrava título, autor e um número, e nenhum deles diz se a
+   * conversa está boa.
+   */
+  ultimaFala?: { autor: CommunityMember | null; texto: string };
+  /** Quem falou no fio, em ordem de chegada. `null` na lista = você. */
+  participantes: (CommunityMember | null)[];
 }
 
 function contarRespostas(topicoId: string, semeadas: RespostaSemeada[]): {
   total: number;
   ultima: string;
   base: string;
+  ultimaFala?: { autor: CommunityMember | null; texto: string };
+  participantes: (CommunityMember | null)[];
 } {
   const minhas = minhasRespostas().filter((item) => item.topicoId === topicoId);
-  const datas = [
-    ...semeadas.map((item) => item.date),
-    ...minhas.map((item) => item.date.slice(0, 10)),
-  ].sort();
+
+  /* Tudo numa lista só, ordenada por data — é dela que saem a última fala e a
+     ordem de chegada de quem participou. */
+  const falas = [
+    ...semeadas.map((item) => ({
+      date: item.date,
+      texto: item.texto,
+      autor: community.find((membro) => membro.slug === item.autorSlug) ?? null,
+    })),
+    ...minhas.map((item) => ({
+      date: item.date.slice(0, 10),
+      /* Resposta que é só um trecho de áudio não tem texto: a lista diz o que
+         ela é, em vez de mostrar uma linha vazia. */
+      texto: item.texto || "(um trecho do áudio)",
+      autor: null as CommunityMember | null,
+    })),
+  ].sort((a, b) => a.date.localeCompare(b.date));
+
+  const vistos = new Set<string>();
+  const participantes: (CommunityMember | null)[] = [];
+  for (const fala of falas) {
+    const chave = fala.autor?.slug ?? "voce";
+    if (vistos.has(chave)) continue;
+    vistos.add(chave);
+    participantes.push(fala.autor);
+  }
+
+  const ultima = falas[falas.length - 1];
   return {
-    total: semeadas.length + minhas.length,
-    ultima: datas[datas.length - 1] ?? "",
-    base: datas[0] ?? "",
+    total: falas.length,
+    ultima: ultima?.date ?? "",
+    base: falas[0]?.date ?? "",
+    ...(ultima ? { ultimaFala: { autor: ultima.autor, texto: ultima.texto } } : {}),
+    participantes,
   };
 }
 
@@ -965,10 +1512,25 @@ export function topicosDa(
   opcoes: { incluirEscondidos?: boolean } = {},
 ): TopicoNaTela[] {
   const moderacao = lerModeracao();
+  const capas = lerCapas();
+
+  /* A capa escolhida ganha da de fábrica — a mesma ordem da capa de comunidade:
+     o que a pessoa **escolheu** vence o que o app **traz pronto**. */
+  const capaDe = (topicoId: string, doEsqueleto?: number) => {
+    const escolhida = capas[topicoId];
+    return {
+      ...(escolhida?.imagem ? { imagem: escolhida.imagem } : {}),
+      ...(escolhida?.bookId ?? doEsqueleto ? { bookId: escolhida?.bookId ?? doEsqueleto } : {}),
+    };
+  };
+
   const doEsqueleto: TopicoNaTela[] = topicosSemeados
     .filter((topico) => topico.grupoId === grupoId)
     .map((topico) => {
-      const { total, ultima } = contarRespostas(topico.id, topico.respostas);
+      const { total, ultima, ultimaFala, participantes } = contarRespostas(
+        topico.id,
+        topico.respostas,
+      );
       return {
         id: topico.id,
         grupoId,
@@ -980,13 +1542,16 @@ export function topicosDa(
         escondido: moderacao.topicos.includes(topico.id),
         totalRespostas: total,
         ultimaAtividade: ultima || topico.date,
+        ...capaDe(topico.id, topico.bookId),
+        ...(ultimaFala ? { ultimaFala } : {}),
+        participantes,
       };
     });
 
   const meus: TopicoNaTela[] = meusTopicos()
     .filter((topico) => topico.grupoId === grupoId)
     .map((topico) => {
-      const { total, ultima } = contarRespostas(topico.id, []);
+      const { total, ultima, ultimaFala, participantes } = contarRespostas(topico.id, []);
       return {
         id: topico.id,
         grupoId,
@@ -998,6 +1563,9 @@ export function topicosDa(
         escondido: moderacao.topicos.includes(topico.id),
         totalRespostas: total,
         ultimaAtividade: ultima || topico.date.slice(0, 10),
+        ...capaDe(topico.id, topico.bookId),
+        ...(ultimaFala ? { ultimaFala } : {}),
+        participantes,
       };
     });
 
