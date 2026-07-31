@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { avatarDeLeitor } from "@/lib/community";
 import { Link, useLocation } from "wouter";
-import { BookOpen, LogOut, Share2, Shield, UserPlus, Users } from "lucide-react";
+import { BookOpen, Lock, LogOut, Radio, Share2, Shield, UserPlus, Users } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import CartaoDoCiclo from "@/components/clube/CartaoDoCiclo";
@@ -204,6 +204,32 @@ export default function Clube({ params }: { params: { id: string } }) {
               {" · moderado por "}
               {nomeDoMembro(clube.donoSlug)}
             </span>
+
+            {/* Os dois selos que mudam o que se espera desta turma (§4.81): o
+                clube que ouve junto e o clube que escolhe quem entra. Só
+                aparecem quando valem — selo que está sempre lá não informa. */}
+            {(clube.aoVivo || clube.privado) && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {clube.aoVivo && (
+                  <span
+                    className="flex items-center gap-1 rounded-full bg-red-500/12 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-red-300 ring-1 ring-inset ring-red-500/25"
+                    data-testid="selo-clube-ao-vivo"
+                  >
+                    <Radio className="h-3 w-3" />
+                    Ouve junto
+                  </span>
+                )}
+                {clube.privado && (
+                  <span
+                    className="flex items-center gap-1 rounded-full bg-white/[0.07] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white/50 ring-1 ring-inset ring-white/10"
+                    data-testid="selo-clube-fechado"
+                  >
+                    <Lock className="h-3 w-3" />
+                    Fechado
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/*

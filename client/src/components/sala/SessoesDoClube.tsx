@@ -1,8 +1,12 @@
-import { Link } from "wouter";
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
+import { CalendarPlus, Radio } from "lucide-react";
 import { catalog } from "@/lib/books";
 import { avatarDeLeitor, findMember } from "@/lib/community";
 import { type Clube } from "@/lib/clubes";
-import { salasDoClube, situacaoDaSala } from "@/lib/salaAoVivo";
+import { abrirSala, salasDoClube, situacaoDaSala } from "@/lib/salaAoVivo";
+import { souMembro } from "@/lib/clubes";
+import MarcarSessao from "@/components/sala/MarcarSessao";
 
 /**
  * **As sessões de escuta deste clube** (ROTEIRO §4.81).
@@ -34,15 +38,39 @@ export default function SessoesDoClube({ clube }: { clube: Clube }) {
    *
    * Aqui fica o que **não é agenda**: a sala no ar, que existe enquanto dura.
    */
+  const [, navigate] = useLocation();
+  const [marcando, setMarcando] = useState(false);
   const agora = salasDoClube(clube.id).filter((sala) => sala.porta !== "marcada");
-  if (agora.length === 0) return null;
+  const membro = souMembro(clube);
+
+  /*
+   * **O clube ao vivo mostra a seção mesmo vazia; o clube comum, não.**
+   *
+   * Parece contradizer a §4.40 (que tirou as caixas vazias desta tela), e não
+   * contradiz: num clube que nasceu ao vivo, "não há sessão marcada" **é a
+   * informação mais importante da página** — é o que aquela turma combinou de
+   * fazer e não está fazendo. Num clube comum, a mesma caixa seria propaganda de
+   * um recurso que ninguém pediu.
+   */
+  if (agora.length === 0 && !clube.aoVivo) {
+    return membro ? <ConviteParaMarcar clube={clube} /> : null;
+  }
 
   return (
     <section className="space-y-3" data-testid="sessoes-do-clube">
       <div className="flex items-baseline justify-between">
-        <h2 className="font-display text-lg font-bold">Ouvindo agora</h2>
+        <h2 className="font-display text-lg font-bold">
+          {agora.length > 0 ? "Ouvindo agora" : "Ouvir junto"}
+        </h2>
         <span className="text-xs text-white/35">sessão de escuta ao vivo</span>
       </div>
+
+      {agora.length === 0 && (
+        <p className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5 text-xs leading-relaxed text-white/45">
+          <b className="text-white/75">Este clube ouve junto.</b> Ninguém está transmitindo agora —
+          marque a próxima sessão ou abra uma sala e chame a turma.
+        </p>
+      )}
 
       {agora.map((sala) => {
         const situacao = situacaoDaSala(sala);
@@ -101,10 +129,68 @@ export default function SessoesDoClube({ clube }: { clube: Clube }) {
         );
       })}
 
+      {membro && (
+        <div className="flex gap-2">
+          <button
+            onClick={() => setMarcando(true)}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/[0.06] py-2.5 text-[12.5px] font-semibold text-white/70 ring-1 ring-inset ring-white/10 transition-colors hover:bg-white/10"
+            data-testid="button-marcar-sessao-clube"
+          >
+            <CalendarPlus className="h-4 w-4" />
+            Marcar sessão
+          </button>
+          <button
+            onClick={() => {
+              const sala = abrirSala({
+                bookId: clube.ciclo.bookId,
+                porta: "aberta",
+                posicaoSec: 0,
+                clubeId: clube.id,
+              });
+              navigate(`/sala/${sala.id}`);
+            }}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500/[0.12] py-2.5 text-[12.5px] font-bold text-red-200 ring-1 ring-inset ring-red-500/30 transition-colors hover:bg-red-500/20"
+            data-testid="button-abrir-sala-clube"
+          >
+            <Radio className="h-4 w-4" />
+            Abrir sala agora
+          </button>
+        </div>
+      )}
+
       <p className="text-[10.5px] leading-relaxed text-white/25">
         Entrar te põe no mesmo segundo que a turma. A <b className="text-white/45">rodada</b> do
         clube continua sem hora — você responde quando der.
       </p>
+
+      {marcando && <MarcarSessao clube={clube} onFechar={() => setMarcando(false)} />}
     </section>
+  );
+}
+
+/**
+ * A porta discreta para marcar a primeira sessão num clube **comum**.
+ *
+ * Uma linha, não uma seção: quem não pediu clube ao vivo não precisa de um
+ * bloco inteiro explicando o que é. Some para quem não é membro.
+ */
+function ConviteParaMarcar({ clube }: { clube: Clube }) {
+  const [marcando, setMarcando] = useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setMarcando(true)}
+        className="flex w-full items-center gap-2.5 rounded-xl border border-white/8 bg-white/[0.025] px-3.5 py-2.5 text-left transition-colors hover:bg-white/[0.06]"
+        data-testid="button-marcar-primeira-sessao"
+      >
+        <Radio className="h-4 w-4 shrink-0 text-white/35" />
+        <span className="min-w-0 flex-1 text-[12px] text-white/50">
+          Marcar uma <b className="text-white/75">sessão de escuta</b> — a turma ouve junto, com
+          hora
+        </span>
+      </button>
+      {marcando && <MarcarSessao clube={clube} onFechar={() => setMarcando(false)} />}
+    </>
   );
 }
