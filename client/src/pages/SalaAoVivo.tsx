@@ -288,7 +288,9 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
           </div>
           <p className="mx-6 mt-3 rounded-xl bg-primary/[0.09] px-3.5 py-2.5 text-[11.5px] leading-relaxed text-orange-300 ring-1 ring-inset ring-primary/25">
             Você manda na sala. <b className="text-white">Pausar, voltar, adiantar e encerrar</b>{" "}
-            valem para as {sala.presentes.length} pessoas.
+            {sala.presentes.length === 1
+              ? "valem para quem entrar."
+              : `valem para as ${sala.presentes.length} pessoas.`}
           </p>
         </>
       ) : (

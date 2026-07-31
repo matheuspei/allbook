@@ -14,6 +14,9 @@ import BarraDeAcoesDoPlayer from "@/components/BarraDeAcoesDoPlayer";
 import ConversaDoTrecho from "@/components/ConversaDoTrecho";
 import MarcasDaConversa from "@/components/MarcasDaConversa";
 import FaixaDaTurmaNoPlayer from "@/components/clube/FaixaDaTurmaNoPlayer";
+import FaixaDaSalaNoPlayer, { ItemOuvirJunto } from "@/components/sala/FaixaDaSalaNoPlayer";
+import AbrirSala from "@/components/sala/AbrirSala";
+import { SALA_AO_VIVO_EVENT } from "@/lib/salaAoVivo";
 import { MAX_CITACAO_SEC, criarCitacao, rotuloDaCitacao } from "@/lib/citacoes";
 import { CLUBES_EVENT, meuClubeDoLivro } from "@/lib/clubes";
 import { guardarTrecho, type TrechoGuardado } from "@/lib/trechosGuardados";
@@ -292,6 +295,19 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * (entrar, sair, encerrar ciclo) e não a cada segundo de áudio: `CLUBES_EVENT`
    * é o mesmo aviso que as telas de clube já escutam.
    */
+  /**
+   * A sala de escuta ao vivo (§4.81). `versaoDaSala` só existe para a faixa
+   * redesenhar quando alguém abre, entra ou encerra uma sala — o mesmo padrão
+   * que o clube usa logo abaixo.
+   */
+  const [showAbrirSala, setShowAbrirSala] = useState(false);
+  const [versaoDaSala, setVersaoDaSala] = useState(0);
+  useEffect(() => {
+    const atualizar = () => setVersaoDaSala((v) => v + 1);
+    window.addEventListener(SALA_AO_VIVO_EVENT, atualizar);
+    return () => window.removeEventListener(SALA_AO_VIVO_EVENT, atualizar);
+  }, []);
+
   const [clubeDoLivro, setClubeDoLivro] = useState(() => meuClubeDoLivro(book.id));
   useEffect(() => {
     const atualizar = () => setClubeDoLivro(meuClubeDoLivro(book.id));
@@ -618,6 +634,17 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           */}
           {clubeDoLivro && <FaixaDaTurmaNoPlayer clube={clubeDoLivro} />}
 
+          {/*
+            A sala ao vivo deste livro, se houver (§4.81). Fica ao lado da faixa
+            do clube porque as duas respondem à mesma pergunta — "tem gente
+            comigo neste livro?" —, e some sozinha quando não há sala.
+            `key` com a versão: a faixa precisa sumir na hora em que a sala é
+            encerrada, sem esperar a próxima navegação.
+          */}
+          <div key={versaoDaSala} className="w-full px-2 shrink-0">
+            <FaixaDaSalaNoPlayer bookId={book.id} />
+          </div>
+
           {/* Progress Section */}
           <div className="w-full space-y-2 px-2 shrink-0">
             <div className="relative pt-1">
@@ -859,6 +886,16 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           bookId={book.id}
           posicaoSec={currentTime}
           onFechar={() => setShowConversa(false)}
+        />
+      )}
+
+      {/* Abrir uma sala de escuta ao vivo, a partir do ponto onde a pessoa está
+          (ROTEIRO §4.81). */}
+      {showAbrirSala && (
+        <AbrirSala
+          bookId={book.id}
+          posicaoSec={currentTime}
+          onFechar={() => setShowAbrirSala(false)}
         />
       )}
 
@@ -1110,6 +1147,16 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   parecido: era o
                   mesmo teatro dos diálogos do modo carro — o app não conecta
                   nada, quem conecta é o sistema do celular (ROTEIRO 4.33). */}
+              {/* Abrir sala de escuta ao vivo (§4.81). Fica no menu porque é ação
+                  ocasional; o que é do momento — uma sala já no ar — aparece
+                  sozinho na faixa junto da barra de progresso. */}
+              <ItemOuvirJunto
+                onAbrir={() => {
+                  setShowMoreMenu(false);
+                  setShowAbrirSala(true);
+                }}
+              />
+
               <button
                 onClick={() => {
                   setShowMoreMenu(false);

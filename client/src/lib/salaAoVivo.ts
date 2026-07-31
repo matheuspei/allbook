@@ -95,8 +95,20 @@ export interface SalaAoVivo {
   /** Só para `porta: "marcada"`: quando começa (ISO) e a hora ("21:00"). */
   data?: string;
   hora?: string;
-  /** Onde o áudio da sala está, em segundos. Só o anfitrião muda. */
+  /**
+   * Onde o áudio da sala estava **no instante `marcoEm`**. Só o anfitrião muda.
+   *
+   * ⚠️ Não leia este campo direto para mostrar na tela — use `posicaoAgora`.
+   * Sozinho ele é uma foto: enquanto a sala toca, a posição de verdade é esta
+   * mais o tempo que passou desde o marco.
+   */
   posicaoSec: number;
+  /**
+   * Quando `posicaoSec` foi fixada. É o que faz a transmissão **andar**: sem ele
+   * a sala ficava congelada no segundo em que foi aberta, mesmo "tocando" —
+   * defeito achado testando, na primeira sala que eu mesmo criei.
+   */
+  marcoEm: number;
   tocando: boolean;
   /** Slugs de quem está dentro agora. */
   presentes: string[];
@@ -148,6 +160,7 @@ export function salaSemeada(): SalaAoVivo {
     anfitriao: "ana-paula",
     porta: "aberta",
     posicaoSec: COMECOU_EM_SEC,
+    marcoEm: abertaEm,
     tocando: true,
     presentes: ["ana-paula", "marcos-v", "juliana-s", "carla-lima", "beto"],
     falas: FALAS_SEMEADAS,
@@ -181,16 +194,19 @@ const FALAS_SEMEADAS: FalaDaSala[] = [
 /**
  * Onde a transmissão de uma sala está **agora**.
  *
- * Para a sala fictícia o áudio anda com o relógio — é o que faz dela uma
- * transmissão, e não uma foto. Para as suas salas quem manda é o campo gravado:
- * se você pausou, ficou parado mesmo.
+ * A conta é a mesma para a sala fictícia e para a sua: **posição do marco + o
+ * tempo que passou desde ele**, e só enquanto está tocando. Pausou, congela;
+ * encerrou, congela de vez.
+ *
+ * É isto que faz uma sala ser transmissão e não uma foto — e vale para o
+ * anfitrião também. Na primeira versão só a sala semeada andava, e a minha
+ * própria sala nascia parada no segundo em que eu a abri.
  */
 export function posicaoAgora(sala: SalaAoVivo): number {
-  if (sala.encerradaEm) return sala.posicaoSec;
-  if (sala.id !== "sala-semeada-1") return sala.posicaoSec;
+  if (sala.encerradaEm || !sala.tocando) return sala.posicaoSec;
 
-  const corridos = Math.floor((Date.now() - sala.abertaEm) / 1000);
-  return sala.posicaoSec + corridos;
+  const corridos = Math.floor((Date.now() - sala.marcoEm) / 1000);
+  return sala.posicaoSec + Math.max(0, corridos);
 }
 
 /* ------------------------------------------------------------------ */
@@ -342,6 +358,7 @@ export function abrirSala(dados: {
     data: dados.data,
     hora: dados.hora,
     posicaoSec: dados.posicaoSec,
+    marcoEm: Date.now(),
     tocando: true,
     presentes: [EU],
     falas: [],
@@ -375,9 +392,15 @@ export function mandarNoAudio(id: string, mudanca: { posicaoSec?: number; tocand
   const sala = salaPorId(id);
   if (!sala || !souAnfitriao(sala) || sala.encerradaEm) return;
 
+  /*
+   * Toda mudança **refaz o marco**: a posição gravada passa a ser a de agora, e
+   * o relógio recomeça dali. Sem isso, pausar e voltar a tocar somaria de novo
+   * o tempo já corrido e a sala pularia para frente sozinha.
+   */
   salvarMinha({
     ...sala,
-    posicaoSec: mudanca.posicaoSec ?? sala.posicaoSec,
+    posicaoSec: mudanca.posicaoSec ?? posicaoAgora(sala),
+    marcoEm: Date.now(),
     tocando: mudanca.tocando ?? sala.tocando,
   });
 }
@@ -416,6 +439,7 @@ export function encerrarSala(id: string): void {
   salvarMinha({
     ...sala,
     posicaoSec: posicaoAgora(sala),
+    marcoEm: Date.now(),
     tocando: false,
     presentes: [],
     encerradaEm: Date.now(),

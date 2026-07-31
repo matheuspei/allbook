@@ -210,7 +210,10 @@ function Router() {
           </Switch>
         </div>
       </div>
-      {!isLoginPage && <MiniPlayer />}
+      {/* A sala entra na mesma regra do Login: dentro dela **você já está
+          ouvindo com gente**, e a barrinha de outro livro por cima do chat é
+          duas transmissões disputando a mesma tela. */}
+      {!isLoginPage && !isSalaPage && <MiniPlayer />}
       {!isBare && <BottomNav />}
     </div>
   );
