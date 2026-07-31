@@ -31,6 +31,8 @@ import {
   vagasRestantes,
   type Clube as ClubeTipo,
 } from "@/lib/clubes";
+import { forumNaTela } from "@/lib/forum";
+import { eventosDoClube } from "@/lib/forumConteudo";
 
 /**
  * Copiar texto com plano B.
@@ -317,6 +319,8 @@ export default function Clube({ params }: { params: { id: string } }) {
 
         <CartaoDoCiclo clube={clube} />
 
+        <EncontrosDoClube clube={clube} />
+
         {membro ? (
           <>
             {/*
@@ -389,6 +393,84 @@ export default function Clube({ params }: { params: { id: string } }) {
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * **Os encontros marcados que apontam para este clube** (31/07).
+ *
+ * A ponte pedida pelo Matheus tem duas pontas: o evento mostra o clube (lá na
+ * comunidade) e o clube mostra os eventos — esta aqui.
+ *
+ * ⚠️ **Isto não é o encontro do ciclo, e a tela diz isso.** A §4.39 decidiu que
+ * o encontro do clube **não tem hora marcada** porque quem ouve audiolivro ouve
+ * dirigindo e às 23h; ele é uma rodada de dois ou três dias. O que aparece aqui
+ * é outra coisa: a maratona combinada, o presencial na livraria — marcados numa
+ * comunidade do fórum, por quem quis marcar. Sem a frase do rodapé, as duas
+ * coisas viravam uma só na cabeça de quem lê.
+ *
+ * **Só aparece quando há encontro** — a regra da §4.40 que tirou as caixas
+ * vazias desta tela.
+ */
+function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
+  const eventos = eventosDoClube(clube.id);
+  if (eventos.length === 0) return null;
+
+  return (
+    <section className="space-y-3" data-testid="encontros-do-clube">
+      <div className="flex items-baseline justify-between">
+        <h2 className="font-display text-lg font-bold">Encontros marcados</h2>
+        <span className="text-xs text-white/35">
+          {eventos.length} {eventos.length === 1 ? "encontro" : "encontros"}
+        </span>
+      </div>
+
+      <div className="space-y-2">
+        {eventos.map((evento) => {
+          const quando = new Date(`${evento.data}T12:00:00`);
+          const comunidade = forumNaTela(evento.grupoId);
+
+          return (
+            <Link
+              key={evento.id}
+              href={`/forum/${evento.grupoId}`}
+              className="flex gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06]"
+              data-testid={`encontro-${evento.id}`}
+            >
+              <span className="w-[46px] shrink-0 overflow-hidden rounded-xl text-center ring-1 ring-inset ring-primary/25">
+                <span className="block bg-primary/15 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-primary">
+                  {quando.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}
+                </span>
+                <span className="block py-1 font-display text-[18px] font-bold leading-none">
+                  {quando.getDate()}
+                </span>
+              </span>
+
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13.5px] font-semibold leading-snug">
+                  {evento.titulo}
+                </span>
+                <span className="mt-0.5 block truncate text-[11px] text-white/40">
+                  {quando.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric" })}
+                  {evento.hora && ` · ${evento.hora}`}
+                  {evento.local && ` · ${evento.local}`}
+                </span>
+                {comunidade && (
+                  <span className="mt-0.5 block truncate text-[10.5px] text-white/25">
+                    marcado em {comunidade.nome}
+                  </span>
+                )}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+
+      <p className="text-[10.5px] leading-relaxed text-white/25">
+        Encontro marcado tem hora e é combinado numa comunidade. A rodada do clube continua sem
+        hora — você responde quando der.
+      </p>
+    </section>
   );
 }
 

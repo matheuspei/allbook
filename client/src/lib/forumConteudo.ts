@@ -210,6 +210,28 @@ export interface Evento {
   autorSlug?: string;
   criadoEm: string;
   cancelado?: boolean;
+  /**
+   * O clube de leitura a que este evento se refere. Opcional.
+   *
+   * **A ponte que o Matheus pediu em 31/07:** *"se eu criar um evento
+   * convidando uma pessoa para ir para o clube de leituras, eu consigo linkar
+   * isso a um clube?"*. Consegue — o evento **aponta** para o clube, como um
+   * post anexa um trecho.
+   *
+   * ⚠️ **E o clube continua sem hora marcada.** A §4.39 decidiu que o encontro
+   * do clube é uma **rodada** assíncrona de dois ou três dias, porque quem ouve
+   * audiolivro ouve dirigindo e às 23h — marcar "quinta às 20h" exclui
+   * justamente esse comportamento. Se o evento com hora virasse o encontro do
+   * clube, o clube passaria a ter **dois** encontros com o mesmo nome (o
+   * `ciclo.encontro` e este), e os avisos de `avisosDeClube.ts` falariam de
+   * duas coisas diferentes.
+   *
+   * Por isso a ligação é de mão única: o evento sabe o clube, o clube só
+   * **mostra** os eventos que o apontam. Encontro marcado é a maratona
+   * combinada ("todo mundo dá play sábado às 21h") ou o presencial na livraria
+   * — nunca o substituto da rodada.
+   */
+  clubeId?: string;
 }
 
 const EVENTOS_SEMEADOS: Evento[] = [
@@ -224,6 +246,10 @@ const EVENTOS_SEMEADOS: Evento[] = [
       "Combinado: todo mundo dá play às 21h e a gente comenta no tópico logo depois. Sem spoiler antes.",
     autorSlug: "ana-paula",
     criadoEm: "2026-07-25",
+    /* A ponte já nasce com exemplo: o clube aparece dentro do evento, e o
+       evento aparece na página do clube. Caixa vazia não ensina o que a
+       ligação faz (a régua da §4.23). */
+    clubeId: "misterio",
   },
   {
     id: "v-esq-2",
@@ -235,6 +261,7 @@ const EVENTOS_SEMEADOS: Evento[] = [
     descricao: "Trechos favoritos, lidos por quem quiser ler.",
     autorSlug: "juliana-s",
     criadoEm: "2026-07-22",
+    clubeId: "austen",
   },
 ];
 
@@ -269,6 +296,7 @@ export function criarEvento(dados: {
   hora?: string;
   local?: string;
   descricao?: string;
+  clubeId?: string;
 }): Evento | null {
   const titulo = dados.titulo.trim().slice(0, 120);
   if (!titulo || !dados.data) return null;
@@ -280,10 +308,26 @@ export function criarEvento(dados: {
     hora: dados.hora?.trim() || undefined,
     local: dados.local?.trim().slice(0, 120) || undefined,
     descricao: dados.descricao?.trim().slice(0, 500) || undefined,
+    clubeId: dados.clubeId || undefined,
     criadoEm: new Date().toISOString(),
   };
   gravar(EVENTOS_CHAVE, [...ler<Evento>(EVENTOS_CHAVE), evento]);
   return evento;
+}
+
+/**
+ * Os eventos que apontam para um clube — **a vitrine do lado de lá**.
+ *
+ * Os próximos primeiro, e **o que já passou fica de fora**: a página do clube
+ * mostra o que ainda dá para ir. Um dia de folga (86.400.000 ms) por causa de
+ * evento que acontece à noite e ainda vale de manhã seguinte.
+ */
+export function eventosDoClube(clubeId: string): Evento[] {
+  const limite = Date.now() - 86_400_000;
+  return [...EVENTOS_SEMEADOS, ...ler<Evento>(EVENTOS_CHAVE)]
+    .filter((item) => item.clubeId === clubeId)
+    .filter((item) => new Date(`${item.data}T12:00:00`).getTime() >= limite)
+    .sort((a, b) => a.data.localeCompare(b.data));
 }
 
 export function apagarEvento(id: string): void {
@@ -303,23 +347,67 @@ export function responderPresenca(eventoId: string, resposta: Presenca): void {
   gravar(PRESENCAS_CHAVE, jaEra === resposta ? atual : [...atual, { eventoId, resposta }]);
 }
 
+type PresencaDeOutro = { eventoId: string; slug: string; resposta: Presenca };
+
+/** Onde ficam as respostas de quem **você convidou** (`convitesDeEvento.ts`). */
+const OUTROS_CHAVE = "allbook_forum_presencas_outros";
+
+/**
+ * Guarda a resposta de outra pessoa a um evento.
+ *
+ * Quem chama é o convite (`convitesDeEvento.ts`), quando o convidado responde.
+ * **Ela ganha da semente**: uma pessoa que você chamou e que disse "vou" não
+ * pode continuar contada como "talvez" só porque o sorteio estável dizia isso.
+ */
+export function registrarPresencaDe(eventoId: string, slug: string, resposta: Presenca): void {
+  const atual = ler<PresencaDeOutro>(OUTROS_CHAVE).filter(
+    (item) => !(item.eventoId === eventoId && item.slug === slug),
+  );
+  gravar(OUTROS_CHAVE, [...atual, { eventoId, slug, resposta }]);
+}
+
+/** A resposta declarada de alguém, se houver. */
+export function presencaDe(eventoId: string, slug: string): Presenca | undefined {
+  return ler<PresencaDeOutro>(OUTROS_CHAVE).find(
+    (item) => item.eventoId === eventoId && item.slug === slug,
+  )?.resposta;
+}
+
 /**
  * Quem respondeu o quê — os fictícios são estáveis, e **quem organiza vai**.
  *
  * Evento sem ninguém confirmado parece cancelado antes de começar; por isso o
  * autor entra sempre na lista dos que vão, que é o que acontece de verdade.
+ *
+ * **Três camadas, nesta ordem:** quem respondeu a um convite seu (declarado),
+ * depois o sorteio estável dos outros leitores, e por fim você. Num evento
+ * **seu** o sorteio não roda — fingir que doze pessoas confirmaram no que você
+ * acabou de marcar é a mentira mais fácil de perceber —, mas os convidados que
+ * responderam aparecem, porque eles vieram de uma ação sua.
  */
 export function presencasDe(evento: Evento): Record<Presenca, string[]> {
   const resultado: Record<Presenca, string[]> = { vou: [], talvez: [], nao: [] };
 
-  if (evento.autorSlug) {
-    resultado.vou.push(evento.autorSlug);
-    for (const membro of community) {
-      if (membro.slug === evento.autorSlug) continue;
-      const n = semear(`${evento.id}-${membro.slug}`) % 10;
-      if (n < 3) resultado.vou.push(membro.slug);
-      else if (n < 5) resultado.talvez.push(membro.slug);
+  const declaradas = new Map<string, Presenca>();
+  for (const item of ler<PresencaDeOutro>(OUTROS_CHAVE)) {
+    if (item.eventoId === evento.id) declaradas.set(item.slug, item.resposta);
+  }
+
+  if (evento.autorSlug) resultado.vou.push(evento.autorSlug);
+
+  for (const membro of community) {
+    if (membro.slug === evento.autorSlug) continue;
+
+    const declarada = declaradas.get(membro.slug);
+    if (declarada) {
+      resultado[declarada].push(membro.slug);
+      continue;
     }
+
+    if (!evento.autorSlug) continue;
+    const n = semear(`${evento.id}-${membro.slug}`) % 10;
+    if (n < 3) resultado.vou.push(membro.slug);
+    else if (n < 5) resultado.talvez.push(membro.slug);
   }
 
   const minha = minhaPresenca(evento.id);

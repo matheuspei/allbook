@@ -6455,6 +6455,66 @@ naquele momento.**
 
 ---
 
+## 4.79 O evento aponta para o clube — e o clube continua sem hora (31/07)
+
+> *"Aqui existe a possibilidade de criar um evento, como era no Orkut? Mas, por
+> exemplo, se eu criar um evento convidando uma pessoa para ir para o clube de
+> leituras, eu consigo linkar isso a um clube? Como é que funcionaria isso?"*
+
+**O que existia:** evento de comunidade completo (título, data, hora, local,
+descrição, *vou · talvez · não vou*) em `forumConteudo.ts`. **O que não
+existia:** qualquer ligação com clube — o evento só guardava `grupoId` — e
+**convidar uma pessoa** (o `convites.ts` convida para **clube**, que é outra
+coisa).
+
+### A pedra no caminho, e ela é a decisão dele de duas semanas atrás
+
+A §4.39 decidiu que **o encontro do clube não tem hora marcada**: quem ouve
+audiolivro ouve dirigindo, na academia, às 23h, e "quinta às 20h" exclui
+exatamente o comportamento que o app cultiva. O encontro é uma **rodada** de dois
+ou três dias.
+
+E o clube **já tem** um `ciclo.encontro`, usado em `avisosDeClube.ts`, na tela
+`Clubes` e no `NovoClube`.
+
+**Rejeitado, então: dar ao clube um "evento" próprio com data e hora.** Nasceriam
+**dois encontros** no mesmo clube com o mesmo nome, e os avisos passariam a falar
+de duas coisas diferentes. Quem chegar depois e propuser isso de novo: é aqui que
+já foi respondido.
+
+### O que foi feito — ligação de mão única
+
+| Peça | Onde | O que faz |
+| --- | --- | --- |
+| **Anexo** | `Evento.clubeId` | ao criar o evento, um seletor "este evento é sobre um clube?" com **meus clubes** e **outros clubes** |
+| **Cartão** | dentro do evento | capa do livro do ciclo, nome, `N pessoas · começa em…`, e a saída certa: *entrar no clube* / *você está dentro* / *ver o clube* quando está cheio (a fila mora lá) |
+| **Convite** | `convitesDeEvento.ts` | chamar alguém para o evento; ela responde em ~3s (60% vai, 20% talvez, 20% não), a contagem sobe e o sino acende |
+| **Vitrine** | página do clube | "Encontros marcados", só os que ainda não passaram, com a comunidade onde foram marcados |
+
+**A frase no rodapé da vitrine não é enfeite:** *"Encontro marcado tem hora e é
+combinado numa comunidade. A rodada do clube continua sem hora — você responde
+quando der."* Sem ela, as duas coisas viram uma só na cabeça de quem lê, que é
+justamente o que a §4.39 evitou.
+
+**Regras do convite:** quem participa convida (não só o moderador); em comunidade
+**privada** só dá para chamar quem já é da turma — chamar alguém para um evento
+que ela não pode nem abrir é o beco sem saída da §4.23; e o convite **não** dá
+entrada no clube nem no fórum: entrar continua sendo decisão de quem entra.
+
+**Quarto destino de notificação:** `forumId`, para o aviso de resposta abrir
+`/forum/:id` — os outros três eram livro, post e clube.
+
+### Um bug de estado achado no teste
+
+`Grupo.tsx` tinha `key={versao}` no corpo da página: a cada `GRUPOS_EVENT` a
+árvore inteira **remontava**, e remontar **apaga o estado dos filhos**. Na tela
+isso aparecia como a lista de convidar fechando sozinha depois de cada convite —
+mas o mesmo apagaria um tópico meio digitado ou uma enquete pela metade. O
+`versao` no estado já basta para redesenhar; o `key` foi removido, com aviso no
+código para não voltar.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

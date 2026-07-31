@@ -82,7 +82,9 @@ export default function Grupo() {
   const [topicos, setTopicos] = useState<TopicoNaTela[]>([]);
   const [criando, setCriando] = useState(false);
   const [titulo, setTitulo] = useState("");
-  const [versao, setVersao] = useState(0);
+  /* Só para redesenhar quando algo muda por fora do React (ver o comentário
+     junto ao `<div>` do corpo). O número em si não é lido. */
+  const [, setVersao] = useState(0);
 
   useEffect(() => {
     const atualizar = () => {
@@ -150,7 +152,16 @@ export default function Grupo() {
 
   return (
     <PaginaDoForum titulo={grupo.nome} voltarPara="/forum" testid="grupo-page">
-      <div className="px-5 pt-4" key={versao}>
+      {/*
+        ⚠️ **Não volte a pôr `key={versao}` aqui.** Ele remontava a página
+        inteira a cada `GRUPOS_EVENT` — e remontar **apaga o estado dos filhos**:
+        a caixa de convidar aberta, o formulário de tópico meio digitado, a
+        enquete pela metade. Pego na tela em 31/07 ao convidar alguém para um
+        evento: a lista fechava sozinha depois de cada convite.
+        O `versao` no estado já basta para redesenhar — os dados são lidos do
+        `localStorage` no corpo de cada componente, não no mount.
+      */}
+      <div className="px-5 pt-4">
         {/* ---------------- 1. a ficha ---------------- */}
         <Bloco titulo="Comunidade" testid="ficha-da-comunidade">
           <div className="flex gap-3.5">

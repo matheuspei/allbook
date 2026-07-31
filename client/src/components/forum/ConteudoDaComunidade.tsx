@@ -1,10 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "wouter";
 
-import { Bloco, BotaoDoForum, CAMPO, LinkDoForum } from "@/components/forum/Pecas";
+import { AvatarDoForum, Bloco, BotaoDoForum, CAMPO, LinkDoForum } from "@/components/forum/Pecas";
 import { useToast } from "@/hooks/use-toast";
-import { EU } from "@/lib/clubes";
+import { catalog } from "@/lib/books";
+import {
+  EU,
+  clubeCheio,
+  clubePorId,
+  dataCurta,
+  entrarNoClube,
+  estaComecando,
+  meusClubes,
+  souMembro,
+  todosOsClubes,
+} from "@/lib/clubes";
 import { findMember } from "@/lib/community";
+import {
+  convidarParaEvento,
+  podeConvidarParaEvento,
+  quemPossoConvidar,
+} from "@/lib/convitesDeEvento";
 import { possoCriar, souModerador } from "@/lib/forum";
+import { GRUPOS_EVENT } from "@/lib/grupos";
 import {
   MAX_OPCAO,
   MAX_OPCOES,
@@ -243,6 +261,16 @@ function NovaEnquete({ grupoId, onPronto }: { grupoId: string; onPronto: () => v
 
 export function Eventos({ grupoId }: { grupoId: string }) {
   const [criando, setCriando] = useState(false);
+  /* A resposta de quem você convidou chega **segundos depois**, de fora do
+     React (`convitesDeEvento.ts`). Sem escutar o evento, a contagem de "vou" só
+     mudaria ao recarregar a página. */
+  const [, setVersao] = useState(0);
+  useEffect(() => {
+    const atualizar = () => setVersao((n) => n + 1);
+    window.addEventListener(GRUPOS_EVENT, atualizar);
+    return () => window.removeEventListener(GRUPOS_EVENT, atualizar);
+  }, []);
+
   const lista = eventosDe(grupoId);
   const podeCriar = possoCriar(grupoId, "eventos");
 
@@ -283,6 +311,7 @@ const RESPOSTAS: { valor: Presenca; rotulo: string }[] = [
 
 function UmEvento({ evento, grupoId }: { evento: Evento; grupoId: string }) {
   const { toast } = useToast();
+  const [convidando, setConvidando] = useState(false);
   const presencas = presencasDe(evento);
   const minhaResposta = minhaPresenca(evento.id);
   const meu = evento.autorSlug === undefined;
@@ -324,6 +353,9 @@ function UmEvento({ evento, grupoId }: { evento: Evento; grupoId: string }) {
             <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/60">{evento.descricao}</p>
           )}
 
+          {/* A ponte com o clube (31/07) — o evento chama para uma turma. */}
+          {evento.clubeId && <ClubeDoEvento clubeId={evento.clubeId} />}
+
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {RESPOSTAS.map(({ valor, rotulo }) => {
               const marcada = minhaResposta === valor;
@@ -356,8 +388,17 @@ function UmEvento({ evento, grupoId }: { evento: Evento; grupoId: string }) {
             </p>
           )}
 
-          {posso && meu && (
-            <div className="mt-1.5">
+          <div className="mt-1.5 flex flex-wrap gap-3">
+            {!passou && (
+              <LinkDoForum
+                onClick={() => setConvidando((v) => !v)}
+                className="text-[10.5px] text-white/35 hover:text-primary"
+                testid={`convidar-evento-${evento.id}`}
+              >
+                convidar alguém »
+              </LinkDoForum>
+            )}
+            {posso && meu && (
               <LinkDoForum
                 onClick={() => {
                   apagarEvento(evento.id);
@@ -368,10 +409,161 @@ function UmEvento({ evento, grupoId }: { evento: Evento; grupoId: string }) {
               >
                 cancelar evento
               </LinkDoForum>
-            </div>
-          )}
+            )}
+          </div>
+
+          {convidando && <ConvidarParaEvento evento={evento} />}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * **O clube dentro do evento** — a ponte que o Matheus pediu em 31/07.
+ *
+ * Uma linha só: a capa do livro que a turma lê, o nome do clube e a saída certa
+ * para cada caso. **Nenhuma delas é beco sem saída** (§4.23): quem já está
+ * dentro vê que está; quem não está e cabe, entra dali mesmo; e quando o clube
+ * está cheio o link leva à página do clube, onde existe a fila de espera — o
+ * que não pode é um botão "entrar" que só sabe dizer não.
+ */
+function ClubeDoEvento({ clubeId }: { clubeId: string }) {
+  const { toast } = useToast();
+  const [versao, setVersao] = useState(0);
+  /* `versao` só existe para reler depois de entrar — o dado mora no
+     localStorage, não no estado. */
+  const clube = versao >= 0 ? clubePorId(clubeId) : undefined;
+  if (!clube) return null;
+
+  const membro = souMembro(clube);
+  const cheio = clubeCheio(clube);
+  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+
+  return (
+    <div
+      className="mt-2 flex items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/[0.06] p-2"
+      data-testid={`clube-do-evento-${clubeId}`}
+    >
+      {livro && (
+        <img src={livro.cover} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+      )}
+      <div className="min-w-0 flex-1">
+        <Link
+          href={`/clube/${clube.id}`}
+          className="block truncate text-[12.5px] font-semibold text-primary"
+        >
+          {clube.nome}
+        </Link>
+        <p className="truncate text-[10.5px] text-white/35">
+          {clube.membros.length} {clube.membros.length === 1 ? "pessoa" : "pessoas"}
+          {estaComecando(clube)
+            ? ` · começa em ${dataCurta(clube.ciclo.inicio)}`
+            : livro
+              ? ` · lendo ${livro.title}`
+              : ""}
+        </p>
+      </div>
+
+      {membro ? (
+        <span className="shrink-0 text-[10.5px] text-white/30">você está dentro</span>
+      ) : cheio ? (
+        <Link
+          href={`/clube/${clube.id}`}
+          className="shrink-0 text-[11px] font-semibold text-primary"
+          data-testid={`ver-clube-${clubeId}`}
+        >
+          ver o clube ›
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            entrarNoClube(clube.id);
+            setVersao((n) => n + 1);
+            toast({
+              title: `Você entrou no ${clube.nome}`,
+              description: estaComecando(clube)
+                ? `A conversa começa em ${dataCurta(clube.ciclo.inicio)} — todo mundo do mesmo ponto.`
+                : "O combinado da roda passa a valer para você.",
+            });
+          }}
+          className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-black transition-colors hover:bg-primary/90"
+          data-testid={`entrar-clube-${clubeId}`}
+        >
+          Entrar no clube
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * **Convidar alguém para o evento** (31/07).
+ *
+ * A lista e as regras vivem em `convitesDeEvento.ts`; aqui só a folha. Quem não
+ * pode ser convidado **continua na lista com o motivo ao lado** — sumir com a
+ * pessoa faria parecer que o app esqueceu dela.
+ */
+function ConvidarParaEvento({ evento }: { evento: Evento }) {
+  const { toast } = useToast();
+  const [versao, setVersao] = useState(0);
+  const pessoas = versao >= 0 ? quemPossoConvidar(evento) : [];
+
+  return (
+    <div
+      className="mt-2 rounded-xl border border-white/10 bg-white/[0.04] p-2.5"
+      data-testid={`lista-convidar-${evento.id}`}
+    >
+      <p className="mb-1.5 text-[11px] font-semibold text-white/60">
+        chamar para {evento.clubeId ? "o encontro do clube" : "o evento"}
+      </p>
+
+      {pessoas.length === 0 ? (
+        <p className="text-[11.5px] leading-relaxed text-white/40">
+          Não há ninguém para chamar ainda — entre na comunidade ou siga alguém, e essas pessoas
+          aparecem aqui.
+        </p>
+      ) : (
+        <div className="max-h-[210px] space-y-1 overflow-y-auto pr-1">
+          {pessoas.map((slug) => {
+            const pessoa = findMember(slug);
+            const veredito = podeConvidarParaEvento(evento.id, slug);
+
+            return (
+              <div key={slug} className="flex items-center gap-2 py-1">
+                <AvatarDoForum
+                  nome={pessoa?.name ?? "Alguém"}
+                  slug={slug}
+                  cor={pessoa?.color}
+                  tamanho={28}
+                />
+                <span className="min-w-0 flex-1 truncate text-[12px]">
+                  {pessoa?.name ?? "Alguém"}
+                </span>
+
+                {veredito.pode ? (
+                  <BotaoDoForum
+                    onClick={() => {
+                      if (!convidarParaEvento(evento.id, slug)) return;
+                      setVersao((n) => n + 1);
+                      toast({
+                        title: `Convite enviado a ${pessoa?.name.split(" ")[0] ?? "alguém"}`,
+                        description: "A resposta aparece aqui e no sino.",
+                      });
+                    }}
+                    testid={`convidar-${evento.id}-${slug}`}
+                  >
+                    Convidar
+                  </BotaoDoForum>
+                ) : (
+                  <span className="shrink-0 text-[10.5px] text-white/30">{veredito.motivo}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -383,6 +575,10 @@ function NovoEvento({ grupoId, onPronto }: { grupoId: string; onPronto: () => vo
   const [hora, setHora] = useState("");
   const [local, setLocal] = useState("");
   const [descricao, setDescricao] = useState("");
+  const [clubeId, setClubeId] = useState("");
+
+  const meus = meusClubes();
+  const outros = todosOsClubes().filter((clube) => !meus.some((meu) => meu.id === clube.id));
 
   return (
     <div
@@ -429,6 +625,45 @@ function NovoEvento({ grupoId, onPronto }: { grupoId: string; onPronto: () => vo
           className={`${CAMPO} resize-none`}
           data-testid="evento-descricao"
         />
+
+        {/* O anexo do clube — mesmo espírito do trecho que se anexa num post. */}
+        <label className="block">
+          <span className="mb-1 block text-[10px] text-white/35">
+            este evento é sobre um clube? (opcional)
+          </span>
+          <select
+            value={clubeId}
+            onChange={(e) => setClubeId(e.target.value)}
+            className={CAMPO}
+            data-testid="evento-clube"
+          >
+            <option value="">— nenhum clube —</option>
+            {meus.length > 0 && (
+              <optgroup label="meus clubes">
+                {meus.map((clube) => (
+                  <option key={clube.id} value={clube.id}>
+                    {clube.nome}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {outros.length > 0 && (
+              <optgroup label="outros clubes">
+                {outros.map((clube) => (
+                  <option key={clube.id} value={clube.id}>
+                    {clube.nome}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+          {clubeId && (
+            <span className="mt-1 block text-[10.5px] leading-relaxed text-white/35">
+              O clube aparece dentro do evento, com o botão de entrar — e este evento passa a
+              aparecer na página do clube.
+            </span>
+          )}
+        </label>
       </div>
 
       <div className="mt-3 flex justify-end gap-2">
@@ -437,7 +672,7 @@ function NovoEvento({ grupoId, onPronto }: { grupoId: string; onPronto: () => vo
           primario
           disabled={titulo.trim().length === 0 || !data}
           onClick={() => {
-            if (criarEvento({ grupoId, titulo, data, hora, local, descricao })) {
+            if (criarEvento({ grupoId, titulo, data, hora, local, descricao, clubeId })) {
               onPronto();
               toast({ title: "Evento criado" });
             }

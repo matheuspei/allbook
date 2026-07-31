@@ -55,6 +55,12 @@ export interface ReplyNotification {
    * é um aviso que não leva a lugar nenhum.
    */
   clubeId?: string;
+  /**
+   * A comunidade do fórum, quando o aviso é a resposta a um **convite de
+   * evento** (31/07). É o quarto destino: o toque abre `/forum/:id`, onde o
+   * evento mora com a contagem de quem vai.
+   */
+  forumId?: string;
   /** O trecho da resposta, mostrado no aviso. */
   text: string;
   /** ISO. */
@@ -73,10 +79,11 @@ export function readNotifications(): ReplyNotification[] {
           typeof item.fromSlug === "string" &&
           typeof item.text === "string" &&
           typeof item.date === "string" &&
-          // Um destino, sempre: a conversa de um livro, um post ou um clube.
+          // Um destino, sempre: livro, post, clube ou comunidade do fórum.
           (typeof item.bookId === "number" ||
             typeof item.postId === "string" ||
-            typeof item.clubeId === "string"),
+            typeof item.clubeId === "string" ||
+            typeof item.forumId === "string"),
       )
       .sort((a, b) => b.date.localeCompare(a.date));
   } catch {
@@ -134,10 +141,11 @@ export function unreadNotificationCount(): number {
 
 export function addNotification(entry: {
   fromSlug: string;
-  /** Um dos três: a conversa de um livro, um post do feed, ou um clube. */
+  /** Um dos quatro: livro, post do feed, clube ou comunidade do fórum. */
   bookId?: number;
   postId?: string;
   clubeId?: string;
+  forumId?: string;
   text: string;
 }): ReplyNotification[] {
   const notification: ReplyNotification = {
@@ -146,6 +154,7 @@ export function addNotification(entry: {
     ...(entry.bookId !== undefined ? { bookId: entry.bookId } : {}),
     ...(entry.postId !== undefined ? { postId: entry.postId } : {}),
     ...(entry.clubeId !== undefined ? { clubeId: entry.clubeId } : {}),
+    ...(entry.forumId !== undefined ? { forumId: entry.forumId } : {}),
     text: entry.text,
     date: new Date().toISOString(),
     read: false,
