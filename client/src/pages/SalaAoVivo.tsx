@@ -3,9 +3,13 @@ import { Link, useLocation } from "wouter";
 import { ChevronDown, Lock, MessageCircle, Pause, Play, Radio, Send, X } from "lucide-react";
 import { catalog } from "@/lib/books";
 import { avatarDeLeitor, findMember } from "@/lib/community";
-import { EU } from "@/lib/clubes";
+import { dataCurta, EU } from "@/lib/clubes";
 import { readProfile } from "@/lib/profile";
 import {
+  confirmarPresenca,
+  euConfirmei,
+  faltaParaComecar,
+  sessaoNoAr,
   encerrarSala,
   entrarNaSala,
   faltaEmTexto,
@@ -102,6 +106,17 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
   }
 
   const book = catalog.find((item) => item.id === sala.bookId);
+
+  /*
+   * **Sessão marcada antes da hora não é sala — é um combinado.** Mostrar o
+   * player e o chat aqui seria deixar entrar numa sessão que ainda não começou,
+   * e aí "quinta às 21h" não significaria nada. O botão de entrar **acende na
+   * hora** (§4.81, lacuna que ele achou na auditoria).
+   */
+  if (!sessaoNoAr(sala)) {
+    return <AntesDaHora sala={sala} onVersao={() => setVersao((v) => v + 1)} />;
+  }
+
   const situacao = situacaoDaSala(sala);
   const falas = falasAteAgora(sala);
   const anfitriao = findMember(sala.anfitriao);
@@ -545,6 +560,110 @@ function ChatDaSala({
 
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * **A sessão marcada, antes de começar.**
+ *
+ * Duas coisas e nada mais: quando é, e se você vem. O player não aparece porque
+ * não há transmissão nenhuma ainda — e um player parado aqui seria a promessa
+ * que a §4.23 manda varrer.
+ */
+function AntesDaHora({ sala, onVersao }: { sala: Sala; onVersao: () => void }) {
+  const [, navigate] = useLocation();
+  const book = catalog.find((item) => item.id === sala.bookId);
+  const anfitriao = findMember(sala.anfitriao);
+  const confirmados = sala.confirmados ?? [];
+  const euVou = euConfirmei(sala);
+
+  return (
+    <div
+      className="flex h-[100dvh] flex-col overflow-hidden bg-[#141414] text-white"
+      data-testid="sessao-antes-da-hora"
+    >
+      <div className="flex items-center gap-2 px-4 pb-2 pt-4">
+        <button
+          onClick={() => navigate(ultimaTelaNavegavel(), { replace: true })}
+          className="text-white/55 transition-colors hover:text-white"
+          aria-label="Voltar"
+          data-testid="button-minimizar-sala"
+        >
+          <ChevronDown className="h-6 w-6" />
+        </button>
+        <span className="flex-1 text-center text-[11px] font-bold uppercase tracking-[0.13em] text-white/35">
+          Sessão marcada
+        </span>
+        <span className="w-6" />
+      </div>
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+        {book && (
+          <img
+            src={book.cover}
+            alt=""
+            className="h-40 w-40 rounded-2xl object-cover shadow-2xl"
+          />
+        )}
+
+        <div>
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary">
+            {sala.data && dataCurta(sala.data)} {sala.hora && `· ${sala.hora}`}
+          </div>
+          <h1 className="mt-1.5 font-display text-xl font-bold leading-tight">
+            {sala.titulo ?? book?.title ?? "Sessão de escuta"}
+          </h1>
+          <p className="mt-1.5 text-[12.5px] text-white/40">
+            marcada por {anfitriao?.name ?? "você"} · começa {faltaParaComecar(sala)}
+          </p>
+        </div>
+
+        {confirmados.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="flex">
+              {confirmados.slice(0, 5).map((slug, i) => {
+                const membro = findMember(slug);
+                const nome = slug === EU ? "Você" : membro?.name ?? slug;
+                return (
+                  <span
+                    key={slug}
+                    className={`flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-[#141414] bg-gradient-to-br text-[9px] font-bold text-black ${
+                      membro?.color ?? "from-primary to-amber-500"
+                    } ${i > 0 ? "-ml-1.5" : ""}`}
+                    {...avatarDeLeitor(slug === EU ? undefined : slug)}
+                  >
+                    {nome.charAt(0)}
+                  </span>
+                );
+              })}
+            </span>
+            <span className="text-[11.5px] text-white/40">
+              {confirmados.length} {confirmados.length === 1 ? "vem" : "vêm"}
+            </span>
+          </div>
+        )}
+
+        <p className="max-w-[280px] text-[11.5px] leading-relaxed text-white/30">
+          Na hora marcada, esta tela vira a sala: todo mundo ouve no mesmo segundo, e quem abrir
+          manda no áudio.
+        </p>
+      </div>
+
+      <button
+        onClick={() => {
+          confirmarPresenca(sala.id);
+          onVersao();
+        }}
+        className={`mx-4 mb-5 rounded-xl py-3.5 font-display text-[14px] font-bold transition-colors ${
+          euVou
+            ? "bg-white/[0.06] text-white/55 ring-1 ring-inset ring-white/12"
+            : "bg-primary text-black"
+        }`}
+        data-testid="button-confirmar-presenca"
+      >
+        {euVou ? "Você vai — tocar para desmarcar" : "Eu vou"}
+      </button>
     </div>
   );
 }

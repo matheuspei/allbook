@@ -34,7 +34,12 @@ import {
 } from "@/lib/clubes";
 import { forumNaTela } from "@/lib/forum";
 import SessoesDoClube from "@/components/sala/SessoesDoClube";
-import { salasDoClube } from "@/lib/salaAoVivo";
+import {
+  confirmarPresenca,
+  euConfirmei,
+  faltaParaComecar,
+  salasDoClube,
+} from "@/lib/salaAoVivo";
 import { eventosDoClube } from "@/lib/forumConteudo";
 
 /**
@@ -500,7 +505,12 @@ function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
    * de escuta —, ordenado por data. O que fica na seção de cima é só o que está
    * **acontecendo agora**, que não é agenda: é do momento.
    */
-  const eventos = eventosDoClube(clube.id).map((evento) => ({
+  /* Estado local só para a confirmação redesenhar na hora — o dado mora no
+     localStorage, como no resto do clube. */
+  const [versao, setVersao] = useState(0);
+
+  const eventos = versao >= 0
+    ? eventosDoClube(clube.id).map((evento) => ({
     chave: `evento-${evento.id}`,
     data: evento.data,
     hora: evento.hora,
@@ -509,7 +519,11 @@ function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
     destino: `/forum/${evento.grupoId}`,
     origem: forumNaTela(evento.grupoId)?.nome,
     aoVivo: false,
-  }));
+    salaId: undefined as string | undefined,
+    euVou: false,
+    quando: undefined as string | undefined,
+  }))
+    : [];
 
   const sessoes = salasDoClube(clube.id)
     .filter((sala) => sala.porta === "marcada" && sala.data)
@@ -518,12 +532,18 @@ function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
       data: sala.data!,
       hora: sala.hora,
       titulo: sala.titulo ?? "Sessão de escuta",
-      detalhe: `${sala.presentes.length} ${
-        sala.presentes.length === 1 ? "confirmado" : "confirmados"
+      detalhe: `${(sala.confirmados ?? []).length} ${
+        (sala.confirmados ?? []).length === 1 ? "vai" : "vão"
       }`,
       destino: `/sala/${sala.id}`,
       origem: undefined,
       aoVivo: true,
+      /* Só a sessão de escuta tem confirmação: o evento de comunidade já tem a
+         dele, lá no fórum, e duplicar aqui daria duas respostas para a mesma
+         pergunta (o defeito que a §4.53 varreu). */
+      salaId: sala.id,
+      euVou: euConfirmei(sala),
+      quando: faltaParaComecar(sala),
     }));
 
   const agenda = [...eventos, ...sessoes].sort((a, b) => a.data.localeCompare(b.data));
@@ -580,6 +600,27 @@ function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
                   </span>
                 )}
               </span>
+
+              {/* **Confirmar sem sair da agenda.** Entrar na sessão para dizer
+                  "eu vou" seria obrigar a pessoa a abrir uma sala que ainda nem
+                  começou. `preventDefault` porque o cartão inteiro é link. */}
+              {item.salaId && (
+                <button
+                  onClick={(evento) => {
+                    evento.preventDefault();
+                    confirmarPresenca(item.salaId!);
+                    setVersao((v) => v + 1);
+                  }}
+                  className={`shrink-0 self-center rounded-full px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                    item.euVou
+                      ? "bg-primary/15 text-primary ring-1 ring-inset ring-primary/35"
+                      : "bg-white/[0.07] text-white/55 hover:bg-white/12"
+                  }`}
+                  data-testid={`confirmar-${item.chave}`}
+                >
+                  {item.euVou ? "Você vai" : "Eu vou"}
+                </button>
+              )}
             </Link>
           );
         })}

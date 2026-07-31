@@ -121,6 +121,16 @@ export interface SalaAoVivo {
    * minha namorada"*).
    */
   convidados?: string[];
+  /**
+   * **Quem disse que vem** — só para sessão marcada.
+   *
+   * É diferente de `presentes`: presente é quem **está dentro agora**, confirmado
+   * é quem **pretende vir**. A primeira versão misturava os dois, e a agenda do
+   * clube mostrava "3 confirmados" contando quem já estava na sala — um número
+   * que não podia subir, porque não havia como confirmar nada. Foi uma das
+   * lacunas que o Matheus achou na auditoria.
+   */
+  confirmados?: string[];
   falas: FalaDaSala[];
   abertaEm: number;
   /** Preenchido ao encerrar: daí em diante a sala é rastro, não é sala. */
@@ -250,7 +260,9 @@ export function salaPorId(id: string): SalaAoVivo | undefined {
  * chamado entra pelo convite, não por vitrine.
  */
 export function salasAoVivo(): SalaAoVivo[] {
-  return todasAsSalas().filter((sala) => !sala.encerradaEm && sala.porta !== "privada");
+  return todasAsSalas().filter(
+    (sala) => !sala.encerradaEm && sala.porta !== "privada" && sessaoNoAr(sala),
+  );
 }
 
 /** A sala ao vivo deste livro, se houver. */
@@ -258,9 +270,16 @@ export function salaDoLivro(bookId: number): SalaAoVivo | undefined {
   return salasAoVivo().find((sala) => sala.bookId === bookId);
 }
 
-/** As sessões ao vivo de um clube — o que a página do clube mostra. */
+/**
+ * As sessões deste clube — **as que estão no ar e as marcadas para depois**.
+ *
+ * Não usa `salasAoVivo` de propósito: aquela só devolve o que já começou, e a
+ * agenda do clube precisa justamente do que ainda vai começar.
+ */
 export function salasDoClube(clubeId: string): SalaAoVivo[] {
-  return salasAoVivo().filter((sala) => sala.clubeId === clubeId);
+  return todasAsSalas().filter(
+    (sala) => sala.clubeId === clubeId && !sala.encerradaEm && sala.porta !== "privada",
+  );
 }
 
 /**
@@ -275,8 +294,71 @@ export function salasDoClube(clubeId: string): SalaAoVivo[] {
  */
 export function minhaSalaAberta(): SalaAoVivo | undefined {
   return todasAsSalas().find(
-    (sala) => !sala.encerradaEm && sala.porta !== "marcada" && sala.presentes.includes(EU),
+    (sala) => !sala.encerradaEm && sala.presentes.includes(EU) && sessaoNoAr(sala),
   );
+}
+
+/* ------------------------------------------------------------------ *
+ * Sessão marcada: antes da hora ela é um combinado, não uma sala
+ * ------------------------------------------------------------------ */
+
+/**
+ * Quando a sessão marcada começa, em milissegundos. `undefined` se a sala não
+ * é marcada.
+ */
+export function comecaEm(sala: SalaAoVivo): number | undefined {
+  if (sala.porta !== "marcada" || !sala.data) return undefined;
+  return new Date(`${sala.data}T${sala.hora ?? "21:00"}:00`).getTime();
+}
+
+/**
+ * **A sessão marcada já está no ar?**
+ *
+ * É isto que faz o botão *entrar na sala* acender na hora — antes disso a tela
+ * mostra o combinado e a contagem. Sem esta distinção, "marcar para quinta às
+ * 21h" era só um rótulo: o link entrava na sala a qualquer momento, e a hora
+ * marcada não significava nada.
+ *
+ * Sala que não é marcada está sempre no ar — ela nasceu acontecendo.
+ */
+export function sessaoNoAr(sala: SalaAoVivo): boolean {
+  const inicio = comecaEm(sala);
+  if (inicio === undefined) return true;
+  return Date.now() >= inicio;
+}
+
+/** "em 2 dias", "em 3 h", "em 12 min", "agora" — a espera, em texto. */
+export function faltaParaComecar(sala: SalaAoVivo): string {
+  const inicio = comecaEm(sala);
+  if (inicio === undefined) return "agora";
+
+  const ms = inicio - Date.now();
+  if (ms <= 0) return "agora";
+
+  const min = Math.round(ms / 60000);
+  if (min < 60) return `em ${min} min`;
+  const horas = Math.round(min / 60);
+  if (horas < 24) return `em ${horas} h`;
+  const dias = Math.round(horas / 24);
+  return dias === 1 ? "amanhã" : `em ${dias} dias`;
+}
+
+export function euConfirmei(sala: SalaAoVivo): boolean {
+  return (sala.confirmados ?? []).includes(EU);
+}
+
+/** Dizer que vem — ou voltar atrás. Tocar de novo desfaz, como o curtir. */
+export function confirmarPresenca(salaId: string): void {
+  const sala = salaPorId(salaId);
+  if (!sala) return;
+
+  const atuais = sala.confirmados ?? [];
+  salvarMinha({
+    ...sala,
+    confirmados: atuais.includes(EU)
+      ? atuais.filter((slug) => slug !== EU)
+      : [...atuais, EU],
+  });
 }
 
 export function souAnfitriao(sala: SalaAoVivo): boolean {
@@ -386,7 +468,10 @@ export function abrirSala(dados: {
     posicaoSec: dados.posicaoSec,
     marcoEm: Date.now(),
     tocando: true,
-    presentes: [EU],
+    presentes: dados.porta === "marcada" ? [] : [EU],
+    /* Quem marca a sessão está dizendo que vem — confirmar de novo seria pedir
+       à pessoa que repita o que ela acabou de fazer. */
+    confirmados: dados.porta === "marcada" ? [EU] : undefined,
     convidados: dados.convidados,
     falas: [],
     abertaEm: Date.now(),
@@ -433,6 +518,9 @@ function responderAoConvite(salaId: string, convidados: string[]): void {
 export function entrarNaSala(id: string): void {
   const sala = salaPorId(id);
   if (!sala || sala.encerradaEm || sala.presentes.includes(EU)) return;
+  /* Sessão marcada antes da hora não é sala: entrar ali seria furar o combinado
+     que a própria tela acabou de mostrar. */
+  if (!sessaoNoAr(sala)) return;
 
   // A sala fictícia não está no `localStorage`: entrar nela grava uma cópia sua,
   // com a posição congelada no instante em que você entrou — daí em diante ela
