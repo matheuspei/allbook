@@ -6556,6 +6556,97 @@ redesenhava nunca. Corrigido com o ouvinte no `Enquetes`.
 
 ---
 
+## 4.81 Ouvir junto ao vivo: a sala de cinema para audiolivro (31/07) — decisão em aberto
+
+> *"A gente colocar um modelo de live nesse Clube de Leituras… eu iria transmitir
+> o meu player para outras pessoas que quisessem ouvir aquilo junto comigo. A
+> gente teria um chat naquele player ao vivo… Funcionaria mais ou menos como uma
+> sala de cinema."* E, logo depois: *"a pessoa que criou a sala tem autonomia de
+> pausar, de fazer qualquer coisa, inclusive de encerrar a qualquer hora."*
+>
+> Ele mesmo avisou: *"isso altera qualquer outra coisa que a gente tenha elaborado
+> antes, então a gente pode começar a pensar aqui do zero."*
+
+**Onde ver:** `client/public/_sala-ao-vivo-B.html` (fora do git, temporária) —
+quatro propostas navegáveis, com as telas de pé, mais "as três portas" e a tabela
+de comparação.
+
+**Nada foi construído.** Isto é apuração + desenho.
+
+### O que a ideia tem de forte, e não é óbvio
+
+1. **Spoiler deixa de existir por construção.** Metade do trabalho do clube hoje é
+   tapar texto (§4.57: 3 de 4 falas do mural viraram placa cinza). Numa sala
+   sincronizada ninguém está à frente de ninguém.
+2. **Metade já está construída.** `lib/sala.ts` já prende cada comentário a um
+   **segundo do áudio**, e `AudioPlayer.tsx` já usa `comentariosNoTrecho` para
+   mostrar as falas dos 5 minutos em volta de onde a pessoa está. A sala ao vivo é
+   a **camada síncrona** sobre uma peça que existe — bem mais barata do que parece.
+3. **É a versão extrema do diferencial já registrado na §4.57:** o player sabe onde
+   cada um está. Um app de catálogo não é dono do momento da escuta.
+4. **O "encontro marcado" já tem casa:** o evento de comunidade ligado ao clube,
+   construído no mesmo dia (§4.79). Falta só o botão *entrar na sala*.
+
+### Os três defeitos apurados (o primeiro é o que decide o desenho)
+
+1. **O canal é um só, e o chat rouba ele.** Live de games funciona porque o jogo
+   ocupa os **olhos** e a conversa ocupa o **ouvido**. No audiolivro tudo é
+   palavra: ler e escrever enquanto o narrador fala faz perder o livro. **Um chat
+   corrido ao lado do player compete com a única coisa que se foi ali fazer.** É
+   daqui que saem as propostas B, C e D.
+2. **Hora marcada já foi rejeitada uma vez, com bom motivo** (§4.39, reafirmado na
+   §4.79). A sala pode existir sem desfazer aquilo — desde que seja **extra**, e
+   não o novo centro do clube.
+3. **Sala vazia é pior que sala nenhuma**, e num app em construção é o cenário
+   provável.
+
+### As quatro filosofias (e o preço de cada uma)
+
+- **A · A Transmissão** — a live ao pé da letra: o player do dono é o de todos,
+  chat corrido, quem entra cai no ponto atual. *Preço:* bate de frente com o
+  defeito 1; quem chega atrasado perdeu; nada sobra depois.
+- **B · A Sessão com intervalos** — durante a narração **ninguém escreve**, só
+  reage (sem texto) e pode *pedir a palavra*; a conversa mora nas **pausas que o
+  anfitrião abre**, com o trecho fixado. *Preço:* mais peças; depende de o
+  anfitrião pausar; tímido não pede a palavra.
+- **C · A Sessão que fica** — o ao vivo é igual, mas nada evapora: tudo fica
+  ancorado no segundo do áudio, dentro da sala do livro que já existe. Quem não
+  pôde vir ouve depois e as falas surgem no minuto certo. *Preço:* dilui a
+  urgência do "só agora"; exige decidir o que é público; fala de chat vira lixo se
+  não houver filtro.
+- **D · O fone dividido** — o caso de dois como coisa própria: convite a uma
+  pessoa, **zero chat**, botão de *segurar para falar* que abaixa o livro. *Preço:*
+  não serve a clube; é a mais cara (voz ao vivo); e é a única que **não dá para
+  simular honestamente** numa maquete.
+
+### A recomendação registrada (não é decisão)
+
+**Nenhuma das quatro inteira.** Esqueleto **A** (dono soberano, entrada no ponto
+atual — a ideia dele, sem torcer) + **mecanismo de conversa do B** (durante a
+narração só reação; conversa nas pausas) + **C como camada**, não como opção:
+é ela que resolve sala vazia e "não posso às 21h", e é a mais barata porque a peça
+central já existe. O **D vira um ajuste de privacidade** ("sala privada, só nós
+dois"), com a **voz anotada como desejo**.
+
+### Uma decisão de arquitetura proposta, e o motivo
+
+**A sala é do player, não do clube.** Dos três casos que ele descreveu, só o
+terceiro é naturalmente de clube: ouvir com a namorada não é clube, e abrir para
+quem quiser é mais uma live da comunidade. Enfiar a sala dentro do clube deixa o
+caso de dois sem lugar. Proposta: a sala nasce no **player** (*Ouvir junto*) e é
+**convocada** de três portas — livro (qualquer um), clube (a rodada vira sessão),
+evento de comunidade (hora marcada, §4.79).
+
+### O que falta bater o martelo
+
+1. **Chat corrido ou conversa nas pausas?** É a escolha que muda tudo.
+2. **A sessão deixa rastro ou evapora?** (Sugerido: privada **nunca** deixa.)
+3. **A sala marcada pode virar o encontro do clube?** Posição registrada: **não** —
+   a rodada sem hora é o que faz o clube caber na vida de quem ouve dirigindo.
+4. **Voz (D) entra agora ou fica anotada?**
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
