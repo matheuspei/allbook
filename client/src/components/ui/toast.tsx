@@ -33,7 +33,10 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+  // `pr-12` (e não o `pr-8` do shadcn) porque o X de fechar cresceu para 36px
+  // de lado — ver o comentário em `ToastClose`. Com a folga antiga, o botão
+  // encostava no texto.
+  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-12 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
   {
     variants: {
       variant: {
@@ -85,9 +88,28 @@ const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      "absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
+      /*
+       * **Sempre visível, e não só quando o mouse chega perto** (ROTEIRO 4.86).
+       * O shadcn entrega este X com `opacity-0 group-hover:opacity-100`: no
+       * computador ele nasce transparente e aparece no hover. Só que **no
+       * celular não existe hover** — o botão continuava ali, ocupando espaço e
+       * respondendo ao toque, mas invisível. Isso é pior do que não existir: dá
+       * para fechar o aviso sem querer, sem nunca ter visto o que fechou.
+       *
+       * O Matheus cobrou em 31/07: *"eu passo o mouse e só depois é que aparece
+       * o xizinho de fechar. Acontece que, se eu estiver no celular, eu não
+       * tenho como passar o mouse"*. O mesmo conserto já existia no botão de
+       * três pontinhos das capas da Home (`opacity-100 sm:opacity-0`), e é o que
+       * `dialog` e `sheet` sempre fizeram — o aviso era o último fora do padrão.
+       *
+       * `h-9 w-9` (36px) porque o alvo antigo — ícone de 16px com 4px de folga —
+       * dava 24px de lado, pequeno demais para o dedo. O `pr-12` do cartão
+       * (acima) existe para abrir espaço para ele.
+       */
+      "absolute right-1.5 top-1.5 grid h-9 w-9 place-items-center rounded-md text-foreground/50 transition-colors hover:text-foreground focus:outline-none focus:ring-2 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
       className
     )}
+    aria-label="Fechar aviso"
     toast-close=""
     {...props}
   >

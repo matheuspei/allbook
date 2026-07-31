@@ -7072,6 +7072,48 @@ lugar principal realmente faz o trabalho — aqui não fazia.
 
 ---
 
+## 4.86 O xizinho que não existia no celular (31/07)
+
+> *"Quando eu salvo um trecho no player, eu passo o mouse e só depois que eu
+> passo o mouse é que aparece o xizinho de fechar. O que é muito bom. Acontece
+> que, se eu estiver no celular, eu não tenho como passar o mouse. Eu vou ter que
+> passar o dedo? Não teria uma forma mais fácil de resolver isso?"*
+
+**O aviso não era do player: é o `toast` do shadcn, usado no app inteiro.** Ele
+vem de fábrica com o botão de fechar em `opacity-0 group-hover:opacity-100`.
+
+**E o defeito é pior do que "o botão não aparece".** Opacidade zero não é o mesmo
+que ausência: o botão continuava **ocupando o canto e respondendo ao toque**. No
+celular havia, portanto, uma área invisível de 24px que fecha o aviso — dá para
+encostar sem querer e ver a mensagem sumir sem nunca saber o que a fez sumir. Um
+controle invisível que funciona é pior do que um controle que não existe.
+
+**Conserto: o X é visível sempre**, em qualquer largura, e o alvo cresceu de 24px
+para 36px de lado (o cartão ganhou `pr-12` para abrir espaço). Medido na tela sem
+nenhum ponteiro por perto: opacidade 1, 36×36, sem encostar no botão "Ajustar".
+
+Não foi invenção nova — **o padrão já existia no projeto e o aviso era o último
+fora dele**: os três pontinhos sobre as capas da Home já usam
+`opacity-100 sm:opacity-0 sm:group-hover:opacity-100`, e `dialog` e `sheet`
+sempre mostraram o fechar. A varredura por `group-hover` achou só mais dois
+casos, e os dois são **enfeite**, não controle: o disco de play que escurece a
+capa em "Continuar ouvindo" e o número do capítulo que vira ▶ na lista de
+`BookDetails` — nos dois o cartão/linha inteiro já é clicável, então no celular
+não se perde ação, só realce. Ficaram como estão.
+
+**A régua:** *passar o mouse não é interface no celular. Um controle ou está
+sempre visível, ou não deve estar lá — esconder por opacidade deixa um botão
+fantasma que o dedo acha sem querer.* Realce decorativo pode viver no hover;
+**ação, não.**
+
+**Para constar, o aviso já tinha duas saídas antes desta:** ele some sozinho em
+5 segundos e aceita arrastar para o lado (o `swipe` do Radix, que a peça já
+suportava). Nenhuma das duas se anuncia, e nenhuma serve para quem quer o aviso
+fora da frente **agora** — que é o caso de quem acabou de guardar um trecho e
+quer ver a barra de progresso por baixo.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
