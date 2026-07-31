@@ -7312,6 +7312,38 @@ nunca apaga deixa de significar coisa alguma.
 
 ---
 
+## 4.83 A comunidade não tinha página de tópicos (31/07, noite)
+
+> *"Esses tópicos aqui tá muito ruim, tanto os tópicos como as enquetes. Por
+> quê? Porque deveríamos ter uma página onde abríssemos todos os tópicos, e hoje
+> não tem isso. Falta criar páginas."*
+
+**Ele está certo, e a apuração corrige metade da premissa:** as **enquetes** e os
+**eventos** já tinham a sua (`/forum/:id/enquetes` e `/forum/:id/eventos`,
+§4.78). O que faltava era a do **tópico** — que é o conteúdo *principal* de uma
+comunidade.
+
+**O defeito era o oposto do que a §4.78 corrigiu.** A enquete ganhou destaque +
+página com todas; o tópico ficou com a **tabela inteira solta na página da
+comunidade**. Vinte tópicos viravam vinte linhas, empurrando enquetes, eventos e
+membros para baixo — e não havia para onde ir ver os antigos.
+
+**Feito:** `components/forum/TopicosDoForum.tsx` (a tabela saiu de dentro do
+`Grupo.tsx`, com `modo="resumo" | "todos"`) e `pages/TopicosDaComunidade.tsx`
+(`/forum/:id/topicos`). Resumo de **5** na comunidade, **15 por página** na lista
+completa, com a mesma casca e a mesma trilha (*comunidade › seção*) das outras
+duas — quem aprendeu a navegar numa aprendeu nas três.
+
+**A regra que fica, e vale para o que vier:** *conteúdo que cresce sem limite
+não mora na página da comunidade.* Resumo lá, lista completa numa página com
+endereço.
+
+⚠️ **Coordenação:** isto é faixa da janela A. Entrei com a árvore limpa e o
+trabalho dela commitado, mexendo em **duas linhas** do `Grupo.tsx`; o aviso está
+no quadro de `COORDENACAO.md`.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
