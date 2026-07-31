@@ -3,6 +3,7 @@ import { Link, useParams } from "wouter";
 import { ChevronRight } from "lucide-react";
 
 import { Enquetes, Eventos } from "@/components/forum/ConteudoDaComunidade";
+import Topicos from "@/components/forum/TopicosDoForum";
 import {
   AvatarDoForum,
   Bloco,
@@ -329,138 +330,15 @@ export default function Grupo() {
               </div>
             </Bloco>
 
-            {/* ---------------- 5. a tabela de tópicos ---------------- */}
-            <Bloco
-              titulo="Fóruns"
-              testid="grupo-topicos"
-              acao={
-                possoCriar(id, "topicos") ? (
-                  <LinkDoForum onClick={() => setCriando((v) => !v)} testid="grupo-create-topic">
-                    criar tópico »
-                  </LinkDoForum>
-                ) : dentro ? (
-                  <span className="text-[10.5px] text-white/30">só moderadores criam</span>
-                ) : undefined
-              }
-            >
-              {criando && (
-                <div
-                  className="mb-3 rounded-xl border border-white/10 bg-white/[0.04] p-2.5"
-                  data-testid="grupo-composer"
-                >
-                  <p className="mb-1 text-[10.5px] text-white/40">assunto do tópico:</p>
-                  <input
-                    value={titulo}
-                    onChange={(evento) => setTitulo(evento.target.value.slice(0, MAX_TITULO))}
-                    autoFocus
-                    className={CAMPO}
-                    data-testid="grupo-topic-title"
-                  />
-                  <div className="mt-2 flex items-center gap-2">
-                    <BotaoDoForum
-                      primario
-                      disabled={titulo.trim().length === 0}
-                      onClick={() => {
-                        if (criarTopico(id, titulo)) {
-                          setTitulo("");
-                          setCriando(false);
-                          toast({ title: "Tópico criado" });
-                        }
-                      }}
-                      testid="grupo-topic-publish"
-                    >
-                      Criar tópico
-                    </BotaoDoForum>
-                    <BotaoDoForum onClick={() => setCriando(false)}>Cancelar</BotaoDoForum>
-                  </div>
-                </div>
-              )}
-
-              {topicos.length === 0 ? (
-                <p className="text-[13px] text-white/40">Nenhum tópico ainda.</p>
-              ) : (
-                /* **Tabela com a coluna de mensagens**, como no fórum de lá: o
-                   número à direita é o que diz onde a conversa está acontecendo. */
-                <table className="w-full border-collapse" data-testid="tabela-de-topicos">
-                  <thead>
-                    <tr className="border-b border-white/[0.08] text-left">
-                      <th className="pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/35">
-                        tópico
-                      </th>
-                      <th className="pb-1.5 pl-2 text-right text-[10px] font-semibold uppercase tracking-wider text-white/35">
-                        msgs
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topicos.map((topico) => (
-                      <tr
-                        key={topico.id}
-                        className="border-b border-white/[0.05] align-top last:border-0"
-                        data-testid={`topico-${topico.id}`}
-                      >
-                        <td className="py-2 pr-2">
-                          <Link
-                            href={`/forum/${id}/topico/${topico.id}`}
-                            className="text-[13.5px] font-semibold leading-snug text-white hover:text-primary"
-                          >
-                            {topico.fixado && <span className="mr-1">📌</span>}
-                            {topico.titulo}
-                          </Link>
-                          <span className="mt-0.5 block text-[11px] text-white/35">
-                            por {topico.meu ? "Você" : (topico.autor?.name ?? "Alguém")} ·{" "}
-                            {new Date(topico.ultimaAtividade).toLocaleDateString("pt-BR")}
-                          </span>
-                          {(souModerador(id) || topico.meu) && (
-                            <span className="mt-1 flex gap-3">
-                              {souModerador(id) && !topico.meu && (
-                                <>
-                                  <LinkDoForum
-                                    onClick={() => {
-                                      const fixou = alternarFixado(id, topico.id);
-                                      toast({ title: fixou ? "Tópico fixado" : "Tópico solto" });
-                                    }}
-                                    className="text-[10.5px] text-white/35 hover:text-white/70"
-                                    testid={`fixar-${topico.id}`}
-                                  >
-                                    {topico.fixado ? "soltar" : "fixar"}
-                                  </LinkDoForum>
-                                  <LinkDoForum
-                                    onClick={() => {
-                                      alternarTopicoEscondido(id, topico.id);
-                                      toast({ title: "Tópico removido do fórum" });
-                                    }}
-                                    className="text-[10.5px] text-white/35 hover:text-red-300"
-                                    testid={`esconder-${topico.id}`}
-                                  >
-                                    remover
-                                  </LinkDoForum>
-                                </>
-                              )}
-                              {topico.meu && (
-                                <LinkDoForum
-                                  onClick={() => {
-                                    apagarMeuTopico(topico.id);
-                                    toast({ title: "Tópico apagado" });
-                                  }}
-                                  className="text-[10.5px] text-white/35 hover:text-red-300"
-                                  testid={`topico-delete-${topico.id}`}
-                                >
-                                  apagar
-                                </LinkDoForum>
-                              )}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-2 pl-2 text-right text-[13px] text-white/45">
-                          {topico.totalRespostas}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </Bloco>
+            {/* ---------------- 5. os tópicos ---------------- */}
+            {/*
+              **Resumo aqui, lista completa em `/forum/:id/topicos`** (§4.83).
+              A tabela inteira ficava solta nesta página: vinte tópicos viravam
+              vinte linhas e empurravam enquetes, eventos e membros para baixo —
+              o oposto do que a §4.78 já tinha corrigido nas enquetes. O
+              componente mora em `components/forum/TopicosDoForum.tsx`.
+            */}
+            <Topicos grupoId={id} />
 
             {/* ---------------- 6. enquetes e eventos ---------------- */}
             <Enquetes grupoId={id} />

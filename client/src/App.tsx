@@ -25,6 +25,7 @@ import GerenciarForum from "@/pages/GerenciarForum";
 import Comunidades from "@/pages/Comunidades";
 import MembrosDoForum from "@/pages/MembrosDoForum";
 import EnquetesDaComunidade from "@/pages/EnquetesDaComunidade";
+import TopicosDaComunidade from "@/pages/TopicosDaComunidade";
 import EventosDaComunidade from "@/pages/EventosDaComunidade";
 import Topico from "@/pages/Topico";
 import Clubes from "@/pages/Clubes";
@@ -196,6 +197,7 @@ function Router() {
                 senão a rota curta captura as duas. */}
             <Route path="/forum/:id/gerenciar" component={GerenciarForum} />
             <Route path="/forum/:id/membros" component={MembrosDoForum} />
+            <Route path="/forum/:id/topicos" component={TopicosDaComunidade} />
             <Route path="/forum/:id/enquetes" component={EnquetesDaComunidade} />
             <Route path="/forum/:id/eventos" component={EventosDaComunidade} />
             <Route path="/forum/:id" component={Grupo} />
