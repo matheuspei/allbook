@@ -2,11 +2,14 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import { AudioLines, Mic, Library, ChevronRight } from "lucide-react";
 
+import BotaoDeAcompanhar from "@/components/BotaoDeAcompanhar";
 import PageHeader from "@/components/PageHeader";
 import PersonAvatar from "@/components/PersonAvatar";
 import BookGrid from "@/components/BookGrid";
+import { STUDIO_SLUG } from "@/lib/acompanhando";
 import {
   STUDIO_COMO_FUNCIONA,
+  STUDIO_NAME,
   STUDIO_SOBRE,
   booksByVoice,
   studioBooks,
@@ -72,6 +75,15 @@ export default function Studio() {
           </h1>
 
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/55">{STUDIO_SOBRE}</p>
+
+          {/* Seguir o estúdio — §4.84. É o acompanhado com a novidade mais
+              concreta do app: toda narração que nasce de um pedido sai daqui. */}
+          <BotaoDeAcompanhar
+            tipo="studio"
+            slug={STUDIO_SLUG}
+            nome={STUDIO_NAME}
+            className="mt-5 w-full max-w-xs text-left"
+          />
 
           <dl className="mt-6 grid w-full grid-cols-3 gap-2">
             <Estatistica rotulo="Vozes" valor={String(studioVoices.length)} />

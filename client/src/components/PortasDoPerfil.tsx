@@ -35,7 +35,14 @@ export interface PortaDoPerfil {
 
 export default function PortasDoPerfil({ portas }: { portas: PortaDoPerfil[] }) {
   return (
-    <div className="grid grid-cols-3 gap-2 px-5 py-4" data-testid="portas-do-perfil">
+    /* A grade acompanha quantas portas vierem — a sua página tem quatro desde
+       31/07 (entrou "acompanhando"), a dos outros continua com três. Classe
+       dinâmica do Tailwind não existe em tempo de execução, daí o `style`. */
+    <div
+      className="grid gap-2 px-5 py-4"
+      style={{ gridTemplateColumns: `repeat(${portas.length}, minmax(0, 1fr))` }}
+      data-testid="portas-do-perfil"
+    >
       {portas.map(({ icone: Icone, rotulo, total, href, testid }) => (
         <Link
           key={testid}

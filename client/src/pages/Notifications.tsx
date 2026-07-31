@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
+import { minhasNovidades, nomeDoAlvo } from "@/lib/acompanhando";
 import { avisosDeClube } from "@/lib/avisosDeClube";
 import { catalog, getBooksByIds } from "@/lib/books";
 import { CLUBES_EVENT, clubePorId, estreiaEmTexto } from "@/lib/clubes";
@@ -341,6 +342,31 @@ function quandoFoi(iso: string): string {
   return `há ${Math.floor(dias / 30)} meses`;
 }
 
+/**
+ * **Os avisos de quem você segue no catálogo** (§4.84).
+ *
+ * É o que faz o botão "Seguir" de autor, narrador, editora e Studio valer
+ * alguma coisa: sem esta função ele seria uma marcação sem consequência — o
+ * botão morto que a §4.23 manda varrer. Cada novidade vira um aviso com o
+ * mesmo mecanismo de "lida" dos de sistema (ids `acomp-…`, em `isSystemRead`).
+ */
+function avisosDeAcompanhados(): Aviso[] {
+  /* **Seis, e não todas**: seguir o Studio rende treze novidades de uma vez, e
+     treze avisos iguais afogam o resto do sino. A lista inteira mora em
+     `/acompanhando`, que é a tela feita para isso. */
+  return minhasNovidades(6).map((item) => ({
+    id: `acomp-${item.id}`,
+    tipo: "sistema" as const,
+    icone: item.tipo === "narracao" ? Mic : Sparkles,
+    cor: "from-primary to-orange-600",
+    titulo: `Novidade de ${nomeDoAlvo(item.alvo)}`,
+    corpo: item.texto,
+    data: `${item.data}T12:00:00.000Z`,
+    bookId: item.bookId,
+    lida: false,
+  }));
+}
+
 const ORDEM_DAS_FAIXAS: Faixa[] = ["Hoje", "Esta semana", "Antes"];
 
 export default function Notifications() {
@@ -348,7 +374,10 @@ export default function Notifications() {
   // O "lida" dos avisos de sistema vem do localStorage (via `isSystemRead`), a
   // mesma fonte que o sino do TopNav conta — assim tela e sino nunca discordam.
   const [sistema, setSistema] = useState<Aviso[]>(() =>
-    avisosDoSistema().map((a) => ({ ...a, lida: isSystemRead(a.id) })),
+    [...avisosDeAcompanhados(), ...avisosDoSistema()].map((a) => ({
+      ...a,
+      lida: isSystemRead(a.id),
+    })),
   );
   const [respostas, setRespostas] = useState<ReplyNotification[]>([]);
   const [pedidos, setPedidos] = useState<CommunityMember[]>([]);

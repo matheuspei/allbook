@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
 import { PenLine, Mic, Compass, AudioLines } from "lucide-react";
+import BotaoDeAcompanhar from "@/components/BotaoDeAcompanhar";
 import PageHeader from "@/components/PageHeader";
 import PersonAvatar, { hueDoNome } from "@/components/PersonAvatar";
 import BookGrid from "@/components/BookGrid";
@@ -140,6 +141,15 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
               <p className="max-w-sm text-[13px] leading-relaxed text-white/55">{voz.timbre}</p>
             </div>
           )}
+
+          {/* Seguir a pessoa — o pedido de 31/07 (§4.84). Fica logo abaixo do
+              nome, que é onde todo app põe este botão. */}
+          <BotaoDeAcompanhar
+            tipo="pessoa"
+            slug={person.slug}
+            nome={person.name}
+            className="mt-5 w-full max-w-xs text-left"
+          />
 
           <dl className="mt-6 grid w-full grid-cols-3 gap-2">
             <Estatistica

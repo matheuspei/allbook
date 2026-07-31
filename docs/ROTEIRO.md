@@ -6964,6 +6964,50 @@ que a §4.79 corrigiu no perfil.
 
 ---
 
+## 4.84 Seguir autor, narrador, editora e o Studio (31/07)
+
+> *"As pessoas poderem seguir o escritor, o narrador, a editora, o publicado
+> por, e talvez até o reproduzido por… Na verdade não é nem questão de seguir, é
+> mais você ser notificado quando tiver alguma novidade, e talvez até ter um
+> acesso mais rápido àquilo."*
+
+**Ele acertou o diagnóstico e duvidou do nome certo.** O gesto é *me avise* — e
+mesmo assim o botão se chama **Seguir**, por uma razão: é o verbo que o Spotify,
+o YouTube e a Netflix usam para exatamente isto, e o app já o usa com leitores.
+Nome inventado ("acompanhar", "monitorar") faz parar para entender. **O que
+precisa ser explícito é a promessa embaixo do botão**, não o verbo — e ela está
+lá, em uma linha: *"Seguindo, você é avisado quando houver livro ou narração nova
+de Fulano."*
+
+### Decisões
+
+- **Autor e narrador são o mesmo alvo: `pessoa`.** A primeira versão separava os
+  dois e criava um buraco imediato — metade do catálogo escreve **e** narra, e
+  quem seguisse "o autor" perderia a narração nova da mesma pessoa.
+- **Quatro alvos:** pessoa, editora, Studio. (O "publicado por" é a editora; o
+  "reproduzido por" é a pessoa que narra. Os dois já tinham página própria.)
+- **A novidade não é inventada.** Sai de dado que já existe: a coleção
+  **Lançamentos** (`collections.ts`) e as **narrações de origem `pedido`**
+  (`narrations.ts`), que nasceram depois porque alguém pediu. Sem isso, "seguir"
+  seria uma marcação sem consequência — o botão morto da §4.23. Só a **data** é
+  semeada pelo id, porque o catálogo não guarda quando cada livro entrou.
+- **Duas telas separadas:** `/seguidores` é gente (e alimenta o **feed** da
+  Comunidade); `/acompanhando` é catálogo (e alimenta **avisos e atalhos**).
+  Seguir um leitor e seguir um autor rendem coisas diferentes, e juntá-los na
+  mesma lista faria a pessoa esperar feed de quem não posta.
+- **Entrou como quarta porta do perfil**, ao lado de recomendações, comentários
+  e clubes — a mesma pergunta ("o que é meu aqui?"), e o atalho rápido que ele
+  pediu.
+- **No sino, seis avisos por vez.** Seguir o Studio rende treze novidades de uma
+  vez; treze avisos iguais afogariam o resto. A lista inteira fica em
+  `/acompanhando`.
+
+**Tela vazia com primeiro passo:** sem ninguém seguido, `/acompanhando` sugere os
+autores e narradores **dos livros da sua biblioteca** — e, se ela estiver vazia,
+editoras dos mais bem avaliados.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

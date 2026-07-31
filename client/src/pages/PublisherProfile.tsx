@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import { Library, PenLine, Mic, Building2, ChevronRight } from "lucide-react";
 
+import BotaoDeAcompanhar from "@/components/BotaoDeAcompanhar";
 import PageHeader from "@/components/PageHeader";
 import PublisherMark from "@/components/PublisherMark";
 import PersonAvatar, { hueDoNome } from "@/components/PersonAvatar";
@@ -79,6 +80,14 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
           </h1>
 
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/55">{publisher.linha}</p>
+
+          {/* Seguir a editora — §4.84. */}
+          <BotaoDeAcompanhar
+            tipo="editora"
+            slug={publisher.slug}
+            nome={publisher.name}
+            className="mt-5 w-full max-w-xs text-left"
+          />
 
           <dl className="mt-6 grid w-full grid-cols-3 gap-2">
             <Estatistica

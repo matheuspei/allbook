@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { BookHeart, Eye, MessageSquareQuote, Pencil, Settings, Share2, Users, X } from "lucide-react";
+import { Bell, BookHeart, Eye, MessageSquareQuote, Pencil, Settings, Share2, Users, X } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
@@ -8,6 +8,7 @@ import SeloDeMedalha from "@/components/SeloDeMedalha";
 import { useToast } from "@/hooks/use-toast";
 import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
 import { readRecommendations } from "@/lib/recommendations";
+import { quantosAcompanho } from "@/lib/acompanhando";
 import { meusClubes, type Clube } from "@/lib/clubes";
 import { formatarDuracao } from "@/lib/listening";
 import { lerDadosDeConquista, lerResumo, type ResumoDeAudicao } from "@/lib/stats";
@@ -371,6 +372,17 @@ export default function Profile() {
             total: clubes.length,
             href: "/clubes",
             testid: "porta-clubes",
+          },
+          /* A quarta porta, de 31/07 (§4.84): autores, narradores, editoras e o
+             Studio que você segue. Fica ao lado das outras porque é a mesma
+             pergunta — "o que é meu neste app?" —, e é por ela que se chega
+             rápido a quem você acompanha, que era metade do pedido. */
+          {
+            icone: Bell,
+            rotulo: "acompanhando",
+            total: quantosAcompanho(),
+            href: "/acompanhando",
+            testid: "porta-acompanhando",
           },
         ]}
       />
