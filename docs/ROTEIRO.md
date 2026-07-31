@@ -6046,6 +6046,93 @@ girando em torno dos posts com as três portas · presença por capítulo.
 
 ---
 
+## 4.73 O descurtir volta, e quem reagiu ganha rosto (31/07)
+
+Primeiro item consertado da auditoria da §4.72, e ele começa com **um erro meu que
+o Matheus pegou de memória**: *"a gente discutiu a questão de curtir e descurtir,
+que também não está. E ver as pessoas que curtiram e as que não curtiram também
+tinha que ser feito."*
+
+### O erro: eu reabri uma decisão dele sem fato novo
+
+Em **21/07** ficou decidido, e o roteiro registrou com todas as letras:
+
+> *"Curtir e descurtir são tudo engajamento."* · *"Polêmica engaja — gerar
+> sentimento, bom ou ruim, é o que faz a pessoa se interessar."* · **"Risco
+> conhecido e aceito (o Claude discordou duas vezes, o Matheus decidiu, e está
+> decidido)… Não reabrir sem fato novo."**
+
+Em **29/07** (§4.59) eu escrevi `lib/curtidas.ts` sabendo **só curtir**, e chamei
+isso de *"decisão nova, tomada construindo"*, com o argumento de que *"um contador
+de não gostei embaixo de uma fala azeda o feed"* — **que é exatamente o argumento
+derrubado duas vezes em 21/07**. Não havia fato novo. E a §4.58 ainda mandava o
+contrário: levar `reactions.ts`, que tem **os dois lados**, para o fórum, o mural
+do clube e a Comunidade. A §4.67 levou metade e comemorou o fim da metade.
+
+**A lição, que vale mais que o conserto:** "decisão tomada construindo" é um
+carimbo perigoso. Ele é legítimo para o que ninguém decidiu; vira atropelo quando
+o assunto **já tem decisão dele registrada**. Antes de escrever essa frase, o
+certo é procurar o assunto no roteiro.
+
+### As duas correções dele, no mesmo minuto
+
+Construído o par, ele olhou a tela e cobrou duas coisas — as duas certas, e as
+duas sobre **coerência**:
+
+1. *"Não faz sentido ter um coração para curtir e um polegar para descurtir —
+   dois critérios para a mesma coisa."* Eram duas metáforas empilhadas no mesmo
+   par.
+2. *"O botão azul não harmoniza com nada no aplicativo."* Eu tinha inventado um
+   azul para o negativo, numa paleta que é laranja/âmbar sobre quase-preto.
+
+**A resposta já estava dentro do app:** a conversa do livro faz isso desde 21/07 —
+`ThumbsUp`/`ThumbsDown`, **âmbar** no positivo, **branco** no negativo. Copiar
+aquilo não é falta de ideia: é a régua da §4.67 (a mesma ação, com a mesma cara,
+em todo lugar). O negativo se distingue por **peso**, não por matiz.
+
+### A linha de recepção — a resposta ao pedido de audácia
+
+No meio disso ele disse: *"sinto pouca audácia; você poderia ser mais audacioso e
+mais criativo."* Dois contadores ao lado de dois ícones é o mínimo que qualquer
+app faz. O que entrou no lugar:
+
+- **Os rostos de quem reagiu**, empilhados em 20px, com a frase escrita — *"Você e
+  mais 3 gostaram · 1 discordou"* —, e a linha inteira é o alvo que abre a lista.
+  **Não é o feed "sobre pessoas" que falhou onze vezes** (§4.53): as pessoas não
+  são o conteúdo, são a **recepção** dele. E responde o que número nenhum
+  responde: *quem?*
+- **A barra de divisão só aparece quando houve os dois lados.** Post que só
+  agradou não precisa de gráfico; post que **dividiu** ganha uma linha de duas
+  cores — e aí ela significa alguma coisa. Elemento que só existe quando carrega
+  informação.
+- **Os números saíram de dentro dos botões do post.** A barra de ações ficou com
+  quatro ícones limpos, e o alvo de cada um cresceu.
+
+### O que a lista aberta obrigou a consertar por baixo
+
+**Número solto podia mentir; número com lista, não.** Enquanto só havia contador,
+ele saía de uma semente e ninguém conferia. Com a lista, 15 curtidas numa
+comunidade de 13 pessoas é uma mentira que a própria tela denuncia no primeiro
+toque. Então:
+
+- **`quemReagiu` virou a fonte, e o número é o tamanho dela** — nunca divergem.
+- **As duas listas saem de uma permutação só**, embaralhada pela semente do id:
+  assim ninguém aparece **nos dois lados** da mesma fala.
+- **A descurtida é uma fração da curtida** (até ~35%), nunca um sorteio
+  independente. Visto na tela: com os dois sorteados à parte, o primeiro post do
+  feed saiu *"3 curtiram · 3 descurtiram"* — número possível e leitura errada.
+- **O autor não reage a si mesmo** (`autorSlug`), detalhe que só ficava visível
+  quando a lista abria.
+
+### Onde ficou
+
+Post, comentário de post, resposta de fórum e mural do clube — o mesmo componente
+(`Reacoes`), com a folha `QuemReagiu`. **A conversa do livro ainda não tem a lista
+de quem reagiu** (tem os dois botões desde 21/07): é o próximo passo da mesma
+régua.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

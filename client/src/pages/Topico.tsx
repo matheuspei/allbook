@@ -4,7 +4,7 @@ import { Ban, EyeOff, Send, Trash2 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AnexarTrecho from "@/components/AnexarTrecho";
-import BotaoDeCurtir from "@/components/comunidade/BotaoDeCurtir";
+import Reacoes from "@/components/comunidade/Reacoes";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import PageHeader from "@/components/PageHeader";
 import { type Citacao } from "@/lib/citacoes";
@@ -196,7 +196,7 @@ export default function Topico() {
                       fórum é fala como qualquer outra — quem concorda precisa
                       poder dizer sem escrever "concordo". */}
                   <div className="mt-2">
-                    <BotaoDeCurtir id={resposta.id} deOutraPessoa={!resposta.minha} />
+                    <Reacoes id={resposta.id} deOutraPessoa={!resposta.minha} />
                   </div>
                 </>
               )}

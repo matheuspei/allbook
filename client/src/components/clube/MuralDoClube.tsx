@@ -3,7 +3,7 @@ import { EyeOff, Lock, Shield, Trash2 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import AnexarTrecho from "@/components/AnexarTrecho";
-import BotaoDeCurtir from "@/components/comunidade/BotaoDeCurtir";
+import Reacoes from "@/components/comunidade/Reacoes";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { type Citacao } from "@/lib/citacoes";
 import { EU, capituloCombinado, corDoMembro, meuCapitulo, souDono, type Clube } from "@/lib/clubes";
@@ -277,7 +277,7 @@ function Mensagem({
               tentar para descobrir onde vale. Fica **debaixo do véu**: curtir uma
               fala que você ainda não pode ler seria curtir no escuro. */}
           <div className="mt-2">
-            <BotaoDeCurtir id={mensagem.id} deOutraPessoa={!ehMinha} />
+            <Reacoes id={mensagem.id} deOutraPessoa={!ehMinha} />
           </div>
         </>
       )}

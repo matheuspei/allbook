@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, MoreHorizontal, Pencil, Repeat2, Trash2, Flag } from "lucide-react";
+import { MessageCircle, MoreHorizontal, Pencil, Repeat2, Trash2, Flag } from "lucide-react";
 
+import Reacoes, { LinhaDeRecepcao } from "@/components/comunidade/Reacoes";
 import { useToast } from "@/hooks/use-toast";
 import { COMENTARIOS_EVENT, totalDeComentarios } from "@/lib/comentariosDePost";
-import { curtidasDoPost, euCurti, alternarCurtida } from "@/lib/curtidas";
 import {
   POSTS_EVENT,
   apagarMeuPost,
@@ -51,7 +51,6 @@ export default function AcoesDoPost({
   onCompartilhar?: () => void;
 }) {
   const { toast } = useToast();
-  const [curtido, setCurtido] = useState(() => euCurti(post.id));
   const [compartilhado, setCompartilhado] = useState(() => euCompartilhei(post.id));
   const [compartilhamentos, setCompartilhamentos] = useState(() =>
     totalDeCompartilhamentos(post.id),
@@ -91,25 +90,28 @@ export default function AcoesDoPost({
     return () => document.removeEventListener("mousedown", fora);
   }, [menuAberto]);
 
-  const total = curtidasDoPost(post.id) + (curtido ? 1 : 0);
-
   return (
-    <div className="mt-3 flex items-center gap-1 border-t border-white/[0.06] pt-2.5">
-      {/* `py-3`: o alvo passa de 26 para 38 px de altura — **44 no aparelho**, que
-          é o mínimo de Apple e Google. Medido, não estimado. Ver o comentário
-          longo em `ComentariosDoPost`: o mesmo defeito valia aqui, em menor grau,
-          e foi ele que fez o Matheus dizer que "o curtir não está funcionando". */}
-      <button
-        onClick={() => setCurtido(alternarCurtida(post.id))}
-        className={`flex items-center gap-1.5 rounded-full px-3 py-3 text-[12px] font-semibold transition-colors ${
-          curtido ? "text-primary" : "text-white/45 hover:text-white/80"
-        }`}
-        aria-pressed={curtido}
-        data-testid={`curtir-${post.id}`}
-      >
-        <Heart className={`h-4 w-4 ${curtido ? "fill-current" : ""}`} />
-        {total > 0 && total}
-      </button>
+    <>
+      {/* **Quem recebeu como**, antes da barra de ações: rostos e a frase, e a
+          barra de divisão quando a fala dividiu. Ver `LinhaDeRecepcao`. */}
+      <LinhaDeRecepcao id={post.id} deOutraPessoa={!ehMeu} autorSlug={post.autorSlug} />
+
+    <div className="mt-1.5 flex items-center gap-1 border-t border-white/[0.06] pt-2.5">
+      {/*
+        **Curtir e descurtir, e o número abre quem reagiu** (31/07). Antes havia
+        só o coração aqui, por uma "decisão nova" minha de 29/07 que **reabria uma
+        decisão do Matheus sem fato novo** — ver o cabeçalho de `lib/curtidas.ts`.
+        Os dois lados e a lista de quem reagiu moram no `Reacoes`, que é o mesmo
+        componente do fórum e do mural: a mesma ação, com a mesma cara, em todo
+        lugar (§4.67).
+      */}
+      <Reacoes
+        id={post.id}
+        deOutraPessoa={!ehMeu}
+        autorSlug={post.autorSlug}
+        escala="post"
+        className="pl-1.5"
+      />
 
       {/*
         **Comentar entrou em 30/07** — decisão da §4.58 (*"o post tem que curtir e
@@ -217,5 +219,6 @@ export default function AcoesDoPost({
         )}
       </div>
     </div>
+    </>
   );
 }

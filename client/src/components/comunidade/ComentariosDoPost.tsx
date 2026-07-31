@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Heart, Send, Trash2 } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
 
 import CampoComMencao from "@/components/comunidade/CampoComMencao";
+import Reacoes from "@/components/comunidade/Reacoes";
 import TextoDoPost from "@/components/comunidade/TextoDoPost";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -14,7 +15,6 @@ import {
   reacaoDoEsqueleto,
   type ComentarioDePost,
 } from "@/lib/comentariosDePost";
-import { alternarCurtida, curtidasDoPost, euCurti } from "@/lib/curtidas";
 import { addNotification } from "@/lib/notifications";
 import { findMember } from "@/lib/community";
 import { initialOf, readProfile } from "@/lib/profile";
@@ -177,11 +177,6 @@ function UmComentario({
   const ehMeu = comentario.autorSlug === undefined;
   const membro = comentario.autorSlug ? findMember(comentario.autorSlug) : undefined;
   const nome = ehMeu ? meuPerfil.name : (membro?.name ?? "Leitor");
-  const [curtido, setCurtido] = useState(() => euCurti(comentario.id));
-
-  /* O mesmo `curtidas.ts` do post: curtir é uma ação só no app, não uma por
-     lugar — era a inconsistência que o Matheus apontou na §4.58. */
-  const total = curtidasDoPost(comentario.id) + (curtido ? 1 : 0);
 
   return (
     <div className="flex items-start gap-2.5" data-testid={`comentario-${comentario.id}`}>
@@ -242,17 +237,14 @@ function UmComentario({
         */}
         <div className="mt-0.5 flex items-center gap-1 pl-1">
           <span className="py-3 pr-2 text-[10.5px] text-white/25">{quando(comentario.date)}</span>
-          <button
-            onClick={() => setCurtido(alternarCurtida(comentario.id))}
-            className={`-my-3 flex items-center gap-1 px-2 py-3 text-[10.5px] font-semibold transition-colors ${
-              curtido ? "text-primary" : "text-white/35 hover:text-white/70"
-            }`}
-            aria-pressed={curtido}
-            data-testid={`curtir-comentario-${comentario.id}`}
-          >
-            <Heart className={`h-3.5 w-3.5 ${curtido ? "fill-current" : ""}`} />
-            {total > 0 && total}
-          </button>
+          {/* Curtir **e descurtir**, com a lista de quem reagiu no número — o
+              mesmo componente do post, do fórum e do mural (31/07). */}
+          <Reacoes
+            id={comentario.id}
+            deOutraPessoa={!ehMeu}
+            autorSlug={comentario.autorSlug}
+            className="pr-1"
+          />
           <button
             onClick={() => onResponder(nome)}
             className="-my-3 px-2 py-3 text-[10.5px] font-semibold text-white/35 transition-colors hover:text-white/70"
