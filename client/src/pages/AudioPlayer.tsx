@@ -15,6 +15,7 @@ import ConversaDoTrecho from "@/components/ConversaDoTrecho";
 import MarcasDaConversa from "@/components/MarcasDaConversa";
 import FaixaDaTurmaNoPlayer from "@/components/clube/FaixaDaTurmaNoPlayer";
 import FaixaDaSalaNoPlayer, { ItemOuvirJunto } from "@/components/sala/FaixaDaSalaNoPlayer";
+import ContinuarDaTurma from "@/components/sala/ContinuarDaTurma";
 import AbrirSala from "@/components/sala/AbrirSala";
 import { SALA_AO_VIVO_EVENT } from "@/lib/salaAoVivo";
 import { MAX_CITACAO_SEC, criarCitacao, rotuloDaCitacao } from "@/lib/citacoes";
@@ -641,8 +642,22 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             `key` com a versão: a faixa precisa sumir na hora em que a sala é
             encerrada, sem esperar a próxima navegação.
           */}
-          <div key={versaoDaSala} className="w-full px-2 shrink-0">
+          <div key={versaoDaSala} className="w-full space-y-2 px-2 shrink-0 empty:hidden">
             <FaixaDaSalaNoPlayer bookId={book.id} />
+
+            {/* "Continuar de onde a turma parou" (§4.81) — só para quem está
+                atrás do ponto da última sessão. */}
+            <ContinuarDaTurma
+              bookId={book.id}
+              posicaoAtualSec={currentTime}
+              onIr={(posicao) => {
+                setCurrentTime(posicao);
+                toast({
+                  title: "Você está com a turma",
+                  description: "As falas da sessão aparecem conforme você passa por cada minuto.",
+                });
+              }}
+            />
           </div>
 
           {/* Progress Section */}

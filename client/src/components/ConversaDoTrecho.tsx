@@ -10,6 +10,8 @@ import { commentsForBook } from "@/lib/comments";
 import { findMember } from "@/lib/community";
 import { myCommentsFor } from "@/lib/myComments";
 import { comentariosNoTrecho, rotuloDaAncora } from "@/lib/sala";
+import RastroDaSessao from "@/components/sala/RastroDaSessao";
+import { rastroNoTrecho } from "@/lib/salaAoVivo";
 
 /**
  * A conversa **deste trecho**, aberta de dentro do player.
@@ -60,6 +62,9 @@ export default function ConversaDoTrecho({
    * a casa inteira. Escrever um segundo sistema de mensagens só para o clube foi
    * o que fez o mural virar um chat que qualquer app tem.
    */
+  /** Há fala de sessão ao vivo neste trecho? Muda o texto do "ninguém falou". */
+  const temRastro = rastroNoTrecho(bookId, ponto).length > 0;
+
   const clube = useMemo(() => meuClubeDoLivro(bookId), [bookId]);
   const [aba, setAba] = useState<"turma" | "todos">("turma");
 
@@ -131,6 +136,16 @@ export default function ConversaDoTrecho({
                   Ninguém da sua turma parou por aqui ainda. O que você escrever fica preso neste
                   ponto — e alguém do clube encontra quando chegar.
                 </>
+              ) : temRastro ? (
+                /* Sem esta variante a tela se contradizia: dizia "ninguém parou
+                   para comentar" com as falas da sessão logo abaixo. São mesmo
+                   coisas diferentes (§4.81) — mas quem lê precisa entender isso
+                   em vez de achar que a tela errou. */
+                <>
+                  Ninguém <b className="text-white/70">comentou</b> por aqui — o que existe neste
+                  ponto é conversa de sessão ao vivo, logo abaixo. Comentário fica; conversa de
+                  sessão é do momento.
+                </>
               ) : (
                 <>
                   Ninguém parou para comentar por aqui ainda. O que você escrever fica preso neste
@@ -167,6 +182,14 @@ export default function ConversaDoTrecho({
             </>
           )}
         </div>
+
+        {/*
+          O que se disse nas **sessões ao vivo** neste ponto (ROTEIRO §4.81).
+          Bloco próprio, e não mais itens na lista acima: a decisão do Matheus foi
+          que chat ao vivo e discussão do capítulo são **coisas diferentes** — se
+          as falas caíssem na mesma lista, essa separação sumiria na tela.
+        */}
+        <RastroDaSessao bookId={bookId} posicaoSec={ponto} />
 
         {/*
           **Vai para a conversa, não para a ficha** (ROTEIRO 4.51). Este link
