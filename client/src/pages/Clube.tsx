@@ -24,6 +24,7 @@ import {
   dataCurta,
   entrarNoClube,
   estaComecando,
+  hojeIso,
   linkDoClube,
   nomeDoMembro,
   sairDoClube,
@@ -35,6 +36,7 @@ import {
 import { forumNaTela } from "@/lib/forum";
 import SessoesDoClube from "@/components/sala/SessoesDoClube";
 import ConversaDoCiclo from "@/components/clube/ConversaDoCiclo";
+import AbasDoClube, { type AbaDoClube } from "@/components/clube/AbasDoClube";
 import {
   confirmarPresenca,
   euConfirmei,
@@ -101,6 +103,8 @@ export default function Clube({ params }: { params: { id: string } }) {
   const [clube, setClube] = useState<ClubeTipo | undefined>(() => clubePorId(params.id));
   /** Muda quando você entra ou sai da fila — força a leitura de novo. */
   const [versao, setVersao] = useState(0);
+  /** A aba aberta (§4.82). Nasce em "Agora": é o que pede ação hoje. */
+  const [aba, setAba] = useState<AbaDoClube>("agora");
 
   useEffect(() => {
     const atualizar = () => setClube(clubePorId(params.id));
@@ -391,30 +395,18 @@ export default function Clube({ params }: { params: { id: string } }) {
           </div>
         </header>
 
-        <CartaoDoCiclo clube={clube} />
+        {/*
+          **As abas** (§4.82). A tela tinha sete seções empilhadas e ~3,5 telas de
+          rolagem — o defeito que a §4.57 mediu e que a sala ao vivo agravou. O
+          Matheus decidiu em 31/07: *"sim, ele vira a aba"*.
 
-        {/* As sessões de escuta ao vivo (§4.81) — só aparecem quando existem, e
-            o rodapé delas separa "sessão" de "rodada". */}
-        <SessoesDoClube clube={clube} />
+          O que fica **fora** delas, acima: quem é o clube, quem está nele e como
+          entrar. É a identidade da turma — trocar de aba não pode fazer isso
+          sumir.
+        */}
+        <AbasDoClube clube={clube} ativa={aba} onTrocar={setAba} />
 
-        <EncontrosDoClube clube={clube} />
-
-        {membro ? (
-          <>
-            {/*
-              Rodada, pauta e votação **aparecem quando é a hora**, não como
-              seções fixas (ROTEIRO 4.40). Cada uma some sozinha quando não há
-              nada aberto — é a regra que tirou as caixas vazias da tela.
-            */}
-            <PautaNoClube clube={clube} />
-            <RodadaDoClube clube={clube} />
-            {/* A discussão por trecho do livro do ciclo (§4.81) — a "aba de
-                conversa do capítulo" que ele achava que já existia. */}
-            <ConversaDoCiclo clube={clube} />
-            <MuralDoClube clube={clube} />
-            <VotacaoDoClube clube={clube} />
-          </>
-        ) : (
+        {!membro && (
           <p className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-xs leading-relaxed text-white/45">
             Entre no clube para ver o mural, responder às rodadas e votar no próximo livro. O
             combinado de spoiler passa a valer para você — é ele que deixa a conversa segura para
@@ -422,7 +414,68 @@ export default function Clube({ params }: { params: { id: string } }) {
           </p>
         )}
 
-        {clube.estante.length > 0 && <EstanteDoClube clube={clube} />}
+        {/* ---------------------------------------------------------------- */}
+        {/* AGORA — o que pede ação hoje                                      */}
+        {/* ---------------------------------------------------------------- */}
+        {aba === "agora" && (
+          <>
+            <CartaoDoCiclo clube={clube} />
+            <SessoesDoClube clube={clube} />
+            {membro && (
+              <>
+                {/*
+                  Rodada, pauta e votação **aparecem quando é a hora**, não como
+                  seções fixas (ROTEIRO 4.40). Cada uma some sozinha quando não há
+                  nada aberto — é a regra que tirou as caixas vazias da tela.
+                */}
+                <PautaNoClube clube={clube} />
+                <RodadaDoClube clube={clube} />
+                <VotacaoDoClube clube={clube} />
+              </>
+            )}
+          </>
+        )}
+
+        {/* ---------------------------------------------------------------- */}
+        {/* CONVERSA — o mural e a discussão por trecho, juntos               */}
+        {/* ---------------------------------------------------------------- */}
+        {aba === "conversa" && membro && (
+          <>
+            <MuralDoClube clube={clube} />
+            {/* A discussão por trecho do livro do ciclo (§4.81) — a "aba de
+                conversa do capítulo" que ele achava que já existia. Fica **junto**
+                do mural desde a §4.82: eram duas seções respondendo à mesma
+                pergunta em páginas de rolagem diferentes. */}
+            <ConversaDoCiclo clube={clube} />
+          </>
+        )}
+
+        {/* ---------------------------------------------------------------- */}
+        {/* ENCONTROS — a agenda e como marcar mais                           */}
+        {/* ---------------------------------------------------------------- */}
+        {aba === "encontros" && (
+          <>
+            <EncontrosDoClube clube={clube} />
+            <SessoesDoClube clube={clube} soAsPortas />
+          </>
+        )}
+
+        {/* ---------------------------------------------------------------- */}
+        {/* ESTANTE — a memória da turma e o ritmo do ciclo                   */}
+        {/* ---------------------------------------------------------------- */}
+        {aba === "estante" && (
+          <>
+            {clube.estante.length > 0 ? (
+              <EstanteDoClube clube={clube} />
+            ) : (
+              <p className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-xs leading-relaxed text-white/45">
+                A turma ainda não terminou nenhum livro junto. Quando o ciclo fechar, ele fica
+                guardado aqui.
+              </p>
+            )}
+            <RitmoDoCiclo clube={clube} />
+          </>
+        )}
 
         {/*
           Sair e apagar são ações diferentes e agora ficam em lugares diferentes.
@@ -634,6 +687,68 @@ function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
         Encontro marcado tem hora. Os de <b className="text-white/45">ao vivo</b> são sessões de
         escuta: todo mundo ouve no mesmo segundo. A rodada do clube continua sem hora — você
         responde quando der.
+      </p>
+    </section>
+  );
+}
+
+/**
+ * **O ritmo do ciclo** — os marcos combinados, com o prazo de cada um.
+ *
+ * Estava só no `Gerenciar`, do lado de quem modera; quem participa via a régua
+ * do cartão do ciclo mas não sabia **quando** era cada etapa. Ganhou lugar na
+ * aba *Estante* (§4.82), junto da memória: as duas respondem a "como esta turma
+ * lê", uma para trás e outra para a frente.
+ */
+function RitmoDoCiclo({ clube }: { clube: ClubeTipo }) {
+  const marcos = clube.ciclo.marcos;
+  if (marcos.length === 0) return null;
+
+  const hoje = hojeIso();
+
+  return (
+    <section className="space-y-3" data-testid="ritmo-do-ciclo">
+      <div className="flex items-baseline justify-between">
+        <h2 className="font-display text-lg font-bold">O ritmo combinado</h2>
+        <span className="text-xs text-white/35">{marcos.length} etapas</span>
+      </div>
+
+      <div className="space-y-1.5">
+        {marcos.map((marco, i) => {
+          const capInicial = i === 0 ? 1 : marcos[i - 1].chapter + 1;
+          const passou = marco.prazo < hoje;
+
+          return (
+            <div
+              key={marco.id}
+              className={`flex items-center gap-3 rounded-xl border border-white/8 px-3.5 py-2.5 ${
+                passou ? "bg-white/[0.015] opacity-50" : "bg-white/[0.03]"
+              }`}
+              data-testid={`marco-${marco.id}`}
+            >
+              <span
+                className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-bold ${
+                  passou ? "bg-white/10 text-white/40" : "bg-primary/15 text-primary"
+                }`}
+              >
+                {marco.id}
+              </span>
+              <span className="min-w-0 flex-1 text-[12.5px]">
+                {capInicial === marco.chapter
+                  ? `Capítulo ${marco.chapter}`
+                  : `Capítulos ${capInicial} a ${marco.chapter}`}
+              </span>
+              <span className="shrink-0 text-[11px] tabular-nums text-white/35">
+                {dataCurta(marco.prazo)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-[10.5px] leading-relaxed text-white/25">
+        Prazo aqui é combinado, não cobrança — a rodada continua aberta por dias, e você responde
+        quando der.
       </p>
     </section>
   );

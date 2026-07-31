@@ -7171,6 +7171,33 @@ não podem discordar), bloco **some** quando não há casamento honesto, grupos 
 situação de escuta (dormindo, 2x, trânsito) ficam de fora, e a faixa do grupo
 mostra **falas, não nota** — vende a conversa, não o livro.
 
+### A correção dele — e o receio verdadeiro (31/07, mais tarde)
+
+> *"Você está errado em uma coisa: quando eu falo 'a gente já tem vários grupos
+> de discussões sobre aquele livro', eu falo 'a gente **pode ter**'. Alguém
+> realmente interessado poderia abrir uma discussão sobre aquele livro em
+> específico. [...] O meu receio é que sejam coisas parecidas. A conversa no
+> livro, junto com os fóruns, pode se tornar muito parecida."*
+
+A apuração continua de pé (não há grupo por livro **hoje**), mas a leitura da
+frase dele estava errada — e o receio corrigido é **mais forte que o original**:
+nada impede alguém de criar amanhã o tópico "A Paciente Silenciosa — aquele
+final!" no grupo de suspense, e nesse dia a conversa do livro e o fórum viram
+**concorrentes silenciosos**, cada um sem saber que o outro existe.
+
+**A resposta que entrou na proposta: tópico↔livro é a terceira ponte.** Um
+tópico pode se declarar "sobre um livro" (anexo opcional ao criar): ganha a capa
+no topo, o aviso honesto de que **ali não há trava de spoiler** (a sala do livro
+tem; o tópico é o lugar de debater o final), e as duas conversas passam a se
+enxergar — o tópico aponta para a conversa do livro, e a conversa do livro lista
+os tópicos que se declararam sobre ele. Convergência sem costura era o risco;
+com costura, os papéis ficam distintos: **fio-do-ouvido sem spoiler** de um
+lado, **debate com título e spoiler solto** do outro.
+
+**O combinado, nas palavras dele:** protótipo **clicável**, fora do código do
+produto (`client/public/_pontes-prototipo.html`, temporário, fora do git). *"Se
+eu aprovar, você constrói no código. Se não, a gente exclui tudo mesmo."*
+
 ---
 
 ## 4.82 A segunda leva da sala, e a auditoria de design (31/07, noite)
@@ -7251,6 +7278,37 @@ pediu, e nenhuma delas é supérflua isoladamente; o problema é a soma.
    avisado de que uma sessão acabou** e deixou rastro para ouvir depois — o que
    enfraquece justamente a "função de continuar" que ele elegeu a melhor de
    todas.
+
+### ✔ Decidido no mesmo dia: o clube vira abas
+
+> *"Sim, ele vira a aba. Pode começar a construir já."*
+
+A decisão que estava aberta desde a **§4.57** (29/07). **Construída em 31/07.**
+
+**O que ficou fora das abas, no topo:** descrição, membros, moderador, os selos
+(*ouve junto* / *fechado*) e os botões de entrar/convidar/gerenciar. É a
+identidade da turma — trocar de aba não pode fazer isso sumir.
+
+| Aba | O que tem | Critério |
+| --- | --- | --- |
+| **Agora** (abre nela) | ciclo, sala no ar, pauta, rodada, votação | o que pede ação **hoje** |
+| **Conversa** | mural **+** discussão trecho a trecho | eram duas seções para a mesma pergunta |
+| **Encontros** | a agenda, marcar sessão, abrir sala | tudo que tem hora |
+| **Estante** | o que a turma já leu **+ o ritmo combinado** | a memória, para trás e para a frente |
+
+**Medido antes e depois:** ~3,5 telas de rolagem → **no máximo 1,9** (Agora e
+Conversa), 1,0 em Encontros e 1,2 em Estante.
+
+**O preço, e a mitigação.** A §4.57 já avisava: *"o que está atrás de aba deixa
+de ser visto"*. Por isso cada aba acende um **ponto** quando há algo esperando
+**por você** — rodada por responder, voto por dar, sessão por confirmar, sala no
+ar. E o ponto **só aparece na aba fechada**: apontar para o que a pessoa já está
+olhando é ruído. Não conta "mensagem nova no mural" de propósito — ponto que
+nunca apaga deixa de significar coisa alguma.
+
+**Ganho de tabela:** o **ritmo combinado** (os marcos com prazo) só existia no
+`Gerenciar`, do lado de quem modera. Quem participa via a régua mas não sabia
+*quando* era cada etapa. Agora mora na Estante.
 
 ---
 

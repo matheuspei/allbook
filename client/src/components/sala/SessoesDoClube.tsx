@@ -29,7 +29,20 @@ import MarcarSessao from "@/components/sala/MarcarSessao";
  * **Marcar é opcional** — foi o argumento dele que derrubou a minha objeção.
  * Clube que não quer sessão nenhuma simplesmente não marca, e esta seção some.
  */
-export default function SessoesDoClube({ clube }: { clube: Clube }) {
+export default function SessoesDoClube({
+  clube,
+  soAsPortas = false,
+}: {
+  clube: Clube;
+  /**
+   * **Só os botões de marcar e abrir**, sem a lista do que está no ar.
+   *
+   * A aba *Encontros* usa assim: quem está transmitindo agora aparece na aba
+   * *Agora*, e repetir a mesma sala nas duas seria a redundância que a §4.82
+   * varreu do feed e do player.
+   */
+  soAsPortas?: boolean;
+}) {
   /*
    * **Só o que está acontecendo agora.** As sessões *marcadas* vivem na agenda
    * do clube ("Encontros marcados"), junto com os eventos de comunidade — ter
@@ -52,6 +65,10 @@ export default function SessoesDoClube({ clube }: { clube: Clube }) {
    * fazer e não está fazendo. Num clube comum, a mesma caixa seria propaganda de
    * um recurso que ninguém pediu.
    */
+  if (soAsPortas) {
+    return membro ? <PortasDaSessao clube={clube} /> : null;
+  }
+
   if (agora.length === 0 && !clube.aoVivo) {
     return membro ? <ConviteParaMarcar clube={clube} /> : null;
   }
@@ -129,34 +146,7 @@ export default function SessoesDoClube({ clube }: { clube: Clube }) {
         );
       })}
 
-      {membro && (
-        <div className="flex gap-2">
-          <button
-            onClick={() => setMarcando(true)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/[0.06] py-2.5 text-[12.5px] font-semibold text-white/70 ring-1 ring-inset ring-white/10 transition-colors hover:bg-white/10"
-            data-testid="button-marcar-sessao-clube"
-          >
-            <CalendarPlus className="h-4 w-4" />
-            Marcar sessão
-          </button>
-          <button
-            onClick={() => {
-              const sala = abrirSala({
-                bookId: clube.ciclo.bookId,
-                porta: "aberta",
-                posicaoSec: 0,
-                clubeId: clube.id,
-              });
-              navigate(`/sala/${sala.id}`);
-            }}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500/[0.12] py-2.5 text-[12.5px] font-bold text-red-200 ring-1 ring-inset ring-red-500/30 transition-colors hover:bg-red-500/20"
-            data-testid="button-abrir-sala-clube"
-          >
-            <Radio className="h-4 w-4" />
-            Abrir sala agora
-          </button>
-        </div>
-      )}
+      {membro && <PortasDaSessao clube={clube} />}
 
       <p className="text-[10.5px] leading-relaxed text-white/25">
         Entrar te põe no mesmo segundo que a turma. A <b className="text-white/45">rodada</b> do
@@ -190,6 +180,49 @@ function ConviteParaMarcar({ clube }: { clube: Clube }) {
           hora
         </span>
       </button>
+      {marcando && <MarcarSessao clube={clube} onFechar={() => setMarcando(false)} />}
+    </>
+  );
+}
+
+/**
+ * **Marcar uma sessão ou abrir a sala agora** — as duas portas, juntas.
+ *
+ * Vive em componente próprio porque aparece em dois lugares: no fim de
+ * *Ouvindo agora* e sozinho na aba *Encontros*.
+ */
+function PortasDaSessao({ clube }: { clube: Clube }) {
+  const [, navigate] = useLocation();
+  const [marcando, setMarcando] = useState(false);
+
+  return (
+    <>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setMarcando(true)}
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/[0.06] py-2.5 text-[12.5px] font-semibold text-white/70 ring-1 ring-inset ring-white/10 transition-colors hover:bg-white/10"
+          data-testid="button-marcar-sessao-clube"
+        >
+          <CalendarPlus className="h-4 w-4" />
+          Marcar sessão
+        </button>
+        <button
+          onClick={() => {
+            const sala = abrirSala({
+              bookId: clube.ciclo.bookId,
+              porta: "aberta",
+              posicaoSec: 0,
+              clubeId: clube.id,
+            });
+            navigate(`/sala/${sala.id}`);
+          }}
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500/[0.12] py-2.5 text-[12.5px] font-bold text-red-200 ring-1 ring-inset ring-red-500/30 transition-colors hover:bg-red-500/20"
+          data-testid="button-abrir-sala-clube"
+        >
+          <Radio className="h-4 w-4" />
+          Abrir sala agora
+        </button>
+      </div>
       {marcando && <MarcarSessao clube={clube} onFechar={() => setMarcando(false)} />}
     </>
   );
