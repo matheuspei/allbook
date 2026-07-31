@@ -688,6 +688,7 @@ function AutorDoComentario({ slug, small }: { slug: string; small?: boolean }) {
     <div className="flex items-center gap-2">
       <AvatarAmpliavel
         nome={membro.name}
+        slug={membro.slug}
         inicial={membro.name.charAt(0)}
         fundoClasse={`bg-gradient-to-br ${membro.color}`}
         legenda="Leitor da AllBook"

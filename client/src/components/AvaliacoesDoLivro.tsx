@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { avatarDeLeitor } from "@/lib/community";
 import { MessageSquare } from "lucide-react";
 
@@ -58,7 +59,18 @@ function Avaliacao({ item }: { item: Comment }) {
       className="rounded-xl border border-white/5 bg-white/5 p-4"
       data-testid={`avaliacao-${item.id}`}
     >
-      <div className="flex items-center gap-2.5">
+      {/*
+        **A foto e o nome levam ao perfil de quem avaliou** — conserto de 31/07.
+        O Matheus abriu a ficha de "O clube das 5 da manhã" e não conseguiu
+        clicar na Luciana: aqui o autor era texto puro, enquanto em todo o resto
+        do app (feed, fórum, mural, sala) tocar num leitor abre a página dele.
+        Regra da casa: **nome de leitor na tela é sempre porta para o perfil.**
+      */}
+      <Link
+        href={autor ? `/user/${autor.slug}` : "/profile"}
+        className="flex items-center gap-2.5"
+        data-testid={`avaliacao-autor-${item.id}`}
+      >
         <span
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${
             autor?.color ?? "from-zinc-600 to-zinc-700"
@@ -66,11 +78,13 @@ function Avaliacao({ item }: { item: Comment }) {
         >
           {(autor?.name ?? "?").charAt(0)}
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{autor?.name ?? "Alguém"}</p>
-          <p className="text-[10px] text-white/30">{relativeDate(item.date)}</p>
-        </div>
-      </div>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold transition-colors hover:text-primary">
+            {autor?.name ?? "Você"}
+          </span>
+          <span className="block text-[10px] text-white/30">{relativeDate(item.date)}</span>
+        </span>
+      </Link>
 
       {item.rating !== undefined && <NotaDoComentario nota={item.rating} />}
 
@@ -113,7 +127,14 @@ function Avaliacao({ item }: { item: Comment }) {
             return (
               <div key={resposta.id} data-testid={`avaliacao-resposta-${resposta.id}`}>
                 <p className="text-xs leading-relaxed text-white/55">
-                  <span className="font-semibold text-white/75">{quem?.name ?? "Alguém"}:</span>{" "}
+                  {/* Quem responde também é gente: o nome leva ao perfil. */}
+                  <Link
+                    href={quem ? `/user/${quem.slug}` : "/profile"}
+                    className="font-semibold text-white/75 transition-colors hover:text-primary"
+                  >
+                    {quem?.name ?? "Você"}
+                  </Link>
+                  {": "}
                   {resposta.text}
                 </p>
               </div>

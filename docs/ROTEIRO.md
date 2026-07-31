@@ -6872,6 +6872,32 @@ grade uniforme — mas exige a mesma conferência a olho da §4.76.
 
 ---
 
+## 4.83 Nome de leitor na tela é sempre porta para o perfil (31/07)
+
+> *"Cliquei no livro 'O clube das 5 da manhã', tem a avaliação da Luciana, e eu
+> não consigo clicar no perfil da Luciana."*
+
+Era verdade: em `AvaliacoesDoLivro.tsx` o autor da resenha era **texto puro** —
+foto e nome sem link —, enquanto no feed, no fórum, no mural e na sala tocar num
+leitor sempre abre a página dele. O mesmo valia para quem responde a uma
+avaliação.
+
+**A regra que fica, e vale para tela nova:** *nome ou foto de leitor na tela é
+sempre porta para o perfil* (`/user/:slug`, ou `/profile` quando é você). Se
+numa tela nova o nome não leva a lugar nenhum, é defeito, não decisão.
+
+**Varredura junto:** conferi os outros 20 lugares que desenham avatar de leitor.
+Os comentários de post, o quem-reagiu e as sugestões já tinham link; os avatares
+empilhados de "conversas de agora" e a citação de post **não** ganham link de
+propósito (o cartão inteiro já leva a outro destino, e dois destinos no mesmo
+cartão é o defeito oposto). O que estava faltando mesmo era a avaliação.
+
+Aproveitando, o retrato do leitor na sala passou a **ampliar de verdade** — o
+`AvatarAmpliavel` do `CommentThread` não recebia o `slug`, o mesmo esquecimento
+que a §4.79 corrigiu no perfil.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
