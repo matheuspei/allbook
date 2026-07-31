@@ -403,7 +403,7 @@ function Pedidos({ id }: { id: string }) {
                 className="flex items-center gap-2.5 border-b border-white/[0.06] py-2.5 last:border-0"
                 data-testid={`pedido-${slug}`}
               >
-                <AvatarDoForum nome={nome} cor={findMember(slug)?.color} tamanho={36} />
+                <AvatarDoForum nome={nome} slug={slug} cor={findMember(slug)?.color} tamanho={36} />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13px] font-semibold">{nome}</span>
                   <span className="block truncate text-[11px] text-white/35">
@@ -463,7 +463,7 @@ function Pessoas({ id }: { id: string }) {
               data-testid={`gerenciar-membro-${slug}`}
             >
               <div className="flex items-center gap-2.5">
-                <AvatarDoForum nome={nome} cor={membro?.color} tamanho={36} />
+                <AvatarDoForum nome={nome} slug={slug} cor={membro?.color} tamanho={36} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 text-[13px] font-semibold">
                     <span className="truncate">{nome}</span>
@@ -595,7 +595,7 @@ function Banidos({ id }: { id: string }) {
               data-testid={`banido-${slug}`}
             >
               <span className="opacity-40">
-                <AvatarDoForum nome={nome} cor={membro?.color} tamanho={32} />
+                <AvatarDoForum nome={nome} slug={slug} cor={membro?.color} tamanho={32} />
               </span>
               <span className="min-w-0 flex-1 truncate text-[13px] text-white/55">{nome}</span>
               <LinkDoForum

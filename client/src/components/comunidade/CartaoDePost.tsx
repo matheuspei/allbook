@@ -9,7 +9,7 @@ import TextoDoPost from "@/components/comunidade/TextoDoPost";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { catalog, slugify } from "@/lib/books";
 import { EU, clubePorId, corDoMembro, nomeDoMembro, souDono, vagasRestantes, type Clube } from "@/lib/clubes";
-import { findMember } from "@/lib/community";
+import { findMember, fotoDoMembro } from "@/lib/community";
 import { findPerson } from "@/lib/people";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { initialOf, readProfile } from "@/lib/profile";
@@ -149,15 +149,27 @@ export default function CartaoDePost({
 
       <header className="flex items-center gap-2.5">
         <Link href={href} className="flex min-w-0 flex-1 items-center gap-2.5">
+          {/* **O rosto do leitor** (31/07): PNG transparente por cima do gradiente
+              dele. Quem não tem arquivo continua na inicial, como sempre. */}
           {ehMeu && meuPerfil.photo ? (
             <img src={meuPerfil.photo} alt="" className="h-9 w-9 rounded-full object-cover" />
           ) : (
             <span
-              className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br ${
+              className={`relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br ${
                 membro?.color ?? "from-primary to-orange-600"
               } font-display text-sm font-bold`}
             >
-              {ehMeu ? initialOf(meuPerfil.name) : nome.charAt(0)}
+              {!ehMeu && post.autorSlug && fotoDoMembro(post.autorSlug) ? (
+                <img
+                  src={fotoDoMembro(post.autorSlug)}
+                  alt={nome}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : ehMeu ? (
+                initialOf(meuPerfil.name)
+              ) : (
+                nome.charAt(0)
+              )}
             </span>
           )}
           <span className="min-w-0 flex-1">

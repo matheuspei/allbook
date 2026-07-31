@@ -13,6 +13,45 @@
 import { catalog, type Book } from "@/lib/books";
 
 /**
+ * **O rosto de cada leitor** (31/07).
+ *
+ * Pedido do Matheus: *"crie caras para os perfis… imagens mesmo, como se fosse
+ * uma pessoa real"*. Os arquivos ficam em `assets/images/community/<slug>.png` e
+ * são baixados uma vez por `npm run caras` — nunca durante o uso, como as capas
+ * dos livros.
+ *
+ * ⚠️ **São rostos gerados, não fotos de gente.** Ele chegou a dizer *"pode ser
+ * uma pessoa real também"*, e o motivo de eu não ter feito isso está no cabeçalho
+ * do script: pôr o rosto de alguém como perfil de um leitor fictício é usar a
+ * imagem de uma pessoa que não escolheu estar ali — e tudo o que a "Ana Paula"
+ * escreve passa a sair da cara dela.
+ *
+ * **O fundo é transparente de propósito:** o rosto entra **por cima do gradiente**
+ * de cada pessoa (`color`), que o app usa há semanas para identificá-la de
+ * relance. Assim a foto acrescenta sem apagar o que já funcionava.
+ *
+ * Falta o arquivo? O avatar volta a ser a inicial no gradiente, como antes — é o
+ * mesmo desenho de `people.ts`, e por isso soltar um `<slug>.png` na pasta basta.
+ */
+const arquivosDeRosto = import.meta.glob("../assets/images/community/*.png", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
+const rostosPorSlug: Record<string, string> = Object.fromEntries(
+  Object.entries(arquivosDeRosto).map(([caminho, url]) => [
+    caminho.split("/").pop()!.replace(/\.png$/, ""),
+    url,
+  ]),
+);
+
+/** O rosto de um leitor, se ele tiver um arquivo na pasta. */
+export function fotoDoMembro(slug: string): string | undefined {
+  return rostosPorSlug[slug];
+}
+
+/**
  * Um livro que a pessoa pôs na lista pública dela, com a data em que pôs.
  *
  * A data não é enfeite: é ela que permite dizer "Ana Paula recomendou Duna"
@@ -31,7 +70,13 @@ export interface CommunityMember {
   slug: string;
   name: string;
   bio: string;
-  /** Cor do avatar, já que ninguém tem foto de verdade. */
+  /**
+   * O gradiente da pessoa.
+   *
+   * **Continua valendo mesmo com foto** (31/07): o rosto é PNG transparente e
+   * entra por cima dele. Quem não tem arquivo mostra a inicial no gradiente, como
+   * antes — nenhuma tela precisou saber da diferença.
+   */
   color: string;
   /** Quando entrou, em texto — só para dar densidade ao perfil. */
   memberSince: string;

@@ -86,7 +86,7 @@ export default function MembrosDoForum() {
                   className="flex items-center gap-3 border-b border-white/[0.06] py-2.5 last:border-0"
                   data-testid={`membro-${slug}`}
                 >
-                  <AvatarDoForum nome={nome} cor={membro?.color} tamanho={40} />
+                  <AvatarDoForum nome={nome} slug={slug} cor={membro?.color} tamanho={40} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13.5px] font-semibold">
                       {nome}

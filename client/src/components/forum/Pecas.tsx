@@ -2,6 +2,8 @@ import { type ReactNode } from "react";
 import { Link } from "wouter";
 
 import PageHeader from "@/components/PageHeader";
+import { catalog } from "@/lib/books";
+import { fotoDoMembro } from "@/lib/community";
 
 /**
  * **As peças visuais das comunidades** — agora com a cara do AllBook.
@@ -165,18 +167,28 @@ export function Campo({ rotulo, children }: { rotulo: string; children: ReactNod
  */
 export function AvatarDoForum({
   nome,
+  slug,
   src,
   cor = "from-primary to-orange-600",
   tamanho = 44,
   testid,
 }: {
   nome: string;
+  /** Quem é — o componente busca o rosto sozinho (31/07). */
+  slug?: string;
+  /** Foto pronta, para o **seu** avatar (que vem do perfil, não da comunidade). */
   src?: string;
   /** As classes de gradiente de `community.ts`. */
   cor?: string;
   tamanho?: number;
   testid?: string;
 }) {
+  /* A foto do perfil vem inteira e é recortada; a do leitor é um PNG
+     transparente que se **sobrepõe** ao gradiente. São dois casos diferentes de
+     propósito: o gradiente é o que identifica a pessoa de relance no app inteiro,
+     e jogá-lo fora ao ganhar rosto seria trocar uma informação por outra. */
+  const rosto = src ?? (slug ? fotoDoMembro(slug) : undefined);
+
   if (src) {
     return (
       <img
@@ -188,15 +200,90 @@ export function AvatarDoForum({
       />
     );
   }
+
   return (
     <span
       style={{ width: tamanho, height: tamanho, fontSize: Math.round(tamanho / 2.6) }}
-      className={`grid shrink-0 place-items-center rounded-full bg-gradient-to-br ${cor} font-display font-bold`}
+      className={`relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br ${cor} font-display font-bold`}
       data-testid={testid}
     >
-      {nome.charAt(0).toUpperCase()}
+      {rosto ? (
+        <img src={rosto} alt={nome} className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        nome.charAt(0).toUpperCase()
+      )}
     </span>
   );
+}
+
+/**
+ * **A capa de uma comunidade** — imagem enviada, ou o mosaico das capas dos
+ * livros de que ela fala, ou o emoji.
+ *
+ * A ordem importa e é a de sempre no app: o que a pessoa **escolheu** ganha do
+ * que o app **deduz**, e o deduzido ganha do genérico. Ver `capaDaComunidade`,
+ * em `lib/forum.ts`, para o registro de por que a foto de banco foi descartada.
+ */
+export function CapaDaComunidade({
+  imagem,
+  livros,
+  emoji,
+  lado,
+  className = "",
+  testid,
+}: {
+  imagem?: string;
+  /** Os ids das capas do mosaico, de `capaDaComunidade`. */
+  livros: number[];
+  emoji: string;
+  /** Em px, para a moldura quadrada. Sem valor, ocupa a largura do pai. */
+  lado?: number;
+  className?: string;
+  testid?: string;
+}) {
+  const estilo = lado ? { width: lado, height: lado } : undefined;
+  const moldura = `shrink-0 overflow-hidden rounded-2xl ring-1 ring-white/10 ${
+    lado ? "" : "aspect-square w-full"
+  } ${className}`;
+
+  if (imagem) {
+    return (
+      <img
+        src={imagem}
+        alt=""
+        style={estilo}
+        className={`${moldura} object-cover`}
+        data-testid={testid}
+      />
+    );
+  }
+
+  if (livros.length >= 4) {
+    return (
+      <span style={estilo} className={`grid grid-cols-2 ${moldura}`} data-testid={testid}>
+        {livros.slice(0, 4).map((id) => (
+          <CapinhaDoMosaico key={id} bookId={id} />
+        ))}
+      </span>
+    );
+  }
+
+  return (
+    <span
+      style={{ ...estilo, fontSize: lado ? Math.round(lado / 2.6) : undefined }}
+      className={`grid place-items-center bg-white/[0.06] ${moldura} ${lado ? "" : "text-[28px]"}`}
+      data-testid={testid}
+    >
+      {emoji}
+    </span>
+  );
+}
+
+/** Um quadrante do mosaico. Fica separado só para o `find` do catálogo. */
+function CapinhaDoMosaico({ bookId }: { bookId: number }) {
+  const livro = catalog.find((item) => item.id === bookId);
+  if (!livro) return <span className="bg-white/[0.06]" />;
+  return <img src={livro.cover} alt="" className="h-full w-full object-cover" />;
 }
 
 /** Campo de texto do app: fundo transparente, borda fina, foco laranja. */

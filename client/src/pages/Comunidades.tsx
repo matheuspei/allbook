@@ -6,12 +6,14 @@ import {
   Bloco,
   BotaoDoForum,
   CAMPO,
+  CapaDaComunidade,
   LinkDoForum,
   PaginaDoForum,
 } from "@/components/forum/Pecas";
 import { useToast } from "@/hooks/use-toast";
 import {
   CATEGORIAS,
+  capaDaComunidade,
   configDo,
   forunsVisiveis,
   membrosDo,
@@ -211,17 +213,12 @@ function Grade({ lista, comFicha }: { lista: Grupo[]; comFicha?: boolean }) {
             className="text-center"
             data-testid={`comunidade-${grupo.id}`}
           >
-            {config.imagem ? (
-              <img
-                src={config.imagem}
-                alt={grupo.nome}
-                className="mx-auto aspect-square w-full rounded-xl object-cover ring-1 ring-white/10 transition-transform hover:scale-[1.03]"
-              />
-            ) : (
-              <span className="mx-auto grid aspect-square w-full place-items-center rounded-xl bg-white/[0.06] text-[28px] ring-1 ring-white/10 transition-transform hover:scale-[1.03]">
-                {grupo.emoji}
-              </span>
-            )}
+            <CapaDaComunidade
+              imagem={config.imagem}
+              livros={capaDaComunidade(grupo.id)}
+              emoji={grupo.emoji}
+              className="transition-transform hover:scale-[1.03]"
+            />
             <span className="mt-1.5 block text-[11px] font-medium leading-tight text-white/75">
               {grupo.nome}
             </span>

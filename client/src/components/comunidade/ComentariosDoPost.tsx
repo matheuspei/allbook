@@ -16,7 +16,7 @@ import {
   type ComentarioDePost,
 } from "@/lib/comentariosDePost";
 import { addNotification } from "@/lib/notifications";
-import { findMember } from "@/lib/community";
+import { findMember, fotoDoMembro } from "@/lib/community";
 import { initialOf, readProfile } from "@/lib/profile";
 import { type Mencao, type Post } from "@/lib/posts";
 
@@ -185,11 +185,19 @@ function UmComentario({
       ) : (
         <Link
           href={ehMeu ? "/profile" : `/user/${comentario.autorSlug}`}
-          className={`grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br ${
+          className={`relative grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br ${
             membro?.color ?? "from-primary to-orange-600"
           } text-[10px] font-bold`}
         >
-          {nome.charAt(0)}
+          {comentario.autorSlug && fotoDoMembro(comentario.autorSlug) ? (
+            <img
+              src={fotoDoMembro(comentario.autorSlug)}
+              alt={nome}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            nome.charAt(0)
+          )}
         </Link>
       )}
 

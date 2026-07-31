@@ -6264,6 +6264,65 @@ comunidades**. Nada disso está pendurado na interface como botão morto.
 
 ---
 
+## 4.75 Os leitores ganharam rosto, e as comunidades ganharam capa (31/07)
+
+Pedido do Matheus: *"crie caras para os perfis… imagens mesmo, como se fosse uma
+pessoa real. Pode ser uma pessoa real também, não sei. E também imagens das capas
+das comunidades que condizem com o que ela está dizendo."*
+
+### Os rostos: gerados, não fotografados — e por quê
+
+24 rostos, um por leitor de `community.ts`, baixados uma vez por **`npm run
+caras`** (DiceBear, estilo `notionists`, PNG transparente).
+
+**Ele abriu a porta para foto de gente real e eu não usei, de propósito.** Pôr o
+rosto de alguém como perfil de um leitor fictício é usar a imagem de uma pessoa
+que não escolheu estar ali — e tudo o que a "Ana Paula" escreve no app passa a
+sair da cara dela. Rosto **fotorrealista gerado** (thispersondoesnotexist e
+similares) resolveria isso e era a minha primeira escolha; **todas as fontes que
+testei estão fora do ar ou bloqueadas**. Ilustração gerada é o que dá cara sem
+tomar a de ninguém.
+
+- **Estilo escolhido com folha de comparação** (cinco estilos, os mesmos seis
+  leitores). `notionists` ganhou por duas razões: traço adulto, que não infantiliza
+  um app de audiolivro; e **licença CC0** — `lorelei` e `micah` são CC BY e
+  exigiriam crédito visível na tela.
+- **Fundo transparente, e isto é a decisão de desenho:** o rosto entra **por cima
+  do gradiente** que cada leitor já tem. O gradiente identifica a pessoa de
+  relance desde sempre; trocá-lo pelo rosto seria perder informação para ganhar
+  outra. Quem não tem arquivo continua na inicial — nenhuma tela precisou saber
+  da diferença.
+
+### As capas: o mosaico das capas dos livros, não foto de banco
+
+**A primeira tentativa foi baixar foto temática (LoremFlickr) e ela morreu na
+conferência**, por dois motivos independentes:
+
+1. **Busca por etiqueta erra feio.** "noir, detective" devolveu um boneco do
+   Bender de chapéu; "old, books, library" devolveu a fachada de um prédio.
+2. **A licença não serve.** As fotos vieram com marca d'água `cc-nc-nd` — **não
+   comercial, sem derivados** — e o nome do autor queimado no canto. Num app que
+   vai ser vendido, é impróprio.
+
+**O que ficou é melhor e é do próprio produto:** a capa de uma comunidade é o
+**mosaico de quatro capas** dos livros de que ela fala, montado na tela. A capa de
+livro é a peça de design mais cuidada do AllBook (§4.59), não custa download nem
+licença de terceiros, e acompanha o catálogo sozinha.
+
+- **Os livros são escolhidos à mão**, porque gênero não basta: "Quem ouve no
+  trânsito" não é um gênero, e "Clássicos" pega livros de gêneros diferentes (1984,
+  Orgulho e Preconceito, A Revolução dos Bichos, Razão e Sensibilidade).
+- **Comunidade criada por você não recebe mosaico** — fica o emoji que você
+  escolheu até enviar uma imagem. Inventar capa para ela seria o app decidir do
+  que ela fala.
+
+**Defeito meu, pego na tela:** o script achou 8 dos 24 leitores na primeira
+execução e não reclamou, porque o regex exigia `slug:` no começo da linha e
+metade dos membros está escrita numa linha só. Falha silenciosa é a pior — o
+resultado *parecia* certo.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

@@ -149,6 +149,7 @@ export default function Topico() {
                   <Link href={href} className="shrink-0 self-start">
                     <AvatarDoForum
                       nome={nome}
+                      slug={resposta.autor?.slug}
                       src={resposta.minha ? perfil.photo : undefined}
                       cor={resposta.autor?.color}
                       tamanho={36}

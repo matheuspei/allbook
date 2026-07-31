@@ -9,6 +9,7 @@ import {
   BotaoDoForum,
   CAMPO,
   Campo,
+  CapaDaComunidade,
   LinkDoForum,
   PaginaDoForum,
 } from "@/components/forum/Pecas";
@@ -17,6 +18,7 @@ import { relativeDate } from "@/lib/activity";
 import { EU } from "@/lib/clubes";
 import { findMember } from "@/lib/community";
 import {
+  capaDaComunidade,
   configDo,
   criadaEm,
   desistirDoPedido,
@@ -158,21 +160,13 @@ export default function Grupo() {
         {/* ---------------- a ficha ---------------- */}
         <div className="mb-4" data-testid="ficha-da-comunidade">
           <div className="flex gap-3.5">
-            {config.imagem ? (
-              <img
-                src={config.imagem}
-                alt={grupo.nome}
-                className="h-[92px] w-[92px] shrink-0 rounded-2xl object-cover ring-1 ring-white/10"
-                data-testid="imagem-da-comunidade"
-              />
-            ) : (
-              <span
-                className="grid h-[92px] w-[92px] shrink-0 place-items-center rounded-2xl bg-white/[0.06] text-[40px] ring-1 ring-white/10"
-                data-testid="imagem-da-comunidade"
-              >
-                {grupo.emoji}
-              </span>
-            )}
+            <CapaDaComunidade
+              imagem={config.imagem}
+              livros={capaDaComunidade(id)}
+              emoji={grupo.emoji}
+              lado={92}
+              testid="imagem-da-comunidade"
+            />
 
             <div className="min-w-0 flex-1">
               <h1
@@ -302,7 +296,7 @@ export default function Grupo() {
                       className="w-[52px] shrink-0 text-center"
                       data-testid={`membro-${slug}`}
                     >
-                      <AvatarDoForum nome={nome} cor={membro?.color} tamanho={48} />
+                      <AvatarDoForum nome={nome} slug={slug} cor={membro?.color} tamanho={48} />
                       <span className="mt-1 block truncate text-[10.5px] text-white/55">
                         {nome.split(" ")[0]}
                       </span>
