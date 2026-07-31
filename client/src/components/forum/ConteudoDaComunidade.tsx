@@ -21,7 +21,7 @@ import {
   podeConvidarParaEvento,
   quemPossoConvidar,
 } from "@/lib/convitesDeEvento";
-import { possoCriar, souModerador } from "@/lib/forum";
+import { configDo, fixarEnquete, possoCriar, souModerador } from "@/lib/forum";
 import { GRUPOS_EVENT } from "@/lib/grupos";
 import {
   MAX_OPCAO,
@@ -62,37 +62,197 @@ import {
  * Enquetes
  * ------------------------------------------------------------------ */
 
-export function Enquetes({ grupoId }: { grupoId: string }) {
+/** Quantas enquetes o resumo lista abaixo do destaque. */
+const RESUMO_DE_ENQUETES = 3;
+/** Quantos eventos o resumo mostra por inteiro. */
+const RESUMO_DE_EVENTOS = 2;
+/** O Orkut paginava as listas de 10 em 10. */
+const POR_PAGINA = 10;
+
+/** Quantos votos uma enquete tem, somando as opções. */
+function totalDeVotos(enquete: Enquete): number {
+  return votosDe(enquete).reduce((soma, n) => soma + n, 0);
+}
+
+/**
+ * Qual enquete vai em destaque na página da comunidade.
+ *
+ * **A fixada pelo moderador ganha**; sem ninguém fixar nada, é a **mais votada
+ * entre as abertas** — "a mais falada", nas palavras do Matheus. Se todas
+ * estiverem encerradas, a mais recente, para o lugar nunca ficar vazio.
+ */
+function enqueteEmDestaque(grupoId: string, lista: Enquete[]): Enquete | undefined {
+  const fixada = lista.find((item) => item.id === configDo(grupoId).enqueteFixada);
+  if (fixada) return fixada;
+
+  const abertas = lista.filter((item) => !item.fechada);
+  if (abertas.length === 0) return lista[0];
+  return abertas.reduce((melhor, atual) =>
+    totalDeVotos(atual) > totalDeVotos(melhor) ? atual : melhor,
+  );
+}
+
+/**
+ * **As enquetes de uma comunidade.**
+ *
+ * ⚠️ **Dois modos, e o motivo é do Matheus** (31/07): *"se você for criando
+ * muita enquete, a página fica muito longa. Como era no Orkut? Digamos que você
+ * tenha 15 enquetes — vai empilhar uma em cima da outra?"*. Não: no Orkut a
+ * página da comunidade mostrava um **resumo** e a lista inteira morava numa
+ * página à parte.
+ *
+ * - `resumo` (na página da comunidade): **uma enquete em destaque**, inteira e
+ *   votável, mais até três em linha compacta e o link *ver todas*.
+ * - `todas` (em `/forum/:id/enquetes`): a lista inteira, votável, **paginada de
+ *   10 em 10**.
+ */
+export function Enquetes({
+  grupoId,
+  modo = "resumo",
+}: {
+  grupoId: string;
+  modo?: "resumo" | "todas";
+}) {
   const [criando, setCriando] = useState(false);
+  const [pagina, setPagina] = useState(0);
+  /* Fixar, encerrar e votar mudam dados que moram **fora** do React (o
+     `localStorage`). Sem escutar o evento, a tela só mostraria o novo destaque
+     ao recarregar — pego na tela em 31/07, ao fixar uma enquete e nada mudar. */
+  const [, setVersao] = useState(0);
+  useEffect(() => {
+    const atualizar = () => setVersao((n) => n + 1);
+    window.addEventListener(GRUPOS_EVENT, atualizar);
+    return () => window.removeEventListener(GRUPOS_EVENT, atualizar);
+  }, []);
+
   const lista = enquetesDe(grupoId);
   const podeCriar = possoCriar(grupoId, "enquetes");
 
   if (lista.length === 0 && !podeCriar) return null;
 
+  const criar = podeCriar ? (
+    <LinkDoForum onClick={() => setCriando((v) => !v)} testid="criar-enquete">
+      Criar enquete
+    </LinkDoForum>
+  ) : undefined;
+
+  if (modo === "todas") {
+    /* Abertas primeiro: enquete encerrada é histórico, e histórico não disputa
+       a atenção de quem chegou para votar. */
+    const ordenada = [
+      ...lista.filter((item) => !item.fechada),
+      ...lista.filter((item) => item.fechada),
+    ];
+    const paginas = Math.max(1, Math.ceil(ordenada.length / POR_PAGINA));
+    const atual = Math.min(pagina, paginas - 1);
+    const visiveis = ordenada.slice(atual * POR_PAGINA, atual * POR_PAGINA + POR_PAGINA);
+
+    return (
+      <Bloco titulo="Todas as enquetes" testid="todas-as-enquetes" acao={criar}>
+        {criando && <NovaEnquete grupoId={grupoId} onPronto={() => setCriando(false)} />}
+
+        {ordenada.length === 0 ? (
+          <p className="text-[13px] text-white/40">Nenhuma enquete nesta comunidade.</p>
+        ) : (
+          <div className="space-y-4">
+            {visiveis.map((enquete) => (
+              <UmaEnquete key={enquete.id} enquete={enquete} grupoId={grupoId} />
+            ))}
+          </div>
+        )}
+
+        {paginas > 1 && <Paginacao paginas={paginas} atual={atual} aoTrocar={setPagina} />}
+      </Bloco>
+    );
+  }
+
+  const destaque = enqueteEmDestaque(grupoId, lista);
+  const outras = lista
+    .filter((item) => item.id !== destaque?.id)
+    .slice(0, RESUMO_DE_ENQUETES);
+
   return (
-    <Bloco
-      titulo="Enquetes"
-      testid="caixa-enquetes"
-      acao={
-        podeCriar ? (
-          <LinkDoForum onClick={() => setCriando((v) => !v)} testid="criar-enquete">
-            Criar enquete
-          </LinkDoForum>
-        ) : undefined
-      }
-    >
+    <Bloco titulo="Enquetes" testid="caixa-enquetes" acao={criar}>
       {criando && <NovaEnquete grupoId={grupoId} onPronto={() => setCriando(false)} />}
 
-      {lista.length === 0 ? (
+      {!destaque ? (
         <p className="text-[13px] text-white/40">Nenhuma enquete nesta comunidade.</p>
       ) : (
-        <div className="space-y-4">
-          {lista.map((enquete) => (
-            <UmaEnquete key={enquete.id} enquete={enquete} grupoId={grupoId} />
-          ))}
-        </div>
+        <>
+          <UmaEnquete enquete={destaque} grupoId={grupoId} />
+
+          {outras.length > 0 && (
+            <div className="mt-3 border-t border-white/[0.06] pt-1.5">
+              {outras.map((enquete) => (
+                <LinhaDeEnquete key={enquete.id} enquete={enquete} grupoId={grupoId} />
+              ))}
+            </div>
+          )}
+
+          {lista.length > 1 && (
+            <p className="mt-2">
+              <LinkDoForum href={`/forum/${grupoId}/enquetes`} testid="ver-todas-as-enquetes">
+                ver todas as enquetes ({lista.length}) »
+              </LinkDoForum>
+            </p>
+          )}
+        </>
       )}
     </Bloco>
+  );
+}
+
+/** A paginação numerada do Orkut, usada pelas duas listas desta tela. */
+function Paginacao({
+  paginas,
+  atual,
+  aoTrocar,
+}: {
+  paginas: number;
+  atual: number;
+  aoTrocar: (n: number) => void;
+}) {
+  return (
+    <p className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-white/[0.06] pt-2.5">
+      <span className="text-[10.5px] text-white/35">páginas:</span>
+      {Array.from({ length: paginas }, (_, n) => (
+        <button
+          key={n}
+          onClick={() => aoTrocar(n)}
+          className={`text-[11.5px] font-semibold transition-colors ${
+            n === atual ? "text-white" : "text-primary hover:opacity-80"
+          }`}
+          data-testid={`pagina-${n + 1}`}
+        >
+          {n + 1}
+        </button>
+      ))}
+    </p>
+  );
+}
+
+/**
+ * Uma enquete **em linha** — pergunta e número de votos, e nada mais.
+ *
+ * É a forma do resumo: quem já votou não precisa das barras de novo, e quem
+ * quer votar toca e cai na página com todas. Mesma régua da §4.78 — lista para
+ * escolher, peça inteira só onde se age.
+ */
+function LinhaDeEnquete({ enquete, grupoId }: { enquete: Enquete; grupoId: string }) {
+  const total = totalDeVotos(enquete);
+
+  return (
+    <Link
+      href={`/forum/${grupoId}/enquetes`}
+      className="flex items-baseline justify-between gap-3 border-b border-white/[0.06] py-2 last:border-0"
+      data-testid={`linha-enquete-${enquete.id}`}
+    >
+      <span className="min-w-0 flex-1 truncate text-[12.5px] text-primary">{enquete.pergunta}</span>
+      <span className="shrink-0 text-[10.5px] text-white/30">
+        {total} {total === 1 ? "voto" : "votos"}
+        {enquete.fechada && " · encerrada"}
+      </span>
+    </Link>
   );
 }
 
@@ -103,6 +263,7 @@ function UmaEnquete({ enquete, grupoId }: { enquete: Enquete; grupoId: string })
   const total = votos.reduce((soma, n) => soma + n, 0);
   const minha = enquete.autorSlug === undefined;
   const posso = minha || souModerador(grupoId);
+  const fixada = configDo(grupoId).enqueteFixada === enquete.id;
 
   return (
     <div
@@ -114,6 +275,7 @@ function UmaEnquete({ enquete, grupoId }: { enquete: Enquete; grupoId: string })
         {minha ? "Você" : (findMember(enquete.autorSlug ?? "")?.name ?? "Alguém")} · {total}{" "}
         {total === 1 ? "voto" : "votos"}
         {enquete.fechada && " · encerrada"}
+        {fixada && <span className="text-primary"> · fixada pelo moderador</span>}
       </p>
 
       <div className="mt-2.5 space-y-2">
@@ -162,7 +324,26 @@ function UmaEnquete({ enquete, grupoId }: { enquete: Enquete; grupoId: string })
       )}
 
       {posso && (
-        <div className="mt-2 flex gap-3">
+        <div className="mt-2 flex flex-wrap gap-3">
+          {/* Fixar é poder de moderador: escolhe qual enquete a comunidade vê
+              primeiro, no lugar da mais votada. */}
+          {souModerador(grupoId) && (
+            <LinkDoForum
+              onClick={() => {
+                fixarEnquete(grupoId, enquete.id);
+                toast({
+                  title: fixada ? "Enquete solta" : "Enquete fixada",
+                  description: fixada
+                    ? "O destaque volta a ser a mais votada."
+                    : "É a que aparece na página da comunidade.",
+                });
+              }}
+              className="text-[10.5px] text-white/35 hover:text-primary"
+              testid={`fixar-enquete-${enquete.id}`}
+            >
+              {fixada ? "soltar destaque" : "fixar no topo"}
+            </LinkDoForum>
+          )}
           <LinkDoForum
             onClick={() => {
               alternarEnqueteFechada(enquete.id);
@@ -259,7 +440,13 @@ function NovaEnquete({ grupoId, onPronto }: { grupoId: string; onPronto: () => v
  * Eventos
  * ------------------------------------------------------------------ */
 
-export function Eventos({ grupoId }: { grupoId: string }) {
+export function Eventos({
+  grupoId,
+  modo = "resumo",
+}: {
+  grupoId: string;
+  modo?: "resumo" | "todas";
+}) {
   const [criando, setCriando] = useState(false);
   /* A resposta de quem você convidou chega **segundos depois**, de fora do
      React (`convitesDeEvento.ts`). Sem escutar o evento, a contagem de "vou" só
@@ -271,35 +458,98 @@ export function Eventos({ grupoId }: { grupoId: string }) {
     return () => window.removeEventListener(GRUPOS_EVENT, atualizar);
   }, []);
 
+  const [pagina, setPagina] = useState(0);
   const lista = eventosDe(grupoId);
   const podeCriar = possoCriar(grupoId, "eventos");
 
   if (lista.length === 0 && !podeCriar) return null;
 
+  const criar = podeCriar ? (
+    <LinkDoForum onClick={() => setCriando((v) => !v)} testid="criar-evento">
+      Criar evento
+    </LinkDoForum>
+  ) : undefined;
+
+  if (modo === "todas") {
+    const paginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA));
+    const atual = Math.min(pagina, paginas - 1);
+    const visiveis = lista.slice(atual * POR_PAGINA, atual * POR_PAGINA + POR_PAGINA);
+
+    return (
+      <Bloco titulo="Todos os eventos" testid="todos-os-eventos" acao={criar}>
+        {criando && <NovoEvento grupoId={grupoId} onPronto={() => setCriando(false)} />}
+
+        {lista.length === 0 ? (
+          <p className="text-[13px] text-white/40">Nenhum evento marcado.</p>
+        ) : (
+          <div className="space-y-4">
+            {visiveis.map((evento) => (
+              <UmEvento key={evento.id} evento={evento} grupoId={grupoId} />
+            ))}
+          </div>
+        )}
+
+        {paginas > 1 && <Paginacao paginas={paginas} atual={atual} aoTrocar={setPagina} />}
+      </Bloco>
+    );
+  }
+
+  /* No resumo, **os próximos por inteiro** (evento é para responder, e responder
+     exige ver a data e os botões) e o resto em linha. */
+  const proximos = lista.slice(0, RESUMO_DE_EVENTOS);
+  const demais = lista.slice(RESUMO_DE_EVENTOS);
+
   return (
-    <Bloco
-      titulo="Eventos"
-      testid="caixa-eventos"
-      acao={
-        podeCriar ? (
-          <LinkDoForum onClick={() => setCriando((v) => !v)} testid="criar-evento">
-            Criar evento
-          </LinkDoForum>
-        ) : undefined
-      }
-    >
+    <Bloco titulo="Eventos" testid="caixa-eventos" acao={criar}>
       {criando && <NovoEvento grupoId={grupoId} onPronto={() => setCriando(false)} />}
 
       {lista.length === 0 ? (
         <p className="text-[13px] text-white/40">Nenhum evento marcado.</p>
       ) : (
-        <div className="space-y-4">
-          {lista.map((evento) => (
-            <UmEvento key={evento.id} evento={evento} grupoId={grupoId} />
-          ))}
-        </div>
+        <>
+          <div className="space-y-4">
+            {proximos.map((evento) => (
+              <UmEvento key={evento.id} evento={evento} grupoId={grupoId} />
+            ))}
+          </div>
+
+          {demais.length > 0 && (
+            <div className="mt-3 border-t border-white/[0.06] pt-1.5">
+              {demais.slice(0, 3).map((evento) => (
+                <LinhaDeEvento key={evento.id} evento={evento} grupoId={grupoId} />
+              ))}
+            </div>
+          )}
+
+          {lista.length > RESUMO_DE_EVENTOS && (
+            <p className="mt-2">
+              <LinkDoForum href={`/forum/${grupoId}/eventos`} testid="ver-todos-os-eventos">
+                ver todos os eventos ({lista.length}) »
+              </LinkDoForum>
+            </p>
+          )}
+        </>
       )}
     </Bloco>
+  );
+}
+
+/** Um evento **em linha** — data curta, título e para onde ir. */
+function LinhaDeEvento({ evento, grupoId }: { evento: Evento; grupoId: string }) {
+  const quando = new Date(`${evento.data}T12:00:00`);
+
+  return (
+    <Link
+      href={`/forum/${grupoId}/eventos`}
+      className="flex items-baseline justify-between gap-3 border-b border-white/[0.06] py-2 last:border-0"
+      data-testid={`linha-evento-${evento.id}`}
+    >
+      <span className="min-w-0 flex-1 truncate text-[12.5px] text-primary">{evento.titulo}</span>
+      <span className="shrink-0 text-[10.5px] text-white/30">
+        {quando.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+        {evento.hora && ` · ${evento.hora}`}
+      </span>
+    </Link>
   );
 }
 

@@ -6515,6 +6515,47 @@ código para não voltar.
 
 ---
 
+## 4.80 Quinze enquetes não se empilham: destaque + página com todas (31/07)
+
+> *"Se você for criando muita enquete, a página fica muito longa. Como é que
+> isso era no Orkut? Digamos que você tenha 15 enquetes — você vai agrupar isso
+> uma em cima da outra? Seria legal colocar a enquete mais falada, ou então o
+> moderador escolher; aparece na página principal e você cria uma página
+> linkando todas. Da forma como está não faz sentido nenhum."*
+
+Ele está certo, e a resposta do Orkut é a que ele mesmo descreveu: **resumo na
+comunidade, lista completa numa página à parte**.
+
+### Como ficou
+
+- **Enquetes, na comunidade:** uma **em destaque**, inteira e votável; abaixo,
+  até três em **linha compacta** (pergunta + nº de votos); e
+  `ver todas as enquetes (N) »`.
+- **Quem é o destaque:** a **fixada pelo moderador**; sem ninguém fixar, a **mais
+  votada entre as abertas** — "a mais falada". Se todas estiverem encerradas, a
+  mais recente, para o lugar nunca ficar vazio.
+- **Fixar virou poder de moderador** (`enqueteFixada` na config): o link *fixar
+  no topo* / *soltar destaque*, e um selo "fixada pelo moderador" na enquete.
+- **Eventos seguem a mesma régua:** os **dois próximos** por inteiro (evento é
+  para responder, e responder exige ver data e botões), o resto em linha, e
+  `ver todos os eventos (N) »`.
+- **Duas páginas novas**, paginadas de 10 em 10: `/forum/:id/enquetes` (abertas
+  primeiro; encerrada é histórico e não disputa a atenção de quem veio votar) e
+  `/forum/:id/eventos`.
+
+**A régua, irmã da §4.78:** *peça inteira só onde se age; o resto é lista.* Numa
+tela de celular, três enquetes com barras já ocupam a página toda — quinze
+transformam a comunidade num rolo em que ninguém acha o tópico.
+
+### Um bug de tela achado no meio
+
+Fixar não mudava nada até recarregar: o componente lia a config no render, mas
+**não escutava** o `GRUPOS_EVENT`. É o mesmo tipo de defeito da §4.79 (estado que
+mora fora do React), com o sinal trocado — lá a tela remontava demais, aqui não
+redesenhava nunca. Corrigido com o ouvinte no `Enquetes`.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

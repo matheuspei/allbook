@@ -94,6 +94,17 @@ export interface ConfigDoForum {
   /** Convidados de um fórum fechado — podem entrar sem pedir. */
   convidados: string[];
 
+  /**
+   * A enquete que o moderador **fixou** na página da comunidade.
+   *
+   * Nasceu de uma pergunta do Matheus em 31/07: *"se você for criando muita
+   * enquete, a página fica muito longa… seria legal colocar a enquete mais
+   * falada, ou o moderador escolher qual aparece na página principal"*. As duas
+   * coisas: sem ninguém fixar nada, o destaque é a **mais votada entre as
+   * abertas**; fixando, a escolha do moderador ganha.
+   */
+  enqueteFixada?: string;
+
   /** O fórum foi excluído pelo dono. */
   excluido?: boolean;
 }
@@ -173,6 +184,19 @@ export function salvarConfig(grupoId: string, mudanca: Partial<ConfigDoForum>): 
   mapa[grupoId] = nova;
   gravarMapa(mapa);
   return nova;
+}
+
+/**
+ * Fixa (ou solta) a enquete que aparece em destaque na página da comunidade.
+ *
+ * **Poder de moderador**, como os outros. Fixar a mesma de novo solta — é o
+ * mesmo gesto do curtir, e evita um segundo botão só para desfazer.
+ */
+export function fixarEnquete(grupoId: string, enqueteId: string): void {
+  if (!souModerador(grupoId)) return;
+  const atual = configDo(grupoId).enqueteFixada;
+  salvarConfig(grupoId, { enqueteFixada: atual === enqueteId ? undefined : enqueteId });
+  window.dispatchEvent(new Event(GRUPOS_EVENT));
 }
 
 /* ------------------------------------------------------------------ *

@@ -23,6 +23,8 @@ import Grupo from "@/pages/Grupo";
 import GerenciarForum from "@/pages/GerenciarForum";
 import Comunidades from "@/pages/Comunidades";
 import MembrosDoForum from "@/pages/MembrosDoForum";
+import EnquetesDaComunidade from "@/pages/EnquetesDaComunidade";
+import EventosDaComunidade from "@/pages/EventosDaComunidade";
 import Topico from "@/pages/Topico";
 import Clubes from "@/pages/Clubes";
 import Clube from "@/pages/Clube";
@@ -149,6 +151,8 @@ function Router() {
                 senão a rota curta captura as duas. */}
             <Route path="/forum/:id/gerenciar" component={GerenciarForum} />
             <Route path="/forum/:id/membros" component={MembrosDoForum} />
+            <Route path="/forum/:id/enquetes" component={EnquetesDaComunidade} />
+            <Route path="/forum/:id/eventos" component={EventosDaComunidade} />
             <Route path="/forum/:id" component={Grupo} />
             <Route path="/forum" component={Comunidades} />
             {/* `/clubes/novo` antes de `/clubes` e de `/clube/:id`: rota mais
