@@ -109,6 +109,7 @@ export default function UserProfile() {
           <div className="flex items-end gap-4">
             <AvatarAmpliavel
               nome={member.name}
+              slug={member.slug}
               inicial={member.name.charAt(0)}
               fundoClasse={`bg-gradient-to-br ${member.color}`}
               legenda={`Na AllBook desde ${member.memberSince}`}

@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 
+import { fotoDoMembro } from "@/lib/community";
 import { cn } from "@/lib/utils";
 
 /**
@@ -16,10 +17,16 @@ import { cn } from "@/lib/utils";
  * componente precisa saber é apenas como redesenhar aquele mesmo avatar
  * **grande** — daí as props `foto`, `fundoClasse` e `fundoStyle`.
  *
- * **Enquanto não há foto de leitor** (é o caso hoje: os leitores da comunidade
- * só têm cor e inicial), o que amplia é a bolinha colorida com a letra. Parece
- * pouco, mas é de propósito: o gesto já fica pronto e, no dia em que entrar
- * foto de verdade, nenhuma tela precisa mudar — basta a foto chegar.
+ * **Sem foto, o que amplia é a bolinha colorida com a letra** — é o caso de quem
+ * não tem retrato.
+ *
+ * ⚠️ **Passe `slug` quando o avatar for de um leitor da comunidade.** Em 31/07 o
+ * Matheus reclamou: *"você colocou a foto das pessoas, mas quando você clica na
+ * foto dentro do perfil, ela não expande"*. E não expandia mesmo: as fotos
+ * chegaram como **fundo** do avatar pequeno (`avatarDeLeitor`), enquanto este
+ * componente só sabia da prop `foto` — então ampliava a inicial de quem tinha
+ * retrato. Agora ele **procura a foto sozinho pelo slug**, que é o conserto de
+ * raiz: nenhuma tela precisa lembrar de repassar a imagem duas vezes.
  *
  * **Sobe por portal até a raiz do app (`#root`), e isso não é detalhe.** Duas
  * armadilhas encontradas testando, nesta ordem:
@@ -43,6 +50,7 @@ import { cn } from "@/lib/utils";
 export default function AvatarAmpliavel({
   nome,
   foto,
+  slug,
   inicial,
   legenda,
   fundoClasse,
@@ -54,6 +62,8 @@ export default function AvatarAmpliavel({
   nome: string;
   /** URL (ou data URL) da foto, quando existe. Sem ela, amplia a inicial. */
   foto?: string;
+  /** Slug do leitor da comunidade — daqui sai a foto quando `foto` não vier. */
+  slug?: string;
   /** Letra do meio da bolinha. Sem isto, usa a primeira letra do nome. */
   inicial?: string;
   /** Linha discreta embaixo do nome, ex.: "Autor", "Narrador", "você". */
@@ -82,6 +92,9 @@ export default function AvatarAmpliavel({
   }
 
   const letra = inicial ?? nome.charAt(0).toUpperCase();
+  /* A foto dada ganha da procurada: quem passa `foto` sabe de qual imagem se
+     trata (o seu perfil, o retrato do autor). */
+  const retrato = foto ?? (slug ? fotoDoMembro(slug) : undefined);
 
   return (
     <>
@@ -156,12 +169,12 @@ export default function AvatarAmpliavel({
                 onClick={(evento) => evento.stopPropagation()}
                 className={cn(
                   "relative w-[72vw] max-w-[17rem] aspect-square rounded-full overflow-hidden ring-1 ring-white/15 shadow-2xl shadow-black/60 flex items-center justify-center",
-                  !foto && (fundoClasse ?? "bg-gradient-to-br from-primary to-amber-500"),
+                  !retrato && (fundoClasse ?? "bg-gradient-to-br from-primary to-amber-500"),
                 )}
-                style={!foto ? fundoStyle : undefined}
+                style={!retrato ? fundoStyle : undefined}
               >
-                {foto ? (
-                  <img src={foto} alt={nome} className="h-full w-full object-cover" />
+                {retrato ? (
+                  <img src={retrato} alt={nome} className="h-full w-full object-cover" />
                 ) : (
                   <>
                     {/* Mesmo brilho no alto do PersonAvatar, para a bolinha grande
