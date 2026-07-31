@@ -227,6 +227,7 @@ export function CapaDaComunidade({
   imagem,
   foto,
   emoji,
+  semente,
   lado,
   className = "",
   testid,
@@ -236,6 +237,8 @@ export function CapaDaComunidade({
   /** A foto que veio com a comunidade semeada (`capaDaComunidade`). */
   foto?: string;
   emoji: string;
+  /** O id da comunidade — dá a cor do degradê quando não há foto. */
+  semente?: string;
   /** Em px, para a moldura quadrada. Sem valor, ocupa a largura do pai. */
   lado?: number;
   className?: string;
@@ -262,15 +265,46 @@ export function CapaDaComunidade({
     );
   }
 
+  /*
+   * **Sem foto, a capa é um degradê com o emoji grande** — e isso é conserto de
+   * 31/07. O fundo era `bg-white/[0.06]`, um cinza chapado: ao lado das
+   * comunidades que têm foto, as que não têm pareciam buracos na grade, e foi
+   * parte do que o Matheus chamou de "sem vida" (§4.82). A cor sai do nome da
+   * comunidade, então **é sempre a mesma** para a mesma comunidade — capa que
+   * muda de cor a cada desenho é interface mentindo.
+   */
   return (
     <span
-      style={{ ...estilo, fontSize: lado ? Math.round(lado / 2.6) : undefined }}
-      className={`grid place-items-center bg-white/[0.06] ${moldura} ${lado ? "" : "text-[28px]"}`}
+      style={{
+        ...estilo,
+        fontSize: lado ? Math.round(lado / 2.4) : undefined,
+        background: degradeDe(semente ?? emoji),
+      }}
+      className={`grid place-items-center ${moldura} ${lado ? "" : "text-[32px]"}`}
       data-testid={testid}
     >
-      {emoji}
+      <span className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]">{emoji}</span>
     </span>
   );
+}
+
+/** Os pares de cor das capas sem foto — escuros, para o emoji sobressair. */
+const DEGRADES = [
+  ["#2b1a4a", "#4c2a6b"],
+  ["#12333a", "#1d5c58"],
+  ["#3a1717", "#6b2b2b"],
+  ["#1a2a45", "#2f4d7a"],
+  ["#3a2a10", "#6b4a18"],
+  ["#1f3320", "#385c33"],
+  ["#301a2a", "#5c2a4a"],
+  ["#22262e", "#3d4552"],
+] as const;
+
+function degradeDe(texto: string): string {
+  let n = 0;
+  for (let i = 0; i < texto.length; i += 1) n = (n * 31 + texto.charCodeAt(i)) % 9973;
+  const [a, b] = DEGRADES[n % DEGRADES.length];
+  return `linear-gradient(135deg, ${a}, ${b})`;
 }
 
 /** Campo de texto do app: fundo transparente, borda fina, foco laranja. */

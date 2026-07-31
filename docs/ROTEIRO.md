@@ -6705,6 +6705,69 @@ clube — ela é ambígua desde a §4.79. Cada coisa com o seu nome.
 
 ---
 
+## 4.82 "Essa aba está crua, sem vida nenhuma" (31/07)
+
+> *"Sobre categorias, a gente poderia adicionar mais. Eu acho poucas as que
+> existem, e poderia ter coisas aleatórias. Outra coisa: eu não gosto dessa aba
+> de comunidade… acho crua essa primeira janela, onde você busca comunidades,
+> busca por. Acho que tá sem vida, sem vida nenhuma."*
+
+**Ele tem razão, e a causa era metade tela, metade conteúdo** — a segunda metade
+é a que quase passou batida.
+
+### O que estava por baixo
+
+- **Só cinco comunidades existiam**, e você já participava de três. Uma aba de
+  descoberta com duas coisas para descobrir não tem como parecer viva, por
+  melhor que seja o layout.
+- **Nenhuma comunidade tinha categoria.** A categoria só morava na config
+  editável (`ConfigDoForum`), e as semeadas nunca passaram por lá — então o
+  filtro por categoria **não achava nada, em nenhuma escolha**. Bug silencioso
+  do tipo que o `BANCO-DE-DADOS.md` cataloga: não dá erro, só devolve vazio.
+- **A tela era só busca + grade + lista.** Nada dizia que existe gente do outro
+  lado.
+
+### O que foi feito
+
+**1. Conteúdo (o que dá vida de verdade)**
+- **+10 comunidades**, todas com tópico e conversa dentro (comunidade vazia é o
+  beco da §4.23). Metade é assunto (True Crime, literatura brasileira, fantasia,
+  adaptações, narradores, finanças); metade é o que ele chamou de *aleatório* e
+  só existe num app de audiolivro: **durmo antes do fim do capítulo**, **eu ouço
+  em 2x**, **abandonei no meio**, **corrida com narrador**.
+- **Categorias de 13 → 36.** Entraram assuntos que faltavam e — a parte que
+  importa — **situações de escuta**: ouvir no trânsito, na academia, dormindo.
+  *Categoria de audiolivro não é só o gênero do texto; é também onde você está
+  quando ouve.*
+- **`Grupo.categoria`**: valor de fábrica no `grupos.ts`, com `categoriaDe()`
+  fazendo o casamento (a config do dono continua ganhando). É o conserto do
+  filtro morto.
+
+**2. A tela, agora com dois estados**
+- **Sem busca — vitrine:** *Acontecendo agora* (últimas conversas de todas as
+  comunidades, com "hoje/ontem/há N dias"), *Em alta esta semana* (por conversas
+  nos últimos 7 dias, com o motivo escrito), *Minhas comunidades*, *Para você*
+  (com o porquê: "2 pessoas que você segue estão aqui"), *Categorias* com
+  contagem clicável, a lista para descobrir e os números do fórum no rodapé.
+- **Com busca ou categoria — resultado:** só a lista, a contagem e a paginação,
+  com a pastilha do filtro trazendo o **X** que o desfaz.
+- **Saiu o "buscar em" (nome · descrição · ambos)**: fidelidade ao Orkut sem
+  serventia aqui — ninguém sabe de antemão se a palavra que lembra está no nome
+  ou na descrição. Busca nos dois, sempre.
+- **Capa sem foto virou degradê com o emoji grande** (cor estável, tirada do id).
+  O cinza chapado fazia as comunidades novas parecerem buracos ao lado das cinco
+  que têm foto.
+
+**A régua que fica:** *tela vazia raramente é problema de layout — é falta do que
+mostrar.* Antes de redesenhar uma aba morta, contar quantas coisas ela tem para
+oferecer.
+
+**Pendente, se ele quiser:** as 10 comunidades novas usam degradê + emoji; as 5
+antigas têm foto real (`assets/images/comunidades/`). Baixar 10 fotos deixa a
+grade uniforme — mas exige a mesma conferência a olho da §4.76.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

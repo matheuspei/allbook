@@ -48,6 +48,15 @@ export interface Grupo {
   descricao: string;
   /** Slugs de `community.ts` que "moram" neste grupo. */
   membros: string[];
+  /**
+   * A categoria de origem — uma das `CATEGORIAS` de `forum.ts`.
+   *
+   * **Entrou em 31/07 e conserta um buraco silencioso:** a categoria só existia
+   * na config editável, então **nenhuma comunidade semeada tinha uma** e o
+   * filtro por categoria da busca não achava nada. Quem edita a comunidade
+   * continua mandando (a config ganha desta); isto é o valor de fábrica.
+   */
+  categoria?: string;
   /** Você criou — pode apagar, e ele mora no `localStorage`. */
   meu?: boolean;
 }
@@ -89,6 +98,7 @@ export const grupos: Grupo[] = [
     descricao:
       "Reviravolta, narrador não confiável e o medo de dar play no último capítulo. Este é seu: dá para fixar e esconder o que aparece aqui.",
     membros: ["ana-paula", "marcos-v", "beto", "carla-lima", "ricardo"],
+    categoria: "Suspense e Mistério",
     meu: true,
   },
   {
@@ -97,6 +107,7 @@ export const grupos: Grupo[] = [
     emoji: "🚗",
     descricao: "O carro é a nossa poltrona de leitura. Dicas, manias e horários.",
     membros: ["marcos-v", "felipe-g", "ricardo"],
+    categoria: "Ouvir no trânsito",
   },
   {
     id: "classicos",
@@ -104,6 +115,7 @@ export const grupos: Grupo[] = [
     emoji: "📚",
     descricao: "O que envelheceu bem — e o que só faz sentido com uma boa narração.",
     membros: ["juliana-s", "luciana", "ana-paula", "carla-lima"],
+    categoria: "Clássicos",
   },
   {
     id: "ficcao-cientifica",
@@ -111,6 +123,7 @@ export const grupos: Grupo[] = [
     emoji: "🚀",
     descricao: "Mundos inteiros no fone de ouvido, de Duna a Fundação.",
     membros: ["carla-lima", "felipe-g", "ricardo"],
+    categoria: "Fantasia e Ficção Científica",
   },
   {
     id: "habitos-vida-real",
@@ -118,6 +131,112 @@ export const grupos: Grupo[] = [
     emoji: "💪",
     descricao: "O que a gente ouviu em Produtividade — e o que funcionou de verdade.",
     membros: ["ricardo", "luciana", "beto", "felipe-g"],
+    categoria: "Escuta e hábitos",
+  },
+
+  /* ------------------------------------------------------------------ *
+   * As dez de 31/07 — porque cinco comunidades não fazem uma aba viva
+   *
+   * O Matheus abriu a aba e disse: *"eu acho ela muito crua, sem vida
+   * nenhuma"*. Parte disso era a tela (ver §4.82), mas parte era **o que havia
+   * dentro**: cinco comunidades, e você já participava de três. Uma aba de
+   * descoberta com duas coisas para descobrir não tem como parecer viva.
+   *
+   * As dez abaixo seguem a régua das cinco primeiras: **nenhuma nasce vazia**
+   * (toda uma tem tópico e conversa lá embaixo), os membros são leitores de
+   * `community.ts`, e o assunto é sempre uma coisa que gente de audiolivro
+   * realmente discute — inclusive as "aleatórias" que ele pediu, do tipo que só
+   * existe aqui: ouvir em 2x, dormir no meio do capítulo, abandonar livro.
+   * ------------------------------------------------------------------ */
+  {
+    id: "ouvir-dormindo",
+    nome: "Durmo antes do fim do capítulo",
+    emoji: "😴",
+    descricao:
+      "Quem ouve na cama e acorda três capítulos à frente. Temporizador, voz calma e a arte de achar onde parou.",
+    membros: ["tereza-m", "luciana", "bia-costa", "nara", "hugo-p"],
+    categoria: "Ouvir dormindo",
+  },
+  {
+    id: "velocidade-2x",
+    nome: "Eu ouço em 2x (e entendo tudo)",
+    emoji: "⏩",
+    descricao:
+      "A comunidade mais rápida do AllBook. Defesa, limites e a briga eterna com quem ouve em 1x.",
+    membros: ["marcos-v", "gustavo-a", "caio", "vitor-h"],
+    categoria: "Escuta e hábitos",
+  },
+  {
+    id: "true-crime",
+    nome: "True Crime sem sensacionalismo",
+    emoji: "🔎",
+    descricao:
+      "Caso real contado com respeito por quem viveu. Indicações, e a linha que a gente não gosta de ver cruzada.",
+    membros: ["carla-lima", "sandra-l", "renata-v", "elias", "iara"],
+    categoria: "True Crime",
+  },
+  {
+    id: "narradores-favoritos",
+    nome: "Vozes que eu sigo",
+    emoji: "🎙️",
+    descricao:
+      "Escolher o livro pelo narrador é normal aqui. Quem faz vozes, quem lê sóbrio, quem estraga tudo respirando no microfone.",
+    membros: ["juliana-s", "ana-paula", "otavio", "lia-f", "paulo-s", "marina-t"],
+    categoria: "Narração e vozes",
+  },
+  {
+    id: "literatura-brasileira",
+    nome: "Literatura brasileira em áudio",
+    emoji: "🇧🇷",
+    descricao:
+      "Machado, Clarice, Conceição, Torto Arado. O sotaque certo muda o livro — e aqui a gente discute qual é o certo.",
+    membros: ["juliana-s", "iara", "paulo-s", "dani-r", "tereza-m"],
+    categoria: "Literatura Brasileira",
+  },
+  {
+    id: "fantasia-epica",
+    nome: "Fantasia com mapa no começo",
+    emoji: "🐉",
+    descricao:
+      "Saga longa, nome impronunciável e vinte horas de narração. Onde começar, o que pular, quem aguentou.",
+    membros: ["felipe-g", "caio", "vitor-h", "nara", "beto"],
+    categoria: "Fantasia e Ficção Científica",
+  },
+  {
+    id: "li-antes-da-serie",
+    nome: "Li antes da série",
+    emoji: "🎬",
+    descricao:
+      "Adaptação boa, adaptação traidora e o livro que só ficou famoso depois. Sem spoiler das duas mídias.",
+    membros: ["bia-costa", "gustavo-a", "renata-v", "hugo-p", "marina-t"],
+    categoria: "Cinema, Séries e Adaptações",
+  },
+  {
+    id: "abandonei-no-meio",
+    nome: "Abandonei no meio (e tudo bem)",
+    emoji: "🚪",
+    descricao:
+      "Confessionário de livro largado no capítulo 4. Sem culpa, sem julgamento — e às vezes alguém convence a voltar.",
+    membros: ["luciana", "dani-r", "sandra-l", "elias", "caio", "bia-costa"],
+    categoria: "Escuta e hábitos",
+  },
+  {
+    id: "dinheiro-sem-jargao",
+    nome: "Dinheiro sem jargão",
+    emoji: "💸",
+    descricao:
+      "Finanças explicadas como gente. O que funcionou no mês seguinte, e o que era só frase bonita de guru.",
+    membros: ["ricardo", "otavio", "gustavo-a", "paulo-s"],
+    categoria: "Dinheiro e Negócios",
+  },
+  {
+    id: "corrida-com-narrador",
+    nome: "Corrida com narrador",
+    emoji: "🏃",
+    descricao:
+      "Quem troca a playlist pelo audiolivro na esteira e na rua. Ritmo, distância e o livro que fez a hora passar.",
+    membros: ["felipe-g", "vitor-h", "nara", "lia-f", "elias"],
+    categoria: "Ouvir na academia",
   },
 ];
 
@@ -297,6 +416,212 @@ const topicosSemeados: TopicoSemeado[] = [
         autorSlug: "ricardo",
         texto: "Empilhar hábito: audiolivro junto com a caminhada. Nunca mais falhei os dois.",
         date: "2026-07-26",
+      },
+    ],
+  },
+
+  /* Um tópico para cada comunidade nova de 31/07 — comunidade sem conversa
+     dentro é o beco sem saída da §4.23, e é o que faria a aba continuar
+     parecendo crua mesmo com quinze quadradinhos. */
+  {
+    id: "t-dormir-temporizador",
+    grupoId: "ouvir-dormindo",
+    titulo: "Quantos minutos vocês põem no temporizador?",
+    autorSlug: "tereza-m",
+    date: "2026-07-30",
+    respostas: [
+      {
+        autorSlug: "tereza-m",
+        texto:
+          "Comecei com 30 e acordava perdida. Baixei para 15 e agora quase sempre sei onde parei.",
+        date: "2026-07-30",
+      },
+      {
+        autorSlug: "luciana",
+        texto: "20, e sempre volto um capítulo antes no dia seguinte. Vira releitura de graça.",
+        date: "2026-07-31",
+      },
+      {
+        autorSlug: "hugo-p",
+        texto: "Eu não uso temporizador. Uso livro que já ouvi — se dormir, não perdi nada.",
+        date: "2026-07-31",
+      },
+    ],
+  },
+  {
+    id: "t-2x-entende",
+    grupoId: "velocidade-2x",
+    titulo: "Existe livro que NÃO dá para ouvir em 2x?",
+    autorSlug: "marcos-v",
+    date: "2026-07-29",
+    respostas: [
+      {
+        autorSlug: "gustavo-a",
+        texto: "Poesia. Tentei uma vez e virou rap ruim.",
+        date: "2026-07-29",
+      },
+      {
+        autorSlug: "caio",
+        texto:
+          "Qualquer coisa com muito nome próprio estrangeiro. Fantasia em 2x eu perco quem é quem.",
+        date: "2026-07-30",
+      },
+    ],
+  },
+  {
+    id: "t-true-crime-limite",
+    grupoId: "true-crime",
+    titulo: "Onde está a linha entre contar o caso e explorar a vítima?",
+    autorSlug: "sandra-l",
+    date: "2026-07-28",
+    respostas: [
+      {
+        autorSlug: "carla-lima",
+        texto:
+          "Para mim é simples: se a família participou ou autorizou, muda tudo. Sem isso já começo desconfiada.",
+        date: "2026-07-28",
+      },
+      {
+        autorSlug: "elias",
+        texto: "E trilha sonora de terror em caso real. Isso me tira na hora.",
+        date: "2026-07-30",
+      },
+    ],
+  },
+  {
+    id: "t-narrador-segue",
+    grupoId: "narradores-favoritos",
+    titulo: "Você já ouviu um livro só por causa do narrador?",
+    autorSlug: "juliana-s",
+    date: "2026-07-29",
+    respostas: [
+      {
+        autorSlug: "otavio",
+        texto: "Já ouvi manual de jardinagem por causa de voz. Não me orgulho, mas ouvi inteiro.",
+        date: "2026-07-29",
+      },
+      {
+        autorSlug: "marina-t",
+        texto:
+          "Sempre. Tem gente que lê rápido demais e mata o suspense; com a voz certa até livro morno segura.",
+        date: "2026-07-31",
+      },
+    ],
+  },
+  {
+    id: "t-sotaque-brasileiro",
+    grupoId: "literatura-brasileira",
+    titulo: "Machado com sotaque carioca de época: mais ou menos difícil?",
+    autorSlug: "paulo-s",
+    date: "2026-07-27",
+    respostas: [
+      {
+        autorSlug: "iara",
+        texto:
+          "Mais fácil, disparado. A pontuação dele faz sentido quando alguém lê em voz alta com a entonação certa.",
+        date: "2026-07-28",
+      },
+      {
+        autorSlug: "dani-r",
+        texto: "Concordo. Li Dom Casmurro no colégio odiando e ouvindo virou outra coisa.",
+        date: "2026-07-30",
+      },
+    ],
+  },
+  {
+    id: "t-fantasia-comecar",
+    grupoId: "fantasia-epica",
+    titulo: "Saga de 20h+: por qual começar sem se arrepender?",
+    autorSlug: "felipe-g",
+    date: "2026-07-26",
+    respostas: [
+      {
+        autorSlug: "caio",
+        texto:
+          "Sempre pelo primeiro. Todo mundo diz para pular o volume 1 de alguma saga e eu sempre me perco quando pulo.",
+        date: "2026-07-27",
+      },
+      {
+        autorSlug: "nara",
+        texto: "Dica prática: ouça a primeira hora antes de decidir. Se o narrador cansar, cansa 20h.",
+        date: "2026-07-29",
+      },
+    ],
+  },
+  {
+    id: "t-adaptacao-traidora",
+    grupoId: "li-antes-da-serie",
+    titulo: "Qual adaptação melhorou o livro?",
+    autorSlug: "bia-costa",
+    date: "2026-07-28",
+    respostas: [
+      {
+        autorSlug: "gustavo-a",
+        texto: "Confesso: teve série que cortou 200 páginas de enrolação e ficou melhor.",
+        date: "2026-07-29",
+      },
+      {
+        autorSlug: "renata-v",
+        texto: "Nenhuma, e vou morrer nessa. Mas aceito discutir com quem trouxer exemplo.",
+        date: "2026-07-31",
+      },
+    ],
+  },
+  {
+    id: "t-abandonei-capitulo",
+    grupoId: "abandonei-no-meio",
+    titulo: "Em que capítulo você desiste?",
+    autorSlug: "dani-r",
+    date: "2026-07-30",
+    respostas: [
+      {
+        autorSlug: "luciana",
+        texto: "Dou uma hora. Se em uma hora eu não me importo com ninguém, saio sem dó.",
+        date: "2026-07-30",
+      },
+      {
+        autorSlug: "sandra-l",
+        texto:
+          "Eu tenho o vício de terminar tudo e estou tentando largar. Este ano abandonei dois e me senti livre.",
+        date: "2026-07-31",
+      },
+    ],
+  },
+  {
+    id: "t-dinheiro-mes-seguinte",
+    grupoId: "dinheiro-sem-jargao",
+    titulo: "O que você fez diferente no mês seguinte ao livro?",
+    autorSlug: "ricardo",
+    date: "2026-07-27",
+    respostas: [
+      {
+        autorSlug: "otavio",
+        texto: "Automatizei a reserva no dia do salário. Só isso, e foi o único que durou.",
+        date: "2026-07-28",
+      },
+      {
+        autorSlug: "paulo-s",
+        texto: "Cancelei três assinaturas que eu nem lembrava. O livro nem falava disso.",
+        date: "2026-07-30",
+      },
+    ],
+  },
+  {
+    id: "t-corrida-ritmo",
+    grupoId: "corrida-com-narrador",
+    titulo: "Livro para correr: agitado ou calmo?",
+    autorSlug: "vitor-h",
+    date: "2026-07-29",
+    respostas: [
+      {
+        autorSlug: "felipe-g",
+        texto: "Calmo. Se o livro é tenso demais eu acelero sem perceber e estouro no quilômetro 5.",
+        date: "2026-07-30",
+      },
+      {
+        autorSlug: "lia-f",
+        texto: "Ao contrário aqui: capítulo de perseguição me faz bater recorde.",
+        date: "2026-07-31",
       },
     ],
   },

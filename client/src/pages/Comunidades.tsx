@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
+import { Search, X } from "lucide-react";
 
 import {
   Bloco,
@@ -13,50 +14,56 @@ import { useToast } from "@/hooks/use-toast";
 import {
   CATEGORIAS,
   capaDaComunidade,
+  categoriaDe,
   configDo,
   forunsVisiveis,
   membrosDo,
   salvarConfig,
   situacaoDe,
 } from "@/lib/forum";
+import {
+  acontecendoAgora,
+  emAlta,
+  haQuantoTempo,
+  numerosDoForum,
+  porCategoria,
+  sugestoes,
+} from "@/lib/forumVitrine";
 import { GRUPOS_EVENT, criarGrupo, topicosDa, type Grupo } from "@/lib/grupos";
 
 /** O Orkut paginava a busca de comunidades. */
 const POR_PAGINA = 10;
 
-/** Onde procurar o termo — a roleta "buscar em" do Orkut. */
-type Onde = "nome" | "descricao" | "ambos";
-
 /**
- * **Comunidades** (`/forum`) — a busca de comunidades do Orkut.
+ * **Comunidades** (`/forum`) — a porta de entrada dos fóruns.
  *
  * ---
  *
- * ⚠️ **Refeita em 31/07, e o motivo importa.** Eu tinha montado a tela inteira
- * como **grade de quadradinhos**, e o Matheus cobrou: *"quando você clica em
- * Comunidade tem só uns quadradinhos, e eu acho que não era assim no Orkut… não
- * era bem assim que era para você pesquisar na aba de comunidade"*.
+ * ⚠️ **Refeita duas vezes, e os dois motivos ficam registrados.**
  *
- * Ele tem razão, e a confusão foi minha: no Orkut **eram duas coisas diferentes**.
+ * **31/07, manhã (§4.78):** a tela era só grade de quadradinhos. Virou grade
+ * para *minhas comunidades* (você reconhece pela imagem) e **lista** para a
+ * busca (você precisa ler a descrição para escolher).
  *
- * - **A grade de miniaturas** era a caixa *"minhas comunidades"* — aquelas de que
- *   você já participa, que você reconhece pela imagem e não precisa ler.
- * - **A busca** devolvia **uma lista**, em linhas: miniatura pequena à esquerda,
- *   **nome em link**, a descrição e *"N membros"*. Porque ali você **não** conhece
- *   as comunidades — precisa ler para escolher, e num quadradinho de 68px não cabe
- *   descrição nenhuma.
+ * **31/07, tarde (§4.82):** o Matheus voltou: *"eu acho essa primeira janela
+ * muito crua… sem vida nenhuma"*. E estava: campo de busca, grade, lista — nada
+ * dizendo que existe gente do outro lado. A tela agora tem **dois estados**:
  *
- * Por isso esta tela tem as duas formas, cada uma no seu lugar: grade em cima
- * para as suas, **lista** embaixo para descobrir e para o resultado da busca.
+ * - **sem busca — a vitrine**: o que está acontecendo agora, quem está em alta
+ *   esta semana, as suas, as sugeridas com motivo, as categorias com contagem,
+ *   todas as comunidades e os números do fórum;
+ * - **com busca (ou categoria escolhida) — o resultado**: só a lista, com a
+ *   contagem e a paginação, e um jeito claro de limpar.
  *
- * Do Orkut vêm também: **"buscar em"** (nome · descrição · ambos), o filtro de
- * categoria, a **contagem de resultados** e a **paginação**.
+ * **Saiu o "buscar em" (nome · descrição · ambos)**, que era fidelidade ao
+ * Orkut sem serventia aqui: ninguém sabe de antemão se a palavra que lembra
+ * está no nome ou na descrição, e a roleta era parte do que ele chamou de cru.
+ * A busca olha os dois, sempre.
  */
 export default function Comunidades() {
   const { toast } = useToast();
   const [versao, setVersao] = useState(0);
   const [busca, setBusca] = useState("");
-  const [onde, setOnde] = useState<Onde>("ambos");
   const [categoria, setCategoria] = useState("");
   const [criando, setCriando] = useState(false);
   const [pagina, setPagina] = useState(0);
@@ -69,27 +76,41 @@ export default function Comunidades() {
 
   const todas = useMemo(() => forunsVisiveis(), [versao]);
   const minhas = todas.filter((grupo) => situacaoDe(grupo.id) === "dentro");
+  const termo = busca.trim().toLowerCase();
+  const procurando = termo.length > 0 || categoria.length > 0;
 
-  /** O que a busca devolve — as que você **não** participa, filtradas. */
-  const resultados = todas
-    .filter((grupo) => situacaoDe(grupo.id) !== "dentro")
-    .filter((grupo) => {
-      const config = configDo(grupo.id);
-      if (categoria && config.categoria !== categoria) return false;
-      const termo = busca.trim().toLowerCase();
-      if (!termo) return true;
-      const noNome = grupo.nome.toLowerCase().includes(termo);
-      const naDescricao = grupo.descricao.toLowerCase().includes(termo);
-      return onde === "nome" ? noNome : onde === "descricao" ? naDescricao : noNome || naDescricao;
-    });
+  /** O resultado da busca — todas as comunidades que casam com o filtro. */
+  const resultados = todas.filter((grupo) => {
+    if (categoria && categoriaDe(grupo.id) !== categoria) return false;
+    if (!termo) return true;
+    return (
+      grupo.nome.toLowerCase().includes(termo) || grupo.descricao.toLowerCase().includes(termo)
+    );
+  });
 
-  const paginas = Math.max(1, Math.ceil(resultados.length / POR_PAGINA));
+  /** Fora da busca, a lista de baixo mostra as que você **não** participa. */
+  const paraDescobrir = todas.filter((grupo) => situacaoDe(grupo.id) !== "dentro");
+  const lista = procurando ? resultados : paraDescobrir;
+
+  const paginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA));
   const pagina0 = Math.min(pagina, paginas - 1);
-  const visiveis = resultados.slice(pagina0 * POR_PAGINA, pagina0 * POR_PAGINA + POR_PAGINA);
+  const visiveis = lista.slice(pagina0 * POR_PAGINA, pagina0 * POR_PAGINA + POR_PAGINA);
+
+  const destaques = procurando ? [] : emAlta(6);
+  const agora = procurando ? [] : acontecendoAgora(4);
+  const sugeridas = procurando ? [] : sugestoes(3);
+  const categorias = porCategoria();
+  const numeros = numerosDoForum();
+
+  function limpar() {
+    setBusca("");
+    setCategoria("");
+    setPagina(0);
+  }
 
   return (
     <PaginaDoForum titulo="Comunidades" voltarPara="/community" testid="comunidades-page">
-      <div className="px-5 pt-4" key={versao}>
+      <div className="px-5 pt-4">
         {/* ---------------- a busca ---------------- */}
         <Bloco
           titulo="Buscar comunidades"
@@ -100,61 +121,132 @@ export default function Comunidades() {
             </LinkDoForum>
           }
         >
-          <input
-            value={busca}
-            onChange={(e) => {
-              setBusca(e.target.value);
-              setPagina(0);
-            }}
-            placeholder="nome da comunidade"
-            className={CAMPO}
-            data-testid="campo-busca"
-          />
-
-          {/* "buscar em" — a roleta que o Orkut tinha ao lado do campo. */}
-          <div className="mt-2 flex gap-2">
-            <label className="min-w-0 flex-1">
-              <span className="mb-1 block text-[10px] text-white/35">buscar em</span>
-              <select
-                value={onde}
-                onChange={(e) => setOnde(e.target.value as Onde)}
-                className={CAMPO}
-                data-testid="buscar-em"
-              >
-                <option value="ambos">nome e descrição</option>
-                <option value="nome">só o nome</option>
-                <option value="descricao">só a descrição</option>
-              </select>
-            </label>
-            <label className="min-w-0 flex-1">
-              <span className="mb-1 block text-[10px] text-white/35">categoria</span>
-              <select
-                value={categoria}
-                onChange={(e) => {
-                  setCategoria(e.target.value);
-                  setPagina(0);
-                }}
-                className={CAMPO}
-                data-testid="filtro-categoria"
-              >
-                <option value="">todas</option>
-                {CATEGORIAS.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/25" />
+            <input
+              value={busca}
+              onChange={(e) => {
+                setBusca(e.target.value);
+                setPagina(0);
+              }}
+              placeholder="nome ou assunto da comunidade"
+              className={`${CAMPO} pl-8`}
+              data-testid="campo-busca"
+            />
           </div>
+
+          {/* O filtro em uso aparece como pastilha, com o X que o desfaz —
+              nunca uma roleta que a pessoa precisa lembrar de voltar ao "todas". */}
+          {procurando && (
+            <p className="mt-2 flex flex-wrap items-center gap-2">
+              {categoria && (
+                <button
+                  onClick={() => setCategoria("")}
+                  className="flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary"
+                  data-testid="limpar-categoria"
+                >
+                  {categoria}
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              <span className="text-[11px] text-white/35">
+                {resultados.length}{" "}
+                {resultados.length === 1 ? "comunidade encontrada" : "comunidades encontradas"}
+              </span>
+              <LinkDoForum
+                onClick={limpar}
+                className="text-[11px] text-white/35 hover:text-primary"
+                testid="limpar-busca"
+              >
+                limpar
+              </LinkDoForum>
+            </p>
+          )}
 
           {criando && <FormularioDeCriacao onPronto={() => setCriando(false)} />}
         </Bloco>
 
+        {/* ---------------- acontecendo agora ---------------- */}
+        {agora.length > 0 && (
+          <Bloco
+            titulo="Acontecendo agora"
+            testid="acontecendo-agora"
+            acao={<span className="text-[10.5px] text-white/35">últimas conversas</span>}
+          >
+            <div className="-my-1">
+              {agora.map(({ grupo, topico }) => (
+                <Link
+                  key={topico.id}
+                  href={`/forum/${grupo.id}/topico/${topico.id}`}
+                  className="block border-b border-white/[0.06] py-2 last:border-0"
+                  data-testid={`agora-${topico.id}`}
+                >
+                  <span className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium">
+                      {topico.titulo}
+                    </span>
+                    <span className="shrink-0 text-[10px] text-white/25">
+                      {haQuantoTempo(topico.ultimaAtividade)}
+                    </span>
+                  </span>
+                  <span className="mt-0.5 block truncate text-[10.5px] text-white/35">
+                    <span className="text-primary">
+                      {grupo.emoji} {grupo.nome}
+                    </span>
+                    {" · "}
+                    {topico.totalRespostas}{" "}
+                    {topico.totalRespostas === 1 ? "mensagem" : "mensagens"}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </Bloco>
+        )}
+
+        {/* ---------------- em alta ---------------- */}
+        {destaques.length > 0 && (
+          <Bloco titulo="Em alta esta semana" testid="em-alta">
+            <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 scrollbar-hide">
+              {destaques.map(({ grupo, motivo }) => (
+                <Link
+                  key={grupo.id}
+                  href={`/forum/${grupo.id}`}
+                  className="w-[104px] shrink-0"
+                  data-testid={`alta-${grupo.id}`}
+                >
+                  <CapaDaComunidade
+                    imagem={configDo(grupo.id).imagem}
+                    foto={capaDaComunidade(grupo.id)}
+                    emoji={grupo.emoji}
+                    semente={grupo.id}
+                    lado={104}
+                    className="transition-transform hover:scale-[1.03]"
+                  />
+                  <span className="mt-1.5 block text-[11.5px] font-semibold leading-tight">
+                    {grupo.nome}
+                  </span>
+                  <span className="mt-0.5 block text-[10px] leading-tight text-primary">
+                    {motivo}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </Bloco>
+        )}
+
         {/* ---------------- minhas comunidades: a grade ---------------- */}
-        {minhas.length > 0 && (
-          <Bloco titulo={`Minhas comunidades (${minhas.length})`} testid="minhas-comunidades">
+        {!procurando && minhas.length > 0 && (
+          <Bloco
+            titulo={`Minhas comunidades (${minhas.length})`}
+            testid="minhas-comunidades"
+            acao={
+              <span className="text-[10.5px] text-white/35">
+                {minhas.reduce((soma, grupo) => soma + topicosDa(grupo.id).length, 0)} tópicos
+              </span>
+            }
+          >
             {/* **Aqui a grade está certa**: são as que você já conhece, e a
-                imagem basta para reconhecê-las. */}
+                imagem basta para reconhecê-las (§4.78). */}
             <div className="grid grid-cols-3 gap-3">
               {minhas.map((grupo) => (
                 <Link
@@ -167,6 +259,7 @@ export default function Comunidades() {
                     imagem={configDo(grupo.id).imagem}
                     foto={capaDaComunidade(grupo.id)}
                     emoji={grupo.emoji}
+                    semente={grupo.id}
                     className="transition-transform hover:scale-[1.03]"
                   />
                   <span className="mt-1.5 block text-[11px] font-medium leading-tight text-white/75">
@@ -178,20 +271,63 @@ export default function Comunidades() {
           </Bloco>
         )}
 
-        {/* ---------------- o resultado: a lista ---------------- */}
+        {/* ---------------- para você ---------------- */}
+        {sugeridas.length > 0 && (
+          <Bloco titulo="Para você" testid="sugestoes-de-comunidade">
+            <div className="-my-1">
+              {sugeridas.map(({ grupo, motivo }) => (
+                <LinhaDaComunidade key={grupo.id} grupo={grupo} motivo={motivo} />
+              ))}
+            </div>
+          </Bloco>
+        )}
+
+        {/* ---------------- categorias ---------------- */}
+        {categorias.length > 0 && (
+          <Bloco
+            titulo="Categorias"
+            testid="categorias"
+            acao={<span className="text-[10.5px] text-white/35">{CATEGORIAS.length} no total</span>}
+          >
+            <div className="flex flex-wrap gap-1.5">
+              {categorias.map((item) => (
+                <button
+                  key={item.categoria}
+                  onClick={() => {
+                    setCategoria(item.categoria === categoria ? "" : item.categoria);
+                    setPagina(0);
+                  }}
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                    categoria === item.categoria
+                      ? "bg-primary text-black"
+                      : "border border-white/12 text-white/60 hover:border-primary/40 hover:text-white"
+                  }`}
+                  data-testid={`categoria-${item.categoria}`}
+                >
+                  {item.categoria}
+                  <span className="ml-1 font-normal opacity-50">{item.total}</span>
+                </button>
+              ))}
+            </div>
+          </Bloco>
+        )}
+
+        {/* ---------------- a lista ---------------- */}
         <Bloco
-          titulo={busca.trim() || categoria ? "Resultado da busca" : "Comunidades"}
+          titulo={procurando ? "Resultado da busca" : "Comunidades para descobrir"}
           testid="outras-comunidades"
           acao={
             <span className="text-[10.5px] text-white/35" data-testid="total-de-resultados">
-              {resultados.length} {resultados.length === 1 ? "comunidade" : "comunidades"}
+              {lista.length} {lista.length === 1 ? "comunidade" : "comunidades"}
             </span>
           }
         >
           {visiveis.length === 0 ? (
-            <p className="text-[13px] text-white/40">
+            <p className="text-[13px] leading-relaxed text-white/40">
               Nenhuma comunidade encontrada
-              {busca.trim() && ` para "${busca.trim()}"`}.
+              {termo && ` para "${busca.trim()}"`}
+              {categoria && ` em ${categoria}`}.{" "}
+              <LinkDoForum onClick={() => setCriando(true)}>criar esta comunidade »</LinkDoForum>
             </p>
           ) : (
             <div className="-my-1">
@@ -219,6 +355,12 @@ export default function Comunidades() {
             </p>
           )}
         </Bloco>
+
+        {/* Os números do fim — o tamanho do lugar, em uma linha. */}
+        <p className="pb-2 text-center text-[10.5px] leading-relaxed text-white/25">
+          {numeros.comunidades} comunidades · {numeros.topicos} tópicos · {numeros.mensagens}{" "}
+          mensagens · {numeros.pessoas} leitores
+        </p>
       </div>
     </PaginaDoForum>
   );
@@ -307,11 +449,14 @@ export default function Comunidades() {
  * não conhece**: sem a descrição e sem "N membros", escolher entre dez nomes é
  * chute. A grade de quadradinhos serve para as suas, que você reconhece de
  * relance — é a distinção que a §4.78 registrou.
+ *
+ * `motivo` aparece só nas sugeridas ("2 pessoas que você segue estão aqui"):
+ * recomendação sem porquê é lista aleatória com nome bonito.
  */
-function LinhaDaComunidade({ grupo }: { grupo: Grupo }) {
-  const config = configDo(grupo.id);
+function LinhaDaComunidade({ grupo, motivo }: { grupo: Grupo; motivo?: string }) {
   const pessoas = membrosDo(grupo.id).length;
   const topicos = topicosDa(grupo.id).length;
+  const categoria = categoriaDe(grupo.id);
 
   return (
     <Link
@@ -320,9 +465,10 @@ function LinhaDaComunidade({ grupo }: { grupo: Grupo }) {
       data-testid={`comunidade-${grupo.id}`}
     >
       <CapaDaComunidade
-        imagem={config.imagem}
+        imagem={configDo(grupo.id).imagem}
         foto={capaDaComunidade(grupo.id)}
         emoji={grupo.emoji}
+        semente={grupo.id}
         lado={56}
       />
       <span className="min-w-0 flex-1">
@@ -335,8 +481,9 @@ function LinhaDaComunidade({ grupo }: { grupo: Grupo }) {
         <span className="mt-0.5 block text-[10.5px] text-white/30">
           {pessoas} {pessoas === 1 ? "membro" : "membros"} · {topicos}{" "}
           {topicos === 1 ? "tópico" : "tópicos"}
-          {config.categoria && ` · ${config.categoria}`}
+          {categoria && ` · ${categoria}`}
         </span>
+        {motivo && <span className="mt-0.5 block text-[10.5px] text-primary">{motivo}</span>}
       </span>
     </Link>
   );

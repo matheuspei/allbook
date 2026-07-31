@@ -129,23 +129,54 @@ const PADRAO: ConfigDoForum = {
  *
  * O Orkut tinha "Veículos", "Culinária", "Escolas". Copiar aquilo aqui daria
  * categoria vazia para sempre num app de audiolivro; o que se copia é a **ideia**
- * (uma lista fixa e curta, escolhida numa roleta, que serve para achar comunidade
+ * (uma lista fixa, escolhida numa roleta, que serve para achar comunidade
  * parecida). Se faltar alguma, acrescentar aqui.
+ *
+ * **Ampliada de 13 para 36 em 31/07**, a pedido do Matheus (*"eu acho poucas
+ * categorias, poderia ter coisas aleatórias aqui"*). O que entrou são dois
+ * tipos: **assuntos** que faltavam (True Crime, Quadrinhos, Poesia, Mitologia,
+ * Literatura Brasileira…) e — o mais orkutiano — **situações de escuta**: ouvir
+ * no trânsito, na academia, dormindo. Categoria de audiolivro não é só o gênero
+ * do texto; é também **onde você está quando ouve**, e é disso que nascem as
+ * comunidades mais vivas deste app.
  */
 export const CATEGORIAS = [
   "Autores",
+  "Ciência e Natureza",
+  "Cinema, Séries e Adaptações",
   "Clássicos",
+  "Comédia e Humor",
+  "Dinheiro e Negócios",
   "Escuta e hábitos",
+  "Esporte e Aventura",
+  "Estudo e Idiomas",
+  "Família e Infância",
   "Fantasia e Ficção Científica",
+  "Filosofia e Ideias",
   "Gêneros",
   "História e Biografia",
   "Infantil e Juvenil",
+  "Literatura Brasileira",
+  "Mitologia e Folclore",
   "Narração e vozes",
   "Não-ficção",
-  "Outros",
+  "Ouvir dormindo",
+  "Ouvir na academia",
+  "Ouvir no trânsito",
+  "Poesia e Crônica",
+  "Política e Sociedade",
+  "Quadrinhos e Mangá",
+  "Relacionamentos",
+  "Religião e Espiritualidade",
   "Romance",
+  "Saúde e Bem-estar",
   "Suspense e Mistério",
+  "Tecnologia",
   "Terror",
+  "Trabalho e Carreira",
+  "True Crime",
+  "Viagem e Lugares",
+  "Outros",
 ] as const;
 
 /* ------------------------------------------------------------------ *
@@ -184,6 +215,17 @@ export function salvarConfig(grupoId: string, mudanca: Partial<ConfigDoForum>): 
   mapa[grupoId] = nova;
   gravarMapa(mapa);
   return nova;
+}
+
+/**
+ * A categoria de uma comunidade — **o que o dono editou, senão a de fábrica**.
+ *
+ * As comunidades semeadas trazem a sua em `grupos.ts`; a config só tem valor
+ * quando alguém mexeu. Sem este casamento, o filtro por categoria da busca não
+ * achava comunidade nenhuma (nenhuma tinha config), e a roleta parecia quebrada.
+ */
+export function categoriaDe(grupoId: string): string | undefined {
+  return configDo(grupoId).categoria ?? grupoPorId(grupoId)?.categoria;
 }
 
 /**

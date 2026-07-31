@@ -18,6 +18,7 @@ import {
   IDIOMAS,
   aprovarPedido,
   banir,
+  categoriaDe,
   configDo,
   desbanir,
   destituirModerador,
@@ -111,7 +112,9 @@ function Informacoes({ id }: { id: string }) {
 
   const [nome, setNome] = useState(grupo?.nome ?? "");
   const [descricao, setDescricao] = useState(grupo?.descricao ?? "");
-  const [categoria, setCategoria] = useState(config.categoria ?? "");
+  /* A de fábrica aparece no campo — senão editar qualquer outra coisa apagaria
+     a categoria que a comunidade já tinha. */
+  const [categoria, setCategoria] = useState(categoriaDe(id) ?? "");
   const [idioma, setIdioma] = useState(config.idioma ?? IDIOMAS[0]);
   const [regras, setRegras] = useState(config.regras ?? "");
   const [enviando, setEnviando] = useState(false);

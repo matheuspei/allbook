@@ -18,6 +18,7 @@ import { EU } from "@/lib/clubes";
 import { findMember } from "@/lib/community";
 import {
   capaDaComunidade,
+  categoriaDe,
   configDo,
   criadaEm,
   desistirDoPedido,
@@ -166,6 +167,7 @@ export default function Grupo() {
         <Bloco titulo="Comunidade" testid="ficha-da-comunidade">
           <div className="flex gap-3.5">
             <CapaDaComunidade
+              semente={id}
               imagem={config.imagem}
               foto={capaDaComunidade(id)}
               emoji={grupo.emoji}
@@ -184,7 +186,7 @@ export default function Grupo() {
 
               {/* Os campos da ficha — **todos**, e nesta ordem. */}
               <div className="mt-2">
-                {config.categoria && <Campo rotulo="categoria">{config.categoria}</Campo>}
+                {categoriaDe(id) && <Campo rotulo="categoria">{categoriaDe(id)}</Campo>}
                 <Campo rotulo="criada em">{porExtenso(criadaEm(id))}</Campo>
                 <Campo rotulo="dono">
                   <Link
