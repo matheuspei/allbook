@@ -5942,6 +5942,110 @@ movimento de verdade, a janela aperta e o nome pode voltar.
 
 ---
 
+## 4.72 Auditoria: o que foi decidido e não chegou à tela (31/07)
+
+**Pedido do Matheus, e a queixa que o originou** — *"perdemos muito tempo
+construindo a aba Comunidade e ela não ficou boa. Tem muita coisa que estava no
+roteiro ou que eu conversei que não foi para a aba. Tem muita coisa que era pra
+ser tirada e não foi tirada, e muita coisa que era pra ser colocada e não foi
+colocada."*
+
+Fui conferir **decisão por decisão** das §4.53 a §4.58 contra o código. O
+resultado abaixo é o que a leitura mostrou, sem defesa: o que está de pé, o que
+foi decidido e nunca construído, e — a parte mais importante — **por que a tela
+parece vazia mesmo com o código lá dentro**.
+
+### 1. Decidido em detalhe e nunca construído: o menu "…" da Comunidade
+
+A **§4.57 inteira** foi uma conversa longa que terminou com uma regra escrita:
+
+> *"O '…' da Comunidade só leva ao que é da comunidade. O que é seu mora no
+> avatar."* — e o conteúdo dele: **criar um clube, criar um fórum, todos os
+> clubes, todos os fóruns, quem te segue / quem você segue.**
+
+**Não existe menu nenhum na Comunidade.** Nem o botão. A decisão que mais tempo
+tomou naquela conversa é a única que não virou uma linha de código.
+
+### 2. A organização do topo saiu diferente da combinada
+
+A mesma §4.57 fechou: *"A Comunidade abre no feed, sem fileira de ícones no topo.
+**Feed · Seguindo são as únicas coisas fixas ali**"*, com clube e fórum indo para
+o menu **e** para o feed como cartões.
+
+O que existe hoje são **duas** fileiras de pílulas empilhadas: em cima
+`Feed · Fóruns`, embaixo `Todos · Seguindo`. Ou seja, a aba de fóruns que a
+decisão mandava para o menu virou **um separador fixo no topo** — exatamente a
+"fileira que parece menu de banco" que ele rejeitou —, e ainda ganhou uma segunda
+fileira embaixo. **Dois critérios em duas fileiras é a régua da casa cumprida
+pela metade:** cada fileira tem um critério só, mas a de cima não deveria existir.
+
+### 3. A pergunta ficou pela metade: falta "responder com um livro"
+
+A §4.58 fechou o item 2 assim: *"Pergunta é um tipo de post, **com selo e
+'responder com um livro'**"*. E a avaliação das cinco capturas classificou essa
+peça como **"a melhor das cinco"**, com o motivo: *"a resposta carrega um
+objeto"*.
+
+Construído: o selo, a página `/perguntas`, o filtro "sem resposta". **Não
+construído: a resposta com o livro dentro, e a "melhor resposta".** O comentário
+hoje é texto puro — mencionar um livro com `@` ali vira link, nunca capa —, e não
+há como o autor da pergunta marcar qual resposta resolveu.
+
+É a diferença entre uma pergunta de fórum e o que o AllBook queria ter: a
+resposta que **é** um livro, com capa, que você toca e vai ouvir.
+
+### 4. O sino não sabe que curtiram você
+
+A §4.58 registrou, na resposta à dúvida 2: *"ser notificado das interações
+(curtiram, comentaram, responderam ao seu comentário)"*, com a regra fina já
+decidida — **curtidas chegam agrupadas** (*"Ana e mais 3 curtiram seu post"*,
+nunca um aviso por curtida) e **descurtida não notifica**.
+
+Só o **comentário** notifica. Curtir não gera aviso nenhum, agrupado ou não.
+
+### 5. O play do trecho compacto continua morto
+
+Registrado na §4.60 como **"A construir"** e não feito: no cartão de citação
+compacto o play é desenhado e não toca (vale no compositor, na folha "Seus
+trechos", no mural do clube e na resposta do fórum).
+
+### O achado que explica a sensação: quase tudo tem uma condição para aparecer
+
+Isto é o mais útil da auditoria, e é uma crítica ao **meu** critério, não ao dele.
+Cada peça foi construída com uma trava sensata — e somadas elas fazem a
+Comunidade mostrar muito menos do que tem:
+
+| Peça | Só aparece se… |
+| --- | --- |
+| "Ouvindo agora" | você estiver na lente **Seguindo** e seguir alguém ouvindo algo |
+| "Combina com você" | lente **Seguindo** |
+| Trechos quentes | houver **2+** trechos **e** o feed tiver 5+ itens |
+| Cartão de fórum | o feed tiver **8+** itens |
+| Cartão de clube | o feed tiver 4+ itens e houver clube aberto |
+| Porta de perguntas | houver pelo menos uma pergunta |
+| Presença por capítulo | interruptor **ligado** (nasce desligado) e seguimento **mútuo** |
+
+Cada "some quando não há dado" foi defendido, um por um, com a §4.23 (nada de
+botão morto, nada de sala vazia). **O erro não está em nenhum deles isoladamente
+— está na soma.** Numa maquete com nove posts e pouca gente, metade das travas
+não bate, e o resultado é uma tela que parece não ter recebido o que se discutiu
+por horas. Quem abre a Comunidade vê posts e mais nada; tudo o mais está atrás de
+uma lente, de uma contagem mínima ou de um interruptor desligado.
+
+**Consequência para o que vier:** trava de aparecimento precisa de **estado
+vazio com conteúdo**, não de sumiço. Sumir é honesto e invisível ao mesmo tempo —
+e invisível, para quem decidiu a peça, é indistinguível de não construído.
+
+### O que está de pé (para o quadro ser justo)
+
+Post com objeto · compositor com `@` · quatro formas de cartão · duas lentes ·
+curtir/comentar raso/compartilhar · editar com selo · apagar · denunciar · seguir
+no cartão · página `/post/:id` · `/perguntas` · atividade em linha · cartões de
+clube e fórum · trechos quentes · convite de clube com aceitar no sino · perfil
+girando em torno dos posts com as três portas · presença por capítulo.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
