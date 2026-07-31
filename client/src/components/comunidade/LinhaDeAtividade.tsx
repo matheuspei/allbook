@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { avatarDeLeitor } from "@/lib/community";
 import { MessageCircle, Sparkles } from "lucide-react";
 
 import { relativeDate, type ActivityEvent } from "@/lib/activity";
@@ -34,7 +35,7 @@ export default function LinhaDeAtividade({ evento }: { evento: ActivityEvent }) 
     >
       <Link href={`/user/${member.slug}`} className="shrink-0">
         <span
-          className={`grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br ${member.color} text-[12px] font-bold`}
+          className={`grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br ${member.color} text-[12px] font-bold`} {...avatarDeLeitor(member.slug)}
         >
           {member.name.charAt(0)}
         </span>

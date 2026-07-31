@@ -13,27 +13,25 @@
 import { catalog, type Book } from "@/lib/books";
 
 /**
- * **O rosto de cada leitor** (31/07).
+ * **A foto de cada leitor** (31/07).
  *
  * Pedido do Matheus: *"crie caras para os perfis… imagens mesmo, como se fosse
- * uma pessoa real"*. Os arquivos ficam em `assets/images/community/<slug>.png` e
+ * uma pessoa real"*. Os arquivos ficam em `assets/images/community/<slug>.jpg` e
  * são baixados uma vez por `npm run caras` — nunca durante o uso, como as capas
  * dos livros.
  *
- * ⚠️ **São rostos gerados, não fotos de gente.** Ele chegou a dizer *"pode ser
- * uma pessoa real também"*, e o motivo de eu não ter feito isso está no cabeçalho
- * do script: pôr o rosto de alguém como perfil de um leitor fictício é usar a
- * imagem de uma pessoa que não escolheu estar ali — e tudo o que a "Ana Paula"
- * escreve passa a sair da cara dela.
- *
- * **O fundo é transparente de propósito:** o rosto entra **por cima do gradiente**
- * de cada pessoa (`color`), que o app usa há semanas para identificá-la de
- * relance. Assim a foto acrescenta sem apagar o que já funcionava.
+ * ⚠️ **São fotos de rosto, e a primeira versão errou aqui.** Eu tinha usado
+ * ilustração gerada, alegando que usar o rosto de uma pessoa real num perfil
+ * fictício toma a imagem de quem não escolheu estar ali. Ele viu na tela e
+ * respondeu: *"esse tá um avatar fictício, não é o que eu queria; eu queria
+ * realmente o rosto de pessoas que parecessem pessoas"*. É decisão dele, tomada
+ * duas vezes. O registro fica no cabeçalho de `scripts/caras.mjs`, sem insistir:
+ * são fotos de banco de protótipo e saem quando houver contas de verdade.
  *
  * Falta o arquivo? O avatar volta a ser a inicial no gradiente, como antes — é o
- * mesmo desenho de `people.ts`, e por isso soltar um `<slug>.png` na pasta basta.
+ * mesmo desenho de `people.ts`, e por isso soltar um `<slug>.jpg` na pasta basta.
  */
-const arquivosDeRosto = import.meta.glob("../assets/images/community/*.png", {
+const arquivosDeRosto = import.meta.glob("../assets/images/community/*.{jpg,jpeg,png,webp}", {
   eager: true,
   query: "?url",
   import: "default",
@@ -41,7 +39,7 @@ const arquivosDeRosto = import.meta.glob("../assets/images/community/*.png", {
 
 const rostosPorSlug: Record<string, string> = Object.fromEntries(
   Object.entries(arquivosDeRosto).map(([caminho, url]) => [
-    caminho.split("/").pop()!.replace(/\.png$/, ""),
+    caminho.split("/").pop()!.replace(/\.(jpg|jpeg|png|webp)$/, ""),
     url,
   ]),
 );
@@ -49,6 +47,41 @@ const rostosPorSlug: Record<string, string> = Object.fromEntries(
 /** O rosto de um leitor, se ele tiver um arquivo na pasta. */
 export function fotoDoMembro(slug: string): string | undefined {
   return rostosPorSlug[slug];
+}
+
+/**
+ * **Põe o rosto em qualquer avatar do app, sem mexer na marcação dele.**
+ *
+ * Nasceu de uma queixa exata do Matheus (31/07): *"clico no perfil da Ana Paula e
+ * não aparece imagem nenhuma; clico nos membros dos fóruns e não aparece nada
+ * disso"*. Ele estava certo, e a causa era o método: eu tinha trocado o avatar
+ * **em quatro telas**, à mão, quando existem **vinte e cinco** lugares que
+ * desenham a mesma bolinha com a inicial.
+ *
+ * Trocar 25 marcações diferentes é o jeito de a metade voltar (o defeito que a
+ * §4.67 já tinha cobrado com o curtir). Este helper resolve por outro caminho: ele
+ * devolve um `style` que **pinta a foto no fundo do próprio elemento** e apaga a
+ * letra, então cada avatar precisa de **uma linha** — `{...avatarDeLeitor(slug)}`
+ * — e continua com o tamanho, a forma e a borda que já tinha.
+ *
+ * Sem foto, devolve objeto vazio: o gradiente e a inicial ficam como sempre
+ * foram, e nenhuma tela precisa saber da diferença.
+ */
+export function avatarDeLeitor(slug?: string): {
+  style?: React.CSSProperties;
+} {
+  const foto = slug ? rostosPorSlug[slug] : undefined;
+  if (!foto) return {};
+  return {
+    style: {
+      backgroundImage: `url(${foto})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      /* A inicial continua no HTML (leitor de tela e busca a encontram), e some
+         da vista atrás da foto. */
+      color: "transparent",
+    },
+  };
 }
 
 /**

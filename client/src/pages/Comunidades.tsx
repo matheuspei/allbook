@@ -215,7 +215,7 @@ function Grade({ lista, comFicha }: { lista: Grupo[]; comFicha?: boolean }) {
           >
             <CapaDaComunidade
               imagem={config.imagem}
-              livros={capaDaComunidade(grupo.id)}
+              foto={capaDaComunidade(grupo.id)}
               emoji={grupo.emoji}
               className="transition-transform hover:scale-[1.03]"
             />

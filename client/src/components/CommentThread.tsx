@@ -6,7 +6,7 @@ import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import QuemReagiu from "@/components/comunidade/QuemReagiu";
 import { useToast } from "@/hooks/use-toast";
 import { repliesTo, type Comment } from "@/lib/comments";
-import { findMember, findMemberByName } from "@/lib/community";
+import { findMember, findMemberByName, avatarDeLeitor } from "@/lib/community";
 import { denunciar, type MotivoDaDenuncia } from "@/lib/moderacao";
 import { addNotification } from "@/lib/notifications";
 import { savePlaying } from "@/lib/playback";
@@ -669,6 +669,7 @@ function AutorDoComentario({ slug, small }: { slug: string; small?: boolean }) {
           ? `bg-gradient-to-br ${membro.color} text-white`
           : "bg-gradient-to-br from-amber-500/30 to-orange-600/30 text-amber-500"
       }`}
+      {...avatarDeLeitor(membro?.slug)}
     >
       {membro ? membro.name.charAt(0) : <User className="w-3 h-3" />}
     </span>

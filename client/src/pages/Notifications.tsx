@@ -26,7 +26,7 @@ import {
   recusarConvite,
   type Convite,
 } from "@/lib/convites";
-import { findMember, type CommunityMember } from "@/lib/community";
+import { findMember, type CommunityMember, avatarDeLeitor } from "@/lib/community";
 import { useToast } from "@/hooks/use-toast";
 import { SEGUIDORES_EVENT, aceitarPedido, pedidosPendentes, recusarPedido } from "@/lib/seguidores";
 import { readSettings } from "@/lib/settings";
@@ -224,6 +224,7 @@ function deResposta(item: ReplyNotification): Aviso {
     data: item.date,
     // A cor do avatar da própria pessoa: é assim que ela aparece nas outras
     // telas, e reconhecer a cor é reconhecer quem falou.
+    slug: item.fromSlug,
     cor: membro?.color ?? "from-primary to-orange-600",
     inicial: membro?.name.charAt(0) ?? "?",
     bookId: item.bookId,
@@ -521,6 +522,7 @@ function CartaoDePedido({ aviso }: { aviso: Aviso }) {
       <Link href={`/user/${slug}`} className="flex min-w-0 flex-1 items-center gap-3">
         <span
           className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br ${aviso.cor} font-display text-base font-bold`}
+          {...avatarDeLeitor(aviso.slug)}
         >
           {aviso.inicial}
         </span>
@@ -587,6 +589,7 @@ function CartaoDeConvite({ aviso }: { aviso: Aviso }) {
       <Link href={`/clube/${aviso.clubeId}`} className="flex min-w-0 flex-1 items-center gap-3">
         <span
           className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br ${aviso.cor} font-display text-base font-bold`}
+          {...avatarDeLeitor(aviso.slug)}
         >
           {aviso.inicial}
         </span>
@@ -665,6 +668,7 @@ function Cartao({
       {aviso.tipo === "resposta" ? (
         <span
           className={`w-10 h-10 rounded-full bg-gradient-to-br ${aviso.cor} flex items-center justify-center shrink-0 text-sm font-bold shadow-md`}
+          {...avatarDeLeitor(aviso.slug)}
         >
           {aviso.inicial}
         </span>

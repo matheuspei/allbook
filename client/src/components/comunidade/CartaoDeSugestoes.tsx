@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { avatarDeLeitor } from "@/lib/community";
 import { Check, Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -63,7 +64,7 @@ export default function CartaoDeSugestoes({ sugestoes }: { sugestoes: Suggestion
             >
               <Link href={`/user/${member.slug}`} className="group block">
                 <span
-                  className={`mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br ${member.color} font-display text-base font-bold`}
+                  className={`mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br ${member.color} font-display text-base font-bold`} {...avatarDeLeitor(member.slug)}
                 >
                   {member.name.charAt(0)}
                 </span>

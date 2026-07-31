@@ -541,47 +541,52 @@ export function forunsVisiveis(): Grupo[] {
  * ------------------------------------------------------------------ */
 
 /**
- * **As capas dos livros de que a comunidade fala** — o mosaico que serve de capa
- * quando o dono não enviou imagem.
+ * **A foto de cada comunidade semeada.**
  *
  * Pedido do Matheus em 31/07: *"imagens das capas das comunidades que condizem
- * com o que ela está dizendo"*.
+ * com o que ela está dizendo"* — e, na crítica da primeira versão: *"você ainda
+ * usou as capas de livros das comunidades; não era para ser isso"*.
  *
- * ⚠️ **Foto de banco foi tentada e descartada**, e o registro poupa a próxima
- * tentativa: baixei cinco do LoremFlickr por etiqueta e (1) a busca errou feio —
- * "noir, detective" devolveu um boneco do Bender de chapéu —, e (2) as fotos
- * vieram com marca d'água `cc-nc-nd`, ou seja **proibido uso comercial**. Num app
- * que vai ser vendido, é impróprio.
+ * ⚠️ **Duas tentativas erradas antes desta, e as duas ficam registradas:**
  *
- * **O que ficou é melhor e é do próprio produto.** A capa de livro é a peça de
- * design mais cuidada do AllBook (§4.59), e quatro delas dizem o assunto da
- * comunidade melhor que uma foto genérica de estante. Sem download, sem licença
- * de terceiros, e muda sozinho quando o catálogo muda.
+ * 1. **Busca automática por etiqueta** (LoremFlickr): "noir, detective" devolveu
+ *    um boneco do Bender de chapéu, e as fotos vinham com marca d'água `cc-nc-nd`
+ *    — **proibido uso comercial**.
+ * 2. **Mosaico das capas dos livros**: eu achei elegante (usa o que o app tem de
+ *    mais bonito), ele achou errado, e ele tem razão — a capa de uma comunidade
+ *    devia dizer *do que se fala ali*, não *o que se lê*. Comunidade não é
+ *    prateleira.
  *
- * Os ids são escolhidos à mão porque **gênero não basta**: "Quem ouve no
- * trânsito" não é um gênero, e "Clássicos" pega livros de gêneros diferentes.
+ * **O que ficou:** cinco fotos escolhidas **uma a uma, olhando** — rua molhada à
+ * noite, rastros de trânsito, estante de livros antigos, a Nebulosa de Órion,
+ * trilha com névoa. Todas **CC0 ou domínio público**, baixadas por
+ * `npm run caras` para dentro do repositório.
+ *
+ * **E o dono troca por qualquer foto**, na tela de gerenciar — a imagem enviada
+ * sempre ganha desta.
  */
-const LIVROS_DA_CAPA: Record<string, number[]> = {
-  "suspense-misterio": [1, 2, 313, 3],
-  "quem-ouve-no-transito": [102, 7, 120, 5],
-  /* Clássicos são de gêneros diferentes de propósito — 1984, Orgulho e
-     Preconceito, A Revolução dos Bichos e Razão e Sensibilidade. É o que a
-     palavra quer dizer, e nenhum campo `genre` do catálogo daria isso. */
-  classicos: [130, 140, 304, 307],
-  "ficcao-cientifica": [7, 8, 109, 131],
-  "habitos-vida-real": [102, 5, 120, 103],
-};
+const arquivosDeCapa = import.meta.glob("../assets/images/comunidades/*.{jpg,jpeg,png,webp}", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
+const capasPorId: Record<string, string> = Object.fromEntries(
+  Object.entries(arquivosDeCapa).map(([caminho, url]) => [
+    caminho.split("/").pop()!.replace(/\.(jpg|jpeg|png|webp)$/, ""),
+    url,
+  ]),
+);
 
 /**
- * Os livros que formam a capa — no máximo quatro, só os que existem no catálogo.
+ * A foto da comunidade, se houver arquivo para ela.
  *
- * **Comunidade criada por você não tem lista**, e é de propósito: ela mostra o
- * emoji que você escolheu até você enviar uma imagem. Inventar capa para ela
- * seria o app decidir do que ela fala.
+ * **Comunidade criada por você não tem**, e é de propósito: ela mostra o emoji
+ * que você escolheu até você enviar uma imagem. Escolher uma foto por ela seria o
+ * app decidir do que ela fala.
  */
-export function capaDaComunidade(grupoId: string): number[] {
-  const ids = LIVROS_DA_CAPA[grupoId] ?? [];
-  return ids.filter((id) => catalog.some((livro) => livro.id === id)).slice(0, 4);
+export function capaDaComunidade(grupoId: string): string | undefined {
+  return capasPorId[grupoId];
 }
 
 /* ------------------------------------------------------------------ *

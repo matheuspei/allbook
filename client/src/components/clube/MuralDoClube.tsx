@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { avatarDeLeitor } from "@/lib/community";
 import { EyeOff, Lock, Shield, Trash2 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -216,7 +217,9 @@ function Mensagem({
         <span
           className={`grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(
             mensagem.autorSlug,
-          )} font-display text-[11px] font-bold`}
+          )} font-display text-[11px] font-bold`} {...avatarDeLeitor(
+            mensagem.autorSlug,
+          )}
         >
           {autorDaMensagem(mensagem).charAt(0)}
         </span>

@@ -3,7 +3,7 @@ import { AudioLines, Users } from "lucide-react";
 
 import { catalog } from "@/lib/books";
 import { clubePorId } from "@/lib/clubes";
-import { findMember } from "@/lib/community";
+import { findMember, avatarDeLeitor } from "@/lib/community";
 import { findPerson } from "@/lib/people";
 import { initialOf, readProfile } from "@/lib/profile";
 import { postPorId, type ObjetoDoPost, type Post } from "@/lib/posts";
@@ -48,7 +48,7 @@ export default function PostCitado({ post }: { post: Post }) {
           <span
             className={`grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gradient-to-br ${
               membro?.color ?? "from-primary to-orange-600"
-            } text-[10px] font-bold`}
+            } text-[10px] font-bold`} {...avatarDeLeitor(membro?.slug)}
           >
             {ehMeu ? initialOf(meuPerfil.name) : nome.charAt(0)}
           </span>

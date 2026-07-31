@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { avatarDeLeitor } from "@/lib/community";
 import { Link } from "wouter";
 import { ArrowRight, CalendarDays, MessageSquare, Plus, Search, Sparkles, Users, X } from "lucide-react";
 
@@ -295,7 +296,9 @@ function Avatares({ clube }: { clube: Clube }) {
             key={slug}
             className={`grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(
               slug,
-            )} font-display text-[11px] font-bold ring-2 ring-black/40 ${indice > 0 ? "-ml-2.5" : ""}`}
+            )} font-display text-[11px] font-bold ring-2 ring-black/40 ${indice > 0 ? "-ml-2.5" : ""}`} {...avatarDeLeitor(
+              slug,
+            )}
           >
             {nomeDoMembro(slug).charAt(0)}
           </span>

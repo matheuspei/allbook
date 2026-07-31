@@ -13,7 +13,7 @@ import { clubesDe, estreiaEmTexto, meusClubes, vagasRestantes, type Clube } from
 import { convidar, podeConvidarPara, simularResposta } from "@/lib/convites";
 import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
-import { findMember, recommendationsOf } from "@/lib/community";
+import { findMember, recommendationsOf, avatarDeLeitor } from "@/lib/community";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { getAchievementsByIds, melhoresConquistas } from "@/lib/achievements";
 import { muralDe } from "@/lib/mural";
@@ -115,7 +115,7 @@ export default function UserProfile() {
               className="shrink-0 rounded-full border-2 border-white/80"
             >
               <div
-                className={`w-16 h-16 rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center font-display font-bold text-xl shrink-0`}
+                className={`w-16 h-16 rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center font-display font-bold text-xl shrink-0`} {...avatarDeLeitor(member.slug)}
               >
                 {member.name.charAt(0)}
               </div>

@@ -2,7 +2,6 @@ import { type ReactNode } from "react";
 import { Link } from "wouter";
 
 import PageHeader from "@/components/PageHeader";
-import { catalog } from "@/lib/books";
 import { fotoDoMembro } from "@/lib/community";
 
 /**
@@ -226,15 +225,16 @@ export function AvatarDoForum({
  */
 export function CapaDaComunidade({
   imagem,
-  livros,
+  foto,
   emoji,
   lado,
   className = "",
   testid,
 }: {
+  /** A imagem que o dono **enviou** — ganha de tudo. */
   imagem?: string;
-  /** Os ids das capas do mosaico, de `capaDaComunidade`. */
-  livros: number[];
+  /** A foto que veio com a comunidade semeada (`capaDaComunidade`). */
+  foto?: string;
   emoji: string;
   /** Em px, para a moldura quadrada. Sem valor, ocupa a largura do pai. */
   lado?: number;
@@ -246,25 +246,19 @@ export function CapaDaComunidade({
     lado ? "" : "aspect-square w-full"
   } ${className}`;
 
-  if (imagem) {
+  /* **O que a pessoa escolheu ganha do que veio pronto.** É a mesma ordem do
+     resto do app, e é o que faz o "trocar imagem" da tela de gerenciar valer
+     alguma coisa: quem envia uma foto vê a foto dela, sempre. */
+  const src = imagem ?? foto;
+  if (src) {
     return (
       <img
-        src={imagem}
+        src={src}
         alt=""
         style={estilo}
         className={`${moldura} object-cover`}
         data-testid={testid}
       />
-    );
-  }
-
-  if (livros.length >= 4) {
-    return (
-      <span style={estilo} className={`grid grid-cols-2 ${moldura}`} data-testid={testid}>
-        {livros.slice(0, 4).map((id) => (
-          <CapinhaDoMosaico key={id} bookId={id} />
-        ))}
-      </span>
     );
   }
 
@@ -277,13 +271,6 @@ export function CapaDaComunidade({
       {emoji}
     </span>
   );
-}
-
-/** Um quadrante do mosaico. Fica separado só para o `find` do catálogo. */
-function CapinhaDoMosaico({ bookId }: { bookId: number }) {
-  const livro = catalog.find((item) => item.id === bookId);
-  if (!livro) return <span className="bg-white/[0.06]" />;
-  return <img src={livro.cover} alt="" className="h-full w-full object-cover" />;
 }
 
 /** Campo de texto do app: fundo transparente, borda fina, foco laranja. */

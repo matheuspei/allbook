@@ -9,7 +9,7 @@ import TextoDoPost from "@/components/comunidade/TextoDoPost";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import { catalog, slugify } from "@/lib/books";
 import { EU, clubePorId, corDoMembro, nomeDoMembro, souDono, vagasRestantes, type Clube } from "@/lib/clubes";
-import { findMember, fotoDoMembro } from "@/lib/community";
+import { findMember, fotoDoMembro, avatarDeLeitor } from "@/lib/community";
 import { findPerson } from "@/lib/people";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { initialOf, readProfile } from "@/lib/profile";
@@ -157,7 +157,7 @@ export default function CartaoDePost({
             <span
               className={`relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br ${
                 membro?.color ?? "from-primary to-orange-600"
-              } font-display text-sm font-bold`}
+              } font-display text-sm font-bold`} {...avatarDeLeitor(membro?.slug)}
             >
               {!ehMeu && post.autorSlug && fotoDoMembro(post.autorSlug) ? (
                 <img
@@ -783,7 +783,9 @@ function QuemEstaNoClube({ clube, onFechar }: { clube: Clube; onFechar: () => vo
                 <span
                   className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(
                     slug,
-                  )} font-display text-sm font-bold`}
+                  )} font-display text-sm font-bold`} {...avatarDeLeitor(
+                    slug,
+                  )}
                 >
                   {nomeDoMembro(slug).charAt(0)}
                 </span>

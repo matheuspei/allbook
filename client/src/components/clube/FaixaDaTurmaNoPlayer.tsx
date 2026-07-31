@@ -1,4 +1,5 @@
 import { ChevronRight, Users } from "lucide-react";
+import { avatarDeLeitor } from "@/lib/community";
 import { Link } from "wouter";
 
 import {
@@ -51,7 +52,7 @@ export default function FaixaDaTurmaNoPlayer({ clube }: { clube: Clube }) {
         {mostrados.map((slug, i) => (
           <span
             key={slug}
-            className={`grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br text-[8.5px] font-bold text-black ring-2 ring-[#141414] ${corDoMembro(slug)}`}
+            className={`grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br text-[8.5px] font-bold text-black ring-2 ring-[#141414] ${corDoMembro(slug)}`} {...avatarDeLeitor(slug)}
             style={{ marginLeft: i === 0 ? 0 : -7 }}
             aria-hidden
           >

@@ -162,7 +162,7 @@ export default function Grupo() {
           <div className="flex gap-3.5">
             <CapaDaComunidade
               imagem={config.imagem}
-              livros={capaDaComunidade(id)}
+              foto={capaDaComunidade(id)}
               emoji={grupo.emoji}
               lado={92}
               testid="imagem-da-comunidade"

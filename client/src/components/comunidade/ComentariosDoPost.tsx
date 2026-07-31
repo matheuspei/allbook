@@ -16,7 +16,7 @@ import {
   type ComentarioDePost,
 } from "@/lib/comentariosDePost";
 import { addNotification } from "@/lib/notifications";
-import { findMember, fotoDoMembro } from "@/lib/community";
+import { findMember, fotoDoMembro, avatarDeLeitor } from "@/lib/community";
 import { initialOf, readProfile } from "@/lib/profile";
 import { type Mencao, type Post } from "@/lib/posts";
 
@@ -187,7 +187,7 @@ function UmComentario({
           href={ehMeu ? "/profile" : `/user/${comentario.autorSlug}`}
           className={`relative grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br ${
             membro?.color ?? "from-primary to-orange-600"
-          } text-[10px] font-bold`}
+          } text-[10px] font-bold`} {...avatarDeLeitor(membro?.slug)}
         >
           {comentario.autorSlug && fotoDoMembro(comentario.autorSlug) ? (
             <img

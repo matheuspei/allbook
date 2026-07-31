@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { avatarDeLeitor } from "@/lib/community";
 import { MessageCircleQuestion, Trash2 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -125,7 +126,9 @@ export default function RodadaDoClube({ clube }: { clube: Clube }) {
                 <span
                   className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(
                     resposta.autorSlug,
-                  )} text-[10px] font-bold`}
+                  )} text-[10px] font-bold`} {...avatarDeLeitor(
+                    resposta.autorSlug,
+                  )}
                 >
                   {nomeDoAutor(resposta.autorSlug).charAt(0)}
                 </span>

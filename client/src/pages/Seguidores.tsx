@@ -4,7 +4,7 @@ import { Check, Lock, UserMinus, UserPlus, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
-import { type CommunityMember } from "@/lib/community";
+import { type CommunityMember, avatarDeLeitor } from "@/lib/community";
 import {
   SEGUIDORES_EVENT,
   aceitarPedido,
@@ -150,7 +150,7 @@ export default function Seguidores() {
               >
                 <Link href={`/user/${pessoa.slug}`} className="flex min-w-0 flex-1 items-center gap-3">
                   <span
-                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br ${pessoa.color} font-display text-sm font-bold`}
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br ${pessoa.color} font-display text-sm font-bold`} {...avatarDeLeitor(pessoa.slug)}
                   >
                     {pessoa.name.charAt(0)}
                   </span>

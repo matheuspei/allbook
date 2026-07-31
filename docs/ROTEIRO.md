@@ -6266,6 +6266,10 @@ comunidades**. Nada disso está pendurado na interface como botão morto.
 
 ## 4.75 Os leitores ganharam rosto, e as comunidades ganharam capa (31/07)
 
+> ⚠️ **Esta seção descreve a primeira versão, que o Matheus reprovou inteira.**
+> O que valeu está logo abaixo, na **§4.76** — leia as duas juntas: a primeira
+> registra três raciocínios meus que pareciam bons e estavam errados.
+
 Pedido do Matheus: *"crie caras para os perfis… imagens mesmo, como se fosse uma
 pessoa real. Pode ser uma pessoa real também, não sei. E também imagens das capas
 das comunidades que condizem com o que ela está dizendo."*
@@ -6320,6 +6324,56 @@ licença de terceiros, e acompanha o catálogo sozinha.
 execução e não reclamou, porque o regex exigia `slug:` no começo da linha e
 metade dos membros está escrita numa linha só. Falha silenciosa é a pior — o
 resultado *parecia* certo.
+
+---
+
+## 4.76 A crítica que derrubou a §4.75 inteira (31/07)
+
+O Matheus olhou o que a §4.75 produziu e reprovou os três pontos:
+
+> *"Esse tá um avatar fictício, não é o que eu queria. Eu queria realmente o
+> rosto de pessoas que parecessem pessoas."*
+> *"Clico no perfil da Ana Paula e não aparece nenhuma imagem. Clico nos membros
+> dos fóruns e não aparece nada disso."*
+> *"Você ainda usou as capas de livros das comunidades. Não era para ser isso. A
+> pessoa tem que poder carregar foto do que ela quiser."*
+
+**Os três estavam certos, e cada um por um motivo diferente. Vale separar.**
+
+### 1. Ilustração no lugar de foto — eu troquei o pedido por uma objeção minha
+
+Ele pediu rosto de pessoa; eu entreguei ilustração, alegando que usar o rosto de
+alguém real num perfil fictício toma a imagem de quem não escolheu estar ali. A
+objeção é legítima e está registrada — **mas ele já a tinha respondido antes**
+(*"pode ser uma pessoa real também"*), e eu construí como se não tivesse.
+
+**A regra que fica:** levantar a objeção uma vez é obrigação; **decidir por ela
+depois de ele responder é trocar o pedido dele pelo meu.** Agora são fotos de
+rosto de um banco de protótipo, com o gênero casado ao nome de cada leitor.
+
+### 2. "Aparece aqui e não ali" — o erro era o método, não o lugar
+
+Eu tinha posto a foto **em quatro telas, à mão**. O app desenha a mesma bolinha
+com inicial em **vinte e cinco lugares** — perfil da pessoa, sino, conversa do
+livro, quem curtiu, clube, mural, seguidores, sugestões… Trocar um a um é como a
+metade volta, e é exatamente o defeito que a §4.67 já tinha cobrado com o curtir.
+
+**O conserto foi mudar de ferramenta:** `avatarDeLeitor(slug)` devolve um `style`
+que pinta a foto **no fundo do próprio elemento** e apaga a letra. Cada avatar
+precisa de **uma linha** e mantém tamanho, forma e borda que já tinha — 25
+lugares consertados de uma vez, sem reescrever marcação nenhuma.
+
+### 3. Capa de comunidade não é prateleira
+
+Meu mosaico de capas de livro era elegante e estava **errado sobre o que a peça
+significa**: a capa de uma comunidade diz *do que se fala ali*, não *o que se lê*.
+Agora são cinco fotos escolhidas uma a uma, olhando — rua molhada à noite,
+rastros de trânsito, estante antiga, a Nebulosa de Órion, trilha com névoa. Todas
+**CC0 ou domínio público**, uso comercial liberado, sem marca d'água.
+
+**E o dono troca por qualquer foto**, na tela de gerenciar: a imagem enviada
+sempre ganha da que veio pronta. Isso já existia e continua — era a parte do
+pedido que eu tinha atendido.
 
 ---
 

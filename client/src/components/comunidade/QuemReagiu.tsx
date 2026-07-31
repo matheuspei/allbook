@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { avatarDeLeitor } from "@/lib/community";
 import { Link } from "wouter";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 
@@ -146,7 +147,7 @@ export default function QuemReagiu({
               data-testid={`reagiu-${membro.slug}`}
             >
               <span
-                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br ${membro.color} font-display text-sm font-bold`}
+                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br ${membro.color} font-display text-sm font-bold`} {...avatarDeLeitor(membro.slug)}
               >
                 {membro.name.charAt(0)}
               </span>

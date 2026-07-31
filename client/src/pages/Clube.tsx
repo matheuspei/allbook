@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { avatarDeLeitor } from "@/lib/community";
 import { Link, useLocation } from "wouter";
 import { BookOpen, LogOut, Share2, Shield, UserPlus, Users } from "lucide-react";
 
@@ -178,7 +179,9 @@ export default function Clube({ params }: { params: { id: string } }) {
                     slug,
                   )} font-display text-[11px] font-bold ring-2 ring-[#141414] ${
                     indice > 0 ? "-ml-2" : ""
-                  }`}
+                  }`} {...avatarDeLeitor(
+                    slug,
+                  )}
                   title={nomeDoMembro(slug)}
                 >
                   {nomeDoMembro(slug).charAt(0)}

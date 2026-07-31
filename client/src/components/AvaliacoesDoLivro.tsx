@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { avatarDeLeitor } from "@/lib/community";
 import { MessageSquare } from "lucide-react";
 
 import { NotaDoComentario } from "@/components/CommentThread";
@@ -61,7 +62,7 @@ function Avaliacao({ item }: { item: Comment }) {
         <span
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${
             autor?.color ?? "from-zinc-600 to-zinc-700"
-          } text-xs font-bold`}
+          } text-xs font-bold`} {...avatarDeLeitor(autor?.slug)}
         >
           {(autor?.name ?? "?").charAt(0)}
         </span>

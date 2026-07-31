@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { avatarDeLeitor } from "@/lib/community";
 import { Link, useLocation } from "wouter";
 import { CalendarRange, Eye, MessageCircleQuestion, Plus, Shield, Trash2, Undo2, UserMinus, Users, Vote, X } from "lucide-react";
 
@@ -282,7 +283,9 @@ function ListaDeEspera({ clube }: { clube: ClubeTipo }) {
             <span
               className={`grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(
                 slug,
-              )} text-[11px] font-bold`}
+              )} text-[11px] font-bold`} {...avatarDeLeitor(
+                slug,
+              )}
             >
               {nomeDoMembro(slug).charAt(0)}
             </span>
@@ -768,7 +771,7 @@ function LinhaDeMembro({
       className={`flex items-center gap-3 rounded-xl bg-white/[0.04] px-3 py-2.5 ${apagada ? "opacity-50" : ""}`}
     >
       <span
-        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(slug)} font-display text-xs font-bold`}
+        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(slug)} font-display text-xs font-bold`} {...avatarDeLeitor(slug)}
       >
         {nomeDoMembro(slug).charAt(0)}
       </span>

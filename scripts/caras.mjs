@@ -1,78 +1,125 @@
 /**
- * `npm run caras` — baixa **os rostos dos leitores** e **as capas das
+ * `npm run caras` — baixa **as fotos dos leitores** e **as fotos das
  * comunidades**, uma vez, para dentro do repositório.
  *
- * Pedido do Matheus em 31/07: *"crie caras para os perfis… imagens mesmo, como
- * se fosse uma pessoa real. E também imagens das capas das comunidades que
- * condizem com o que ela está dizendo."*
+ * Pedido do Matheus em 31/07, e **refeito no mesmo dia depois da crítica dele**.
  *
  * ---
  *
- * ## De onde vem cada coisa, e por quê
+ * ## A primeira versão estava errada, e o registro é para não repetir
  *
- * **Os rostos: DiceBear, estilo `notionists`.** São rostos **gerados**, e essa é
- * a parte importante — não são fotos de pessoas.
+ * Eu tinha usado **ilustração** (DiceBear) alegando que pôr o rosto de uma pessoa
+ * real num perfil fictício usa a imagem de quem não escolheu estar ali. Ele viu na
+ * tela e foi direto:
  *
- * ⚠️ **Por que não usei foto de gente de verdade**, mesmo ele tendo dito *"pode
- * ser uma pessoa real também"*: pôr o rosto de alguém como perfil de um leitor
- * fictício é usar a imagem de uma pessoa que não escolheu estar ali — e o que a
- * "Ana Paula" escreve no app passa a sair da cara dela. Bancos de rosto
- * fotorrealista **gerado** (thispersondoesnotexist e afins) resolveriam isso, mas
- * todos os que testei estão fora do ar ou bloqueados. Ilustração gerada é o que
- * dá cara sem tomar a de ninguém.
+ * > *"Esse tá um avatar fictício, não é o que eu queria. Eu queria realmente o
+ * > rosto de pessoas que parecessem pessoas."*
  *
- * **Licença:** `notionists` é **CC0** — uso livre, sem obrigação de atribuição.
- * Foi por isso que ele ganhou de `lorelei` e `micah` (CC BY, que exigiriam
- * crédito visível no app).
+ * É decisão dele, tomada duas vezes (a primeira já dizia *"pode ser uma pessoa
+ * real também"*), e vale. **Fica só o registro, sem insistir:** estes rostos são
+ * de um banco de avatares de exemplo e servem à maquete; quando houver contas de
+ * verdade, quem entra traz a própria foto e nada disto sobrevive.
  *
- * **Fundo transparente, de propósito:** o avatar entra **por cima do gradiente**
- * que cada leitor já tem em `community.ts`. Sem isso, 26 quadrados pastel
- * brigariam com as capas — e a cor de cada pessoa, que o app usa há semanas para
- * identificá-la, seria jogada fora.
+ * ## O que vem de onde
  *
- * ---
- *
- * ## As capas das comunidades **não** são baixadas — e por quê
- *
- * A primeira versão deste script puxava foto temática do **LoremFlickr** por
- * etiqueta. Baixei as cinco e conferi a olho, como o próprio script mandava. O
- * resultado matou a ideia, por dois motivos independentes:
- *
- * 1. **A busca por etiqueta erra feio.** "noir, detective" devolveu um boneco do
- *    Bender de chapéu; "old, books, library" devolveu a fachada de um prédio de
- *    pedra. Capa errada é pior que capa nenhuma.
- * 2. **A licença não serve, e isso é definitivo.** As fotos vieram com marca
- *    d'água `cc-nc-nd` e o nome do autor queimado no canto — **não comercial, sem
- *    derivados**. Num app que vai ser vendido, é impróprio.
- *
- * **O que ficou no lugar é melhor e é do próprio produto:** a capa de uma
- * comunidade é o **mosaico das capas dos livros** daquele assunto, montado na
- * tela (ver `capaDaComunidade`, em `lib/forum.ts`). Zero download, zero licença
- * de terceiros — e a capa de livro é a peça de design mais cuidada do AllBook.
+ * - **Rostos:** `xsgames.co/randomusers` — fotos de rosto, 256×256, um banco feito
+ *   para preencher protótipo. O **gênero é escolhido pelo nome** de cada leitor:
+ *   dar rosto masculino à "Ana Paula" seria o tipo de descuido que se nota em dois
+ *   segundos.
+ * - **Capas das comunidades:** cinco fotos **escolhidas a olho, uma a uma**, do
+ *   Openverse, todas **CC0 ou domínio público** (uso comercial liberado, sem
+ *   marca d'água). A busca automática por etiqueta foi tentada antes e falhou
+ *   feio — "noir, detective" devolveu um boneco do Bender de chapéu. Por isso as
+ *   URLs estão fixas aqui: foram vistas antes de entrar.
  *
  * ## Como rodar
  *
  * `npm run caras` — sobrescreve o que já existe. Roda **na sua máquina**, nunca
  * durante o uso do app: como as capas dos livros, o resultado vai para o
  * repositório e o AllBook nunca depende de internet para funcionar.
+ *
+ * O recorte quadrado usa o `sips`, que já vem no macOS — nenhuma dependência nova
+ * entrou no projeto por causa disto.
  */
 
+import { execFile } from "node:child_process";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
+import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 
+const rodar = promisify(execFile);
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const RAIZ = resolve(AQUI, "..");
 const PASTA_ROSTOS = resolve(RAIZ, "client/src/assets/images/community");
+const PASTA_CAPAS = resolve(RAIZ, "client/src/assets/images/comunidades");
 
-/** O estilo escolhido, e o tamanho que a maior tela usa (o dobro, para retina). */
-const ESTILO = "notionists";
-const LADO = 256;
+/**
+ * O gênero de cada leitor, pelo nome — para o rosto não contradizer quem escreve.
+ *
+ * Lista escrita à mão de propósito: adivinhar gênero por terminação de nome erra
+ * em português (Nara, Iara, Caio, Otávio) e erra pior em nome abreviado ("Lia F.",
+ * "Vitor H."). Vinte e quatro linhas resolvem sem heurística nenhuma.
+ */
+const GENERO = {
+  "ana-paula": "female",
+  "marcos-v": "male",
+  "juliana-s": "female",
+  ricardo: "male",
+  "carla-lima": "female",
+  beto: "male",
+  "felipe-g": "male",
+  luciana: "female",
+  "tereza-m": "female",
+  "gustavo-a": "male",
+  nara: "female",
+  elias: "male",
+  "bia-costa": "female",
+  "hugo-p": "male",
+  "sandra-l": "female",
+  caio: "male",
+  "renata-v": "female",
+  otavio: "male",
+  "lia-f": "female",
+  "dani-r": "female",
+  "paulo-s": "male",
+  iara: "female",
+  "vitor-h": "male",
+  "marina-t": "female",
+};
+
+/**
+ * As capas — **URL fixa, escolhida a olho**.
+ *
+ * Cada uma foi aberta e conferida antes de entrar aqui. As licenças: `cc0` e
+ * `pdm` (domínio público), ou seja, uso comercial e derivados liberados, e sem
+ * crédito obrigatório na tela.
+ */
+const CAPAS = {
+  /* Rua de pedra molhada à noite, luzes refletidas — o clima de suspense sem
+     precisar de faca nem sangue na capa. */
+  "suspense-misterio":
+    "https://images.rawpixel.com/editor_1024/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvcHgxMDU5NDA2LWltYWdlLWt3eXJnNzZrLmpwZw.jpg",
+  /* Rastros de luz de trânsito em longa exposição. */
+  "quem-ouve-no-transito":
+    "https://images.rawpixel.com/editor_1024/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdXB3azYxNzgyNTg4LXdpa2ltZWRpYS1pbWFnZS1rb3diajVvMS5qcGc.jpg",
+  /* Estante de livros antigos encadernados em couro. */
+  classicos:
+    "https://images.rawpixel.com/editor_1024/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdXB3azYxODA2Nzk2LXdpa2ltZWRpYS1pbWFnZS1rb3dicWNlcC5qcGc.jpg",
+  /* Nebulosa de Órion, pelo Hubble (domínio público). */
+  "ficcao-cientifica":
+    "https://upload.wikimedia.org/wikipedia/commons/a/a0/Orion_Nebula_%28Hubble_Space_Telescope%29.jpg",
+  /* Trilha na mata com névoa da manhã. */
+  "habitos-vida-real": "https://live.staticflickr.com/65535/52308782577_0e894a61b3_b.jpg",
+};
+
+/** O lado da capa depois do recorte — quadrada, como o app a mostra. */
+const LADO_CAPA = 640;
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36";
 
-/** Baixa com uma segunda tentativa: falha de rede passageira derrubava itens. */
+/** Baixa com duas tentativas: falha de rede passageira derrubava itens. */
 async function baixar(url, tentativa = 1) {
   try {
     const resposta = await fetch(url, { headers: { "User-Agent": UA } });
@@ -93,10 +140,8 @@ async function baixar(url, tentativa = 1) {
  * Os slugs saem do próprio `community.ts` — uma lista só, que não desatualiza.
  *
  * ⚠️ **Sem âncora de início de linha**, e isso não é detalhe: metade dos membros
- * está escrita em várias linhas e a outra metade **numa linha só**
- * (`{ slug: "tereza-m", name: … }`). Com `^\s*slug:` o script achou 8 de 24 e
- * não reclamou de nada — o tipo de falha que passa despercebida porque o
- * resultado *parece* certo.
+ * está escrita em várias linhas e a outra metade **numa linha só**. Com
+ * `^\s*slug:` o script achou 8 de 24 e não reclamou de nada.
  */
 async function slugsDaComunidade() {
   const fonte = await readFile(resolve(RAIZ, "client/src/lib/community.ts"), "utf8");
@@ -106,29 +151,47 @@ async function slugsDaComunidade() {
 
 async function main() {
   await mkdir(PASTA_ROSTOS, { recursive: true });
+  await mkdir(PASTA_CAPAS, { recursive: true });
 
   const slugs = await slugsDaComunidade();
-  console.log(`\n👤 ${slugs.length} rostos (${ESTILO}, fundo transparente)\n`);
+  console.log(`\n👤 ${slugs.length} rostos\n`);
 
   let ok = 0;
+  /* Um índice por gênero, para dois leitores nunca dividirem a mesma cara. */
+  const indice = { female: 8, male: 5 };
+
   for (const slug of slugs) {
-    const url =
-      `https://api.dicebear.com/9.x/${ESTILO}/png` +
-      `?seed=${encodeURIComponent(slug)}&size=${LADO}&backgroundColor=transparent`;
+    const genero = GENERO[slug] ?? "female";
+    const n = indice[genero];
+    indice[genero] += 3;
+    const url = `https://xsgames.co/randomusers/assets/avatars/${genero}/${n}.jpg`;
+    const destino = resolve(PASTA_ROSTOS, `${slug}.jpg`);
     try {
-      await writeFile(resolve(PASTA_ROSTOS, `${slug}.png`), await baixar(url));
-      console.log(`  ✓ ${slug}`);
+      await writeFile(destino, await baixar(url));
+      console.log(`  ✓ ${slug} (${genero} ${n})`);
       ok += 1;
     } catch (erro) {
       console.log(`  ✗ ${slug} — ${erro.message}`);
     }
   }
 
-  console.log(
-    `\n${ok}/${slugs.length} rostos salvos em client/src/assets/images/community/.\n` +
-      `As capas das comunidades não vêm daqui — são mosaico das capas dos livros\n` +
-      `do assunto, montado na tela (ver o cabeçalho deste arquivo).\n`,
-  );
+  console.log(`\n🖼  ${Object.keys(CAPAS).length} capas de comunidade\n`);
+  for (const [id, url] of Object.entries(CAPAS)) {
+    const destino = resolve(PASTA_CAPAS, `${id}.jpg`);
+    try {
+      await writeFile(destino, await baixar(url));
+      /* Recorte central quadrado e redução — o app mostra a capa em quadrado, e
+         guardar 3 MB de foto de nebulosa no repositório seria desperdício. */
+      await rodar("sips", ["-c", String(LADO_CAPA), String(LADO_CAPA), destino], {
+        maxBuffer: 1024 * 1024,
+      });
+      console.log(`  ✓ ${id}`);
+    } catch (erro) {
+      console.log(`  ✗ ${id} — ${erro.message}`);
+    }
+  }
+
+  console.log(`\n${ok}/${slugs.length} rostos e as capas estão no repositório.\n`);
 }
 
 main();

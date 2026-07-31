@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { avatarDeLeitor } from "@/lib/community";
 import { Radio } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -54,7 +55,7 @@ export default function PresencaNoLivro({ bookId }: { bookId: number }) {
               data-testid={`presenca-${member.slug}`}
             >
               <span
-                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br ${member.color} text-xs font-bold`}
+                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br ${member.color} text-xs font-bold`} {...avatarDeLeitor(member.slug)}
               >
                 {member.name.charAt(0)}
               </span>
