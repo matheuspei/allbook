@@ -52,6 +52,7 @@ import Help from "@/pages/Help";
 import CategoryBooks from "@/pages/CategoryBooks";
 import Collection from "@/pages/Collection";
 import AudioPlayer from "@/pages/AudioPlayer";
+import SalaAoVivo from "@/pages/SalaAoVivo";
 import BottomNav from "@/components/layout/BottomNav";
 import TopNav from "@/components/layout/TopNav";
 import MiniPlayer from "@/components/layout/MiniPlayer";
@@ -98,6 +99,12 @@ function Router() {
   const isPlayerPage = location.startsWith('/player');
   /** Login é tela cheia como o player: sem menus, sem MiniPlayer. */
   const isLoginPage = location === '/login';
+  /**
+   * A sala de escuta ao vivo é tela cheia pelo mesmo motivo do player: quem está
+   * numa sala está ouvindo com gente, e menu de app no meio disso é ruído
+   * (ROTEIRO §4.81).
+   */
+  const isSalaPage = location.startsWith('/sala/');
   /*
    * **As comunidades voltaram a ter o cabeçalho e o menu do app** (31/07, fim do
    * dia). Elas ficaram brancas e azuis por algumas horas, quando a aba copiava o
@@ -105,7 +112,7 @@ function Router() {
    * do AllBook"* mantendo as funções. Sem a pele de fora, não há mais motivo para
    * esconder a navegação da casa.
    */
-  const isBare = isPlayerPage || isLoginPage;
+  const isBare = isPlayerPage || isLoginPage || isSalaPage;
 
   const isHomePage = location === '/';
 
@@ -198,6 +205,7 @@ function Router() {
             <Route path="/category/:slug" component={CategoryBooks} />
             <Route path="/collection/:slug" component={Collection} />
             <Route path="/player/:id" component={AudioPlayer} />
+            <Route path="/sala/:id" component={SalaAoVivo} />
             <Route component={NotFound} />
           </Switch>
         </div>

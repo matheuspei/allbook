@@ -197,9 +197,21 @@ export function posicaoAgora(sala: SalaAoVivo): number {
 /* Achar salas                                                         */
 /* ------------------------------------------------------------------ */
 
-/** Todas as salas que existem: a fictícia + as suas. */
+/**
+ * Todas as salas que existem: a fictícia + as suas.
+ *
+ * ⚠️ **A sua versão da sala fictícia ganha dela.** Ao entrar na sala semeada, ou
+ * ao falar nela, o app grava uma cópia com o **mesmo id**. Se as duas ficassem na
+ * lista, `salaPorId` devolveria sempre a semeada (que vem primeiro) e o que você
+ * escreveu **sumiria na hora** — foi exatamente o que aconteceu no primeiro
+ * teste: a reação era gravada e a tela continuava com 12 falas.
+ */
 export function todasAsSalas(): SalaAoVivo[] {
-  return [salaSemeada(), ...lerMinhas()];
+  const minhas = lerMinhas();
+  const semeada = salaSemeada();
+  const tenhoMinhaVersao = minhas.some((sala) => sala.id === semeada.id);
+
+  return tenhoMinhaVersao ? minhas : [semeada, ...minhas];
 }
 
 export function salaPorId(id: string): SalaAoVivo | undefined {
