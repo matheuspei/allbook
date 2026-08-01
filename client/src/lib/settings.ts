@@ -77,6 +77,20 @@ export interface Settings {
    * sensível — presença ao vivo revela **rotina**.
    */
   mostrarMeuCapitulo: boolean;
+
+  /* ---------------- os avisos do sino (§4.92) ---------------- */
+
+  /**
+   * O sino avisa quando **curtem** o que você escreveu?
+   *
+   * Nasce ligado, e o aviso é sempre **agrupado** ("Ana e mais 3 curtiram seu
+   * post") — a regra da §4.58. O interruptor entrou porque o Matheus o escolheu
+   * na folha de 01/08, e ele tem uma função além do gosto: curtida é o aviso
+   * mais frequente que existe, e é o primeiro que alguém quer desligar.
+   */
+  avisarCurtidas: boolean;
+  /** O sino avisa quando **comentam** o que você escreveu? */
+  avisarComentarios: boolean;
 }
 
 /** Os mesmos degraus oferecidos dentro do player, para não haver duas escalas. */
@@ -90,6 +104,8 @@ export const defaultSettings: Settings = {
   mostrarMeusComentarios: true,
   /* A única que nasce desligada. Ver o comentário do campo. */
   mostrarMeuCapitulo: false,
+  avisarCurtidas: true,
+  avisarComentarios: true,
 };
 
 export function readSettings(): Settings {
@@ -109,6 +125,14 @@ export function readSettings(): Settings {
         typeof stored.mostrarMeuCapitulo === "boolean"
           ? stored.mostrarMeuCapitulo
           : defaultSettings.mostrarMeuCapitulo,
+      avisarCurtidas:
+        typeof stored.avisarCurtidas === "boolean"
+          ? stored.avisarCurtidas
+          : defaultSettings.avisarCurtidas,
+      avisarComentarios:
+        typeof stored.avisarComentarios === "boolean"
+          ? stored.avisarComentarios
+          : defaultSettings.avisarComentarios,
       mostrarMeusClubes:
         typeof stored.mostrarMeusClubes === "boolean"
           ? stored.mostrarMeusClubes

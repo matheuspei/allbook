@@ -4,6 +4,7 @@ import { Bell, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import BuscaSobreposta from "@/components/BuscaSobreposta";
 import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notifications";
+import { avisosDeCurtida } from "@/lib/avisosDeCurtida";
 import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
 import { CONVITES_EVENT, convitesParaMim } from "@/lib/convites";
 import { readSettings } from "@/lib/settings";
@@ -15,7 +16,8 @@ export default function TopNav() {
   const [buscando, setBuscando] = useState(false);
   // Quantos avisos ainda não lidos: respostas "responderam você" + avisos de
   // sistema + **pedidos para te seguir** (ROTEIRO 4.55) + **convites de clube**
-  // (§4.58, item 5). É o que acende e conta a marca do sino. Zero = sino limpo.
+  // (§4.58, item 5) + **curtidas agrupadas** (§4.92). É o que acende e conta a
+  // marca do sino. Zero = sino limpo.
   //
   // O pedido é somado **aqui**, e não dentro de `unreadNotificationCount()`,
   // para não criar import circular: `seguidores.ts` e `notifications.ts` ficam
@@ -35,7 +37,10 @@ export default function TopNav() {
       setUnread(
         unreadNotificationCount() +
           pedidosPendentes(readSettings().contaPrivada).length +
-          convitesParaMim().length,
+          convitesParaMim().length +
+          // Curtidas agrupadas (§4.92): **um por post**, não um por curtida —
+          // senão a marca do sino contaria dez onde a tela mostra um aviso.
+          avisosDeCurtida().filter((aviso) => !aviso.lido).length,
       );
     refresh();
     // O evento cobre a mesma aba (você respondeu → chegou aviso; abriu a tela e

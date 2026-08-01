@@ -15,6 +15,8 @@
  * Mora no `localStorage`, como o resto do protótipo.
  */
 
+import { readSettings } from "@/lib/settings";
+
 const STORAGE_KEY = "allbook_notifications";
 
 /**
@@ -143,9 +145,27 @@ function unreadSystemCount(): number {
   return SYSTEM_UNREAD_IDS.filter((id) => !lidos.includes(id)).length;
 }
 
-/** O que acende o sino: respostas por ler + avisos de sistema por ler. */
+/**
+ * **Os avisos que você quer ver** — o mesmo `readNotifications`, respeitando o
+ * interruptor "comentários no que eu escrevi" (§4.92).
+ *
+ * ⚠️ **Ele só cala comentário**, e a distinção importa: um aviso com `postId` ou
+ * `bookId` é alguém falando no que você escreveu, e é isso que o interruptor
+ * governa. Convite de clube, resposta a convite de evento e **sala ao vivo**
+ * continuam passando — são coisas que pedem uma decisão sua ou que expiram em
+ * uma hora, e calá-las junto seria transformar um ajuste de barulho num
+ * apagador de recado.
+ */
+export function avisosQueQueroVer(): ReplyNotification[] {
+  const todos = readNotifications();
+  if (readSettings().avisarComentarios) return todos;
+  return todos.filter((aviso) => aviso.bookId === undefined && aviso.postId === undefined);
+}
+
 export function unreadNotificationCount(): number {
-  const respostas = readNotifications().filter((item) => !item.read).length;
+  /* `avisosQueQueroVer`, e não `readNotifications`: com o aviso de comentário
+     desligado, o sino não pode continuar contando o que a tela não mostra. */
+  const respostas = avisosQueQueroVer().filter((item) => !item.read).length;
   return respostas + unreadSystemCount();
 }
 

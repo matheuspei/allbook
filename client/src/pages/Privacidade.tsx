@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Headphones, Lock, MessageSquare, Radio, UsersRound } from "lucide-react";
+import { Headphones, Lock, MessageSquare, Radio, ThumbsUp, UsersRound } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { Switch } from "@/components/ui/switch";
@@ -113,6 +113,37 @@ export default function Privacidade() {
             ligado={ajustes.mostrarMeusClubes}
             onMudar={(ligado) => alternar("mostrarMeusClubes", ligado)}
             testid="switch-meus-clubes"
+          />
+        </div>
+
+        {/*
+          **Quando o sino toca** (§4.92) — escolhido pelo Matheus na folha de
+          01/08. Não é privacidade e sim barulho, mas mora aqui pelo mesmo motivo
+          que o resto: é uma escolha sua sobre a sua conta, e criar uma quarta
+          tela de ajustes para dois interruptores seria pior.
+
+          **Curtida é o aviso mais frequente que existe** — mesmo agrupado, um por
+          post —, e é o primeiro que alguém quer desligar. Os dois nascem ligados.
+        */}
+        <h2 className="pt-6 pb-1 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+          Quando me avisar
+        </h2>
+        <div className="border-b border-white/10">
+          <Linha
+            icone={ThumbsUp}
+            titulo="Curtidas no que eu escrevi"
+            apoio="Chega agrupado — “Ana e mais 3 curtiram seu post”, nunca um aviso por curtida. Descurtir nunca avisa."
+            ligado={ajustes.avisarCurtidas}
+            onMudar={(ligado) => alternar("avisarCurtidas", ligado)}
+            testid="switch-avisar-curtidas"
+          />
+          <Linha
+            icone={MessageSquare}
+            titulo="Comentários no que eu escrevi"
+            apoio="Com o trecho do que a pessoa disse, para você saber se vale abrir."
+            ligado={ajustes.avisarComentarios}
+            onMudar={(ligado) => alternar("avisarComentarios", ligado)}
+            testid="switch-avisar-comentarios"
           />
         </div>
 

@@ -16,6 +16,12 @@ import {
 } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
+import {
+  avisosDeCurtida,
+  marcarCurtidaLida,
+  marcarTodasCurtidasLidas,
+  textoDoAviso,
+} from "@/lib/avisosDeCurtida";
 import { minhasNovidades, nomeDoAlvo } from "@/lib/acompanhando";
 import { avisosDeClube } from "@/lib/avisosDeClube";
 import { catalog, getBooksByIds } from "@/lib/books";
@@ -40,7 +46,7 @@ import {
   markAllSystemRead,
   markNotificationRead,
   markSystemRead,
-  readNotifications,
+  avisosQueQueroVer,
   type ReplyNotification,
 } from "@/lib/notifications";
 
@@ -80,7 +86,9 @@ type Aviso = {
    * no caso do **pedido**, muda a natureza do cartão — ele não leva a lugar
    * nenhum, ele **pede uma resposta** e traz os dois botões (ROTEIRO 4.55).
    */
-  tipo: "resposta" | "sistema" | "pedido" | "convite";
+  tipo: "resposta" | "sistema" | "pedido" | "convite" | "curtida";
+  /** Só em "curtida": os rostos de quem curtiu, empilhados (§4.92). */
+  quem?: CommunityMember[];
   /** Só em "pedido" e "convite": quem está do outro lado. */
   slug?: string;
   /**
@@ -202,6 +210,28 @@ function avisosDoSistema(): Aviso[] {
 function ehMeuPost(postId: string): boolean {
   const post = todosOsPosts().find((item) => item.id === postId);
   return post?.autorSlug === undefined;
+}
+
+/**
+ * **A curtida vira aviso — um por post, nunca um por curtida** (§4.92).
+ *
+ * A regra é da §4.58 e existe para o sino não virar barulho: dez pessoas
+ * curtindo o mesmo post são **um** aviso que engorda, e descurtir não avisa
+ * nada. Os rostos vão empilhados, como no resto do app — é o que faz reconhecer
+ * quem foi antes de ler.
+ */
+function deCurtida(aviso: ReturnType<typeof avisosDeCurtida>[number]): Aviso {
+  return {
+    id: aviso.id,
+    tipo: "curtida",
+    quem: aviso.quem,
+    titulo: textoDoAviso(aviso),
+    corpo: aviso.trecho,
+    data: aviso.date,
+    cor: "from-primary to-amber-500",
+    postId: aviso.postId,
+    lida: aviso.lido,
+  };
 }
 
 function deResposta(item: ReplyNotification): Aviso {
@@ -387,11 +417,12 @@ export default function Notifications() {
     })),
   );
   const [respostas, setRespostas] = useState<ReplyNotification[]>([]);
+  const [curtidas, setCurtidas] = useState(() => avisosDeCurtida());
   const [pedidos, setPedidos] = useState<CommunityMember[]>([]);
   const [convites, setConvites] = useState<Convite[]>([]);
 
   useEffect(() => {
-    setRespostas(readNotifications());
+    setRespostas(avisosQueQueroVer());
   }, []);
 
   useEffect(() => {
@@ -416,6 +447,7 @@ export default function Notifications() {
 
   const avisos = [
     ...sistema,
+    ...curtidas.map(deCurtida),
     ...respostas.map(deResposta),
     ...avisosDePedido(pedidos),
     ...avisosDeConvite(convites),
@@ -423,7 +455,10 @@ export default function Notifications() {
   const naoLidas = avisos.filter((item) => !item.lida).length;
 
   function abrir(aviso: Aviso) {
-    if (aviso.tipo === "resposta") {
+    if (aviso.tipo === "curtida") {
+      marcarCurtidaLida(aviso.id);
+      setCurtidas(avisosDeCurtida());
+    } else if (aviso.tipo === "resposta") {
       // Marca no localStorage — é isso que apaga a marca do sino no TopNav.
       setRespostas(markNotificationRead(aviso.id));
     } else {
@@ -474,6 +509,8 @@ export default function Notifications() {
     markAllSystemRead(); // persiste no localStorage e atualiza o sino
     setSistema((atual) => atual.map((item) => ({ ...item, lida: true })));
     setRespostas(markAllNotificationsRead());
+    marcarTodasCurtidasLidas();
+    setCurtidas(avisosDeCurtida());
   }
 
   return (
@@ -718,7 +755,24 @@ function Cartao({
       }`}
       data-testid={`notification-${aviso.id}`}
     >
-      {aviso.tipo === "resposta" ? (
+      {aviso.tipo === "curtida" ? (
+        /* **Os rostos empilhados, e não um ícone de coração** (§4.92): o aviso é
+           agrupado, e quem curtiu é a informação — reconhecer a cara é mais
+           rápido do que ler o nome. Três bastam; o número está no título. */
+        <span className="flex shrink-0">
+          {(aviso.quem ?? []).slice(0, 3).map((pessoa, i) => (
+            <span
+              key={pessoa.slug}
+              className={`grid h-10 w-10 place-items-center rounded-full border-2 border-[#141414] bg-gradient-to-br ${pessoa.color} text-sm font-bold shadow-md ${
+                i > 0 ? "-ml-4" : ""
+              }`}
+              {...avatarDeLeitor(pessoa.slug)}
+            >
+              {pessoa.name.charAt(0)}
+            </span>
+          ))}
+        </span>
+      ) : aviso.tipo === "resposta" ? (
         <span
           className={`w-10 h-10 rounded-full bg-gradient-to-br ${aviso.cor} flex items-center justify-center shrink-0 text-sm font-bold shadow-md`}
           {...avatarDeLeitor(aviso.slug)}
