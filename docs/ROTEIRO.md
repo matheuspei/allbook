@@ -7562,6 +7562,90 @@ estavam.
 
 ---
 
+## 4.92 As seis pendências da Comunidade, construídas (01/08)
+
+O Matheus mandou atacar o que a auditoria (§4.72) tinha achado e nunca fora
+construído: *"tinha muita coisa que era pra ser feita que ainda não foi feita,
+que tava no roteiro"*. No meio da conversa acrescentou uma sétima, sua: *"aqui
+em minhas comunidades deveria ter sempre um link… uma página que mostrasse todas
+as minhas comunidades. Ou então remover esses ícones e colocar nos três
+pontinhos, e deixar aqui mais limpo."*
+
+### O método, que ele elegeu e ficou
+
+Eu apresentei as opções primeiro como texto com maquete em ASCII. Ele recusou
+**sem ler**:
+
+> *"Isso eu não vou nem ler, porque não está desenhado. Quero que você desenhe
+> tal e como vai estar lá."*
+
+Refeita com **18 telas desenhadas de verdade** — moldura de celular, cores e
+fontes do app, capas dos livros e fotos das comunidades reais —, a resposta foi:
+
+> *"De todas as propostas que foram feitas até hoje de folhas, esse seu modelo
+> foi o melhor de todos que eu vi até hoje. Salve isso na memória para que as
+> próximas propostas sejam iguais."*
+
+**A regra que fica:** *ele decide vendo, não lendo. Proposta de tela que não é
+uma tela desenhada não é proposta.* O molde detalhado está na memória
+(`folha-de-propostas-formato`), fora do repositório porque vale para qualquer
+projeto, não só para o AllBook.
+
+### O que ele escolheu, e o que foi construído
+
+| # | Pendência | Escolha | O que entrou |
+| --- | --- | --- | --- |
+| 1 | Menu “…” | A+B+C | os três blocos da §4.57 **+** salas ao vivo no topo **+** perguntas e trechos no fim |
+| 2 | Topo | A | uma fileira só; a de cima morreu inteira |
+| 3 | Minhas comunidades | A | resumo de 6 + `/forum/minhas` + atalho no menu |
+| 4 | Responder com livro | A | a resposta é um livro **+** melhor resposta |
+| 5 | Curtida no sino | C | agrupada **+** interruptor em Privacidade |
+| 6 | Play do trecho | A | o play toca ali; o resto continua link |
+
+### As decisões que só apareceram construindo
+
+**1. O aviso de curtida exigia furar uma regra boa — e o tempo era a saída.**
+`curtidasDoPost` devolve **zero** para o que é seu, com um motivo escrito no
+código: *"fingir que estranhos curtiram o que você acabou de escrever seria a
+mentira mais fácil de perceber"*. Isso, ao pé da letra, tornaria o aviso
+impossível. **O defeito era fingir plateia imediata, não fingir plateia:** nas 2
+primeiras horas ninguém viu, e depois as curtidas entram devagar, com teto que
+cresce com a idade do post. Nada é gravado — o aviso é *derivado* do post, então
+apagar o post apaga o aviso, sem estado órfão.
+
+**2. Duas telas discordavam sobre quantas comunidades eu tenho.** O menu contava
+`gruposQueParticipo()` (só a lista de participação) e a página contava
+`situacaoDe() === "dentro"` (que inclui as que **você criou** — dono não entra na
+própria casa). O menu dizia 4, a página listava 5. Virou `minhasComunidades()`,
+fonte única, e quem contar de outro jeito volta a mentir.
+
+**3. O `overflow-hidden` do cabeçalho cortava o menu pela metade.** Ele existia
+para conter o brilho do fundo; o brilho ganhou moldura própria e o cabeçalho
+ficou livre. Fica anotado porque a mesma armadilha espera qualquer menu suspenso
+dentro de um `<header>` com brilho.
+
+**4. O interruptor de comentários não pode calar tudo.** "Desligar avisos de
+comentário" cala comentário — **não** convite de clube, resposta a convite de
+evento nem sala ao vivo, que pedem decisão sua ou expiram em uma hora. Calar
+junto transformaria um ajuste de barulho num apagador de recado.
+
+**5. A marca de melhor resposta pode apontar para um comentário apagado.**
+Nesse caso a pergunta **volta a ser aberta**, em vez de dizer "resolvida" e não
+mostrar por quê.
+
+### O que morreu junto
+
+`AbaGrupos` — **129 linhas** que nunca eram desenhadas. O estado `"grupos"`
+deixou de existir quando os fóruns viraram destino (§4.74), e a função ficou no
+arquivo mais um dia. E o botão "Feed", que era um `onClick` para o lugar onde
+você já estava.
+
+**A regra que fica:** *quando uma aba vira destino, a função que a desenhava
+morre no mesmo commit.* Código que ninguém chama não dá erro — só engorda o
+arquivo e faz a próxima pessoa achar que existe uma tela que não existe.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
