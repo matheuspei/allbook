@@ -48,6 +48,7 @@ import Conversa from "@/pages/Conversa";
 import Recomendacoes from "@/pages/Recomendacoes";
 import Comentarios from "@/pages/Comentarios";
 import ClubesDaPessoa from "@/pages/ClubesDaPessoa";
+import SeguidoresDaPessoa, { SeguindoDaPessoa } from "@/pages/RedeDaPessoa";
 import PersonProfile from "@/pages/PersonProfile";
 import PublisherProfile from "@/pages/PublisherProfile";
 import Studio from "@/pages/Studio";
@@ -220,6 +221,9 @@ function Router() {
             <Route path="/user/:slug/recomendacoes" component={Recomendacoes} />
             <Route path="/user/:slug/comentarios" component={Comentarios} />
             <Route path="/user/:slug/clubes" component={ClubesDaPessoa} />
+            {/* As duas listas que os números do perfil abrem (§4.94). */}
+            <Route path="/user/:slug/seguidores" component={SeguidoresDaPessoa} />
+            <Route path="/user/:slug/seguindo" component={SeguindoDaPessoa} />
             <Route path="/user/:slug" component={UserProfile} />
             {/* O painel privado ("Você") e a grade de conquistas — a separação
                 página pública × painel decidida em 28/07 (ROTEIRO 4.41). */}

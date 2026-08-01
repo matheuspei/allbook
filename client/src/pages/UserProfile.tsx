@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
 import { findMember, recommendationsOf, avatarDeLeitor } from "@/lib/community";
 import { isFollowing, toggleFollow } from "@/lib/following";
+import { seguidoresDe, totalSeguindo } from "@/lib/rede";
 import { getAchievementsByIds, melhoresConquistas } from "@/lib/achievements";
 import { muralDe } from "@/lib/mural";
 
@@ -73,6 +74,9 @@ export default function UserProfile() {
   // Recomendações ficam de fora — têm a vitrine própria nesta página.
   const atividade = muralDe(member.slug, ["avaliou", "comentou"]);
   const primeiroNome = member.name.split(" ")[0];
+  /* **O número conta você**, e por isso lê o estado e não a função pronta: ao
+     tocar em "Seguir" o total sobe na hora, na mesma tela. */
+  const seguidores = seguidoresDe(member.slug).length + (following ? 1 : 0);
   // Reputação, não coleção: os dois selos mais raros (a mesma regra da sua página).
   const selos = melhoresConquistas(getAchievementsByIds(member.achievementIds));
   // O que a pessoa está ouvindo agora — o mesmo bloco vivo da sua página.
@@ -149,6 +153,31 @@ export default function UserProfile() {
             <p className="font-display text-base font-bold leading-none">{member.hoursListened}h</p>
             <p className="mt-1 text-[10px] text-white/40">ouvidas</p>
           </div>
+          {/*
+            **Seguidores e seguindo** (§4.94). Faltavam, e o Matheus perguntou se
+            era de propósito: *"não consigo ver o número de seguidores dela"*.
+            Era — a §4.56 tinha decidido "nenhum número social inventado, não há
+            servidor" —, mas a regra sobrou valendo só aqui: o **seu** perfil
+            mostra seguidores desde a §4.55, e o app inteiro passou a mostrar
+            número fictício (curtidas, membros, ouvintes).
+
+            **Os dois abrem lista**, senão seriam adorno (§4.59). E os dois
+            contam você: seguir a pessoa faz o número subir na hora.
+          */}
+          <Link href={`/user/${member.slug}/seguidores`} className="group" data-testid="user-seguidores">
+            <p className="font-display text-base font-bold leading-none group-hover:text-primary">
+              {seguidores}
+            </p>
+            <p className="mt-1 text-[10px] text-white/40 group-hover:text-white/70">
+              {seguidores === 1 ? "seguidor" : "seguidores"}
+            </p>
+          </Link>
+          <Link href={`/user/${member.slug}/seguindo`} className="group" data-testid="user-seguindo">
+            <p className="font-display text-base font-bold leading-none group-hover:text-primary">
+              {totalSeguindo(member.slug)}
+            </p>
+            <p className="mt-1 text-[10px] text-white/40 group-hover:text-white/70">seguindo</p>
+          </Link>
           {/* "Recomendações" saiu daqui pelo mesmo motivo da sua página: a porta
               logo abaixo mostra o mesmo número. */}
         </div>

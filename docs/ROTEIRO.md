@@ -7746,6 +7746,63 @@ comentários já gravados no navegador. Quem manda no cartão agora é a mençã
 
 ---
 
+## 4.94 "Não consigo ver o número de seguidores dela. Isso é de propósito?" (01/08)
+
+**Era de propósito — e a regra tinha envelhecido.** A §4.56 (28/07) decidiu:
+*"nenhum número social inventado. A página não mostra seguidores (não há
+servidor); mostra horas, títulos e recomendações, que são verdade desde o
+primeiro dia"*. Fazia sentido naquele dia.
+
+**O que mudou desde então:** o app passou a mostrar "você e mais 10 gostaram", a
+contagem de comentários de um post, quantos membros tem um clube, quanta gente
+está ouvindo numa sala ao vivo — tudo fictício, tudo semeado. E o **seu** perfil
+mostra seguidores desde a §4.55, com gente de `community.ts`. A regra sobrou
+valendo num lugar só: **a página dos outros**. Você tinha seguidores; eles, não.
+
+> **A regra que fica:** *decisão tomada por uma limitação envelhece quando a
+> limitação deixa de ser respeitada em outro lugar.* Não é a decisão que precisa
+> ser defendida, é a **coerência**: no dia em que o app inventou o primeiro
+> número social, esta seção virou dívida. O sinal de alarme é uma regra que só
+> vale numa tela.
+
+### O que ficou
+
+- **A linha do perfil de outro leitor** tinha um número só ("389h ouvidas") numa
+  fileira desenhada para vários. Ganhou **seguidores** e **seguindo**.
+- **Os dois abrem lista** (`/user/:slug/seguidores` e `/user/:slug/seguindo`) —
+  a régua da §4.59: número que não leva a lugar nenhum é adorno.
+- **Você entra na conta.** Se você segue a pessoa, o total sobe na hora e o seu
+  nome aparece **no topo** da lista dela, marcado em laranja. É o mesmo
+  raciocínio do "Você e mais 10 gostaram", e é o que dá consequência visível ao
+  botão "Seguir" (o defeito que a §4.67 mediu no curtir).
+- **Cada linha da lista traz o botão de seguir.** Quem abre "quem a Juliana
+  segue" está procurando gente para seguir; mandá-la abrir cada perfil para isso
+  seriam seis toques onde cabe um.
+
+### A decisão de dado, que é onde estava a armadilha
+
+**Uma relação só, e as duas listas saem dela.** O caminho fácil era escrever
+`seguidoresDe` e `seguindoDe` separadas, cada uma sorteando gente — e elas se
+contradiriam na primeira conferência (a Ana seguindo a Juliana sem a Juliana ter
+a Ana entre os seguidores). Em `lib/rede.ts` existe **uma** função `segue(a, b)`,
+semeada pelos dois slugs, e as duas listas são filtragens dela.
+
+**Assimétrica de propósito:** `segue(a,b)` e `segue(b,a)` são perguntas
+diferentes. Seguir de volta é escolha; um mundo em que todos se seguem de volta
+não se parece com rede nenhuma.
+
+**Números pequenos, e isso é honestidade.** Cerca de um terço dos pares, o que dá
+7 a 9 seguidores numa comunidade de 27 leitores. A tentação era mostrar "312
+seguidores" para parecer rede grande — e a lista com oito nomes desmentiria o
+número em dez segundos.
+
+**Você e ela não são semeados.** "Você segue a Juliana" vem de `following.ts`;
+"a Juliana te segue" vem de `seguidores.ts`, que é a sua lista de verdade
+(inclusive quem você aceitou e quem removeu). Duas respostas para a mesma
+pergunta é o defeito que a §4.92 já tinha juntado numa fonte só.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**
