@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { BookOpen, Check, Send, Trash2 } from "lucide-react";
+import { Check, Send, Trash2 } from "lucide-react";
 
 import CampoComMencao from "@/components/comunidade/CampoComMencao";
-import EscolherLivro, { LivroDaResposta } from "@/components/comunidade/EscolherLivro";
-import { catalog } from "@/lib/books";
+import ObjetoMencionado from "@/components/comunidade/ObjetoMencionado";
 import {
   MELHOR_RESPOSTA_EVENT,
   marcarMelhorResposta,
@@ -20,13 +19,14 @@ import {
   comentar,
   comentarioRecebido,
   comentariosDoPost,
+  objetoDoComentario,
   reacaoDoEsqueleto,
   type ComentarioDePost,
 } from "@/lib/comentariosDePost";
 import { addNotification } from "@/lib/notifications";
 import { findMember, fotoDoMembro, avatarDeLeitor } from "@/lib/community";
 import { initialOf, readProfile } from "@/lib/profile";
-import { type Mencao, type Post } from "@/lib/posts";
+import { objetoDaPrimeiraMencao, type Mencao, type Post } from "@/lib/posts";
 
 /**
  * A conversa embaixo de um post — **rasa, um nível** (§4.58).
@@ -52,9 +52,18 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
   const [texto, setTexto] = useState("");
   const [mencoes, setMencoes] = useState<Mencao[]>([]);
   const [respondeA, setRespondeA] = useState<string | undefined>();
-  /** O livro que **é** a resposta (§4.92). Sem ele, responder é texto puro. */
-  const [livro, setLivro] = useState<number | undefined>();
-  const [escolhendoLivro, setEscolhendoLivro] = useState(false);
+  /**
+   * **O cartão que a resposta vai carregar** (§4.93) — desenhado enquanto se
+   * escreve, e não só depois de enviar.
+   *
+   * Sem esta prévia, remover o botão "responder com um livro" tiraria junto a
+   * única confirmação de que o livro entrou: o grifo laranja diz *"pegou o
+   * nome"*, mas não diz *"vai sair com capa"*.
+   */
+  const objetoDaResposta = useMemo(
+    () => objetoDaPrimeiraMencao(mencoes, texto),
+    [mencoes, texto],
+  );
   const [melhor, setMelhor] = useState<string | undefined>(() => melhorRespostaDe(post.id));
   const podeMarcar = possoMarcar(post.id);
   /** Contador que só serve para pedir foco ao campo (ver `responder`). */
@@ -74,13 +83,11 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
   }, [post.id]);
 
   function enviar() {
-    const feito = comentar(post.id, texto, { respondeA, mencoes, bookId: livro });
+    const feito = comentar(post.id, texto, { respondeA, mencoes });
     if (!feito) return;
     setTexto("");
     setMencoes([]);
     setRespondeA(undefined);
-    setLivro(undefined);
-    setEscolhendoLivro(false);
 
     /*
       **O esqueleto responde de volta, e por que isso não é enfeite.** Sem
@@ -161,7 +168,7 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
 
         <button
           onClick={enviar}
-          disabled={texto.trim().length === 0 && livro === undefined}
+          disabled={texto.trim().length === 0}
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-black transition-opacity disabled:opacity-25"
           aria-label="Enviar comentário"
           data-testid={`enviar-comentario-${post.id}`}
@@ -171,47 +178,20 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
       </div>
 
       {/*
-        **“Responder com um livro”** (§4.92) — a peça que a §4.58 chamou de *a
-        melhor das cinco* e que ficou por construir. A resposta deixa de ser uma
-        frase citando um título e passa a ser **o livro**, com capa, que se toca
-        e vai ouvir.
+        **A prévia do que a menção vai virar** (§4.93).
 
-        O convite fica em texto pequeno, e não como um segundo botão do tamanho
-        do enviar: responder com livro é o caso especial, e o comum continua
-        sendo escrever.
+        Aqui havia um botão "responder com um livro", com busca própria, e o
+        Matheus o derrubou pelo mesmo motivo que já tinha derrubado os botões de
+        anexo do compositor em 30/07: *"não precisa ter o botão de responder com
+        o livro, se você já pode simplesmente colocar o @ e marcar o livro"*.
+        Dois caminhos para a mesma coisa, e o segundo era o que menos gente
+        acharia.
       */}
-      <div className="ml-[38px] mt-1.5">
-        {livro !== undefined ? (
-          <div className="flex items-center gap-2">
-            <span className="min-w-0 flex-1">
-              <LivroDaResposta bookId={livro} />
-            </span>
-            <button
-              onClick={() => setLivro(undefined)}
-              className="shrink-0 self-start text-[10.5px] font-semibold text-white/30 transition-colors hover:text-red-300"
-              data-testid="tirar-livro-da-resposta"
-            >
-              tirar
-            </button>
-          </div>
-        ) : escolhendoLivro ? (
-          <EscolherLivro
-            onEscolher={(id) => {
-              setLivro(id);
-              setEscolhendoLivro(false);
-            }}
-            onFechar={() => setEscolhendoLivro(false)}
-          />
-        ) : (
-          <button
-            onClick={() => setEscolhendoLivro(true)}
-            className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-primary transition-opacity hover:opacity-80"
-            data-testid={`responder-com-livro-${post.id}`}
-          >
-            <BookOpen className="h-3 w-3" /> responder com um livro
-          </button>
-        )}
-      </div>
+      {objetoDaResposta && (
+        <div className="ml-[38px]">
+          <ObjetoMencionado objeto={objetoDaResposta} />
+        </div>
+      )}
 
       {lista.length > 0 && (
         <div className="mt-3 space-y-2.5">
@@ -266,6 +246,7 @@ function UmComentario({
   const ehMeu = comentario.autorSlug === undefined;
   const membro = comentario.autorSlug ? findMember(comentario.autorSlug) : undefined;
   const nome = ehMeu ? meuPerfil.name : (membro?.name ?? "Leitor");
+  const objeto = objetoDoComentario(comentario);
 
   return (
     <div className="flex items-start gap-2.5" data-testid={`comentario-${comentario.id}`}>
@@ -328,9 +309,10 @@ function UmComentario({
             mencoes={comentario.mencoes}
             className="mt-0.5 text-[12.5px] leading-relaxed text-white/80"
           />
-          {/* A resposta que **é** um livro. Vem depois do texto porque o texto
+          {/* **O que o comentário marcou com `@`, desenhado** (§4.93): livro,
+              autor, narrador ou clube. Vem depois do texto porque o texto
               costuma ser o porquê ("curto, e o fim te dá um tapa"). */}
-          {comentario.bookId !== undefined && <LivroDaResposta bookId={comentario.bookId} />}
+          {objeto && <ObjetoMencionado objeto={objeto} />}
         </div>
 
         {/*

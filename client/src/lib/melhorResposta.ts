@@ -18,7 +18,7 @@
  * melhor resposta, não um pódio.
  */
 
-import { comentariosDoPost } from "@/lib/comentariosDePost";
+import { comentariosDoPost, objetoDoComentario } from "@/lib/comentariosDePost";
 import { todosOsPosts } from "@/lib/posts";
 
 const CHAVE = "allbook_melhor_resposta";
@@ -95,9 +95,13 @@ export function resolvidaCom(postId: string): { comentarioId: string; bookId?: n
   /* A marca pode apontar para um comentário apagado — nesse caso a pergunta
      volta a ser aberta, em vez de dizer "resolvida" e não mostrar por quê. */
   if (!comentario) return undefined;
+  /* O livro sai do **cartão** do comentário, e não do campo `bookId` — desde a
+     §4.93 quem responde com um livro o faz marcando `@Nome` no texto, e ler só o
+     campo antigo deixaria a resposta marcada sem capa. */
+  const objeto = objetoDoComentario(comentario);
   return {
     comentarioId: id,
-    ...(comentario.bookId !== undefined ? { bookId: comentario.bookId } : {}),
+    ...(objeto?.tipo === "livro" ? { bookId: objeto.bookId } : {}),
     ...(comentario.autorSlug ? { quem: comentario.autorSlug } : {}),
   };
 }

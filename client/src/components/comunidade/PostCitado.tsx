@@ -1,12 +1,9 @@
 import { Link } from "wouter";
-import { AudioLines, Users } from "lucide-react";
 
-import { catalog } from "@/lib/books";
-import { clubePorId } from "@/lib/clubes";
+import { resumoDoObjeto } from "@/components/comunidade/ObjetoMencionado";
 import { findMember, avatarDeLeitor } from "@/lib/community";
-import { findPerson } from "@/lib/people";
 import { initialOf, readProfile } from "@/lib/profile";
-import { postPorId, type ObjetoDoPost, type Post } from "@/lib/posts";
+import { type Post } from "@/lib/posts";
 
 /**
  * O post de outra pessoa **dentro do seu**, quando você compartilha escrevendo
@@ -85,55 +82,6 @@ export default function PostCitado({ post }: { post: Post }) {
   );
 }
 
-/** O objeto do post citado, reduzido a uma linha com miniatura. */
-function resumoDoObjeto(
-  objeto: ObjetoDoPost | undefined,
-): { capa?: string; icone?: React.ReactNode; titulo: string; legenda: string } | undefined {
-  if (!objeto) return undefined;
-
-  if (objeto.tipo === "livro") {
-    const livro = catalog.find((item) => item.id === objeto.bookId);
-    return livro ? { capa: livro.cover, titulo: livro.title, legenda: livro.author } : undefined;
-  }
-
-  if (objeto.tipo === "trecho") {
-    const livro = catalog.find((item) => item.id === objeto.citacao.bookId);
-    return {
-      capa: livro?.cover,
-      icone: <AudioLines className="h-4 w-4" />,
-      titulo: livro?.title ?? "Trecho",
-      legenda: `trecho de ${objeto.citacao.duracaoSec}s`,
-    };
-  }
-
-  if (objeto.tipo === "clube") {
-    const clube = clubePorId(objeto.clubeId);
-    if (!clube) return undefined;
-    const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
-    return {
-      capa: livro?.cover,
-      icone: <Users className="h-4 w-4" />,
-      titulo: clube.nome,
-      legenda: livro ? `clube · lendo ${livro.title}` : "clube de leitura",
-    };
-  }
-
-  if (objeto.tipo === "pessoa") {
-    const pessoa = findPerson(objeto.slug);
-    if (!pessoa) return undefined;
-    const capas = [...pessoa.narrated, ...pessoa.wrote];
-    return {
-      capa: pessoa.photo ?? capas[0]?.cover,
-      titulo: pessoa.name,
-      legenda: pessoa.narrated.length > 0 ? "narração" : "autoria",
-    };
-  }
-
-  /*
-    **Citar uma citação mostra o objeto lá de dentro**, e não uma terceira caixa.
-    É o que mantém a moldura em um nível só — e é a razão pela qual compartilhar
-    um compartilhamento pôde deixar de ser bloqueado (ver `compartilharPost`).
-  */
-  const dentro = postPorId(objeto.postId);
-  return dentro ? resumoDoObjeto(dentro.objeto) : undefined;
-}
+/* A redução de um objeto a uma linha com miniatura mora em `ObjetoMencionado` —
+   ela é a mesma que o cartão da menção usa dentro do comentário (§4.93). Estava
+   escrita aqui dentro, e duas cópias divergiriam no primeiro tipo novo. */

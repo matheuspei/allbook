@@ -7683,6 +7683,69 @@ arquivo e faz a próxima pessoa achar que existe uma tela que não existe.
 
 ---
 
+## 4.93 A mesma regra, aplicada pela metade: a menção sem capa no comentário (01/08)
+
+**A queixa**, sobre a caixa de comentário: *"não precisa ter o botão de responder
+com o livro, se você já pode simplesmente colocar o @ e marcar o livro. Mas
+deveria ter o ícone do livro quando você marca um livro, marca um autor ou
+qualquer coisa do gênero"*. E o detalhe que ele chamou de pior: *"quando você
+marca o livro, ele não aparece o livro. Aquele ícone do livro só aparece o link,
+te levando ao livro, que é pior ainda"*.
+
+**Ele tem razão duas vezes, e as duas são a mesma frase dele de 30/07.** Naquele
+dia ele derrubou os botões "Livro" e "Clube" do compositor com o argumento *"se
+você já pode marcar com @, qual é o sentido de ter isso aqui?"*, e a consequência
+registrada na §4.58 foi que **a menção passou a virar o cartão do post** — porque
+sem isso a queixa seguinte já tinha sido *"não colocou a capa"*.
+
+**O erro foi meu, e é de escopo: apliquei a decisão só no post.** No dia seguinte
+construí "responder com um livro" (§4.92) com **busca própria e botão próprio**
+dentro do comentário — exatamente a redundância que ele tinha acabado de mandar
+tirar do compositor, recriada um andar abaixo. E o comentário continuou sem
+cartão: marcar `@Duna` respondendo alguém dava uma palavra laranja e nada mais.
+
+> **A regra que fica:** *decisão sobre um gesto vale em todo lugar onde o gesto
+> existe.* Quando uma decisão diz "o `@` é o caminho único", a pergunta a fazer
+> na hora é **quantas caixas de texto o app tem** — não só a que estava aberta na
+> tela. Meia regra é pior que nenhuma: quem aprendeu o gesto no post o repete no
+> comentário e conclui que quebrou.
+
+### O que ficou
+
+- **O botão "responder com um livro" morreu**, e junto com ele o
+  `EscolherLivro.tsx` inteiro (a busca de livro dentro do comentário).
+- **Toda menção vira cartão no comentário** — livro, autor/narrador e clube —,
+  pela mesma regra do post: **a primeira que aparece no texto**, e só ela. Dois
+  cartões dentro de um comentário fariam a conversa virar vitrine.
+- **A prévia aparece enquanto se escreve.** Tirar o botão sem isto tiraria junto
+  a única confirmação de que o livro entrou: o grifo laranja diz *"pegou o
+  nome"*, mas não diz *"vai sair com capa"*.
+- **O cartão de pessoa nomeia o livro da miniatura** ("narra Orgulho e
+  Preconceito e mais 7"). Sem foto, quem preenche o cartão é a capa de uma obra
+  dela (§4.53) — e capa sem legenda, ao lado do nome de uma pessoa, parece capa
+  errada.
+
+### Dois defeitos achados construindo
+
+**1. O ▶ do cartão não tocava.** A peça anterior (`LivroDaResposta`) desenhava o
+botão de ouvir **dentro** de um link único para a ficha: o ▶ existia, era laranja
+e levava para o mesmo lugar que o resto do cartão. É o botão que mente sobre o
+que faz, e a §4.59 manda varrer. Agora a capa e o nome abrem a ficha, o ▶ vai
+para o player — um pixel, um dono. (O mesmo cartão usava `<a href>` cru, que
+recarregava o app inteiro em vez de navegar; virou `Link`.)
+
+**2. A mesma redução de objeto existia escrita em dois lugares.** `PostCitado`
+tinha uma cópia privada de "objeto → miniatura + título + legenda". Ela agora
+mora em `ObjetoMencionado`, que é quem a usa nos dois casos — duas cópias
+divergiriam no primeiro tipo novo de objeto.
+
+**O campo `bookId` do comentário continua existindo**, mas ninguém mais o
+preenche escrevendo: é o que os comentários do esqueleto usam (do mesmo jeito que
+os posts do esqueleto trazem `objeto` sem menção) e o que mantém a capa nos
+comentários já gravados no navegador. Quem manda no cartão agora é a menção.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

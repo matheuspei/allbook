@@ -32,7 +32,7 @@
  */
 
 import { community, findMember } from "@/lib/community";
-import { type Mencao } from "@/lib/posts";
+import { objetoDaPrimeiraMencao, type Mencao, type ObjetoDoPost } from "@/lib/posts";
 
 const CHAVE = "allbook_comentarios_post";
 
@@ -64,12 +64,19 @@ export interface ComentarioDePost {
    * Decidido em 29/07 (§4.58): *"pergunta é um tipo de post, com selo e
    * 'responder com um livro'"*, e a avaliação das cinco capturas chamou essa
    * peça de **a melhor das cinco**, com o motivo: *"a resposta carrega um
-   * objeto"*. Ficou só o selo; a resposta continuou texto puro por dois dias.
+   * objeto"*. É a diferença entre uma pergunta de fórum e o que o AllBook queria
+   * ter: a resposta com capa, que você toca e vai ouvir.
    *
-   * É a diferença entre uma pergunta de fórum e o que o AllBook queria ter: a
-   * resposta com capa, que você toca e vai ouvir. **Vale em qualquer post**, e
-   * não só na pergunta — quem responde "esse aqui" citando um livro está dando
-   * a mesma coisa.
+   * ⚠️ **Ninguém mais o preenche escrevendo** (§4.93). Ele existia junto com um
+   * botão "responder com um livro", e o Matheus derrubou o botão com o mesmo
+   * argumento de 30/07: *"não precisa ter o botão de responder com o livro, se
+   * você já pode simplesmente colocar o @ e marcar o livro"*. Quem manda no
+   * cartão agora é a **menção** — ver `objetoDoComentario`.
+   *
+   * O campo fica por duas razões concretas: os comentários do esqueleto o usam
+   * (do mesmo jeito que os posts do esqueleto trazem `objeto` sem menção), e o
+   * que já foi gravado no navegador continua mostrando a capa em vez de perdê-la
+   * na próxima leitura.
    */
   bookId?: number;
 }
@@ -229,17 +236,40 @@ export function temResposta(postId: string): boolean {
   return totalDeComentarios(postId) > 0;
 }
 
+/**
+ * **O cartão de um comentário** (§4.93) — o que ele carrega além do texto.
+ *
+ * A menção manda: marcar `@Duna` respondendo alguém desenha a capa de Duna
+ * embaixo da frase, exatamente como acontece no post desde 30/07. É a metade da
+ * regra que tinha ficado por aplicar, e a queixa foi literal: *"quando você
+ * marca o livro, ele não aparece o livro… só aparece o link"*.
+ *
+ * **A primeira menção, e só ela** — a mesma regra do post (`objetoDaPrimeiraMencao`):
+ * um comentário pode citar três livros, o primeiro ganha corpo e os outros
+ * seguem como palavra clicável. Dois cartões dentro de um comentário fariam a
+ * conversa virar vitrine.
+ *
+ * O `bookId` entra depois, e não antes, porque a menção é o gesto de agora e o
+ * campo é herança (esqueleto e comentários já gravados).
+ */
+export function objetoDoComentario(comentario: ComentarioDePost): ObjetoDoPost | undefined {
+  return (
+    objetoDaPrimeiraMencao(comentario.mencoes, comentario.texto) ??
+    (comentario.bookId !== undefined ? { tipo: "livro", bookId: comentario.bookId } : undefined)
+  );
+}
+
 /** Você comenta. Devolve o comentário, ou `null` se não havia texto. */
 export function comentar(
   postId: string,
   texto: string,
-  opcoes?: { respondeA?: string; mencoes?: Mencao[]; bookId?: number },
+  opcoes?: { respondeA?: string; mencoes?: Mencao[] },
 ): ComentarioDePost | null {
   const limpo = texto.trim().slice(0, MAX_COMENTARIO);
-  /* **Resposta só com o livro vale**, e é o caso comum de "me indiquem": às
-     vezes a capa já é a resposta inteira, e exigir texto junto seria pedir que
-     a pessoa escrevesse "esse aqui" para poder enviar. */
-  if (!limpo && opcoes?.bookId === undefined) return null;
+  /* Sem texto não há comentário. Antes havia a exceção do "só a capa", de quando
+     o livro entrava por um botão à parte; hoje o livro **está** no texto (é o
+     `@Nome`), então texto vazio quer mesmo dizer nada escrito. */
+  if (!limpo) return null;
 
   const comentario: ComentarioDePost = {
     id: `c-meu-${Date.now()}`,
@@ -250,7 +280,6 @@ export function comentar(
     ...(opcoes?.mencoes?.length
       ? { mencoes: opcoes.mencoes.filter((m) => limpo.includes(`@${m.rotulo}`)) }
       : {}),
-    ...(opcoes?.bookId !== undefined ? { bookId: opcoes.bookId } : {}),
   };
   gravar([...ler(), comentario]);
   return comentario;
