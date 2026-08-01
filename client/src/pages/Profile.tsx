@@ -379,7 +379,7 @@ export default function Profile() {
              rápido a quem você acompanha, que era metade do pedido. */
           {
             icone: Bell,
-            rotulo: "acompanhando",
+            rotulo: "seguindo",
             total: quantosAcompanho(),
             href: "/acompanhando",
             testid: "porta-acompanhando",

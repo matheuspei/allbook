@@ -283,7 +283,7 @@ function HeroBillboard() {
                 className="flex items-center gap-2 bg-white/20 text-white font-semibold px-6 py-2.5 rounded-md text-sm hover:bg-white/30 transition-colors backdrop-blur-sm"
               >
                 <Info className="w-4 h-4" />
-                Mais Informações
+                Mais informações
               </button>
             </div>
 

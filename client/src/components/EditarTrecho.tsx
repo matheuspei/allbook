@@ -121,13 +121,13 @@ export default function EditarTrecho({
         <button
           onClick={() => {
             esquecerTrecho(trecho.id);
-            toast({ title: "Trecho esquecido" });
+            toast({ title: "Trecho apagado" });
             onFechar();
           }}
           className="mt-2 w-full py-2 text-xs font-semibold text-white/35 transition-colors hover:text-red-300"
           data-testid="esquecer-daqui"
         >
-          Esquecer este trecho
+          Apagar o trecho
         </button>
       </div>
     </div>

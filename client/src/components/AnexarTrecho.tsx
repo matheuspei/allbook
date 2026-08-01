@@ -180,10 +180,10 @@ function FolhaDeTrechos({
                   type="button"
                   onClick={() => {
                     esquecerTrecho(trecho.id);
-                    toast({ title: "Trecho esquecido" });
+                    toast({ title: "Trecho apagado" });
                   }}
                   className="absolute right-1.5 top-1.5 rounded-full p-1.5 text-white/20 transition-colors hover:bg-white/10 hover:text-red-300"
-                  aria-label="Esquecer este trecho"
+                  aria-label="Apagar o trecho"
                   data-testid={`esquecer-trecho-${trecho.id}`}
                 >
                   <Trash2 className="h-3.5 w-3.5" />

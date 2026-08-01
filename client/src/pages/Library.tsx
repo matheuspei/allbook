@@ -102,11 +102,11 @@ const FILTROS: { key: FiltroKey; label: string }[] = [
   { key: "concluidos", label: "Concluídos" },
 ];
 
-const ORDENS: { key: OrdemKey; label: string }[] = [
-  { key: "recentes", label: "Adicionados recentemente" },
-  { key: "titulo", label: "Título (A–Z)" },
-  { key: "autor", label: "Autor (A–Z)" },
-  { key: "progresso", label: "Mais adiantados" },
+const ORDENS: { key: OrdemKey; label: string; curto: string }[] = [
+  { key: "recentes", label: "Adicionados recentemente", curto: "Recentes" },
+  { key: "titulo", label: "Título (A–Z)", curto: "Título" },
+  { key: "autor", label: "Autor (A–Z)", curto: "Autor" },
+  { key: "progresso", label: "Mais adiantados", curto: "Adiantados" },
 ];
 
 const VISAO_KEY = "allbook_library_view";
@@ -430,7 +430,7 @@ export default function Library() {
               <button
                 onClick={() => setLocation(`/player/${destaque.book.id}`)}
                 className="flex h-11 w-11 shrink-0 items-center justify-center self-center rounded-full bg-white text-black shadow-lg shadow-black/30 transition-transform hover:scale-105"
-                aria-label={`Retomar ${destaque.book.title}`}
+                aria-label={`Continuar ${destaque.book.title}`}
                 data-testid={`button-resume-${destaque.book.id}`}
               >
                 <Play className="ml-0.5 h-5 w-5 fill-black" />
@@ -453,7 +453,9 @@ export default function Library() {
                     data-testid="button-sort"
                   >
                     <ArrowDownUp className="h-3.5 w-3.5" />
-                    Ordenar
+                    {/* O critério em uso no lugar de um "Ordenar" seco: sem
+                        isto, só abrindo o menu se descobria a ordem atual. */}
+                    {ORDENS.find((o) => o.key === ordem)?.curto ?? "Ordenar"}
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent

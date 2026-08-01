@@ -92,11 +92,12 @@ export default function Bookmarks() {
         ) : (
           <>
             <p className="pb-4 text-sm text-white/45">
-              {/* "marcação", e não "trecho": desde 28/07 trecho é o pedaço de
+              {/* "nota", e não "trecho": desde 28/07 trecho é o pedaço de
                   áudio de até 40s que se corta para mostrar a alguém (ROTEIRO
                   4.47). Usar a mesma palavra para as duas coisas, nesta tela que
-                  agora mostra as duas, era confusão garantida. */}
-              {total} {total === 1 ? "marcação" : "marcações"} em {livros.length}{" "}
+                  agora mostra as duas, era confusão garantida. E "nota", não
+                  "marcação": era a mesma coisa com dois nomes (§4.94). */}
+              {total} {total === 1 ? "nota" : "notas"} em {livros.length}{" "}
               {livros.length === 1 ? "título" : "títulos"}
             </p>
 
@@ -121,7 +122,7 @@ export default function Bookmarks() {
                         </h2>
                         <p className="truncate text-xs text-white/45">
                           {marcacoes.length}{" "}
-                          {marcacoes.length === 1 ? "marcação" : "marcações"}
+                          {marcacoes.length === 1 ? "nota" : "notas"}
                           {comNota > 0 && ` · ${comNota} com nota`}
                         </p>
                       </div>
@@ -175,7 +176,7 @@ export default function Bookmarks() {
                               <button
                                 onClick={() => removeBookmark(marcacao.id)}
                                 className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/40 transition-colors hover:bg-white/10 hover:text-red-400"
-                                aria-label="Apagar marcação"
+                                aria-label="Apagar a nota"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>

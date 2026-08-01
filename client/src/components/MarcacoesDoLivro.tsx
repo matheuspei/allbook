@@ -86,7 +86,7 @@ export default function MarcacoesDoLivro({
           <DrawerDescription className="text-white/50">
             {marcacoes.length === 0
               ? titulo
-              : `${titulo} • ${marcacoes.length} ${marcacoes.length === 1 ? "marcação" : "marcações"}`}
+              : `${titulo} • ${marcacoes.length} ${marcacoes.length === 1 ? "nota" : "notas"}`}
           </DrawerDescription>
         </DrawerHeader>
 
@@ -100,9 +100,9 @@ export default function MarcacoesDoLivro({
             <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-white/[0.06]">
               <Bookmark className="h-6 w-6 text-white/40" />
             </div>
-            <p className="mt-4 text-sm font-medium text-white">Nenhuma marcação neste título</p>
+            <p className="mt-4 text-sm font-medium text-white">Nenhuma nota neste título</p>
             <p className="mx-auto mt-1.5 max-w-[280px] text-xs leading-relaxed text-white/45">
-              Toque em <span className="font-semibold text-white/70">+ Marcação</span>, na barra de
+              Toque em <span className="font-semibold text-white/70">Marcar</span>, na barra de
               baixo do tocador, para guardar o ponto em que você está. Depois é só voltar aqui.
             </p>
           </div>
@@ -144,7 +144,7 @@ export default function MarcacoesDoLivro({
                   <button
                     onClick={() => removeBookmark(marcacao.id)}
                     className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/40 transition-colors hover:bg-white/10 hover:text-red-400"
-                    aria-label="Apagar marcação"
+                    aria-label="Apagar a nota"
                     data-testid={`bookmark-remove-${marcacao.id}`}
                   >
                     <Trash2 className="h-4 w-4" />

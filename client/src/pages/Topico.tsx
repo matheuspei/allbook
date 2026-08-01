@@ -242,7 +242,7 @@ export default function Topico() {
                               className="text-[10.5px] text-white/30 hover:text-white/70"
                               testid={`spoiler-${resposta.id}`}
                             >
-                              {resposta.spoiler ? "descobrir" : "marcar spoiler"}
+                              {resposta.spoiler ? "descobrir" : "marcar como spoiler"}
                             </LinkDoForum>
                             <LinkDoForum
                               onClick={() => {
@@ -318,7 +318,7 @@ export default function Topico() {
           <Bloco titulo="Responder">
             <p className="text-[13px] leading-relaxed text-white/55">
               Só quem participa da comunidade escreve aqui.{" "}
-              <LinkDoForum href={`/forum/${grupoId}`}>entrar na comunidade »</LinkDoForum>
+              <LinkDoForum href={`/forum/${grupoId}`}>participar da comunidade »</LinkDoForum>
             </p>
           </Bloco>
         )}

@@ -7803,6 +7803,91 @@ pergunta é o defeito que a §4.92 já tinha juntado numa fonte só.
 
 ---
 
+## 4.94 Os nomes dos botões: a varredura inteira, e a régua que ficou (01/08)
+
+**O pedido.** *"Averigue o nome de todas as funções, de todos os botões… veja o
+que pode ser substituído por palavras mais fáceis."* A varredura leu as ~30
+páginas e todos os componentes (≈60 arquivos) e virou uma folha clicável com 22
+decisões (`_nomes-dos-botoes-C.html`); para ela nasceu a **primeira rota real da
+API** — `POST /api/folha/respostas`, que grava as escolhas de qualquer folha em
+`_respostas-de-folhas/` (fica para as próximas). Ele delegou a aplicação:
+*"aplique o que você acha mais correto… você não está fazendo isso para mim,
+está fazendo para uma pessoa que está vendo pela primeira vez"*.
+
+### A régua — corrigida por ele, duas vezes, no meio da aplicação
+
+A folha nasceu com a régua "uma palavra por gesto" (consistência interna). **Ele
+a derrubou no primeiro lote:** troquei "Remover" por "Tirar" nos seguidores e
+ele parou tudo — *"não existe a palavra tirar em rede social… você está criando
+uma nomenclatura nova quando os usuários já estão adaptados"*. E de novo no
+play: *"no player de áudio, a nomenclatura do botão se chama reproduzir"*. A
+régua que vale daqui em diante, **nesta ordem**:
+
+1. **O padrão de mercado em PT-BR** (Instagram, Facebook, WhatsApp, Spotify,
+   Netflix, Zoom, Reddit) — o usuário chega treinado; não se inventa palavra
+   quando o mundo já escolheu uma.
+2. **Clareza para quem vê pela primeira vez** — o rótulo diz o objeto ("Ver
+   perfil", não "Ver").
+3. **Consistência interna** — só desempata quando 1 e 2 não decidem.
+
+### O que mudou (só rótulos visíveis — nenhuma função, rota ou testid)
+
+- **Apagar** para destruir: "Excluir esta comunidade" → "Apagar esta comunidade"
+  (o par do WhatsApp, "Apagar grupo"), "Esquecer este trecho" → "Apagar o
+  trecho", e o "Não" do diálogo → "Cancelar".
+- **Seguindo** no lugar de "Acompanhando" (página, porta do perfil, toasts) — o
+  mesmo conjunto tinha dois nomes; no Instagram só tem um.
+- **Buscar** em todos os campos (era Pesquisar/Procurar/Buscar misturado), e
+  "limpar a busca" com artigo em todo lugar.
+- **`/settings` com um nome só:** "Neste aparelho" nos quatro lugares que
+  apontavam para ela com quatro nomes (painel Você, Ajuda, menu do player).
+- **"Nota" no lugar de "marcação"** em tudo que o usuário lê (o botão continua
+  "Marcar"); o vazio citava "+ Marcação", um botão que já não existia.
+- **No clube:** "pauta" → "votação", "marco" → "etapa", "Admitir" → "Aceitar",
+  "Devolver" → "Devolver ao clube/ao mural", e "Você vai — toque para desmarcar"
+  (como a Sala já fazia).
+- **No fórum (dialeto minúsculo mantido):** "editar comunidade" → "gerenciar
+  comunidade" (Facebook: "Gerenciar grupo"), "destituir" → "remover como
+  moderador", "cobrir spoiler"/"marcar spoiler" → "marcar como spoiler"
+  (Reddit), "Criar" → "Criar tópico", e o rodapé do tópico alinhado ao botão
+  principal: "participar da comunidade »".
+- **Pontuais:** "Soneca" → "Dormir" (folha "Dormir — o áudio para sozinho";
+  "Personalizar" → "Outra duração…"), "Já tinha" → "Já marcado",
+  "Mais Informações" → "Mais informações" (a grafia da Netflix), "Marcar todas"
+  → "Marcar todas como lidas", "Ver" → "Ver perfil", o "Entrar" do cartão de
+  clube → "Ver o clube" (só navegava — prometia inscrição que não fazia),
+  "Tirar" na sala → "Remover da sala" (Zoom/Meet), "Combina com você" →
+  "Sugestões para você" (Instagram literal), "Fazer uma pergunta" → "Perguntar
+  na Comunidade", "Ver o que está acontecendo" → "Ir para a Comunidade",
+  "Ajustar ou editar a nota" → "Ajustar", "Minha Lista" → "Minha lista"
+  (Netflix), aria "Retomar" → "Continuar", "Explorar catálogo" ganhou o artigo,
+  "Leitor AllBook/da AllBook" → "Leitor do AllBook", e o Ordenar da Biblioteca
+  passou a **mostrar o critério em uso** ("Recentes") em vez de um "Ordenar"
+  seco.
+
+### O que foi proposto e REJEITADO — para ninguém propor de novo
+
+- **"Tirar" no lugar de "Remover"** (seguidores, membro, foto) — rede social diz
+  Remover; foi aplicado e **revertido** no mesmo dia.
+- **"Ouvir"/"Tocar" no play** — o play chama **Reproduzir** (Spotify/YouTube);
+  revertido, e o MiniPlayer foi alinhado junto.
+- **"Aceitar" na fila da comunidade** — Facebook Groups diz **Aprovar**; ficou.
+  ("Aceitar" vale para pedidos de pessoa: seguidores e lista de espera do clube.)
+- **Downloads → Baixados, offline → sem internet** — Netflix e Spotify usam
+  Downloads e offline; a proposta morreu quase inteira.
+- **Ok → Pronto; Bio → Sobre você** — "Ok" é padrão universal de diálogo; "Bio"
+  é o nome do campo no Instagram/TikTok.
+- **"Ver tudo" → "Ver todos"; "Mostrar menos" → "Ver menos"** — os dois já são
+  padrão (Spotify/YouTube); trocar era gosto, não correção.
+- **"Veloc." → número** — o botão **já mostra** o número grande (1,00x) como
+  ícone; a legenda é secundária. Nada a corrigir.
+- **Unificar o dialeto minúsculo do fórum** — a minúscula com « » é a estética
+  Orkut de propósito; dentro do fórum ela é coerente. Mantido.
+- **Traduzir spoiler/post/link/feed/Story** — é o vocabulário corrente das redes
+  em PT-BR; trocar criaria palavra que ninguém usa.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

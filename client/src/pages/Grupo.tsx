@@ -238,7 +238,7 @@ export default function Grupo() {
             {souModerador(id) && (
               <p>
                 <LinkDoForum href={`/forum/${id}/gerenciar`} testid="grupo-gerenciar">
-                  » editar comunidade
+                  » gerenciar comunidade
                   {fila.length > 0 && (
                     <span className="ml-1.5 rounded-full bg-primary px-1.5 py-px text-[9.5px] font-bold text-black">
                       {fila.length}

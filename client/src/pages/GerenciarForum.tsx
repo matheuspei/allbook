@@ -498,7 +498,7 @@ function Pessoas({ id }: { id: string }) {
                         className="text-[11px] text-white/40 hover:text-white/75"
                         testid={`destituir-${slug}`}
                       >
-                        destituir
+                        remover como moderador
                       </LinkDoForum>
                     ) : (
                       <LinkDoForum
@@ -630,7 +630,7 @@ function ZonaDePerigo({ id, onExcluir }: { id: string; onExcluir: () => void }) 
   const membros = membrosDo(id).length;
 
   return (
-    <Bloco titulo="Excluir" testid="excluir-comunidade">
+    <Bloco titulo="Apagar" testid="excluir-comunidade">
       {!confirmando ? (
         <>
           <p className="text-[12.5px] leading-relaxed text-white/45">
@@ -643,7 +643,7 @@ function ZonaDePerigo({ id, onExcluir }: { id: string; onExcluir: () => void }) 
             data-testid="quero-excluir"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Excluir esta comunidade
+            Apagar esta comunidade
           </button>
         </>
       ) : (
@@ -656,15 +656,15 @@ function ZonaDePerigo({ id, onExcluir }: { id: string; onExcluir: () => void }) 
             <button
               onClick={() => {
                 excluirForum(id);
-                toast({ title: "Comunidade excluída" });
+                toast({ title: "Comunidade apagada" });
                 onExcluir();
               }}
               className="rounded-full bg-red-500/90 px-3.5 py-2 text-[12px] font-bold text-white transition-colors hover:bg-red-500"
               data-testid="confirmar-exclusao"
             >
-              Sim, excluir
+              Sim, apagar
             </button>
-            <BotaoDoForum onClick={() => setConfirmando(false)}>Não</BotaoDoForum>
+            <BotaoDoForum onClick={() => setConfirmando(false)}>Cancelar</BotaoDoForum>
           </div>
         </div>
       )}

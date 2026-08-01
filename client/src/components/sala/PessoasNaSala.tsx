@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
  * punir a sala inteira pelo comportamento de um. E convidar só funcionava na
  * criação — sala que esvaziava não tinha como chamar reforço.
  *
- * **Tirar da sala não é banir do clube.** Vale enquanto a sala durar; o
+ * **Remover da sala não é banir do clube.** Vale enquanto a sala durar; o
  * banimento do clube atravessa ciclos e mora em `Gerenciar`. Misturar os dois
  * daria ao dono da sala um poder sobre a turma que ele não tem.
  */
@@ -120,7 +120,7 @@ export default function PessoasNaSala({
                     className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/35 transition-colors hover:bg-red-500/15 hover:text-red-300"
                     data-testid={`tirar-${slug}`}
                   >
-                    Tirar
+                    Remover da sala
                   </button>
                 )}
               </div>

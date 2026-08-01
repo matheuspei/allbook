@@ -72,7 +72,7 @@ export default function EditorDeMarcos({
     <div className="rounded-xl bg-white/[0.03] p-3" data-testid="editor-de-marcos">
       <div className="mb-2.5 flex items-center justify-between">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
-          O ritmo · {marcos.length} {marcos.length === 1 ? "marco" : "marcos"}
+          O ritmo · {marcos.length} {marcos.length === 1 ? "etapa" : "etapas"}
         </p>
         <button
           type="button"
@@ -117,7 +117,7 @@ export default function EditorDeMarcos({
                 type="button"
                 onClick={() => tirar(indice)}
                 className="shrink-0 rounded-lg p-1 text-white/25 transition-colors hover:bg-white/8 hover:text-white/70"
-                aria-label={`Tirar o marco ${indice + 1}`}
+                aria-label={`Tirar a etapa ${indice + 1}`}
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -134,7 +134,7 @@ export default function EditorDeMarcos({
           data-testid="acrescentar-marco"
         >
           <Plus className="h-3.5 w-3.5" />
-          Mais um marco
+          Mais uma etapa
         </button>
       )}
 
@@ -145,13 +145,13 @@ export default function EditorDeMarcos({
       */}
       {marcos.length > 0 && marcos[marcos.length - 1].chapter < totalCapitulos && (
         <p className="mt-2.5 rounded-lg bg-[#f59e0b]/10 px-3 py-2 text-[11px] leading-relaxed text-[#f59e0b]/90">
-          O último marco para no capítulo {marcos[marcos.length - 1].chapter} de {totalCapitulos} —
+          A última etapa para no capítulo {marcos[marcos.length - 1].chapter} de {totalCapitulos} —
           a turma chega ao encontro sem ter ouvido o final.
         </p>
       )}
 
       <p className="mt-2 text-[10.5px] leading-relaxed text-white/25">
-        O encontro é em {dataCurta(fim)}. Cada marco é o que a turma combina de não passar até
+        O encontro é em {dataCurta(fim)}. Cada etapa é o que a turma combina de não passar até
         aquela data.
       </p>
     </div>

@@ -525,7 +525,7 @@ export default function Notifications() {
               className="text-xs font-medium text-white/50 hover:text-white transition-colors shrink-0"
               data-testid="button-mark-all-read"
             >
-              Marcar todas
+              Marcar todas como lidas
             </button>
           ) : undefined
         }

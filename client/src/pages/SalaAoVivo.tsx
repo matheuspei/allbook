@@ -101,7 +101,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
           className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-black"
           data-testid="link-voltar-comunidade"
         >
-          Ver o que está acontecendo
+          Ir para a Comunidade
         </Link>
       </div>
     );

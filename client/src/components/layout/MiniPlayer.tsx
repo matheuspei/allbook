@@ -196,7 +196,7 @@ export default function MiniPlayer() {
             <button
               onClick={() => savePlaying(!isPlaying)}
               className="p-2 text-white hover:text-primary transition-colors"
-              aria-label={isPlaying ? "Pausar" : "Tocar"}
+              aria-label={isPlaying ? "Pausar" : "Reproduzir"}
               data-testid="button-mini-player-play"
             >
               {isPlaying ? (

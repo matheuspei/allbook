@@ -139,9 +139,9 @@ const grupos: { titulo: string; perguntas: Pergunta[] }[] = [
             <Link href="/profile/edit" className="font-semibold text-primary hover:underline">
               editar perfil
             </Link>
-            . As preferências de reprodução ficam em{" "}
+            . Downloads e espaço ficam em{" "}
             <Link href="/settings" className="font-semibold text-primary hover:underline">
-              Configurações
+              Neste aparelho
             </Link>
             .
           </>

@@ -203,7 +203,7 @@ export default function BookActionsMenu({
           />
           <AcaoDoMenu
             icone={isAdded ? Check : Plus}
-            rotulo={isAdded ? "Tirar da Minha Lista" : "Adicionar à Minha Lista"}
+            rotulo={isAdded ? "Tirar da Minha lista" : "Adicionar à Minha lista"}
             aoClicar={addToLibrary}
           />
           <AcaoDoMenu

@@ -124,7 +124,7 @@ export default function Perguntas() {
             className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-[12px] font-bold text-black"
             data-testid="ir-perguntar"
           >
-            Fazer uma pergunta
+            Perguntar na Comunidade
           </Link>
         </div>
       ) : (

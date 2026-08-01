@@ -567,7 +567,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             data-testid="button-add-library"
           >
             {isAdded ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-            {isAdded ? "Na Lista" : "Minha Lista"}
+            {isAdded ? "Na lista" : "Minha lista"}
           </Button>
         </div>
 

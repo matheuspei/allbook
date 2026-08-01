@@ -50,7 +50,7 @@ export default function CartaoDeSugestoes({ sugestoes }: { sugestoes: Suggestion
       data-testid="cartao-sugestoes"
     >
       <p className="mb-3 text-[10.5px] font-semibold uppercase tracking-wider text-white/35">
-        Combina com você
+        Sugestões para você
       </p>
 
       <div className="flex gap-2.5 overflow-x-auto scrollbar-hide">

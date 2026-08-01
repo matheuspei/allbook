@@ -596,7 +596,7 @@ function CartaoDePessoa({ slug }: { slug: string }) {
           className="flex shrink-0 items-center gap-1 rounded-full bg-white/12 px-3 py-2 text-[11.5px] font-bold transition-colors hover:bg-white/20"
           data-testid="ver-perfil-pessoa"
         >
-          Ver
+          Ver perfil
           <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
@@ -765,7 +765,7 @@ export function CartaoDoClube({ clubeId }: { clubeId: string }) {
           href={`/clube/${clube.id}`}
           className="ml-3 flex shrink-0 items-center gap-1.5 text-[12px] font-bold text-primary"
         >
-          Entrar
+          Ver o clube
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>

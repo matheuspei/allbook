@@ -675,7 +675,7 @@ function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
                   }`}
                   data-testid={`confirmar-${item.chave}`}
                 >
-                  {item.euVou ? "Você vai" : "Eu vou"}
+                  {item.euVou ? "Você vai — toque para desmarcar" : "Eu vou"}
                 </button>
               )}
             </Link>

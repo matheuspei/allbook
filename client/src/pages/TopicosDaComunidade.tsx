@@ -216,7 +216,7 @@ export default function TopicosDaComunidade() {
           </div>
           {podeCriar && !criando && (
             <BotaoDoForum primario onClick={() => setCriando(true)} testid="abrir-novo-topico">
-              Criar
+              Criar tópico
             </BotaoDoForum>
           )}
         </div>
@@ -245,7 +245,7 @@ export default function TopicosDaComunidade() {
               <button
                 onClick={() => setBusca("")}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white"
-                aria-label="limpar busca"
+                aria-label="limpar a busca"
               >
                 <X className="h-3.5 w-3.5" />
               </button>

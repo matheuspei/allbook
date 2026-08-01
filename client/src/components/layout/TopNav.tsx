@@ -122,7 +122,7 @@ export default function TopNav() {
             <button
               onClick={() => setBuscando(true)}
               data-testid="button-search"
-              aria-label="Pesquisar"
+              aria-label="Buscar"
               className="p-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
             >
               <Search className="w-5 h-5" />

@@ -313,7 +313,7 @@ function ListaDeEspera({ clube }: { clube: ClubeTipo }) {
               title={indice > 0 ? "A fila anda pela ordem" : undefined}
               data-testid={`admitir-${slug}`}
             >
-              Admitir
+              Aceitar
             </button>
           </div>
         ))}
@@ -914,7 +914,7 @@ function Membros({ clube }: { clube: ClubeTipo }) {
                     data-testid={`readmitir-${slug}`}
                   >
                     <Undo2 className="h-3 w-3" />
-                    Devolver
+                    Devolver ao clube
                   </button>
                 }
               />
@@ -1011,7 +1011,7 @@ function PautaDoModerador({ clube }: { clube: ClubeTipo }) {
 
     return (
       <section>
-        <Titulo icone={<Vote className="h-4 w-4 text-primary" />} texto="A pauta em votação" />
+        <Titulo icone={<Vote className="h-4 w-4 text-primary" />} texto="O assunto em votação" />
         <div className="rounded-2xl border border-primary/25 bg-primary/[0.06] p-4">
           <p className="font-display text-[15px] font-bold leading-snug">{aberta.pergunta}</p>
           <p className="mt-1 text-[11px] text-white/40">
@@ -1039,7 +1039,7 @@ function PautaDoModerador({ clube }: { clube: ClubeTipo }) {
           <button
             onClick={() => {
               encerrarPauta(aberta.id);
-              toast({ title: "Pauta encerrada", description: "O resultado fica no histórico do clube." });
+              toast({ title: "Votação encerrada", description: "O resultado fica no histórico do clube." });
             }}
             className="mt-3 w-full rounded-xl bg-white/[0.08] py-2.5 text-xs font-bold transition-colors hover:bg-white/15"
             data-testid="button-encerrar-pauta"
@@ -1130,7 +1130,7 @@ function PautaDoModerador({ clube }: { clube: ClubeTipo }) {
             setPergunta("");
             setOpcoes(["", ""]);
             toast({
-              title: "Pauta aberta",
+              title: "Votação aberta",
               description: "A turma tem 3 dias para votar. Aparece na tela do clube.",
             });
           }}

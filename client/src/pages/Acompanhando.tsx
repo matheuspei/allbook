@@ -51,7 +51,7 @@ export default function Acompanhando() {
 
   return (
     <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="acompanhando-page">
-      <PageHeader title="Acompanhando" fallback="/profile" />
+      <PageHeader title="Seguindo" fallback="/profile" />
 
       <div className="space-y-6 px-5 pt-4">
         {lista.length === 0 ? (

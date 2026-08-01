@@ -61,7 +61,7 @@ export default function BotaoDeAcompanhar({
                   title: `Seguindo ${nome}`,
                   description:
                     novidades.length > 0
-                      ? `Já há ${novidades.length} ${novidades.length === 1 ? "novidade" : "novidades"} em «Acompanhando».`
+                      ? `Já há ${novidades.length} ${novidades.length === 1 ? "novidade" : "novidades"} em «Seguindo».`
                       : "Você é avisado quando houver novidade.",
                 }
               : { title: `Você deixou de seguir ${primeiroNome}` },
@@ -101,7 +101,7 @@ export default function BotaoDeAcompanhar({
                 <b className="font-semibold text-white/60">
                   {novidades.length} {novidades.length === 1 ? "novidade" : "novidades"}
                 </b>{" "}
-                em «Acompanhando»
+                em «Seguindo»
               </>
             )}
             .

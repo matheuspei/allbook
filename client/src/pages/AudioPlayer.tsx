@@ -415,7 +415,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   function salvarMarcacao(): boolean {
     const { jaExistia } = addBookmark(book.id, currentTime, currentChapter);
     toast({
-      title: jaExistia ? "Este ponto já estava marcado" : "Marcação salva",
+      title: jaExistia ? "Este ponto já estava marcado" : "Ponto guardado",
       description: jaExistia
         ? `Você já tinha guardado ${formatTime(currentTime)} deste título.`
         : `Guardamos ${formatTime(currentTime)}.`,
@@ -522,7 +522,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               <button
                 onClick={salvarMarcacao}
                 className="p-6 text-white active:scale-90 transition-transform"
-                aria-label="Salvar marcação"
+                aria-label="Marcar este ponto"
               >
                 <Bookmark className="w-16 h-16" />
               </button>
@@ -973,7 +973,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
         onIr={(positionSec) => {
           setCurrentTime(positionSec);
           setShowMarcacoes(false);
-          toast({ title: "Voltamos para a marcação", description: formatTime(positionSec) });
+          toast({ title: "Voltamos para a nota", description: formatTime(positionSec) });
         }}
       />
 
@@ -1222,7 +1222,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                 className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
               >
                 <Settings className="w-5 h-5 text-white/50 group-hover:text-white" />
-                <span className="text-sm font-medium">Configurações do tocador</span>
+                <span className="text-sm font-medium">Neste aparelho</span>
               </button>
 
               <button
@@ -1263,7 +1263,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             <div className="w-12 h-1.5 bg-white/15 rounded-full mx-auto -mt-2" />
             
             <div className="px-2">
-              <h3 className="text-lg font-bold font-display mb-6">Temporizador de soneca</h3>
+              <h3 className="text-lg font-bold font-display mb-6">Dormir — o áudio para sozinho</h3>
               
               <div className="space-y-1">
                 {[
@@ -1309,7 +1309,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   }}
                   className="w-full py-4 px-2 text-left hover:bg-white/5 rounded-xl transition-colors"
                 >
-                  <span className="text-base text-white/70">Personalizar</span>
+                  <span className="text-base text-white/70">Outra duração…</span>
                 </button>
               </div>
             </div>
@@ -1334,7 +1334,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               superfície e o mesmo raio dos outros quadros do player. */}
           <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 space-y-8">
-              <h3 className="text-xl font-medium text-white">Personalizar duração</h3>
+              <h3 className="text-xl font-medium text-white">Outra duração</h3>
               
               <div className="flex items-center justify-center gap-4 py-4">
                 <div className="flex flex-col items-center gap-2">

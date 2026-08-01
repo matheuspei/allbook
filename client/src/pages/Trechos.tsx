@@ -103,7 +103,7 @@ export default function Trechos() {
                     data-testid={`ajustar-${trecho.id}`}
                   >
                     <Pencil className="h-3 w-3" />
-                    {trecho.nota ? "Ajustar ou editar a nota" : "Ajustar o corte ou anotar"}
+                    Ajustar
                   </button>
                 </div>
               ))}

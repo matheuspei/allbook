@@ -140,7 +140,7 @@ export default function RecommendationsEdit() {
             <button
               onClick={() => setQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
-              aria-label="Limpar busca"
+              aria-label="Limpar a busca"
             >
               <X className="w-4 h-4" />
             </button>

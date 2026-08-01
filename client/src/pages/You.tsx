@@ -256,7 +256,7 @@ export default function You() {
     /* Era "Reprodução e download" e prometia o que a tela não entregava: lá
        dentro havia conta, editar perfil e entrar (§4.85). A tela ficou só com o
        que está guardado no aparelho, e o nome passou a dizer isso. */
-    { icon: Settings, label: "Espaço neste aparelho", href: "/settings" },
+    { icon: Settings, label: "Neste aparelho", href: "/settings" },
     { icon: Share2, label: "Convidar amigos", onSelect: convidarAmigos },
     { icon: HelpCircle, label: "Ajuda e suporte", href: "/help" },
   ];

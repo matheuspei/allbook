@@ -177,7 +177,7 @@ export default function MuralDoClube({ clube }: { clube: Clube }) {
           <span className="text-xs text-white/35">
             {escondidas.length} {escondidas.length === 1 ? "mensagem escondida" : "mensagens escondidas"}
           </span>
-          <span className="text-xs font-semibold text-primary">Devolver</span>
+          <span className="text-xs font-semibold text-primary">Devolver ao mural</span>
         </button>
       )}
     </section>
@@ -295,7 +295,7 @@ function Mensagem({
               className="rounded-md px-2 py-1 font-semibold text-[#f59e0b] transition-colors hover:bg-white/10"
               data-testid="moderar-cobrir"
             >
-              cobrir spoiler
+              marcar como spoiler
             </button>
           )}
           <button

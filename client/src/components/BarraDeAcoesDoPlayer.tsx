@@ -164,7 +164,7 @@ export default function BarraDeAcoesDoPlayer({
       <Acao
         testid="action-timer"
         icone={<Timer className="h-5 w-5" />}
-        rotulo="Soneca"
+        rotulo="Dormir"
         onClick={onTemporizador}
         destaque={temporizadorLigado}
       />
@@ -180,7 +180,7 @@ export default function BarraDeAcoesDoPlayer({
           )
         }
         rotulo={
-          confirmacao === "nova" ? "Guardado" : confirmacao === "repetida" ? "Já tinha" : "Marcar"
+          confirmacao === "nova" ? "Guardado" : confirmacao === "repetida" ? "Já marcado" : "Marcar"
         }
         onClick={marcar}
         destaque={confirmacao !== null}

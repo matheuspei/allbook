@@ -130,7 +130,7 @@ export default function ProfileEdit() {
                 data-testid="button-remove-photo"
               >
                 <Trash2 className="w-4 h-4" />
-                Remover
+                Remover foto
               </button>
             )}
           </div>

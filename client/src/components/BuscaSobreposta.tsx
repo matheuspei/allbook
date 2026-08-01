@@ -56,7 +56,7 @@ export default function BuscaSobreposta({ onFechar }: { onFechar: () => void }) 
           <Input
             ref={campo}
             type="text"
-            placeholder="Pesquisar títulos ou autores"
+            placeholder="Buscar títulos ou autores"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="h-10 w-full rounded-lg border-none bg-white/10 pl-9 pr-9 text-white placeholder:text-white/40 focus-visible:ring-1 focus-visible:ring-primary/50"

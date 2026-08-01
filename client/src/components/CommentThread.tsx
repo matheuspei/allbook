@@ -679,7 +679,7 @@ function AutorDoComentario({ slug, small }: { slug: string; small?: boolean }) {
     return (
       <div className="flex items-center gap-2">
         {avatar}
-        <span className={`${texto} font-bold`}>Leitor AllBook</span>
+        <span className={`${texto} font-bold`}>Leitor do AllBook</span>
       </div>
     );
   }
@@ -691,7 +691,7 @@ function AutorDoComentario({ slug, small }: { slug: string; small?: boolean }) {
         slug={membro.slug}
         inicial={membro.name.charAt(0)}
         fundoClasse={`bg-gradient-to-br ${membro.color}`}
-        legenda="Leitor da AllBook"
+        legenda="Leitor do AllBook"
       >
         {avatar}
       </AvatarAmpliavel>

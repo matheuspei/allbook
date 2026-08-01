@@ -157,7 +157,7 @@ export default function NovoClube() {
                 <input
                   value={busca}
                   onChange={(event) => setBusca(event.target.value)}
-                  placeholder="Procure pelo título ou pelo autor"
+                  placeholder="Busque pelo título ou pelo autor"
                   className="w-full bg-transparent text-sm text-white placeholder:text-white/25 focus:outline-none"
                   data-testid="clube-busca-livro"
                 />
@@ -379,7 +379,7 @@ export default function NovoClube() {
         </Campo>
 
         {bookId !== null && marcos.length > 0 && (
-          <Campo titulo="O ritmo, marco a marco">
+          <Campo titulo="O ritmo, etapa a etapa">
             <EditorDeMarcos
               bookId={bookId}
               inicio={inicio}

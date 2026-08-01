@@ -61,7 +61,7 @@ export default function Downloads() {
             className="inline-block mt-2 text-sm font-bold text-primary"
             data-testid="link-downloads-search"
           >
-            Explorar catálogo
+            Explorar o catálogo
           </Link>
         </div>
       ) : (
