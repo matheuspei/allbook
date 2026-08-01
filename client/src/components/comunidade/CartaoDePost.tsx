@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ArrowRight, CalendarClock, HelpCircle, Repeat2, Users } from "lucide-react";
+import { ArrowRight, CalendarClock, Check, HelpCircle, Repeat2, Users } from "lucide-react";
 
 import AcoesDoPost from "@/components/comunidade/AcoesDoPost";
 import CampoComMencao from "@/components/comunidade/CampoComMencao";
@@ -11,6 +11,8 @@ import { catalog, slugify } from "@/lib/books";
 import { EU, clubePorId, corDoMembro, nomeDoMembro, souDono, vagasRestantes, type Clube } from "@/lib/clubes";
 import { findMember, fotoDoMembro, avatarDeLeitor } from "@/lib/community";
 import { findPerson } from "@/lib/people";
+import { COMENTARIOS_EVENT } from "@/lib/comentariosDePost";
+import { MELHOR_RESPOSTA_EVENT, resolvidaCom } from "@/lib/melhorResposta";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { initialOf, readProfile } from "@/lib/profile";
 import {
@@ -23,7 +25,7 @@ import {
   type Mencao,
   type Post,
 } from "@/lib/posts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 /**
@@ -77,6 +79,18 @@ export default function CartaoDePost({
   const membro = post.autorSlug ? findMember(post.autorSlug) : undefined;
   const meuPerfil = readProfile();
   const ehMeu = post.autorSlug === undefined;
+  /* A pergunta que já foi resolvida, e com qual livro (§4.92). Relido no evento
+     porque marcar a melhor resposta acontece dentro dos comentários. */
+  const [resolvida, setResolvida] = useState(() => resolvidaCom(post.id));
+  useEffect(() => {
+    const atualizar = () => setResolvida(resolvidaCom(post.id));
+    window.addEventListener(MELHOR_RESPOSTA_EVENT, atualizar);
+    window.addEventListener(COMENTARIOS_EVENT, atualizar);
+    return () => {
+      window.removeEventListener(MELHOR_RESPOSTA_EVENT, atualizar);
+      window.removeEventListener(COMENTARIOS_EVENT, atualizar);
+    };
+  }, [post.id]);
   const [seguindo, setSeguindo] = useState(() =>
     post.autorSlug ? isFollowing(post.autorSlug) : true,
   );
@@ -214,16 +228,32 @@ export default function CartaoDePost({
         leva até ela morre na tela. É a mesma razão pela qual o selo tinha saído em
         29/07: sem destino, era enfeite. Agora tem `/perguntas`.
       */}
-      {post.pergunta && (
-        <Link
-          href="/perguntas"
-          className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-primary transition-colors hover:bg-primary/25"
-          data-testid="selo-pergunta"
-        >
-          <HelpCircle className="h-3 w-3" />
-          Pergunta
-        </Link>
-      )}
+      {post.pergunta &&
+        (resolvida ? (
+          /*
+            **A pergunta resolvida troca de selo** (§4.92). Enquanto o selo
+            laranja diz *"isto espera uma resposta"*, este diz *"já foi
+            respondida, e foi assim"* — e o verde é a cor de resolvido no resto
+            do app. Sem isto, a lista de perguntas não sabe distinguir a que
+            fechou da que ninguém respondeu, e as duas coisas ficam iguais.
+          */
+          <span
+            className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-emerald-400/15 px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-emerald-400"
+            data-testid="selo-resolvida"
+          >
+            <Check className="h-3 w-3" strokeWidth={3} />
+            Resolvida
+          </span>
+        ) : (
+          <Link
+            href="/perguntas"
+            className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-primary transition-colors hover:bg-primary/25"
+            data-testid="selo-pergunta"
+          >
+            <HelpCircle className="h-3 w-3" />
+            Pergunta
+          </Link>
+        ))}
 
       {editando ? (
         <EditarOTexto post={post} onPronto={() => setEditando(false)} />

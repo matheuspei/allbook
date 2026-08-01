@@ -58,6 +58,20 @@ export interface ComentarioDePost {
   respondeA?: string;
   /** O campo de escrever é o mesmo do compositor, então a menção vem de graça. */
   mencoes?: Mencao[];
+  /**
+   * **A resposta que É um livro** (§4.92) — o id de um livro do `catalog`.
+   *
+   * Decidido em 29/07 (§4.58): *"pergunta é um tipo de post, com selo e
+   * 'responder com um livro'"*, e a avaliação das cinco capturas chamou essa
+   * peça de **a melhor das cinco**, com o motivo: *"a resposta carrega um
+   * objeto"*. Ficou só o selo; a resposta continuou texto puro por dois dias.
+   *
+   * É a diferença entre uma pergunta de fórum e o que o AllBook queria ter: a
+   * resposta com capa, que você toca e vai ouvir. **Vale em qualquer post**, e
+   * não só na pergunta — quem responde "esse aqui" citando um livro está dando
+   * a mesma coisa.
+   */
+  bookId?: number;
 }
 
 /** Horas atrás, em ISO — os fictícios precisam de data relativa a hoje. */
@@ -83,6 +97,9 @@ const DO_ESQUELETO: ComentarioDePost[] = [
     postId: "p-esq-2",
     autorSlug: "ana-paula",
     texto: "Segue. O segundo é mais lento, mas o terceiro paga tudo.",
+    /* A resposta carrega o livro — é o que a §4.58 queria dizer com
+       "a resposta carrega um objeto". */
+    bookId: 8,
     date: atras(5),
   },
   {
@@ -99,6 +116,7 @@ const DO_ESQUELETO: ComentarioDePost[] = [
     postId: "p-esq-2",
     autorSlug: "marcos-v",
     texto: "Depende do que te prendeu. Se foi o mundo, segue; se foi o Paul, para aqui.",
+    bookId: 109,
     date: atras(3),
   },
 
@@ -134,6 +152,7 @@ const DO_ESQUELETO: ComentarioDePost[] = [
     autorSlug: "carla-lima",
     texto:
       "A Camila Ferraz. Ouvi coisa que eu nunca leria só para ficar com a voz dela no ouvido.",
+    bookId: 2,
     date: atras(28),
   },
   {
@@ -141,6 +160,7 @@ const DO_ESQUELETO: ComentarioDePost[] = [
     postId: "p-esq-5",
     autorSlug: "beto",
     texto: "Segunda na Camila. E a Lívia Bonfim em biografia é outro nível.",
+    bookId: 111,
     date: atras(26),
     respondeA: "Carla Lima",
   },
@@ -213,10 +233,13 @@ export function temResposta(postId: string): boolean {
 export function comentar(
   postId: string,
   texto: string,
-  opcoes?: { respondeA?: string; mencoes?: Mencao[] },
+  opcoes?: { respondeA?: string; mencoes?: Mencao[]; bookId?: number },
 ): ComentarioDePost | null {
   const limpo = texto.trim().slice(0, MAX_COMENTARIO);
-  if (!limpo) return null;
+  /* **Resposta só com o livro vale**, e é o caso comum de "me indiquem": às
+     vezes a capa já é a resposta inteira, e exigir texto junto seria pedir que
+     a pessoa escrevesse "esse aqui" para poder enviar. */
+  if (!limpo && opcoes?.bookId === undefined) return null;
 
   const comentario: ComentarioDePost = {
     id: `c-meu-${Date.now()}`,
@@ -227,6 +250,7 @@ export function comentar(
     ...(opcoes?.mencoes?.length
       ? { mencoes: opcoes.mencoes.filter((m) => limpo.includes(`@${m.rotulo}`)) }
       : {}),
+    ...(opcoes?.bookId !== undefined ? { bookId: opcoes.bookId } : {}),
   };
   gravar([...ler(), comentario]);
   return comentario;

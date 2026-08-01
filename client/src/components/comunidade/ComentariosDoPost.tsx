@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Send, Trash2 } from "lucide-react";
+import { BookOpen, Check, Send, Trash2 } from "lucide-react";
 
 import CampoComMencao from "@/components/comunidade/CampoComMencao";
+import EscolherLivro, { LivroDaResposta } from "@/components/comunidade/EscolherLivro";
+import { catalog } from "@/lib/books";
+import {
+  MELHOR_RESPOSTA_EVENT,
+  marcarMelhorResposta,
+  melhorRespostaDe,
+  possoMarcar,
+} from "@/lib/melhorResposta";
 import Reacoes from "@/components/comunidade/Reacoes";
 import TextoDoPost from "@/components/comunidade/TextoDoPost";
 import { useToast } from "@/hooks/use-toast";
@@ -44,21 +52,35 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
   const [texto, setTexto] = useState("");
   const [mencoes, setMencoes] = useState<Mencao[]>([]);
   const [respondeA, setRespondeA] = useState<string | undefined>();
+  /** O livro que **é** a resposta (§4.92). Sem ele, responder é texto puro. */
+  const [livro, setLivro] = useState<number | undefined>();
+  const [escolhendoLivro, setEscolhendoLivro] = useState(false);
+  const [melhor, setMelhor] = useState<string | undefined>(() => melhorRespostaDe(post.id));
+  const podeMarcar = possoMarcar(post.id);
   /** Contador que só serve para pedir foco ao campo (ver `responder`). */
   const [pedidoDeFoco, setPedidoDeFoco] = useState(0);
 
   useEffect(() => {
-    const atualizar = () => setLista(comentariosDoPost(post.id));
+    const atualizar = () => {
+      setLista(comentariosDoPost(post.id));
+      setMelhor(melhorRespostaDe(post.id));
+    };
     window.addEventListener(COMENTARIOS_EVENT, atualizar);
-    return () => window.removeEventListener(COMENTARIOS_EVENT, atualizar);
+    window.addEventListener(MELHOR_RESPOSTA_EVENT, atualizar);
+    return () => {
+      window.removeEventListener(COMENTARIOS_EVENT, atualizar);
+      window.removeEventListener(MELHOR_RESPOSTA_EVENT, atualizar);
+    };
   }, [post.id]);
 
   function enviar() {
-    const feito = comentar(post.id, texto, { respondeA, mencoes });
+    const feito = comentar(post.id, texto, { respondeA, mencoes, bookId: livro });
     if (!feito) return;
     setTexto("");
     setMencoes([]);
     setRespondeA(undefined);
+    setLivro(undefined);
+    setEscolhendoLivro(false);
 
     /*
       **O esqueleto responde de volta, e por que isso não é enfeite.** Sem
@@ -139,7 +161,7 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
 
         <button
           onClick={enviar}
-          disabled={texto.trim().length === 0}
+          disabled={texto.trim().length === 0 && livro === undefined}
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-black transition-opacity disabled:opacity-25"
           aria-label="Enviar comentário"
           data-testid={`enviar-comentario-${post.id}`}
@@ -148,12 +170,71 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
         </button>
       </div>
 
+      {/*
+        **“Responder com um livro”** (§4.92) — a peça que a §4.58 chamou de *a
+        melhor das cinco* e que ficou por construir. A resposta deixa de ser uma
+        frase citando um título e passa a ser **o livro**, com capa, que se toca
+        e vai ouvir.
+
+        O convite fica em texto pequeno, e não como um segundo botão do tamanho
+        do enviar: responder com livro é o caso especial, e o comum continua
+        sendo escrever.
+      */}
+      <div className="ml-[38px] mt-1.5">
+        {livro !== undefined ? (
+          <div className="flex items-center gap-2">
+            <span className="min-w-0 flex-1">
+              <LivroDaResposta bookId={livro} />
+            </span>
+            <button
+              onClick={() => setLivro(undefined)}
+              className="shrink-0 self-start text-[10.5px] font-semibold text-white/30 transition-colors hover:text-red-300"
+              data-testid="tirar-livro-da-resposta"
+            >
+              tirar
+            </button>
+          </div>
+        ) : escolhendoLivro ? (
+          <EscolherLivro
+            onEscolher={(id) => {
+              setLivro(id);
+              setEscolhendoLivro(false);
+            }}
+            onFechar={() => setEscolhendoLivro(false)}
+          />
+        ) : (
+          <button
+            onClick={() => setEscolhendoLivro(true)}
+            className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-primary transition-opacity hover:opacity-80"
+            data-testid={`responder-com-livro-${post.id}`}
+          >
+            <BookOpen className="h-3 w-3" /> responder com um livro
+          </button>
+        )}
+      </div>
+
       {lista.length > 0 && (
         <div className="mt-3 space-y-2.5">
-          {lista.map((comentario) => (
+          {/* **A melhor resposta sobe ao topo** (§4.92). Ela é o que a pergunta
+              foi buscar; deixá-la na ordem cronológica faria quem chega ter de
+              ler as cinco para achar a que resolveu. */}
+          {[...lista]
+            .sort((a, b) => Number(b.id === melhor) - Number(a.id === melhor))
+            .map((comentario) => (
             <UmComentario
               key={comentario.id}
               comentario={comentario}
+              ehMelhor={comentario.id === melhor}
+              podeMarcar={podeMarcar}
+              onMarcar={() => {
+                const marcou = marcarMelhorResposta(post.id, comentario.id);
+                toast({
+                  title: marcou ? "Marcada como melhor resposta" : "Desmarcada",
+                  description: marcou
+                    ? "Ela sobe ao topo, e a pergunta aparece como resolvida."
+                    : undefined,
+                });
+              }}
               onResponder={responder}
               onApagado={() => toast({ title: "Comentário apagado" })}
             />
@@ -166,10 +247,18 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
 
 function UmComentario({
   comentario,
+  ehMelhor,
+  podeMarcar,
+  onMarcar,
   onResponder,
   onApagado,
 }: {
   comentario: ComentarioDePost;
+  /** Foi marcada como a que resolveu a pergunta (§4.92). */
+  ehMelhor?: boolean;
+  /** Você é quem perguntou — só você marca. */
+  podeMarcar?: boolean;
+  onMarcar: () => void;
   onResponder: (nome: string) => void;
   onApagado: () => void;
 }) {
@@ -202,7 +291,20 @@ function UmComentario({
       )}
 
       <div className="min-w-0 flex-1">
-        <div className="rounded-xl rounded-tl-sm bg-white/[0.05] px-3 py-2">
+        <div
+          className={`rounded-xl rounded-tl-sm px-3 py-2 ${
+            ehMelhor
+              ? "bg-emerald-400/[0.07] ring-1 ring-inset ring-emerald-400/30"
+              : "bg-white/[0.05]"
+          }`}
+        >
+          {/* **O selo verde, e não uma estrela** — verde é "resolvido" no resto
+              do app, e a palavra diz o que a cor sozinha não diria. */}
+          {ehMelhor && (
+            <span className="mb-1 flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-[0.1em] text-emerald-400">
+              <Check className="h-3 w-3" strokeWidth={3} /> melhor resposta
+            </span>
+          )}
           <Link
             href={ehMeu ? "/profile" : `/user/${comentario.autorSlug}`}
             className="text-[12px] font-semibold hover:text-primary"
@@ -226,6 +328,9 @@ function UmComentario({
             mencoes={comentario.mencoes}
             className="mt-0.5 text-[12.5px] leading-relaxed text-white/80"
           />
+          {/* A resposta que **é** um livro. Vem depois do texto porque o texto
+              costuma ser o porquê ("curto, e o fim te dá um tapa"). */}
+          {comentario.bookId !== undefined && <LivroDaResposta bookId={comentario.bookId} />}
         </div>
 
         {/*
@@ -260,6 +365,20 @@ function UmComentario({
           >
             Responder
           </button>
+          {/* **Só quem perguntou marca**, e não em resposta sua: escolher a
+              própria resposta como a melhor é um botão que só serve para
+              enganar a lista de perguntas. */}
+          {podeMarcar && !ehMeu && (
+            <button
+              onClick={onMarcar}
+              className={`-my-3 px-2 py-3 text-[10.5px] font-semibold transition-colors ${
+                ehMelhor ? "text-emerald-400" : "text-white/35 hover:text-emerald-400"
+              }`}
+              data-testid={`marcar-melhor-${comentario.id}`}
+            >
+              {ehMelhor ? "✓ resolveu" : "resolveu?"}
+            </button>
+          )}
           {ehMeu && (
             <button
               onClick={() => {
