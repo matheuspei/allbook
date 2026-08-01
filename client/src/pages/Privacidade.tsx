@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Headphones, Lock, MessageSquare, Radio, ThumbsUp, UsersRound } from "lucide-react";
+import { Link } from "wouter";
+import { ChevronRight, Eye, Lock, MessageSquare, ThumbsUp } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { Switch } from "@/components/ui/switch";
@@ -17,9 +18,13 @@ import { readSettings, saveSettings, type Settings } from "@/lib/settings";
  * privacidade estava aberta ali no meio, empurrando o resto para baixo. Agora
  * ela é uma linha como as outras, e o conteúdo mora aqui.
  *
- * **A ordem tem lógica:** a tranca da conta vem primeiro, porque governa *quem*
- * pode ver; os três de baixo governam *o quê* aparece na sua página, e por isso
- * ficam sob um segundo título.
+ * ⚠️ **Em 01/08 esta tela encolheu de propósito** (§4.95). Os interruptores do
+ * *"o que aparece na sua página"* foram para a **folha do lápis**, dentro do
+ * perfil — pedido do Matheus: *"isso deveria estar no botão do lapisinho"*. Aqui
+ * ficou o que **não** é a sua página: quem pode te seguir (a conta) e quando o
+ * sino toca (o barulho). No lugar deles ficou uma **placa** que diz para onde
+ * foram; cópia dos interruptores, não — controle em dois lugares é o defeito que
+ * a §4.93 acabou de varrer da caixa de comentário.
  *
  * **Não existe interruptor para "o que eu recomendo"**, por decisão do Matheus:
  * *"já que ela está recomendando, ela quer que as pessoas vejam"*. Recomendar é
@@ -71,50 +76,36 @@ export default function Privacidade() {
           />
         </div>
 
-        <h2 className="pt-6 pb-1 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-          O que aparece na sua página
-        </h2>
-        <div className="border-b border-white/10">
-          <Linha
-            icone={Headphones}
-            titulo="O que estou ouvindo"
-            apoio="O livro do momento, com o capítulo, para quem te visita."
-            ligado={ajustes.mostrarOuvindoAgora}
-            onMudar={(ligado) => alternar("mostrarOuvindoAgora", ligado)}
-            testid="switch-ouvindo-agora"
-          />
-          <Linha
-            icone={MessageSquare}
-            titulo="O que eu disse"
-            apoio="Seus comentários e posts reunidos. Dentro do livro, eles continuam lá."
-            ligado={ajustes.mostrarMeusComentarios}
-            onMudar={(ligado) => alternar("mostrarMeusComentarios", ligado)}
-            testid="switch-meus-comentarios"
-          />
-          {/*
-            **A única que nasce desligada** (§4.58, item 8). O apoio explica a
-            reciprocidade em uma frase, porque é ela que decide o sim: ligar não
-            é só "mostrar", é **passar a ver** — e não ligar é ficar cego para
-            quem também mostra. Dizer isso no interruptor evita a descoberta
-            depois, que é quando a pessoa se sente enganada.
-          */}
-          <Linha
-            icone={Radio}
-            titulo="Em que capítulo eu estou"
-            apoio="Só para quem você segue e te segue de volta — e é troca: quem não mostra, não vê. Nunca aparece a hora, só o capítulo."
-            ligado={ajustes.mostrarMeuCapitulo}
-            onMudar={(ligado) => alternar("mostrarMeuCapitulo", ligado)}
-            testid="switch-meu-capitulo"
-          />
-          <Linha
-            icone={UsersRound}
-            titulo="Meus clubes"
-            apoio="A lista de clubes na sua página. Dentro deles, a turma sempre te vê."
-            ligado={ajustes.mostrarMeusClubes}
-            onMudar={(ligado) => alternar("mostrarMeusClubes", ligado)}
-            testid="switch-meus-clubes"
-          />
-        </div>
+        {/*
+          ⚠️ **“O que aparece na sua página” mudou de casa em 01/08** (§4.95) —
+          foi para a folha do lápis, dentro do próprio perfil, por escolha do
+          Matheus numa folha de propostas desenhadas.
+
+          **Não ficou uma cópia aqui, e isso é a regra.** Um controle em dois
+          lugares é a redundância que ele mandou varrer do compositor (§4.58) e
+          da caixa de comentário (§4.93). O que fica é uma **placa**: diz onde os
+          interruptores foram parar, e leva até lá. Placa não é botão — não muda
+          nada, só evita que quem procurava conclua que a função sumiu.
+
+          O que **não** mudou de casa é o desta tela: quem pode te seguir (a
+          conta) e quando o sino toca (o barulho). Nenhum dos dois é "a sua
+          página".
+        */}
+        <Link
+          href="/profile"
+          className="mt-6 flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 transition-colors hover:bg-white/[0.07]"
+          data-testid="placa-o-que-aparece"
+        >
+          <Eye className="h-[17px] w-[17px] shrink-0 text-primary" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[13px] font-semibold">O que aparece na sua página</span>
+            <span className="mt-0.5 block text-[10.5px] leading-snug text-white/35">
+              Ouvindo agora, o que eu disse, meus clubes, quem eu acompanho — agora no lápis do seu
+              perfil.
+            </span>
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-white/25" />
+        </Link>
 
         {/*
           **Quando o sino toca** (§4.92) — escolhido pelo Matheus na folha de
@@ -151,8 +142,9 @@ export default function Privacidade() {
             interruptor para cada coisa. */}
         <p className="pt-4 text-[11.5px] leading-relaxed text-white/30">
           O que você <b className="text-white/50">escreve</b> é público — post no feed, comentário
-          num livro, fala num clube. Estes botões governam o que a sua{" "}
-          <b className="text-white/50">página</b> reúne, e quem enxerga a sua atividade.
+          num livro, fala num clube. O que estes botões governam é{" "}
+          <b className="text-white/50">quem</b> te acompanha e{" "}
+          <b className="text-white/50">quando</b> o sino toca.
         </p>
       </main>
     </div>

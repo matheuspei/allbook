@@ -77,6 +77,15 @@ export interface Settings {
    * sensível — presença ao vivo revela **rotina**.
    */
   mostrarMeuCapitulo: boolean;
+  /**
+   * **Quem você acompanha** — a quarta porta do perfil (§4.84): autores,
+   * narradores, editoras e o Studio que você segue.
+   *
+   * Entrou em 01/08 com a folha do lápis (§4.95). Era a única das quatro portas
+   * sem interruptor nenhum, e a lista diz bastante sobre o gosto de alguém —
+   * mais, às vezes, que a lista de clubes, que já tinha o dela.
+   */
+  mostrarQuemAcompanho: boolean;
 
   /* ---------------- os avisos do sino (§4.92) ---------------- */
 
@@ -104,6 +113,7 @@ export const defaultSettings: Settings = {
   mostrarMeusComentarios: true,
   /* A única que nasce desligada. Ver o comentário do campo. */
   mostrarMeuCapitulo: false,
+  mostrarQuemAcompanho: true,
   avisarCurtidas: true,
   avisarComentarios: true,
 };
@@ -145,12 +155,27 @@ export function readSettings(): Settings {
         typeof stored.mostrarMeusComentarios === "boolean"
           ? stored.mostrarMeusComentarios
           : defaultSettings.mostrarMeusComentarios,
+      mostrarQuemAcompanho:
+        typeof stored.mostrarQuemAcompanho === "boolean"
+          ? stored.mostrarQuemAcompanho
+          : defaultSettings.mostrarQuemAcompanho,
     };
   } catch {
     return defaultSettings;
   }
 }
 
+/**
+ * **Os ajustes mudaram** — quem os mostra relê sem recarregar (§4.95).
+ *
+ * Entrou com a folha do lápis: ela vive **por cima do perfil**, e a página
+ * continua atrás. Sem este aviso, desligar "meus clubes" só teria efeito depois
+ * de fechar a folha — e a graça de editar ali é justamente ver a porta apagar
+ * enquanto você toca no interruptor.
+ */
+export const SETTINGS_EVENT = "allbook:settings";
+
 export function saveSettings(settings: Settings): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  window.dispatchEvent(new Event(SETTINGS_EVENT));
 }

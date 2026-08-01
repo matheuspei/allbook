@@ -7888,6 +7888,89 @@ régua que vale daqui em diante, **nesta ordem**:
 
 ---
 
+## 4.95 O lápis editava um terço do que prometia (01/08)
+
+**A queixa:** *"tem recomendações, comentários, clubes, acompanhando. Como é que
+eu faço pra editar isso aqui? Isso deveria estar no botão do lapisinho… Hoje o
+lápis só abre a questão de você modificar o nome e a bio. Não faz sentido isso."*
+
+**Conferido, e é pior do que parecia:** o lápis abria foto/nome/bio e deixava
+**meia tela em branco**; os interruptores do que aparece na sua página moravam a
+**três toques** dali (⚙ → Você → Privacidade). Para esconder um bloco do seu
+perfil era preciso **sair do perfil**.
+
+### A decisão: uma mescla, escolhida por ele numa folha desenhada
+
+Foram quatro propostas de filosofias diferentes (`_editar-perfil-B.html`, fora do
+git): o formulário completo, editar no lugar, o lápis como índice, e cada bloco
+se editando sozinho. A resposta: *"uma mescla de A com C. Eu prefiro da forma
+como está o C… porém tem coisas aqui no A que não tem no C. Então a gente vai
+colocar todas as opções que tem no A para o C"*.
+
+Ou seja: **a folha do C** (não tira você da página, e abre portas) **com o
+conteúdo do A** (todos os interruptores). E ele deu o critério do que fica em
+cada lugar sem precisar dizê-lo: *"quando você clica em minhas recomendações,
+abre uma abazinha"* — o que se **escreve** merece tela; o que se **liga** não.
+
+> **A regra que fica:** *o que liga/desliga resolve no lugar; o que se escreve
+> abre página.* Mandar alguém para outra tela por causa de um interruptor é o
+> "um toque a mais para tudo" que derrubou a proposta C pura.
+
+**Por que folha e não tela cheia:** editar o perfil é olhar para ele. A folha
+sobe por cima e a página continua atrás — o mesmo motivo pelo qual a caixa de
+compartilhar abre no lugar (§4.58) e a lista de membros do clube não virou página
+(§4.59).
+
+### O que estava quebrado, e só apareceu ao mover
+
+⚠️ **Dois interruptores mentiam havia três dias.** `mostrarMeusComentarios` e
+`mostrarMeusClubes` eram gravados no `localStorage` e **nenhum código os lia** —
+a Privacidade os oferecia, você desligava, e as portas continuavam lá. Achei
+conferindo o que ia mudar de casa.
+
+> **A regra que fica:** *ao mudar um controle de lugar, verifique se ele faz
+> alguma coisa.* Mudar de casa um botão morto é dar-lhe destaque sem lhe dar
+> função — e o lugar novo, sendo melhor, faz a mentira ser vista por mais gente.
+
+**Como eles passaram a funcionar:** a porta desligada **some para quem visita** e
+fica **apagada, com o olho cortado, para você**. Sumir para você também tiraria o
+seu próprio caminho para os seus comentários — e, pior, você não saberia que a
+escondeu. (O "ouvindo agora" continua sumindo para os dois, como era antes; ali o
+bloco é a vitrine inteira, incluindo a capa desfocada do topo.)
+
+### O resto
+
+- **Ganhou interruptor a quarta porta** (`mostrarQuemAcompanho`): era a única sem
+  nenhum, e a lista de quem você acompanha diz tanto do gosto quanto a de clubes.
+- **`saveSettings` passou a avisar** (`SETTINGS_EVENT`). A folha vive por cima do
+  perfil: o interruptor tem de apagar a porta atrás **na hora**, não ao fechar.
+- **A Privacidade encolheu de propósito** e ficou com o que **não** é a sua
+  página: quem pode te seguir (a conta) e quando o sino toca (o barulho). No
+  lugar dos interruptores ficou uma **placa** que diz para onde foram. Placa não
+  é botão: cópia do controle nos dois lugares seria a redundância que a §4.93
+  acabou de varrer da caixa de comentário.
+
+### Apurado, sem decisão: o nome de usuário com `@`
+
+Ele levantou: *"seria interessante que exista o nome do usuário e o nome de
+usuário \[com arroba]… para você pesquisar e não ter mais de um usuário ali"*,
+e perguntou se aplicar agora ou na etapa da busca por pessoas.
+
+**O que a apuração mostrou:** o identificador único **já existe** — é o `slug`
+que está na URL (`/user/juliana-s`) e que `community.ts` guarda. O que falta é
+(1) **mostrá-lo** e (2) deixar **escolher** o seu. Você não tem slug: o seu
+perfil é `profile.ts` (nome, bio, foto) e nunca precisou de um, porque não há
+contas.
+
+**Recomendação registrada (não construída):** vale construir, e o lugar é o
+formulário de foto/nome/bio. O custo é baixo — campo, formato (minúsculas, sem
+espaço) e checagem contra a comunidade fictícia. O que **não** dá para simular é
+a colisão entre contas de verdade; isso é trabalho do servidor e está anotado em
+`docs/BANCO-DE-DADOS.md`. **Não é motivo para adiar** — o mesmo argumento
+("não tem servidor") já foi derrubado duas vezes neste projeto.
+
+---
+
 ## 5. Backlog de faxina técnica (não urgente)
 - ~~**Capas faltando:** id 311~~ — **FEITO 24/07**: a capa de "Anjos e Demônios"
   foi fixada pelo ISBN `9780743486224` (a obra existe na Open Library **sem**

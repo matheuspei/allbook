@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { type LucideIcon } from "lucide-react";
+import { EyeOff, type LucideIcon } from "lucide-react";
 
 /**
  * As três portas do topo do perfil — **recomendações, comentários e clubes**.
@@ -31,6 +31,15 @@ export interface PortaDoPerfil {
   total: number;
   href: string;
   testid: string;
+  /**
+   * **Você desligou esta porta** na folha do lápis (§4.95).
+   *
+   * Ela **continua na sua página**, apagada e com o olho cortado, e some para
+   * quem visita (quem chama filtra antes de passar a lista). Sumir para você
+   * também seria tirar o seu próprio caminho para os seus comentários — e, pior,
+   * deixaria você sem saber que a escondeu.
+   */
+  escondida?: boolean;
 }
 
 export default function PortasDoPerfil({ portas }: { portas: PortaDoPerfil[] }) {
@@ -43,15 +52,22 @@ export default function PortasDoPerfil({ portas }: { portas: PortaDoPerfil[] }) 
       style={{ gridTemplateColumns: `repeat(${portas.length}, minmax(0, 1fr))` }}
       data-testid="portas-do-perfil"
     >
-      {portas.map(({ icone: Icone, rotulo, total, href, testid }) => (
+      {portas.map(({ icone: Icone, rotulo, total, href, testid, escondida }) => (
         <Link
           key={testid}
           href={href}
-          className={`flex flex-col items-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.03] px-2 py-3 text-center transition-colors hover:bg-white/[0.07] ${
-            total === 0 ? "opacity-45" : ""
-          }`}
+          className={`relative flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center transition-colors ${
+            escondida
+              ? "border-dashed border-white/[0.12] bg-transparent opacity-40 hover:opacity-70"
+              : "border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.07]"
+          } ${total === 0 && !escondida ? "opacity-45" : ""}`}
           data-testid={testid}
         >
+          {/* O olho cortado é o que diz *por que* a porta está apagada — sem ele,
+              "apagada" já quer dizer "vazia" nesta mesma grade. */}
+          {escondida && (
+            <EyeOff className="absolute right-1.5 top-1.5 h-3 w-3 text-white/40" aria-label="escondida de quem visita" />
+          )}
           <Icone className="h-[18px] w-[18px] text-primary" />
           <span className="font-display text-[15px] font-bold leading-none">{total}</span>
           <span className="text-[10px] leading-tight text-white/45">{rotulo}</span>

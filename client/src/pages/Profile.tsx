@@ -24,7 +24,8 @@ import { POSTS_EVENT, postsDe, type Post } from "@/lib/posts";
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
 import PortasDoPerfil from "@/components/PortasDoPerfil";
 import Compositor from "@/components/comunidade/Compositor";
-import { readSettings } from "@/lib/settings";
+import { SETTINGS_EVENT, readSettings } from "@/lib/settings";
+import FolhaDeEditarPerfil from "@/components/perfil/FolhaDeEditarPerfil";
 import { SEGUIDORES_EVENT, meusSeguidores, pedidosPendentes } from "@/lib/seguidores";
 import { catalog, type Book } from "@/lib/books";
 
@@ -69,6 +70,8 @@ export default function Profile() {
   const [clubes, setClubes] = useState<Clube[]>([]);
   /** Prévia honesta: esconde tudo que só o dono vê. */
   const [visitante, setVisitante] = useState(false);
+  /** A folha do lápis (§4.95). */
+  const [editando, setEditando] = useState(false);
   /** Os interruptores de privacidade do painel — a vitrine obedece. */
   const [privacidade, setPrivacidade] = useState(() => readSettings());
   const [totalSeguidores, setTotalSeguidores] = useState(0);
@@ -89,9 +92,15 @@ export default function Profile() {
        avisos, dois armazenamentos: o mural antigo e os posts da Comunidade nova. */
     window.addEventListener(MURAL_EVENT, recarregarPosts);
     window.addEventListener(POSTS_EVENT, recarregarPosts);
+    /* A folha do lápis fica **por cima** desta página (§4.95): o interruptor que
+       você toca ali tem de apagar a porta aqui atrás na hora, e não só ao
+       fechar. */
+    const relerAjustes = () => setPrivacidade(readSettings());
+    window.addEventListener(SETTINGS_EVENT, relerAjustes);
     return () => {
       window.removeEventListener(MURAL_EVENT, recarregarPosts);
       window.removeEventListener(POSTS_EVENT, recarregarPosts);
+      window.removeEventListener(SETTINGS_EVENT, relerAjustes);
     };
   }, []);
 
@@ -207,14 +216,21 @@ export default function Profile() {
 
         {!visitante && (
           <div className="absolute right-4 top-4 z-10 flex items-center gap-1">
-            <Link
-              href="/profile/edit"
+            {/*
+              **O lápis abre a folha, e não a tela de nome e bio** (§4.95).
+              Ele editava um terço do que prometia; agora abre o índice do que é
+              o seu perfil — quem você é, o que aparece e o que dá para escrever.
+              A folha sobe por cima da página, que continua atrás: editar o
+              perfil é olhar para ele.
+            */}
+            <button
+              onClick={() => setEditando(true)}
               aria-label="Editar perfil"
               className="rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
               data-testid="button-edit-profile"
             >
               <Pencil className="h-[18px] w-[18px]" strokeWidth={1.9} />
-            </Link>
+            </button>
             <Link
               href="/you"
               aria-label="Seu painel"
@@ -350,6 +366,17 @@ export default function Profile() {
         respostas para a mesma pergunta é o defeito que a §4.57 varreu do menu da
         Comunidade.
       */}
+      {/*
+        ⚠️ **Os interruptores passaram a valer aqui** (§4.95). Até 01/08,
+        `mostrarMeusComentarios` e `mostrarMeusClubes` eram gravados e **nenhum
+        código os lia** — dois botões que mentiam havia três dias. Achei
+        conferindo, ao mover os interruptores para a folha do lápis: mudar de
+        lugar um botão morto é dar-lhe destaque sem lhe dar função.
+
+        **Escondida some para quem visita e fica apagada para você**, com o olho
+        cortado. Sumir para você também tiraria o seu caminho para os seus
+        próprios comentários — e você não saberia que a escondeu.
+      */}
       <PortasDoPerfil
         portas={[
           {
@@ -365,6 +392,7 @@ export default function Profile() {
             total: totalComentarios,
             href: "/comentarios",
             testid: "porta-comentarios",
+            escondida: !privacidade.mostrarMeusComentarios,
           },
           {
             icone: Users,
@@ -372,6 +400,7 @@ export default function Profile() {
             total: clubes.length,
             href: "/clubes",
             testid: "porta-clubes",
+            escondida: !privacidade.mostrarMeusClubes,
           },
           /* A quarta porta, de 31/07 (§4.84): autores, narradores, editoras e o
              Studio que você segue. Fica ao lado das outras porque é a mesma
@@ -383,8 +412,9 @@ export default function Profile() {
             total: quantosAcompanho(),
             href: "/acompanhando",
             testid: "porta-acompanhando",
+            escondida: !privacidade.mostrarQuemAcompanho,
           },
-        ]}
+        ].filter((porta) => !(visitante && porta.escondida))}
       />
 
       {livroTocando && tocando && (
@@ -458,6 +488,7 @@ export default function Profile() {
         )}
       </section>
 
+      {editando && <FolhaDeEditarPerfil onFechar={() => setEditando(false)} />}
     </div>
   );
 }
