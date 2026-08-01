@@ -7223,7 +7223,44 @@ tópicos passa a exigir **escolher** antes de ler.
 
 Mais quatro decisões de tela na mesma folha: onde mora o "depois do fim", a ponte
 do livro para o fórum, o que acontece quando alguém abre tópico sobre um livro, e
-como o aviso de spoiler aparece. **Nada disso está decidido — a folha é dele.**
+como o aviso de spoiler aparece.
+
+### As quatro foram rejeitadas — e o defeito comum vale mais que elas (01/08)
+
+> *"Eu não gostei dessas propostas. Crie outras, melhores."* — e, perguntado o que
+> falhou, ele marcou **"as ideias em si"** (não o formato, não o tamanho, não a
+> premissa).
+
+**O defeito comum, para não repetir:** as quatro discutiam **arrumação de caixas**
+— onde cada conversa mora, quem aponta para quem. *Qualquer app de fórum poderia
+ter aquelas quatro.* Nenhuma usava o que só o AllBook tem (o minuto exato, a
+posição de escuta, o trecho de áudio); uma delas ("o fórum não fala de livro") era
+**palha**, rejeitada por mim no próprio texto ao lado; e a "costura" apenas
+organizava a convivência de duas coisas parecidas em vez de fazê-las **deixarem de
+ser parecidas**.
+
+**A régua que sai daqui:** *quando duas telas parecem iguais, o conserto é dar a
+elas trabalhos diferentes — ou formas diferentes. Aviso, regra e ponte não
+diferenciam nada aos olhos de quem chega.*
+
+**A segunda leva** (`client/public/_propostas-conversas-A2.html`, mesmo molde)
+parte de outra pergunta — *que forma a conversa toma quando o assunto é som?*:
+
+- **A · A conversa vira o mapa do livro** — deixa de ser lista e ganha a forma do
+  livro: uma régua do começo ao fim com bolhas onde se falou, e o que está adiante
+  apagado. Um mapa nunca vai parecer uma lista de tópicos. **Recomendada.**
+- **C · O fórum pergunta, o livro comenta** — o fórum vira lugar de pergunta, com
+  resposta que pode ser **um trecho de áudio** e uma marcada como a que resolveu
+  (fecha duas pendências da §4.72). **Recomendada, combina com A.**
+- **B · Fone dentro, fórum fora** — a divisão passa a ser por **estado**: a sala é
+  de quem está ouvindo agora. Nítida, mas dura: expulsa quem terminou.
+- **D · Uma fala só, dois lugares** — a fala nasce no livro e **ecoa** no grupo do
+  tema com a capa colada. Acaba a duplicação, mas afoga o grupo e vaza spoiler.
+
+Mais três decisões de tela: a forma do eixo (régua horizontal / agrupada por
+capítulo / trilho vertical), o que o fórum ganha em troca, e o que fazer quando
+alguém abre tópico sobre um livro — inclusive a opção **"deixa acontecer"**, que
+é a resposta honesta se a forma resolver sozinha. **Nada decidido — a folha é dele.**
 
 ---
 
