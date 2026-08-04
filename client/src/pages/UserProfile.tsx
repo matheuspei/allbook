@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Redirect, useParams } from "wouter";
-import { BookHeart, Check, MessageSquareQuote, Plus, Share2, UserPlus, Users } from "lucide-react";
+import { Check, Plus, Share2, UserPlus } from "lucide-react";
 
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import PageHeader from "@/components/PageHeader";
@@ -285,21 +285,18 @@ export default function UserProfile() {
       <PortasDoPerfil
         portas={[
           {
-            icone: BookHeart,
             rotulo: books.length === 1 ? "recomendação" : "recomendações",
             total: books.length,
             href: `/user/${member.slug}/recomendacoes`,
             testid: "porta-recomendacoes",
           },
           {
-            icone: MessageSquareQuote,
             rotulo: atividade.length === 1 ? "comentário" : "comentários",
             total: atividade.length,
             href: `/user/${member.slug}/comentarios`,
             testid: "porta-comentarios",
           },
           {
-            icone: Users,
             rotulo: clubesDela.length === 1 ? "clube" : "clubes",
             total: clubesDela.length,
             href: `/user/${member.slug}/clubes`,

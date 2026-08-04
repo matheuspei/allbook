@@ -3463,3 +3463,28 @@ selo SEU) reintroduzia a mistura que era a queixa original.
 duas vezes de `/clubes` para `/community` sozinha — o console provou que eram
 **full reloads do Vite** disparados pelas outras janelas salvando arquivo, não
 defeito da tela. Se acontecer com as outras janelas paradas, aí é assunto.
+
+**As correções dele, na mesma noite (04/08), olhando a tela construída:**
+
+1. **Porta não tem ícone.** *"Eu tiraria esses ícones laranjas e essas
+   figurinhas laranjas — não vamos colocar."* Saíram do componente
+   `PortasDoPerfil` — que é compartilhado, então **o perfil mudou junto**
+   (§4.41: um componente só, um desenho só). Saíram também as figurinhas dos
+   títulos de seção e a estrelinha de dentro da etiqueta de estreia.
+2. **Letra maior nas portas.** *"Meus clubes, estreias, abertos está muito
+   pequeno — não faz sentido essa proporção."* Rótulo de 10px para 12px,
+   número de 15px para 18px.
+3. **"Próximos encontros" é a fileira da proposta B da folha 1**, que ele
+   resgatou: *"tinha uma fileirinha… eles estavam separados, o dia estava bem
+   mais bonito"*. Linhas finas de agenda (`LinhaDeAgenda`): capa em miniatura,
+   nome, e o prazo sozinho à direita — âmbar quando é estreia, laranja quando
+   falta ≤ 7 dias. Fina, a linha deixa caber **5** onde os 3 cartões gordos
+   estufavam. O cartão rico (`CartaoDoSeuClube`) segue na página `/clubes/meus`.
+4. **A grade de estreias é a da biblioteca.** *"Só tem dois livros um do lado
+   do outro… onde tinha biblioteca e catálogo são três livros"* — erro de
+   proporção. Agora `grid-cols-3` com capa 3:4, igual à estante. A etiqueta
+   encurtou para "amanhã"/"em 4 dias": o título da página já diz que é
+   estreia, e "começa em…" quebrava em duas linhas na capa estreita.
+
+O "Para você" ficou — *"tá ok"* — com a ressalva dele de que talvez ainda mude
+algo ali; se mexer, é iteração nova, não pendência.

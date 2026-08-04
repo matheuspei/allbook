@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { EyeOff, type LucideIcon } from "lucide-react";
+import { EyeOff } from "lucide-react";
 
 /**
  * As três portas do topo do perfil — **recomendações, comentários e clubes**.
@@ -24,9 +24,13 @@ import { EyeOff, type LucideIcon } from "lucide-react";
  * **Componente único para a sua página e a dos outros**, pela régua da §4.41:
  * duas cópias divergem com o tempo, e foi assim que o perfil dos membros ficou
  * sem as novidades em 28/07.
+ *
+ * **Sem ícone, e com letra maior, desde 04/08** — quando as portas chegaram à
+ * tela de clubes, o Matheus vetou: *"eu tiraria esses ícones laranjas… as
+ * letras estão muito pequenas, não faz sentido essa proporção"*. O número e o
+ * rótulo são a porta inteira; o ícone repetia o que o rótulo já diz.
  */
 export interface PortaDoPerfil {
-  icone: LucideIcon;
   rotulo: string;
   total: number;
   href: string;
@@ -52,7 +56,7 @@ export default function PortasDoPerfil({ portas }: { portas: PortaDoPerfil[] }) 
       style={{ gridTemplateColumns: `repeat(${portas.length}, minmax(0, 1fr))` }}
       data-testid="portas-do-perfil"
     >
-      {portas.map(({ icone: Icone, rotulo, total, href, testid, escondida }) => (
+      {portas.map(({ rotulo, total, href, testid, escondida }) => (
         <Link
           key={testid}
           href={href}
@@ -68,9 +72,8 @@ export default function PortasDoPerfil({ portas }: { portas: PortaDoPerfil[] }) 
           {escondida && (
             <EyeOff className="absolute right-1.5 top-1.5 h-3 w-3 text-white/40" aria-label="escondida de quem visita" />
           )}
-          <Icone className="h-[18px] w-[18px] text-primary" />
-          <span className="font-display text-[15px] font-bold leading-none">{total}</span>
-          <span className="text-[10px] leading-tight text-white/45">{rotulo}</span>
+          <span className="font-display text-lg font-bold leading-none">{total}</span>
+          <span className="text-xs leading-tight text-white/50">{rotulo}</span>
         </Link>
       ))}
     </div>

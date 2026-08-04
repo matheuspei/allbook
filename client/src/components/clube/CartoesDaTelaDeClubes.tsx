@@ -1,11 +1,11 @@
 import { Link } from "wouter";
-import { CalendarDays, MessageSquare, Plus, Sparkles, Users } from "lucide-react";
+import { CalendarDays, MessageSquare, Plus, Users } from "lucide-react";
 
 import { catalog, type Book } from "@/lib/books";
 import { getChapters } from "@/lib/chapters";
 import {
   capituloDaRoda,
-  dataCurta,
+  diasAte,
   estaComecando,
   estreiaEmTexto,
   meuCapitulo,
@@ -49,24 +49,59 @@ export function Pastilha({
   );
 }
 
-/** Título de seção — pequeno, em caixa alta, com um ícone que dá o assunto. */
-export function Secao({
-  titulo,
-  icone,
-  children,
-}: {
-  titulo: string;
-  icone: React.ReactNode;
-  children: React.ReactNode;
-}) {
+/** Título de seção — pequeno, em caixa alta. Sem ícone: ele vetou as figurinhas (04/08). */
+export function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="flex items-center gap-1.5 px-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-        {icone}
+      <h2 className="px-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
         {titulo}
       </h2>
       {children}
     </section>
+  );
+}
+
+/**
+ * Uma linha fina de agenda — o desenho da proposta B da folha `_clubes-B.html`,
+ * que o Matheus resgatou em 04/08: *"uma fileirinha dos próximos encontros…
+ * eles estavam separados, o dia estava bem mais bonito"*. A capa é miniatura,
+ * e a data vive sozinha à direita, com o quê (encontro ou estreia) em cima.
+ * Linha fina em vez de cartão gordo é o que deixa caber 5 numa dobra.
+ */
+export function LinhaDeAgenda({ clube }: { clube: Clube }) {
+  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const estreia = estaComecando(clube);
+  const data = estreia ? clube.ciclo.inicio : clube.ciclo.encontro;
+  const cor = estreia
+    ? "text-[#f59e0b]"
+    : diasAte(data) <= 7
+      ? "text-primary"
+      : "text-white/55";
+
+  return (
+    <Link
+      href={`/clube/${clube.id}`}
+      className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 transition-colors hover:bg-white/[0.07]"
+      data-testid={`encontro-${clube.id}`}
+    >
+      {livro && (
+        <img
+          src={livro.cover}
+          alt={livro.title}
+          className="h-9 w-9 shrink-0 rounded-lg object-cover"
+        />
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-semibold">{clube.nome}</p>
+        <p className="truncate text-[10.5px] text-white/40">{livro?.title}</p>
+      </div>
+      <div className="shrink-0 text-right">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-white/30">
+          {estreia ? "estreia" : "encontro"}
+        </p>
+        <p className={`text-xs font-bold ${cor}`}>{prazoEmTexto(data)}</p>
+      </div>
+    </Link>
   );
 }
 
@@ -111,7 +146,6 @@ export function CartaoDoSeuClube({ clube }: { clube: Clube }) {
           {estreia ? (
             <p className="mt-2.5">
               <span className="rounded-md bg-[#f59e0b]/15 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#f59e0b]">
-                <Sparkles className="mr-1 inline h-3 w-3 align-[-2px]" />
                 {estreiaEmTexto(clube)}
               </span>
               <span className="ml-2 text-[11px] text-white/45">
@@ -159,45 +193,32 @@ export function CartaoDoSeuClube({ clube }: { clube: Clube }) {
 }
 
 /**
- * Um cartão do carrossel/grade de estreias.
+ * Um cartão da grade de estreias — **na proporção da biblioteca** (04/08).
  *
- * **O primeiro é maior**, e não por estética: no carrossel a primeira posição é
- * a estreia **mais próxima** — a que ainda dá tempo de pegar e a que some
- * antes. A data é uma etiqueta no canto, e não uma tarja sobre a arte, porque
- * capa de livro tem texto no rodapé — tarja ali era letra sobre letra.
+ * O Matheus mediu de olho: *"só tem dois livros um do lado do outro… onde tinha
+ * biblioteca e catálogo são três livros"*. Então o cartão é fluido e a página o
+ * põe na mesma grade da estante (`grid-cols-3`), com a capa em 3:4 como lá. A
+ * data é uma etiqueta no canto, e não uma tarja sobre a arte, porque capa de
+ * livro tem texto no rodapé — tarja ali era letra sobre letra.
  */
-export function CartaoDeEstreia({ clube, grande }: { clube: Clube; grande?: boolean }) {
+export function CartaoDeEstreia({ clube }: { clube: Clube }) {
   const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
   if (!livro) return null;
 
-  const lado = grande ? 200 : 148;
-
   return (
-    <Link
-      href={`/clube/${clube.id}`}
-      className="shrink-0"
-      style={{ width: lado }}
-      data-testid={`clube-estreia-${clube.id}`}
-    >
-      <div className="relative overflow-hidden rounded-xl">
-        <img
-          src={livro.cover}
-          alt={livro.title}
-          className="w-full object-cover"
-          style={{ height: lado }}
-        />
+    <Link href={`/clube/${clube.id}`} className="block" data-testid={`clube-estreia-${clube.id}`}>
+      <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/10 shadow-lg shadow-black/40">
+        <img src={livro.cover} alt={livro.title} className="h-full w-full object-cover" />
+        {/* Forma curta ("amanhã", "em 4 dias"): o título da página já diz que é
+            estreia, e "começa em…" quebrava em duas linhas na capa estreita. */}
         <span className="absolute left-1.5 top-1.5 rounded-md bg-black/75 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#f59e0b] backdrop-blur-sm">
-          {estreiaEmTexto(clube)}
+          {prazoEmTexto(clube.ciclo.inicio)}
         </span>
       </div>
 
-      <p className={`mt-2 line-clamp-2 font-bold leading-tight ${grande ? "text-sm" : "text-xs"}`}>
-        {clube.nome}
-      </p>
-      <p className="mt-0.5 truncate text-[10.5px] text-white/45">{livro.title}</p>
-      <p className="mt-0.5 truncate text-[10.5px] text-white/30">
-        {clube.membros.length} {clube.membros.length === 1 ? "inscrito" : "inscritos"} ·{" "}
-        {dataCurta(clube.ciclo.inicio)}
+      <h3 className="mt-2 text-[13px] font-medium leading-snug line-clamp-2">{clube.nome}</h3>
+      <p className="truncate text-[11px] text-white/40">
+        {clube.membros.length} {clube.membros.length === 1 ? "inscrito" : "inscritos"}
       </p>
     </Link>
   );

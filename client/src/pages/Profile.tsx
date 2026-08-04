@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Bell, BookHeart, Eye, MessageSquareQuote, Pencil, Settings, Share2, Users, X } from "lucide-react";
+import { Eye, Pencil, Settings, Share2, X } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
@@ -423,14 +423,12 @@ export default function Profile() {
       <PortasDoPerfil
         portas={[
           {
-            icone: BookHeart,
             rotulo: recommendations.length === 1 ? "recomendação" : "recomendações",
             total: recommendations.length,
             href: "/recomendacoes",
             testid: "porta-recomendacoes",
           },
           {
-            icone: MessageSquareQuote,
             rotulo: totalComentarios === 1 ? "comentário" : "comentários",
             total: totalComentarios,
             href: "/comentarios",
@@ -438,7 +436,6 @@ export default function Profile() {
             escondida: !privacidade.mostrarMeusComentarios,
           },
           {
-            icone: Users,
             rotulo: clubes.length === 1 ? "clube" : "clubes",
             total: clubes.length,
             href: "/clubes",
@@ -450,7 +447,6 @@ export default function Profile() {
              pergunta — "o que é meu neste app?" —, e é por ela que se chega
              rápido a quem você acompanha, que era metade do pedido. */
           {
-            icone: Bell,
             rotulo: "seguindo",
             total: quantosAcompanho(),
             href: "/acompanhando",

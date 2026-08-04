@@ -92,7 +92,8 @@ export default function MeusClubes() {
  *
  * A regra veio da primeira folha: estreia sua mora entre os seus, com a
  * etiqueta; esta vitrine é só onde dá para você entrar antes de todo mundo.
- * Grade, e não carrossel: numa página dedicada há espaço para ver todas.
+ * A grade é **a mesma da biblioteca** — 3 por linha, capa 3:4 — por correção
+ * do Matheus em 04/08: duas capas por linha era "erro de proporção".
  */
 export function EstreiasDeClubes() {
   const estreias = usarClubes(estreiasParaDescobrir);
@@ -114,7 +115,7 @@ export function EstreiasDeClubes() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-wrap gap-4 px-5 pt-4">
+        <div className="grid grid-cols-3 gap-x-3 gap-y-5 px-5 pt-4">
           {estreias.map((clube) => (
             <CartaoDeEstreia key={clube.id} clube={clube} />
           ))}

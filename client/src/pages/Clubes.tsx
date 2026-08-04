@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { CalendarDays, Compass, Search, Sparkles, Users, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import PortasDoPerfil from "@/components/PortasDoPerfil";
 import {
   CartaoComMotivo,
-  CartaoDoSeuClube,
   CartaoParaDescobrir,
   ConviteParaCriar,
+  LinhaDeAgenda,
   Secao,
 } from "@/components/clube/CartoesDaTelaDeClubes";
 import {
@@ -78,15 +78,18 @@ export default function Clubes() {
   const resultados = procurando ? buscarClubes(todosOsClubes(), busca) : [];
 
   /**
-   * "Próximos encontros": os 3 clubes seus que precisam de você antes. A data
-   * que conta é a **relevante** — estreia usa o início (é quando ela vira
-   * compromisso), clube andando usa o encontro.
+   * "Próximos encontros": os 5 clubes seus que precisam de você antes, em
+   * **linhas finas de agenda** — a correção do Matheus em 04/08, resgatando a
+   * proposta B da folha 1: *"tinha uma fileirinha dos próximos encontros… o dia
+   * estava bem mais bonito"*. A linha fina é o que deixa 5 caberem onde 3
+   * cartões gordos estufavam. A data que conta é a **relevante** — estreia usa
+   * o início (é quando ela vira compromisso), clube andando usa o encontro.
    */
   const dataRelevante = (clube: Clube) =>
     estaComecando(clube) ? clube.ciclo.inicio : clube.ciclo.encontro;
   const urgentes = [...meus]
     .sort((a, b) => dataRelevante(a).localeCompare(dataRelevante(b)))
-    .slice(0, 3);
+    .slice(0, 5);
 
   return (
     <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="clubes-page">
@@ -148,21 +151,18 @@ export default function Clubes() {
             <PortasDoPerfil
               portas={[
                 {
-                  icone: Users,
                   rotulo: meus.length === 1 ? "meu clube" : "meus clubes",
                   total: meus.length,
                   href: "/clubes/meus",
                   testid: "porta-meus-clubes",
                 },
                 {
-                  icone: Sparkles,
                   rotulo: estreias.length === 1 ? "estreia" : "estreias",
                   total: estreias.length,
                   href: "/clubes/estreias",
                   testid: "porta-estreias",
                 },
                 {
-                  icone: Compass,
                   rotulo: abertos.length === 1 ? "aberto" : "abertos",
                   total: abertos.length,
                   href: "/clubes/abertos",
@@ -174,10 +174,10 @@ export default function Clubes() {
             {/* O agora: os clubes seus que precisam de você antes. Os 8
                 inteiros moram na porta — aqui é urgência, não inventário. */}
             {urgentes.length > 0 && (
-              <Secao titulo="Próximos encontros" icone={<CalendarDays className="h-3 w-3" />}>
-                <div className="space-y-3 px-5">
+              <Secao titulo="Próximos encontros">
+                <div className="space-y-2 px-5">
                   {urgentes.map((clube) => (
-                    <CartaoDoSeuClube key={clube.id} clube={clube} />
+                    <LinhaDeAgenda key={clube.id} clube={clube} />
                   ))}
                 </div>
               </Secao>
@@ -186,7 +186,7 @@ export default function Clubes() {
             {/* Sugestão com motivo — some quando não há nada a sugerir, em vez
                 de título com vazio embaixo (§4.23). */}
             {paraVoce.length > 0 && (
-              <Secao titulo="Para você" icone={<Sparkles className="h-3 w-3 text-primary" />}>
+              <Secao titulo="Para você">
                 <div className="space-y-2.5 px-5">
                   {paraVoce.map((sugestao) => (
                     <CartaoComMotivo key={sugestao.clube.id} sugestao={sugestao} />
