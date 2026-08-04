@@ -1,0 +1,83 @@
+import { useEffect, useState } from "react";
+import { Link } from "wouter";
+
+import { catalog } from "@/lib/books";
+import { avatarDeLeitor, findMember } from "@/lib/community";
+import { EU } from "@/lib/clubes";
+import { SALA_AO_VIVO_EVENT, salasAoVivo } from "@/lib/salaAoVivo";
+
+/**
+ * **As salas ao vivo como stories** — a fileira que abre a Comunidade (§4.100).
+ *
+ * Decisão do Matheus (04/08, à noite): *"colocaríamos a parte do ao vivo como se
+ * fosse tipo um Stories, porque é uma coisa que as pessoas já estão
+ * acostumadas"*. O anel colorido em volta do rosto é o vocabulário que o
+ * Instagram ensinou ao mundo: **tem coisa acontecendo com essa pessoa, toque**.
+ * Aqui o anel é vermelho-laranja de AO VIVO, e tocar te põe **dentro da sala,
+ * no ponto da turma** — substitui o cartão vermelho que ocupava três linhas.
+ *
+ * As regras vêm do cartão que ele substitui (§4.81): sala privada não aparece
+ * (regra do `salasAoVivo`), sala marcada ainda-não-começada não aparece, a sala
+ * em que você já está não aparece (a barrinha do rodapé já a representa), e sem
+ * sala nenhuma a fileira some inteira — nada de versão vazia.
+ */
+export default function SalasComoStories() {
+  const [salas, setSalas] = useState(salasAoVivo);
+
+  useEffect(() => {
+    const atualizar = () => setSalas(salasAoVivo());
+    atualizar();
+    window.addEventListener(SALA_AO_VIVO_EVENT, atualizar);
+    return () => window.removeEventListener(SALA_AO_VIVO_EVENT, atualizar);
+  }, []);
+
+  const agora = salas.filter((sala) => sala.porta !== "marcada" && !sala.presentes.includes(EU));
+  if (agora.length === 0) return null;
+
+  return (
+    <section className="mb-1" data-testid="salas-como-stories">
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-1">
+        {agora.map((sala) => {
+          const anfitriao = findMember(sala.anfitriao);
+          const book = catalog.find((item) => item.id === sala.bookId);
+          return (
+            <Link
+              key={sala.id}
+              href={`/sala/${sala.id}`}
+              className="w-[72px] shrink-0 text-center"
+              data-testid={`story-sala-${sala.id}`}
+              aria-label={`Entrar na sala de ${anfitriao?.name ?? "leitor"}${book ? `, ouvindo ${book.title}` : ""}`}
+            >
+              <div className="relative mx-auto h-[68px] w-[68px]">
+                {/* O anel do story: gradiente de AO VIVO, girando devagar para
+                    dizer "agora" sem precisar de texto piscando. */}
+                <span className="absolute inset-0 animate-[spin_6s_linear_infinite] rounded-full bg-[conic-gradient(from_0deg,#ef4444,#FF6A00,#f59e0b,#ef4444)]" />
+                <span className="absolute inset-[3px] rounded-full bg-[#141414]" />
+                <span
+                  className={`absolute inset-[6px] flex items-center justify-center rounded-full bg-gradient-to-br font-display text-xl font-bold ${anfitriao?.color ?? "from-primary to-amber-500"}`}
+                  {...avatarDeLeitor(sala.anfitriao)}
+                >
+                  {(anfitriao?.name ?? "V").charAt(0)}
+                </span>
+                {book && (
+                  <img
+                    src={book.cover}
+                    alt=""
+                    className="absolute -bottom-0.5 -right-1 h-[30px] w-[21px] rounded-[3px] border-2 border-[#141414] object-cover"
+                  />
+                )}
+                <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 rounded-[4px] bg-red-500 px-1.5 py-px text-[7.5px] font-extrabold tracking-wide text-white">
+                  AO VIVO
+                </span>
+              </div>
+              <p className="mt-2.5 truncate text-[10.5px] text-white/60">
+                {(anfitriao?.name ?? "Você").split(" ")[0]}
+              </p>
+              <p className="truncate text-[9px] text-white/30">{sala.presentes.length} ouvindo</p>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}

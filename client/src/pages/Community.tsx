@@ -8,8 +8,8 @@ import CartaoDeSugestoes from "@/components/comunidade/CartaoDeSugestoes";
 import LinhaDeAtividade from "@/components/comunidade/LinhaDeAtividade";
 import { ConviteDeClube, ConviteDeForum, TrechosQuentes } from "@/components/comunidade/CartaoDeConvite";
 import Compositor from "@/components/comunidade/Compositor";
-import MenuDaComunidade from "@/components/comunidade/MenuDaComunidade";
-import OuvindoAgoraDaCasa from "@/components/comunidade/OuvindoAgora";
+import PainelDaComunidade from "@/components/comunidade/PainelDaComunidade";
+import SalasComoStories from "@/components/comunidade/SalasComoStories";
 import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
 import { montarFeed, type ItemDoFeed, type Lente } from "@/lib/feedDaComunidade";
 import SalasAoVivoNoFeed from "@/components/sala/SalasAoVivoNoFeed";
@@ -70,32 +70,11 @@ const LENTES: { key: Lente; label: string }[] = [
 export default function Community() {
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="community-page">
-      {/* ⚠️ **Sem `overflow-hidden` aqui**, e é decisão, não descuido: ele existia
-          para conter o brilho do fundo, e **cortava o menu “…”** — que é absoluto e
-          desce para fora do cabeçalho. O brilho ganhou a própria moldura recortada
-          logo abaixo; o cabeçalho ficou livre para deixar o menu passar. */}
-      <header className="relative px-5 pt-7 pb-4">
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-28 left-1/2 h-56 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
-        </div>
-        <div className="relative flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1
-              className="font-display text-3xl font-bold tracking-tight"
-              data-testid="text-community-title"
-            >
-              Comunidade
-            </h1>
-            <p className="mt-1.5 text-sm text-white/45">
-              Quem está ouvindo, conversando e recomendando
-            </p>
-          </div>
-          <div className="mt-1.5">
-            <MenuDaComunidade />
-          </div>
-        </div>
-      </header>
-
+      {/* **O cabeçalho morreu em 04/08 (§4.100), por decisão do Matheus:** o
+          título "Comunidade" repetia a aba do menu de baixo, e o subtítulo era
+          decorativo. A tela abre direto no que acontece: os stories do ao vivo,
+          o compositor e o feed. O painel (ex-menu "…") virou o quadradinho à
+          esquerda das lentes. */}
       <FeedDePosts />
     </div>
   );
@@ -205,13 +184,14 @@ function FeedDePosts() {
   }, [lente]);
 
   return (
-    <div className="px-5 pt-4" data-testid="feed-de-posts">
-      <Compositor />
+    <div className="px-5 pt-5" data-testid="feed-de-posts">
+      {/* O ao vivo abre a tela, como stories (§4.100) — o vocabulário que todo
+          mundo já conhece: anel colorido = tem coisa acontecendo, toque. Sala é
+          a coisa mais perecível do app (§4.81), por isso vive acima de tudo e
+          some sozinha quando não há nenhuma. */}
+      <SalasComoStories />
 
-      {/* As salas de escuta acontecendo **agora** (§4.81). Ficam acima do feed,
-          e não dentro dele, porque sala é a coisa mais perecível do app: existe
-          enquanto dura e some quando o anfitrião encerra. */}
-      <SalasAoVivoNoFeed />
+      <Compositor />
 
       {/*
         **Uma porta para `/perguntas`, e não um filtro no lugar** (30/07). Havia
@@ -247,7 +227,10 @@ function FeedDePosts() {
         só é o que a régua da casa proíbe — uma fileira de pílulas carrega um
         critério, não dois.
       */}
-      <div className="mt-3 flex gap-2" data-testid="feed-lentes">
+      <div className="mt-3 flex items-center gap-2" data-testid="feed-lentes">
+        {/* O quadradinho do painel, à esquerda — pedido dele, com o Facebook
+            como referência (§4.100). */}
+        <PainelDaComunidade />
         {LENTES.map((item) => (
           <button
             key={item.key}
@@ -267,11 +250,6 @@ function FeedDePosts() {
       {/* A fita de "ouvindo agora" mora **dentro do Seguindo** desde 30/07 — é
           atividade, e atividade só existe nesta lente (§4.58, decisão 7). */}
       {lente === "seguindo" && <OuvindoAgora seguindo={seguindo} />}
-
-      {/* No Todos, a casa inteira em versão compacta (rosto + capinha) — a
-          vitrine voltou por decisão do Matheus na folha da fila (§4.98): era a
-          única coisa que só um app de audiolivro tem, e estava escondida. */}
-      {lente === "todos" && <OuvindoAgoraDaCasa />}
 
       <div className="mt-3 space-y-3">
         {itens.map((item) => {

@@ -3364,6 +3364,45 @@ para o link do app.
 
 ---
 
+## 4.100 A Comunidade sem cabeçalho: stories do ao vivo e o painel-quadradinho (04/08, noite)
+
+> A §4.99 é da tela `/clubes` (janela B, mesma noite); esta é a reforma do topo
+> da Comunidade, ditada pelo Matheus em cima da tela.
+
+**Primeiro, um erro meu que virou lição de método.** O item 4 da folha da fila
+(§4.98) — a fileira "Ouvindo agora" — **caiu no mesmo dia**: ele aprovou
+achando que era a vitrine do **ao vivo** (a transmissão que se entra junto), e
+era presença passiva. Palavra dele: *"eu só aprovei a construção porque pensei
+que era para o ouvindo agora ao vivo"*. A fileira foi removida e o componente
+apagado. **A lição, para toda folha futura: maquete de peça nova precisa dizer
+também o que a peça NÃO é** — os dois blocos tinham nomes quase iguais ("AO
+VIVO AGORA" / "OUVINDO AGORA") na mesma tela, e a confusão era inevitável.
+
+**As decisões dele, todas construídas na hora:**
+
+1. **O cabeçalho da Comunidade morreu** — o título repetia a aba do menu de
+   baixo e o subtítulo ("Quem está ouvindo, conversando e recomendando") era
+   decorativo. A tela abre direto no conteúdo.
+2. **O ao vivo virou stories, no topo** — *"é uma coisa que as pessoas já estão
+   acostumadas"*: anel gradiente vermelho-laranja girando, avatar do anfitrião,
+   capinha do livro, selo AO VIVO e a contagem de ouvintes; tocar entra na sala
+   no ponto da turma (`comunidade/SalasComoStories.tsx`). Substitui o cartão
+   vermelho de três linhas. ⚠️ O componente antigo
+   (`components/sala/SalasAoVivoNoFeed.tsx`, faixa da B) **ficou órfão** —
+   candidato à próxima faxina, não apagado por ser de outra faixa.
+3. **O menu "…" virou o quadradinho, à esquerda das lentes** — referência
+   explícita dele: o Facebook. `comunidade/PainelDaComunidade.tsx` abre **a
+   tela inteira** (não mais um suspenso de 230px), com os mesmos 11 destinos em
+   **cartões de ícone colorido**, grade de 2 colunas, salas ao vivo em destaque
+   vermelho no alto e a seção "Criar" separada. `MenuDaComunidade.tsx` foi
+   apagado. **A regra da §4.57 não mudou:** o painel só leva ao que é da
+   comunidade; o que é seu continua no avatar. As contagens continuam reais e
+   condicionais (§4.23).
+4. "Meus clubes" no painel já aponta para `/clubes/meus`, a rota que a B criou
+   na §4.99 — as duas reformas da mesma noite se encaixaram sem conflito.
+
+---
+
 ## 4.99 A tela de clubes refeita: as portas com número, cada uma com a sua página (04/08, noite)
 
 **A queixa, com 8 clubes de verdade:** *"eu estou em 8 clubes e ele está muito
