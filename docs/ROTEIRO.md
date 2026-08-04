@@ -31,7 +31,7 @@ arquivo, na íntegra:
 - **4.17 O pedido sob demanda ganhou porta — e a promessa das 24 horas (25/07)** — Firma a promessa central das 24h como meta declarada e não medida, decide que a busca sem resultado é a porta principal, e rejeita o ícone de estrelinha e o texto com 'talvez'.
 - **Só com o banco — e um deles não é "falta implementar"** — Explica por que 'Esqueci minha senha' foi removido de propósito (o `auth.ts` não guarda senha nenhuma) e que ele volta junto com o servidor de contas — impede alguém de repor o link achando que é falha.
 - **Preparação para o catálogo crescer** — Pendência explícita: com dezenas de categorias a lista rolável não basta e vai pedir agrupamento ou filtro — decisão não tomada.
-- **Fica em aberto: onde nasce a saída de quem não gosta da narração existente** — Pendência declarada, amarrada a preço e plano que seguem em aberto; a proposta (nasce na ficha, gasta crédito) está registrada como não aprovada.
+- **Fica em aberto: onde nasce a saída de quem não gosta da narração existente** — Em essência já respondida (os planos com crédito resolvem sem botão novo, e a §4.30 faz o pedido virar segunda narração do mesmo livro, com seletor); o que segue aberto são os **números** dos planos.
 - **4.33 O Bluetooth do modo carro: copiamos a caixinha e jogamos fora a razão (26/07)** — Pesquisa na documentação oficial da Audible que ninguém deve refazer (o app não conecta nada, não se abre sozinho, o Bluetooth é opção nas Configurações), a rejeição do app escolher título sozinho e o aviso de que a falta do avançar 30s não é defeito; a dúvida sobre manter o modo carro fica anotada.
 - **4.34 Proteger o áudio: o que dá e o que não dá (26/07)** — Nada foi construído: é decisão de negócio pendente para o dia em que houver áudio, registrada para não recomeçar do zero.
 - **As camadas, da mais barata para a mais cara** — Apuração técnica não implementada (segmentos HLS com URL assinada, limite de taxa por conta, marca d'água, DRM) que orienta a arquitetura futura do áudio.
@@ -41,12 +41,12 @@ arquivo, na íntegra:
 - **Três propostas construídas e rejeitadas — "nenhuma me agradou"** — Rejeição que ainda vale, com a direção que ele quer no lugar (livro abrindo com som, fone com livro, clean, possivelmente novo letreiro) — evita reapresentar as mesmas três ideias.
 - **Imagem enviada pelo usuário: decisão tomada, com o mecanismo nomeado** — Decisão sobre moderação com o mecanismo nomeado (custo de reentrada), três condições que viram regra de conta no backend, e a pergunta explicitamente em aberto: quem julga a denúncia no feed, que não tem dono.
 - **Duas escolhas menores** — Uma decisão viva (o perfil nasce público) e uma explicitamente não tomada: se quem é privado aparece nas sugestões de gente, com o cadeado.
-- **4.57 O Clube reorganizado: quatro modos desenhados, decisão em aberto (29/07)** — Decisão de estrutura do Clube ainda não tomada. Ressalva: a folha `client/public/_propostas-clube.html` citada aqui não existe mais — o ponteiro precisa sair.
+- **4.57 O Clube reorganizado: quatro modos desenhados, decisão em aberto (29/07)** — **O esqueleto já foi decidido**: o clube virou abas (§4.89, 31/07 — a proposta B desta seção). O que resta em aberto é só se a "linha do ciclo" da proposta C entra na aba Conversa.
 - **O que foi medido no app antes de desenhar** — Apuração cara e explicitamente marcada como válida mesmo que nenhuma proposta vingue: 4,5 telas de rolagem, a conversa no meio da pilha crescendo sem fim, 3 de 4 falas viradas placa de spoiler, e a memória do ciclo sem endereço.
 - **As quatro filosofias (e o preço de cada uma)** — São as opções sobre as quais a decisão em aberto vai ser tomada, cada uma com o preço já apurado.
 - **A recomendação registrada (não é decisão)** — Diz em uma frase o que fazer quando o martelo bater (abas da B + linha do ciclo da C) e por que a C é a única que só o AllBook consegue.
 - **O selo "Pergunta" virou link, e o filtro do feed virou página** — Regra viva (rótulo que nomeia uma categoria precisa levar até ela) e a distinção que impede confusão futura: `/perguntas` é recorte sob demanda, não a "aba de perguntas" rejeitada. Deixa pendente a divisão entre sem resposta e respondidas, hoje já possível.
-- **A aba Pessoas morreu, e cada bloco dela teve um destino** — Carrega duas ressalvas ainda abertas: o app ficou sem nenhuma lista de todos os leitores (o lugar dela seria a Busca) e Ouvindo agora perdeu vitrine atrás de uma lente.
+- **A aba Pessoas morreu, e cada bloco dela teve um destino** — A ressalva da "lista de leitores na Busca" **deixou de ser pendência**: a §4.97 (04/08) decidiu que busca de pessoas fica fora desta etapa, e nomeou o gatilho para o assunto voltar. Segue aberta só a vitrine do "Ouvindo agora".
 - **Correção na hora seguinte: a roleta volta, e as 36 aparecem** — Régua viva (tela vazia é falta de conteúdo, não de layout; ao trocar um controle, perguntar que gesto o antigo servia) e uma pendência declarada das 10 fotos de comunidade.
 - **4.87 "A conversa do livro não virou inútil?" — apurado, e a resposta é não (31/07) — decisão em aberto** — Abre a única decisão grande explicitamente pendente da fatia; `/book/:id/conversa` e a `SalaDoLivro` continuam no código.
 - **A premissa não se confirma no código** — Apuração custosa (zero `bookId` em grupos e tópicos) que sustenta a decisão pendente e ninguém deve refazer.
@@ -118,7 +118,9 @@ lista corrida com divisórias finas, ícone monocromático, cor da marca reserva
 Começar sóbrio ao criar tela nova. (A tela de Estatísticas ainda tem os cartões
 coloridos antigos — candidata ao mesmo tratamento.)
 
-Ordem: **Descobrir → Perfil → Login/Cadastro → Configurações → Busca → Categoria → Autor → Planos → Onboarding.**
+~~Ordem: Descobrir → Perfil → …~~ **[VENCIDA]** Dessa fila, tudo foi construído
+ou extinto (Descobrir fundida na Buscar §4.32; Planos removida §4.31) — **falta
+só o onboarding**.
 
 ### Decisões da tela de Login (21/07)
 
@@ -156,9 +158,11 @@ falta de recursos.
   virar gente de verdade quando houver backend. Argumentar "partida a frio" ou
   "conteúdo falso" contra eles não vale: eles existem justamente para dar o que
   ver enquanto se constrói.
-- **Nada de comunidade no Início.** O foco do app é sempre o audiolivro; o social
-  é secundário e fica escondido, alcançado pelo Perfil. **Rejeitada** a proposta
-  de uma faixa "recomendado por quem você segue" na tela inicial.
+- **Nada de comunidade no Início.** O foco do app é sempre o audiolivro.
+  **Rejeitada** a proposta de uma faixa "recomendado por quem você segue" na
+  tela inicial. ⚠️ **[DELIMITADA pela §4.41 (28/07)]** — a metade "social
+  escondido, alcançado pelo Perfil" caiu: a Comunidade ganhou porta própria no
+  `BottomNav`. O que sobrevive daqui é só **nada de social no Início**.
 - **Não é um feed tipo Instagram/Facebook.** É uma tela de atividade contida, com
   dois tipos de acontecimento e nada de rolagem infinita.
 
@@ -378,10 +382,10 @@ produziu o quê), `pages/Studio.tsx` (`/studio`), quarto cartão em `BookDetails
 o selo + timbre no `PersonProfile`. Nenhum dado de narração foi para `books.ts`
 além do nome do narrador — mesma razão da editora (ver 4.11).
 
-**Próximo passo combinado, ainda não feito:** o **livro sem narração**. Hoje ele
-mostra "Reproduzir" e não toca nada. Esse é o melhor lugar do app para a função
-central aparecer — um estado do tipo "gerar narração" / "em produção" —, e
-transforma um vazio em vitrine.
+~~**Próximo passo combinado:** o livro sem narração… um estado do tipo "gerar
+narração" / "em produção" na ficha.~~ **[REVOGADO na §4.23, no mesmo dia]** — o
+Matheus apontou o erro: não é caso de inventar estado novo na ficha; a porta da
+função central é o pedido (§4.17).
 
 ---
 
@@ -407,7 +411,9 @@ pessoa. Daí a herança certa: autor ← média das notas de **história**; narr
 média das notas de **narração**; editora ← média dos livros dela. Hoje a nota do
 narrador sai da nota geral do livro, o que é injusto: livro fraco com narração
 excelente puniria o narrador (e vice-versa). Os campos `story` e `performance`
-já existem no `BookDetails`, faltam subir para o catálogo.
+já existem no `BookDetails` ~~, faltam subir para o catálogo~~ **[FEITO
+depois: os campos são opcionais no catálogo — ver "O que só apareceu na hora
+de construir"]**.
 
 **3. Só avalia quem ouviu: 20% do livro.** É a vantagem de ser um tocador — o
 app **sabe** quanto você ouviu, uma livraria não. O dado já existe hoje
@@ -463,8 +469,11 @@ depende do pipeline automatizado que ainda não existe.
 
 **Modelo de negócio, atualização da visão:** ele agora fala em **"talvez dois
 planos em algum momento"**, contra o "um plano comum" registrado em 24/07.
-Continua **em aberto** — e por isso a tela **não diz uma palavra sobre preço ou
-cota**. Só o que é verdade hoje: "enquanto o AllBook está em fase aberta, pedir
+~~Continua **em aberto**~~ **[SUPERADO em 26/07]** — a forma do modelo foi
+decidida na "Atualização de 26/07" (planos com crédito de pedido, que não se
+somam); abertos ficaram só os números finais. A tela seguir **sem uma palavra
+sobre preço ou cota** continua certo enquanto os números não fecham. Só o que é
+verdade hoje: "enquanto o AllBook está em fase aberta, pedir
 não custa nada".
 
 **A porta principal é a busca sem resultado, e isso é decisão de projeto.** Ali
@@ -551,8 +560,8 @@ tolerância: até 3 letras, **zero** erro; 4 a 6, **um**; 7 ou mais, **dois**.
 O resultado, medido nos mesmos termos: "carro", "flor", "gato" e "o nome do
 vento" → **nada** (a oferta aparece); "tolkein", "hobit", "sennhor dos aneis",
 "stephan king" → **acham** o livro certo. Tolerar erro continua valendo — o que
-não valia era tolerar semelhança solta. **O Fuse.js saiu da busca** (o pacote
-segue no `package.json`; tirar é item de faxina, não urgência).
+não valia era tolerar semelhança solta. **O Fuse.js saiu da busca** (e a faxina
+de 31/07, §4.88, o desinstalou do `package.json` — não traga de volta).
 
 **Onde a chamada ficou visível:** componente `RequestBanner`, em dois lugares —
 **na Início, como primeiro conteúdo abaixo do destaque da capa**, e **no topo da
@@ -569,9 +578,11 @@ vão se misturando de acordo com as capas que vão passando"*. **Regra que fica:
 cor translúcida só sobre fundo estável.** A faixa passou a ter corpo **opaco**
 (`#1e1e1e`, o cinza dos cartões do app), com o laranja da marca só no ícone e na
 seta, e ganhou respiro do billboard (`pt-5`) para pertencer ao corpo da página,
-não ao destaque. **Rejeitado descer a faixa para depois das categorias** — seria
-desfazer o que esta mesma seção acabou de decidir; o defeito era de pele e de
-respiro, não de posição.
+não ao destaque. ~~**Rejeitado descer a faixa para depois das categorias** — o
+defeito era de pele e de respiro, não de posição.~~ **[REVOGADO em 26/07]** — a
+correção do dia seguinte admite: *o lugar era o problema, sim*. A faixa saiu da
+Início e o pedido virou o botão laranja do meio do menu (ver a regra herdada
+"Correção de 26/07" no fim deste arquivo).
 
 ## 4.22 A segunda peça virou Story — e o herói deixou de ser a hora (25/07)
 
@@ -1308,7 +1319,10 @@ graça, e é isso que torna o clube melhor aqui dentro do que fora.
 - **Gamificação do clube** (ranking de quem ouviu mais, sequência de dias): faz
   a pessoa **mentir o progresso** para não ficar mal na foto — e progresso
   mentido quebra exatamente a trava de spoiler. Nocivo, não só supérfluo.
-- **Chat em tempo real, "está digitando", presença.** Clube é assíncrono; cada
+- **Chat em tempo real, "está digitando", presença.** ⚠️ **[DELIMITADA depois]**
+  A presença por capítulo entrou na §4.58 item 8 (29/07, opt-in recíproco) e o
+  chat ao vivo entrou com a sala de escuta (§4.81, 31/07) — esta exclusão segue
+  valendo **só para a rodada do clube**, que continua assíncrona. Clube é assíncrono; cada
   um ouve no seu horário.
 - **Resumo do livro por IA** — mata a razão de existir do clube. O uso honesto é
   outro: sugerir **perguntas de discussão** para quem tem que puxar a conversa.
@@ -1401,14 +1415,10 @@ convidar. A Comunidade deixa de ser apêndice social e vira **infraestrutura do
 clube**: descobrir pessoas por afinidade, ver o que elas ouvem e recomendam,
 interagir, e convidar.
 
-**Contradição a resolver, e é decisão do Matheus.** A decisão de 21/07 (seção
-"Decisões da Comunidade") diz: *"o social é secundário e fica escondido,
-alcançado pelo Perfil"*, e rejeita comunidade no Início. **É essa decisão que
-hoje impede o clube de existir.** Ou o social ganha porta própria (o candidato
-óbvio é o `BottomNav`, hoje Início · Biblioteca · Pedir · Buscar · Perfil), ou o
-clube continua sem gente para encher. A recomendação registrada aqui: dar porta
-própria à Comunidade; manter o Início limpo de social, que era o coração
-daquela decisão.
+~~**Contradição a resolver, e é decisão do Matheus.**~~ **[RESOLVIDA]** — a
+recomendação daqui foi seguida: a Comunidade **tem** porta própria no
+`BottomNav` (que hoje é Início · Biblioteca · Pedir · Catálogo · Comunidade), e
+o Início ficou limpo de social, que era o coração da decisão de 21/07.
 
 **O que "Recomendo" passa a ser.** Hoje é uma seção do Perfil que **ninguém vê**
 — o rótulo diz "Visível para a comunidade" e ela vive no `localStorage`. Na
@@ -1425,9 +1435,11 @@ manteve o pedido. **Motivo da virada:** aquela decisão foi tomada quando a
 Comunidade era um diretório; o defeito real de agora era outro — *seguir não
 alimentava nada* e não havia voz própria fora da ficha de livro.
 
-**O que sobrevive da decisão antiga:** nada de social no Início; e **nada de
-post solto** — a régua nova que segura tudo é *"todo post nasce amarrado a um
-livro"*. A caixa de publicar anexa o livro em reprodução (troca entre os 5
+**O que sobrevive da decisão antiga:** nada de social no Início; e ~~**nada de
+post solto** — a régua "todo post nasce amarrado a um livro"~~ **[REVOGADA pela
+§4.58 item 4, um dia depois (29/07)]** — post só de texto passou a ser
+permitido (nunca o padrão), e o próprio Mural morreu no item 7 da mesma seção.
+A caixa de publicar anexa o livro em reprodução (troca entre os 5
 recentes); quem nunca ouviu nada vê um convite, não uma caixa de texto. É o
 que separa o Mural de um Twitter e mantém a moderação do tamanho do app.
 
@@ -1762,15 +1774,18 @@ governam *o quê*).
 
 ## 4.57 O Clube reorganizado: quatro modos desenhados, decisão em aberto (29/07)
 
+> ⚠️ **[DECIDIDA EM PARTE na §4.89, 31/07]** — o clube virou **abas** (a
+> proposta B daqui). Fica em aberto só a "linha do ciclo" da proposta C. As
+> medições e os preços por filosofia abaixo continuam valendo como apuração.
+
 **O pedido do Matheus:** *"a página do Clube de Leitura… ela vai ter muitos livros
 e muitos clubes, e a forma como está não tá bem organizada"*. Pediu **pelo menos
 três propostas clicáveis** para escolher — e **sem tocar no código** antes da
 escolha.
 
-**Onde ver:** `client/public/_propostas-clube.html` (fora do git, temporária) —
-cinco versões navegáveis: *como está hoje* + as quatro propostas, cada uma com a
-**lista de clubes** e a **tela de dentro do clube**, mais um modo "as 5 lado a
-lado".
+**Onde ver:** a folha `_propostas-clube.html` era temporária e **já foi apagada**
+na faxina de 31/07 — restam as descrições das quatro filosofias logo abaixo, que
+são o que a decisão precisa. Se a escolha voltar à pauta, desenha-se folha nova.
 
 ### O que foi medido no app antes de desenhar
 
@@ -1887,8 +1902,10 @@ mesmos itens nos dois lugares.
   recomendados) — já existem no painel; duplicar dá duas respostas para a mesma
   pergunta.
 - **Interruptor para "o que eu recomendo"** — recomendar já é ato público.
-- **Upload de imagem pelo usuário** — a capa entrega o efeito visual sem custo
-  de servidor nem moderação de imagem (revisível: o pagamento muda o cálculo).
+- ~~**Upload de imagem pelo usuário**~~ **[REVERTIDO na §4.74 (31/07) e no
+  tópico com capa (01/08)]** — a imagem enviada entrou, encolhida no próprio
+  navegador (canvas, `data:` URL, zero servidor); o custo que a rejeição temia
+  não existia.
 
 ### ✅ FECHADO em 29/07 (à noite) — as oito respostas
 
@@ -2612,6 +2629,11 @@ A suspeita merecia apuração — e a apuração fica aqui para ninguém refazer
 
 ### A premissa não se confirma no código
 
+⚠️ **[APURAÇÃO DESATUALIZADA desde 01/08]** — o tópico de fórum passou a poder
+carregar um livro anexado (capa + link, e a busca acha tópico pelo nome do
+livro). A contagem abaixo valia em 31/07; **refazer antes de bater o martelo**
+da decisão desta seção.
+
 **Não existe nenhum grupo de discussão sobre um livro específico.** Nenhum fórum
 e nenhum tópico carrega `bookId` (`grupos.ts` e `forumConteudo.ts`: zero
 ocorrências) — os grupos são todos por **tema** (mistério, Jane Austen, true
@@ -2989,7 +3011,7 @@ username congelado da §2.9 virar o que a busca indexa.
 - **Comentar o autor e o narrador (21/07, noite) — FEITO** — Um comentário tem OU bookId, OU personSlug, OU publisherSlug — nunca dois; quem percorrer comments.ts precisa filtrar o alvo, senão comentário de pessoa vaza como se fosse de livro.
 - **Trabalhar com duas janelas do Claude Code ao mesmo tempo (21/07)** — Em arquivo compartilhado, editar por casamento de texto exato — nunca `sed` por número de linha, que envelhece no segundo em que a outra janela salva.
 - **Decisões da barrinha do player e do "onde parei" (21/07)** — O progresso é permanente (localStorage `allbook_playback`) e a barra do MiniPlayer é só da visita (sessionStorage) — guardar as duas juntas é o que fazia a barra ressuscitar a cada abertura.
-- **Busca virou aba "Buscar" no menu de baixo — modelo Apple TV (24/07, fim do dia)** — Busca é aba fixa no menu de baixo (modelo Netflix/Apple TV) — rejeitada a busca embutida na Início: o estado vazio com grade de capas é cara de tela dedicada.
+- **Busca virou aba "Buscar" no menu de baixo — modelo Apple TV (24/07, fim do dia)** — ~~Busca é aba fixa no menu de baixo~~ **[REVOGADA pela §4.37, dois dias depois]** — a aba virou "Catálogo" e a busca abre pela lupa na Início. Sobrevive só a rejeição do estado vazio: grade de capas é cara de tela dedicada.
 - **Conquistas viram muitas medalhas, coloridas (22/07)** — As conquistas são a única exceção à sobriedade premium: medalha desbloqueada usa a cor da marca — o resto do perfil segue sóbrio.
 - **Perfil repaginado: motivo na recomendação, troféus estampados, cabeçalho premium (23/07)** — Mudança no perfil próprio se aplica igual ao perfil de outro leitor (Profile e UserProfile andam juntos); recomendação carrega um 'por que recomendo' opcional.
 - **4.5 ~~Decisão em aberto:~~ de onde vem a estrelinha — DECIDIDA em 4.15** — Não há fonte externa de nota (Goodreads fechou a API pública em 2020; Open Library e Google Books servem para capa e ficha, não para avaliação), e a estrela do comentário fica colada ao texto, nunca à linha do nome — e só em comentário de livro.
@@ -3047,7 +3069,7 @@ username congelado da §2.9 virar o que a busca indexa.
 - **A recomendação da janela A** — Um mecanismo, três formatos (sala, clube, fórum) e um vocabulário só de temas: o `genero` do clube já alimenta as pastilhas — um segundo vocabulário faria "Suspense" existir duas vezes, com contagens diferentes e busca que não se acha.
 - **Construída no mesmo dia — e o que foi decidido fazendo** — A citação é valor solto (`bookId`, início, duração) e no comentário guarda-se só a duração — o início é a âncora que já existia; `?ate=` faz o player parar no fim do trecho, e a cerca cai quando a pessoa arrasta a barra.
 - **O cortador de trecho, logo depois** — O cortador tem arraste E ajuste fino de ±1s/±5s porque o dedo cobre 4 a 6 segundos nessa escala — e, sem áudio, cortar é mirar pelo relógio, não pelo ouvido.
-- **Quem cria modera o conteúdo — mas não pode demolir a casa** — Quem cria o fórum modera conteúdo (tudo reversível, e cobrir spoiler vem antes de esconder) mas só pode apagar o fórum enquanto nenhum tópico de outra pessoa estiver dentro — o oposto do clube, onde apagar é legítimo porque o ciclo acaba de qualquer jeito.
+- **Quem cria modera o conteúdo — mas não pode demolir a casa** — Quem cria o fórum modera conteúdo (tudo reversível, e cobrir spoiler vem antes de esconder). ~~Só pode apagar o fórum enquanto nenhum tópico de outra pessoa estiver dentro~~ **[REVERTIDA pela §4.74 (31/07), três linhas abaixo]** — no molde Orkut o dono exclui a comunidade inteira.
 - **A troca de nome, feita** — Na tela é "Fórum", no código continua `grupo` (renomear jogaria fora as chaves do `localStorage` de quem já usa) — e "grupo" significa outra coisa no clube, nas conquistas e na Ajuda: nunca substituir a palavra em massa.
 - **A decisão: cortar se faz ouvindo, anexar se faz escrevendo** — Cortar se faz ouvindo (no player) e anexar se faz escrevendo (botão de clipe em qualquer campo) — o trecho é coisa guardada, nunca sub-ação de comentar; a mesma `Citacao` e o mesmo cartão valem na sala, no clube, no fórum e no feed.
 - **O que isso implica, e por que vale** — A mesma `Citacao` serve sala do livro, mural do clube, fórum e feed — escrever um mecanismo só, nunca quatro parecidos; guardar o mesmo corte de novo não duplica.
@@ -3067,7 +3089,7 @@ username congelado da §2.9 virar o que a busca indexa.
 - **3. Seguidores são assunto de perfil, não de configuração** — Seguidores são assunto de perfil, não de privacidade — o contador mora na linha de números do perfil e é o único deles que leva a algum lugar.
 - **Como fica, então** — O menu é para quem procura, o cartão no feed é para quem só está passando — clube e fórum aparecem nos dois lugares.
 - **Cada parte do cartão leva ao seu lugar** — Número que descreve algo existente e não leva até ele morre na tela; e curiosidade de passagem abre em folha, não em tela, para não perder o lugar na rolagem.
-- **Curtir: só curtir, sem descurtir** — Contador de reação de terceiros é simulado com semente pelo id (estável, senão a tela mente a cada desenho), e post seu começa em zero.
+- **~~Curtir: só curtir, sem descurtir~~ [REVERTIDA — o par voltou]** — o "só curtir" foi um atropelo meu sem fato novo (ver "O erro: eu reabri uma decisão dele", §4.73); vale o par de polegares. O que sobrevive desta linha: contador de reação de terceiros é simulado com semente pelo id (estável, senão a tela mente a cada desenho), e post seu começa em zero.
 - **O que foi deixado de fora, e não é esquecimento** — O post aponta para livro, trecho ou clube — nunca para tópico de fórum; e os posts antigos do mural foram herdados, não apagados.
 - **Detalhe de data, que veio de um mal-entendido útil** — Data relativa até 7 dias ("há 2 h", "ontem"); passados 7, data absoluta ("12 jul"), porque "há 3 semanas" obriga a fazer conta.
 - **Chave de armazenamento nova, e por que não deu para reusar a do mural** — Os posts vivem em `allbook_posts` e os antigos do mural em `allbook_mural_posts` — qualquer operação de apagar precisa tentar nos dois formatos.
@@ -3198,5 +3220,54 @@ pena, por motivos diferentes.
 **Números:** ROTEIRO de 8182 para o tamanho atual; `CLAUDE.md` de 342 para
 151; o `CLAUDE.md` pessoal dele de 175 para 91; 4 memórias que viraram duplicata
 apagadas; `docs/PROXIMOS-PASSOS.md` apagado (era de 21/07 e mandava construir a
-tela de Perfil, pronta desde então). `docs/BANCO-DE-DADOS.md` ficou **intacto**:
-é checklist de trabalho futuro e só se lê ao mexer em banco.
+tela de Perfil, pronta desde então).
+
+### A segunda passada (04/08, à noite) — o que a poda sozinha não fazia
+
+Quatro melhorias, todas medidas antes de feitas:
+
+1. **O quadro de coordenação era o maior custo por sessão e ninguém tinha
+   olhado para ele**: 36 mil caracteres (mais que `CLAUDE.md` + pessoal +
+   `MEMORY.md` somados), porque o histórico morava dentro das células. Caiu
+   para ~4,5 mil; o histórico foi para `docs/COORDENACAO-ARQUIVO.md`, e o
+   próprio quadro ganhou a regra "célula = estado atual".
+2. **A trava contra o apodrecimento**: `npm run docs:check`
+   (`scripts/confere-docs.mjs`), rodando no hook `pre-commit` — confere se
+   caminho, rota e comando citados no `CLAUDE.md` existem de verdade (erro
+   bloqueia o commit) e avisa citação morta no ROTEIRO. É o conserto
+   definitivo: sem ela, a poda teria de ser refeita a cada seis meses; com
+   ela, a afirmação falsa aparece no dia em que nasce. Frase verdadeira sobre
+   coisa morta ("X foi apagado") não acusa.
+3. **A caça de contradições**: um agente leu o roteiro podado inteiro e achou
+   **12 contradições reais** — quase todas no mesmo padrão: a reversão existia
+   numa regra herdada de uma linha no fim, e a seção antiga seguia no corpo
+   mandando o contrário. Todas ganharam nota `[REVOGADA/SUPERADA por §X]` no
+   lugar onde o leitor tropeçaria. Três itens da fila de decisões já estavam
+   decididos (o clube virou abas na §4.89; a saída da narração se resolveu com
+   os créditos; a busca de pessoas foi adiada pela §4.97) — a fila foi
+   corrigida. **Lição: podar sem caçar contradição deixa o documento menor e
+   igualmente traiçoeiro.**
+4. **O inventário do banco estava com um terço da realidade**: o
+   `BANCO-DE-DADOS.md` cobria 21 chaves e o código tem **61**. As 39 ausentes
+   entraram (seção 1.1), agrupadas, cada uma com a armadilha — inclusive duas
+   transversais que o documento não nomeava: o *overlay por cima do esqueleto*
+   (a chave guarda a diferença sobre dados semeados que vivem no código —
+   mudar a semente órfã os dados em silêncio) e o *"eu" sem conta* (autor
+   ausente = usuário local, quebra no dia em que houver contas).
+
+**O teste de ablação, feito de verdade (e o resultado surpreende):** um agente
+respondeu 8 perguntas operacionais **proibido de ler qualquer `.md`**, só com o
+código. Acertou **7 de 8 com confiança alta** — porque os porquês deste projeto
+estão escritos como comentário dentro dos próprios arquivos (`servidor.sh`
+explica o launchd, `SearchResults.tsx` documenta a morte do Fuse, o
+`catalog-enriched.ts` se declara gerado na linha 1). O que ele **não**
+conseguiu: as regras exatas da coordenação entre janelas e o conteúdo do
+checklist do banco — exatamente o que só os `.md` carregam. **Conclusão: o
+`CLAUDE.md` compra velocidade (o agente gastou 17 chamadas de ferramenta para
+redescobrir o que ele entrega de graça), e os únicos conteúdos insubstituíveis
+são coordenação, checklist do banco e gosto/preferência — a poda não cortou
+nada essencial, e comentário bom no código vale mais que parágrafo em
+documento.**
+
+`docs/BANCO-DE-DADOS.md`, fora a seção 1.1 nova, segue como era: checklist de
+trabalho futuro, lido só ao mexer em banco.

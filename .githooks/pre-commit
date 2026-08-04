@@ -1,0 +1,6 @@
+#!/bin/sh
+# Antes de cada commit: confere se o CLAUDE.md ainda diz a verdade sobre o
+# código (caminhos, rotas, comandos citados). Criado em 04/08/2026, depois de a
+# poda achar 7 afirmações falsas que envelheceram em silêncio.
+# Emergência: git commit --no-verify pula esta trava.
+node scripts/confere-docs.mjs || exit 1

@@ -9,6 +9,7 @@
     "build": "tsx script/build.ts",
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
+    "docs:check": "node scripts/confere-docs.mjs",
     "caras": "node scripts/caras.mjs",
     "catalogo": "tsx script/importar-catalogo.ts",
     "db:push": "drizzle-kit push"

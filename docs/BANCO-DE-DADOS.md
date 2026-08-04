@@ -26,17 +26,23 @@ depois*. Cada item abaixo diz **como está hoje** e **o que precisa acontecer**.
 | Métodos de armazenamento | **3** (`getUser`, `getUserByUsername`, `createUser`) |
 | Rotas de API | **zero** — `server/routes.ts` está vazio |
 | Armazenamento em uso | `MemStorage` — uma lista na memória que **some quando o servidor desliga** |
-| Onde o app guarda tudo | **21 chaves no `localStorage` do navegador** (lista abaixo) |
+| Onde o app guarda tudo | **61 chaves `allbook_*` no navegador** (lista abaixo; recontado em 04/08 — eram 21 quando este arquivo nasceu, e a comunidade multiplicou) |
 | Áudio | **não existe** — nenhum arquivo, nenhum player real |
 
 Ou seja: o backend está montado mas **vazio**. Todo o app funciona no navegador.
 
 ---
 
-## 1. As 21 chaves do navegador — o que vira tabela
+## 1. As 61 chaves do navegador — o que vira tabela
 
 Cada linha é um dado que hoje vive só no aparelho da pessoa e **some se ela
 trocar de celular**. A coluna "cuidado" é o que morde na migração.
+
+> **Recontagem de 04/08:** este inventário nasceu com 21 chaves; a comunidade,
+> os clubes, os fóruns e a sala ao vivo criaram mais 39 sem ninguém atualizar
+> aqui (uma varredura automática achou a diferença). As 39 estão na **seção
+> 1.1**, agrupadas por assunto. Duas armadilhas transversais delas viraram as
+> seções **2.10** e **2.11**.
 
 ### Conta e preferências
 
@@ -87,6 +93,127 @@ trocar de celular**. A coluna "cuidado" é o que morde na migração.
 - [ ] `allbook_achievements_won` — troféus e a data de cada um
       (`lib/achievements.ts`).
 - [ ] `allbook_weekly_goal` — meta semanal (`lib/goals.ts`).
+
+---
+
+## 1.1 As 39 chaves que a recontagem de 04/08 achou fora do inventário
+
+Mesmo formato: dado que some se a pessoa trocar de aparelho. **Negrito** = dado
+que a pessoa criou (perder dói: texto escrito, escolha feita); sem negrito =
+preferência, cache ou estado que se refaz. Fonte: varredura automática de
+`client/src` + leitura de cada lib.
+
+### Clube
+
+- [ ] **`allbook_clubes`** (`lib/clubes.ts`) — tudo que é seu nos clubes:
+      criados, entradas, ciclos, estantes, removidos, convidados, renomeados,
+      fila de espera, privacidade. ⚠️ Caso máximo da armadilha 2.10 (overlay);
+      membros são fictícios (2.4); estante usa `bookId` à mão (2.1).
+- [ ] **`allbook_mural`** (`lib/muralDoClube.ts`) — suas mensagens no mural
+      (capítulo, spoiler, citação de áudio) e sua moderação (ocultados,
+      spoilers). ⚠️ Moderação hoje só vale neste aparelho — com servidor vira
+      estado global: decidir se migra ou zera. Citações presas a segundos de um
+      áudio que não existe (2.5).
+- [ ] **`allbook_rodadas`** (`lib/rodadas.ts`) — rodadas abertas, **suas
+      respostas em texto**, seu voto no próximo livro, encerramentos.
+      ⚠️ O efeito da votação encerrada mora em `allbook_clubes` — as duas
+      migram juntas ou o estado racha. Votos fictícios semeados morrem em
+      produção.
+- [ ] **`allbook_pautas`** (`lib/pautas.ts`) — pautas que você abriu, seu voto,
+      encerradas antes do prazo. ⚠️ Voto é anônimo por regra ("número aberto,
+      nome fechado") — a API não pode expor quem votou em quê.
+- [ ] `allbook_convites` (`lib/convites.ts`) — convites de clube enviados e
+      recebidos. ⚠️ A resposta do convidado é **simulada** (aceita sozinho) —
+      a simulação morre em produção; vira relação entre contas, não migrar como
+      está (mesmo caso do `allbook_seguidores`).
+
+### Fórum / comunidades
+
+- [ ] **`allbook_grupos_participo`**, **`allbook_grupos_meus_topicos`**,
+      **`allbook_grupos_minhas_respostas`**, **`allbook_grupos_meus`**,
+      **`allbook_grupos_capas`**, `allbook_grupos_moderacao` (`lib/grupos.ts`)
+      — onde você entrou, os tópicos e respostas que **escreveu**, os fóruns
+      que fundou, a capa escolhida por tópico, e a moderação do dono.
+      ⚠️ Tópicos/respostas apontam ids semeados que vivem no código (2.10);
+      id local `meu-g-<timestamp>` precisa virar id de servidor; capa enviada
+      é `data:` URL no localStorage — na migração vira upload de arquivo;
+      dono implícito "eu" (2.11).
+- [ ] **`allbook_forum_governanca`**, `allbook_forum_recusados`,
+      `allbook_forum_admitidos` (`lib/forum.ts`) — a configuração de cada
+      comunidade no molde Orkut (entrada, visibilidade, moderadores, banidos,
+      fila, imagem) e as decisões do moderador. ⚠️ Mapa por id de fórum
+      semeado (2.10); imagem `data:` URL vira upload; membros = código +
+      remendo — no banco a lista tem de ser **uma só**. `grupos.ts` e
+      `forum.ts` leem chaves um do outro por string crua (import circular
+      evitado): mudar uma tabela exige olhar as duas libs.
+- [ ] **`allbook_forum_enquetes`**, **`allbook_forum_votos`**,
+      **`allbook_forum_eventos`**, **`allbook_forum_presencas`**,
+      `allbook_forum_presencas_outros`, `allbook_convites_de_evento`
+      (`lib/forumConteudo.ts`, `lib/convitesDeEvento.ts`) — enquetes e eventos
+      que você criou, seu voto, sua presença. ⚠️ Votos e presenças fictícios
+      são semeados e **morrem em produção** (enquete real começa zerada);
+      `presencas_outros` é dado fictício **persistido** pela simulação de
+      convite — a chave inteira morre com o servidor.
+
+### Posts / feed da Comunidade
+
+- [ ] **`allbook_posts`** (`lib/posts.ts`) e **`allbook_mural_posts`**
+      (`lib/mural.ts`) — seus posts, no formato novo e no legado. ⚠️ **Dois
+      formatos convivem de propósito** — a migração converte os DOIS numa
+      tabela só, senão metade dos posts fica para trás (2.11 também: autor
+      ausente = "eu").
+- [ ] **`allbook_comentarios_post`** (`lib/comentariosDePost.ts`) — seus
+      comentários em posts. ⚠️ `postId` pode apontar post semeado (código) ou
+      seu (localStorage) — destinos diferentes na migração.
+- [ ] **`allbook_curtidas`** (`lib/curtidas.ts`) — sua reação por fala (post,
+      fórum, mural). ⚠️ Já trocou de formato uma vez (lista→mapa) e o leitor
+      converte o antigo — a migração aceita os dois; unificar com
+      `reactions.ts` numa tabela única (já mandado na 3.1).
+- [ ] **`allbook_melhor_resposta`** (`lib/melhorResposta.ts`) — a melhor
+      resposta que quem perguntou marcou. ⚠️ Regra a honrar: **só quem
+      perguntou** marca — não é poder de moderador.
+- [ ] `allbook_avisos_curtida_lidos` (`lib/avisosDeCurtida.ts`) — avisos de
+      curtida já lidos. ⚠️ Os avisos derivam de curtidas fictícias — em
+      produção os ids desta chave não correspondem a nada; morre e renasce.
+
+### Sala ao vivo
+
+- [ ] **`allbook_salas_ao_vivo`** (`lib/salaAoVivo.ts`) — salas que você
+      abriu, **suas falas do chat**, o rastro que fica. ⚠️ Regra a honrar:
+      sala privada **não** deixa rastro. Salas semeadas andam com o relógio —
+      não migrar a simulação.
+- [ ] `allbook_sessoes_lembradas` (`lib/salaAoVivo.ts`) — lembretes já
+      mostrados. ⚠️ Paliativo da falta de servidor; morre inteira.
+- [ ] `allbook_rastro_ligado` (`components/sala/RastroDaSessao.tsx`) — o
+      interruptor do rastro. ⚠️ Mora num **componente**, não numa lib — fácil
+      de esquecer na varredura.
+
+### Rede, notificações, player, moderação
+
+- [ ] **`allbook_acompanhando`** (`lib/acompanhando.ts`) — autores, narradores,
+      editoras e o Studio que você segue. ⚠️ Slugs apontam `people.ts` /
+      `publishers.ts`, que são código (2.7); as "novidades" têm data semeada —
+      com banco a data vira real.
+- [ ] `allbook_system_read` (`lib/notifications.ts`) — avisos de sistema lidos.
+      ⚠️ Ids `s1–s3` fixos no código; morre em produção.
+- [ ] `allbook_narration_choice` (`lib/narrations.ts`) — a voz escolhida por
+      livro. ⚠️ Vira campo do usuário no servidor; `bookId` à mão (2.1).
+- [ ] **`allbook_trechos_guardados`** (`lib/trechosGuardados.ts`) — os trechos
+      que você cortou, **com nota privada**. ⚠️ A nota é privada por
+      construção (`comoCitacao()` a remove) — no banco, a separação vale na
+      **API**, não só na tela. Com `allbook_bookmarks`, é texto da pessoa:
+      prioridade máxima de sincronização.
+- [ ] `allbook_denuncias` (`lib/moderacao.ts`) — o que você denunciou.
+      ⚠️ Migrar como denúncia **aberta** com data — vira fila de revisão, não
+      um simples "escondido".
+
+### Estado de tela (provavelmente NÃO migra — dizer isso é decisão, não esquecimento)
+
+- [ ] `allbook_library_view` e `allbook_library_sort` (**`pages/Library.tsx`**,
+      fora de lib!), `allbook_playing` (sessionStorage), `allbook_ultima_tela`
+      (sessionStorage), `allbook_dev_janela` (só DEV). ⚠️ As quatro de
+      sessionStorage/DEV morrem com a aba por desenho; as da Biblioteca são
+      preferência de aparelho.
 
 ---
 
