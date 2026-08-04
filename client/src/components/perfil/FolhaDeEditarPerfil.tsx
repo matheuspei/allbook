@@ -107,7 +107,6 @@ export default function FolhaDeEditarPerfil({ onFechar }: { onFechar: () => void
             titulo="Foto, nome e bio"
             apoio="O que abre a sua página"
             href="/profile/edit"
-            onIr={onFechar}
             testid="porta-foto-nome-bio"
           />
 
@@ -177,7 +176,6 @@ export default function FolhaDeEditarPerfil({ onFechar }: { onFechar: () => void
             titulo="Minhas recomendações"
             apoio="Os livros que você indica, com o motivo"
             href="/profile/recommendations"
-            onIr={onFechar}
             testid="porta-editar-recomendacoes"
           />
           <Porta
@@ -185,7 +183,6 @@ export default function FolhaDeEditarPerfil({ onFechar }: { onFechar: () => void
             titulo="Quem pode me seguir"
             apoio={ajustes.contaPrivada ? "Conta privada — você aprova" : "Conta pública"}
             href="/privacidade"
-            onIr={onFechar}
             testid="porta-quem-pode-seguir"
           />
 
@@ -213,20 +210,24 @@ function Porta({
   titulo,
   apoio,
   href,
-  onIr,
   testid,
 }: {
   icone: typeof UserRound;
   titulo: string;
   apoio: string;
   href: string;
-  onIr: () => void;
   testid: string;
 }) {
   return (
+    /*
+      ⚠️ A porta **não fecha a folha** ao navegar — e isso é o conserto de 04/08.
+      Fechava (`onClick={onFechar}`), e fechar desfaz a entrada `?editar` do
+      histórico: quem tocava em "voltar" na tela seguinte caía no perfil com a
+      folha morta. Navegar já desmonta a folha sozinho; a entrada fica no
+      histórico, e o voltar devolve a pessoa para ela.
+    */
     <Link
       href={href}
-      onClick={onIr}
       className="mb-2 flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 transition-colors hover:bg-white/[0.07]"
       data-testid={testid}
     >

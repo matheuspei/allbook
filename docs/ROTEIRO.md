@@ -7803,7 +7803,13 @@ pergunta é o defeito que a §4.92 já tinha juntado numa fonte só.
 
 ---
 
-## 4.94 Os nomes dos botões: a varredura inteira, e a régua que ficou (01/08)
+## 4.96 Os nomes dos botões: a varredura inteira, e a régua que ficou (01/08)
+
+> **Nota de numeração (04/08, janela B):** esta seção nasceu como §4.94 no mesmo
+> dia em que a dos seguidores (13 minutos depois dela) — a mesma colisão de
+> 31/07, resolvida pela mesma regra: **quem commitou depois renumera**. Só o
+> número mudou; o conteúdo está intacto, e a referência em `Bookmarks.tsx` foi
+> ajustada junto.
 
 **O pedido.** *"Averigue o nome de todas as funções, de todos os botões… veja o
 que pode ser substituído por palavras mais fáceis."* A varredura leu as ~30

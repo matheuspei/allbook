@@ -70,8 +70,41 @@ export default function Profile() {
   const [clubes, setClubes] = useState<Clube[]>([]);
   /** Prévia honesta: esconde tudo que só o dono vê. */
   const [visitante, setVisitante] = useState(false);
-  /** A folha do lápis (§4.95). */
-  const [editando, setEditando] = useState(false);
+  /**
+   * A folha do lápis (§4.95) — **e ela tem endereço** (`/profile?editar`).
+   *
+   * Nasceu como estado solto (`useState(false)`), e o Matheus achou o defeito
+   * usando (04/08): *"quando eu clico em minhas recomendações e coloco em
+   * voltar, ele volta para a aba do meu perfil e não para onde estava o
+   * lapisinho"*. Ele tem razão: o voltar do app é o histórico do navegador
+   * (`PageHeader`), e um estado solto não existe no histórico — a página
+   * renascia com a folha morta.
+   *
+   * Abrir a folha agora **empurra uma entrada** no histórico; quem navega para
+   * as recomendações e volta cai em `/profile?editar`, e a folha reabre. É a
+   * mesma razão pela qual o voltar deixou de ter destino fixo: o que o botão
+   * promete é "de volta para onde eu estava", e onde ele estava era a folha.
+   */
+  const [editando, setEditando] = useState(
+    () => new URLSearchParams(window.location.search).has("editar"),
+  );
+
+  function abrirFolha() {
+    window.history.pushState({ folha: true }, "", "/profile?editar");
+    setEditando(true);
+  }
+
+  function fecharFolha() {
+    /* Fechar desfaz o empurrão — senão o botão voltar do navegador reabriria a
+       folha que a pessoa acabou de fechar. Quem chegou pela URL direta não tem
+       entrada para desfazer: aí só se troca o endereço, sem sair da página. */
+    if (window.history.state?.folha) {
+      window.history.back();
+    } else {
+      window.history.replaceState(null, "", "/profile");
+      setEditando(false);
+    }
+  }
   /** Os interruptores de privacidade do painel — a vitrine obedece. */
   const [privacidade, setPrivacidade] = useState(() => readSettings());
   const [totalSeguidores, setTotalSeguidores] = useState(0);
@@ -97,10 +130,16 @@ export default function Profile() {
        fechar. */
     const relerAjustes = () => setPrivacidade(readSettings());
     window.addEventListener(SETTINGS_EVENT, relerAjustes);
+    /* O voltar do navegador manda na folha: `?editar` no endereço = aberta.
+       É o que faz fechar com o gesto de voltar do celular funcionar. */
+    const sincronizarFolha = () =>
+      setEditando(new URLSearchParams(window.location.search).has("editar"));
+    window.addEventListener("popstate", sincronizarFolha);
     return () => {
       window.removeEventListener(MURAL_EVENT, recarregarPosts);
       window.removeEventListener(POSTS_EVENT, recarregarPosts);
       window.removeEventListener(SETTINGS_EVENT, relerAjustes);
+      window.removeEventListener("popstate", sincronizarFolha);
     };
   }, []);
 
@@ -224,7 +263,7 @@ export default function Profile() {
               perfil é olhar para ele.
             */}
             <button
-              onClick={() => setEditando(true)}
+              onClick={abrirFolha}
               aria-label="Editar perfil"
               className="rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
               data-testid="button-edit-profile"
@@ -488,7 +527,7 @@ export default function Profile() {
         )}
       </section>
 
-      {editando && <FolhaDeEditarPerfil onFechar={() => setEditando(false)} />}
+      {editando && <FolhaDeEditarPerfil onFechar={fecharFolha} />}
     </div>
   );
 }

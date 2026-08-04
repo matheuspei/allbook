@@ -96,7 +96,7 @@ export default function Bookmarks() {
                   áudio de até 40s que se corta para mostrar a alguém (ROTEIRO
                   4.47). Usar a mesma palavra para as duas coisas, nesta tela que
                   agora mostra as duas, era confusão garantida. E "nota", não
-                  "marcação": era a mesma coisa com dois nomes (§4.94). */}
+                  "marcação": era a mesma coisa com dois nomes (§4.96). */}
               {total} {total === 1 ? "nota" : "notas"} em {livros.length}{" "}
               {livros.length === 1 ? "título" : "títulos"}
             </p>

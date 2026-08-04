@@ -91,8 +91,11 @@ export default function Privacidade() {
           conta) e quando o sino toca (o barulho). Nenhum dos dois é "a sua
           página".
         */}
+        {/* O destino carrega `?editar`: a placa promete os interruptores, então
+            tem de aterrissar com a folha JÁ aberta — largar a pessoa no perfil
+            para ela procurar o lápis seria placa que mente (04/08). */}
         <Link
-          href="/profile"
+          href="/profile?editar"
           className="mt-6 flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 transition-colors hover:bg-white/[0.07]"
           data-testid="placa-o-que-aparece"
         >
