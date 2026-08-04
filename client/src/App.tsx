@@ -30,6 +30,7 @@ import MinhasComunidades from "@/pages/MinhasComunidades";
 import EventosDaComunidade from "@/pages/EventosDaComunidade";
 import Topico from "@/pages/Topico";
 import Clubes from "@/pages/Clubes";
+import MeusClubes, { ClubesAbertos, EstreiasDeClubes } from "@/pages/ListasDeClubes";
 import Clube from "@/pages/Clube";
 import NovoClube from "@/pages/NovoClube";
 import GerenciarClube from "@/pages/GerenciarClube";
@@ -209,6 +210,11 @@ function Router() {
             {/* `/clubes/novo` antes de `/clubes` e de `/clube/:id`: rota mais
                 específica primeiro é a regra deste Switch (ver o cabeçalho). */}
             <Route path="/clubes/novo" component={NovoClube} />
+            {/* As três portas da tela de clubes (§4.99) — cada quadradinho com
+                número abre a sua página, como no perfil. */}
+            <Route path="/clubes/meus" component={MeusClubes} />
+            <Route path="/clubes/estreias" component={EstreiasDeClubes} />
+            <Route path="/clubes/abertos" component={ClubesAbertos} />
             <Route path="/clubes" component={Clubes} />
             {/* `/clube/:id/gerenciar` antes de `/clube/:id` pela mesma razão:
                 a rota mais curta capturaria a mais longa. */}

@@ -1,70 +1,67 @@
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
-import { CalendarDays, MessageSquare, Plus, Search, Sparkles, Users, X } from "lucide-react";
+import { CalendarDays, Compass, Search, Sparkles, Users, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
-import { catalog, type Book } from "@/lib/books";
-import { getChapters } from "@/lib/chapters";
+import PortasDoPerfil from "@/components/PortasDoPerfil";
+import {
+  CartaoComMotivo,
+  CartaoDoSeuClube,
+  CartaoParaDescobrir,
+  ConviteParaCriar,
+  Secao,
+} from "@/components/clube/CartoesDaTelaDeClubes";
 import {
   CLUBES_EVENT,
-  capituloDaRoda,
-  clubesComecando,
   buscarClubes,
   clubesParaDescobrir,
-  dataCurta,
-  estreiaEmTexto,
-  meuCapitulo,
+  clubesParaVoce,
+  estaComecando,
+  estreiasParaDescobrir,
   meusClubes,
-  prazoEmTexto,
   todosOsClubes,
-  topicosDeClube,
   type Clube,
+  type ClubeComMotivo,
 } from "@/lib/clubes";
-import { MURAL_EVENT, totalDoMural } from "@/lib/muralDoClube";
+import { MURAL_EVENT } from "@/lib/muralDoClube";
 
 /**
- * A tela dos clubes.
+ * A tela dos clubes — **reformada em 04/08 pela escolha do Matheus** (§4.99).
  *
- * **Reorganizada em 28/07 para escala** (ROTEIRO 4.42). Ela tinha duas gavetas —
- * "seus clubes" e "clubes em andamento" — e o Matheus viu o problema antes de ele
- * chegar: *"imagina que a gente vai ter uma tela que tenha centenas de clubes de
- * livros; da forma como está estruturada hoje não está muito legal"*. Uma lista
- * corrida de trezentos clubes não se lê.
+ * **A queixa que derrubou a versão anterior:** *"eu estou em 8 clubes e ele
+ * está muito confuso: o que é meus clubes, o que é encontrar um clube"*. A
+ * medição deu razão — 3 telas de rolagem numa lista só, 5 dos 8 clubes dele
+ * escondidos atrás de "ver os outros", e dois clubes seus aparecendo DUAS
+ * VEZES (entre os seus e no carrossel de estreias).
  *
- * **O que faz a tela aguentar quantidade são três coisas, e nenhuma é enfeite:**
- * 1. **Carrossel de estreias** (pedido dele) — estreia é conteúdo que caduca e
- *    tem muitos ao mesmo tempo; em pé, ocuparia a tela inteira por uma semana.
- * 2. **Busca por nome, livro e autor** — a pergunta real de quem procura clube é
- *    "tem alguém lendo Duna?", não o nome que a turma deu a si mesma.
- * 3. **Tópicos** (sugestão dele: *"talvez colocar por tópicos"*) — pastilhas de
- *    gênero montadas a partir dos clubes que existem, nunca do catálogo, para
- *    não haver filtro que devolve zero.
+ * **O desenho é o M3 da folha `_clubes-B2.html`, escolhido por ele:** as
+ * portas com número do perfil, trazidas para cá — *"esses quadradinhos aqui em
+ * cima ajudam muito a organizar… você sabe exatamente onde você está e para
+ * onde aquilo vai te levar"*. Cada porta abre a sua página
+ * (`/clubes/meus`, `/clubes/estreias`, `/clubes/abertos`).
  *
- * **O que dá vida continua não sendo enfeite**: capas grandes (a arte é o que o
- * app tem de mais bonito e já está pronta), hierarquia e informação que muda
- * ("estreia em 4 dias", "você no capítulo 3, a roda no 6"). Nada de cor
- * decorativa nem número supérfluo.
+ * **As regras da primeira folha, todas dele:**
+ * - **a busca no topo** — *"não existe botão de busca em canto inferior"*;
+ * - a estreia sua mora **entre os seus**, com etiqueta; a vitrine de estreias
+ *   exclui os seus (mata a duplicata);
+ * - **"Para você"**: clubes abertos com o motivo escrito;
+ * - nada de "ver os outros 5": os 8 inteiros moram na página da porta.
  *
- * A ordem responde à pergunta de quem chega: **onde eu já estou**, **o que está
- * para começar** (é onde dá para entrar sem chegar atrasado), **o que mais
- * existe** — agora buscável —, e **como faço o meu**.
+ * A tela principal ficou com o **agora**: os encontros mais próximos e as
+ * sugestões — o resto tem casa própria atrás de cada número.
  */
 export default function Clubes() {
   const [meus, setMeus] = useState<Clube[]>(() => meusClubes());
-  const [estreias, setEstreias] = useState<Clube[]>(() => clubesComecando());
-  const [descobrir, setDescobrir] = useState<Clube[]>(() => clubesParaDescobrir());
-  const [topicos, setTopicos] = useState(() => topicosDeClube());
-
+  const [estreias, setEstreias] = useState<Clube[]>(() => estreiasParaDescobrir());
+  const [abertos, setAbertos] = useState<Clube[]>(() => clubesParaDescobrir());
+  const [paraVoce, setParaVoce] = useState<ClubeComMotivo[]>(() => clubesParaVoce());
   const [busca, setBusca] = useState("");
-  const [topico, setTopico] = useState<string | undefined>(undefined);
-  const [todosOsMeus, setTodosOsMeus] = useState(false);
 
   useEffect(() => {
     const atualizar = () => {
       setMeus(meusClubes());
-      setEstreias(clubesComecando());
-      setDescobrir(clubesParaDescobrir());
-      setTopicos(topicosDeClube());
+      setEstreias(estreiasParaDescobrir());
+      setAbertos(clubesParaDescobrir());
+      setParaVoce(clubesParaVoce());
     };
     atualizar();
     window.addEventListener(CLUBES_EVENT, atualizar);
@@ -75,415 +72,135 @@ export default function Clubes() {
     };
   }, []);
 
-  /* Encontro mais próximo primeiro: é o clube que precisa de você agora. */
-  const meusOrdenados = [...meus].sort((a, b) =>
-    a.ciclo.encontro.localeCompare(b.ciclo.encontro),
-  );
+  const procurando = busca.trim().length > 0;
+  /* Procurando, a busca varre TUDO — os seus, as estreias, os abertos. Quem
+     digita "Duna" quer o clube de Duna, não quer saber em que gaveta ele está. */
+  const resultados = procurando ? buscarClubes(todosOsClubes(), busca) : [];
 
-  const procurando = busca.trim().length > 0 || topico !== undefined;
-  /*
-   * Procurando, a busca varre **tudo** — inclusive estreias e os seus clubes.
-   * Quem digita "Duna" quer o clube de Duna, não quer saber em que gaveta ele
-   * estava; devolver só os "em andamento" seria devolver vazio com o clube ali.
+  /**
+   * "Próximos encontros": os 3 clubes seus que precisam de você antes. A data
+   * que conta é a **relevante** — estreia usa o início (é quando ela vira
+   * compromisso), clube andando usa o encontro.
    */
-  const resultados = buscarClubes(procurando ? todosOsClubes() : descobrir, busca, topico);
+  const dataRelevante = (clube: Clube) =>
+    estaComecando(clube) ? clube.ciclo.inicio : clube.ciclo.encontro;
+  const urgentes = [...meus]
+    .sort((a, b) => dataRelevante(a).localeCompare(dataRelevante(b)))
+    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="clubes-page">
       <PageHeader title="Clubes" fallback="/community" />
 
-      <div className="space-y-8 pt-4">
-        {/*
-          Procurando, tudo o que é vitrine sai da frente: destaque, seus clubes e
-          o carrossel de estreias viram ruído entre a pergunta e a resposta.
-        */}
-        {!procurando && (
-          <>
-            {meus.length > 0 && (
-              <Secao
-                titulo={`Seus clubes · ${meus.length}`}
-                icone={<Users className="h-3 w-3" />}
+      <div className="space-y-7 pt-4">
+        {/* A busca é a primeira coisa da tela — regra ditada por ele na folha:
+            "não existe botão de busca em canto inferior… a busca sempre está
+            no topo". */}
+        <div className="px-5">
+          <div className="flex items-center gap-2.5 rounded-xl bg-white/[0.06] px-3.5 py-2.5 ring-1 ring-inset ring-white/8 focus-within:ring-primary/40">
+            <Search className="h-4 w-4 shrink-0 text-white/30" />
+            <input
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Nome do clube, livro ou autor"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-white/25"
+              data-testid="busca-clubes"
+            />
+            {busca.length > 0 && (
+              <button
+                onClick={() => setBusca("")}
+                className="shrink-0 rounded-full p-0.5 text-white/30 transition-colors hover:text-white/70"
+                aria-label="Limpar a busca"
               >
-                <div className="space-y-3 px-5">
-                  {(todosOsMeus ? meusOrdenados : meusOrdenados.slice(0, 3)).map((clube) => (
-                    <CartaoDoSeuClube key={clube.id} clube={clube} />
-                  ))}
-
-                  {/*
-                    **Três, e o resto atrás de um toque.** Estando em oito clubes,
-                    a lista inteira empurrava o carrossel e a busca para fora da
-                    tela — e quem abre esta tela raramente quer o oitavo clube,
-                    quer o que tem prazo chegando. Por isso a ordem é por
-                    **encontro mais próximo**, e não por ordem de entrada.
-                  */}
-                  {meus.length > 3 && (
-                    <button
-                      onClick={() => setTodosOsMeus(!todosOsMeus)}
-                      className="w-full rounded-xl border border-white/8 py-2.5 text-xs font-semibold text-white/45 transition-colors hover:bg-white/5 hover:text-white/80"
-                      data-testid="ver-todos-meus-clubes"
-                    >
-                      {todosOsMeus
-                        ? "Mostrar menos"
-                        : `Ver os outros ${meus.length - 3} que são seus`}
-                    </button>
-                  )}
-                </div>
-              </Secao>
+                <X className="h-3.5 w-3.5" />
+              </button>
             )}
-
-            {/*
-              **O carrossel de estreias** (pedido do Matheus, 28/07). Antes havia
-              um destaque grande fixo mais uma fileira; com muitos clubes
-              estreando, o destaque escolhia um por você e escondia os outros.
-              Aqui o primeiro cartão é o maior — a estreia mais próxima —, e os
-              demais seguem ao lado, todos alcançáveis com o polegar.
-            */}
-            {estreias.length > 0 && (
-              <Secao
-                titulo={`Estreiam em breve · ${estreias.length}`}
-                icone={<Sparkles className="h-3 w-3 text-[#f59e0b]" />}
-              >
-                <div className="flex gap-3 overflow-x-auto px-5 pb-1 scrollbar-hide">
-                  {estreias.map((clube, indice) => (
-                    <CartaoDeEstreia key={clube.id} clube={clube} grande={indice === 0} />
-                  ))}
-                </div>
-              </Secao>
-            )}
-          </>
-        )}
-
-        {/* ---- A parte que aguenta quantidade ---- */}
-        <section className="space-y-3">
-          <h2 className="flex items-center gap-1.5 px-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-            <Search className="h-3 w-3" />
-            Encontre um clube
-          </h2>
-
-          <div className="px-5">
-            <div className="flex items-center gap-2.5 rounded-xl bg-white/[0.06] px-3.5 py-2.5 ring-1 ring-inset ring-white/8 focus-within:ring-primary/40">
-              <Search className="h-4 w-4 shrink-0 text-white/30" />
-              <input
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                placeholder="Nome do clube, livro ou autor"
-                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-white/25"
-                data-testid="busca-clubes"
-              />
-              {busca.length > 0 && (
-                <button
-                  onClick={() => setBusca("")}
-                  className="shrink-0 rounded-full p-0.5 text-white/30 transition-colors hover:text-white/70"
-                  aria-label="Limpar a busca"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
           </div>
+        </div>
 
-          {/* Pastilhas de assunto. Vêm dos clubes que existem — nunca do
-              catálogo —, para não haver filtro que devolve zero. */}
-          {topicos.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto px-5 pb-1 scrollbar-hide">
-              <Pastilha ligada={topico === undefined} onClick={() => setTopico(undefined)}>
-                Todos
-              </Pastilha>
-              {topicos.map((item) => (
-                <Pastilha
-                  key={item.genero}
-                  ligada={topico === item.genero}
-                  onClick={() => setTopico(topico === item.genero ? undefined : item.genero)}
-                >
-                  {item.genero} · {item.total}
-                </Pastilha>
-              ))}
-            </div>
-          )}
-
+        {procurando ? (
           <div className="space-y-3 px-5">
             {resultados.length === 0 ? (
               <p className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-5 text-center text-xs leading-relaxed text-white/45">
-                {procurando ? (
-                  <>
-                    Nenhum clube para <b className="text-white/75">{busca.trim() || topico}</b>.
-                    <br />
-                    Ninguém está lendo isso junto ainda — dá para você começar.
-                  </>
-                ) : (
-                  <>Você já está em todos os clubes que existem. Que tal criar o seu?</>
-                )}
+                Nenhum clube para <b className="text-white/75">{busca.trim()}</b>.
+                <br />
+                Ninguém está lendo isso junto ainda — dá para você começar.
               </p>
             ) : (
               <>
-                {procurando && (
-                  <p className="text-[11px] text-white/35" data-testid="contagem-resultados">
-                    {resultados.length} {resultados.length === 1 ? "clube" : "clubes"}
-                  </p>
-                )}
+                <p className="text-[11px] text-white/35" data-testid="contagem-resultados">
+                  {resultados.length} {resultados.length === 1 ? "clube" : "clubes"}
+                </p>
                 {resultados.map((clube) => (
                   <CartaoParaDescobrir key={clube.id} clube={clube} />
                 ))}
               </>
             )}
           </div>
-        </section>
+        ) : (
+          <>
+            {/*
+              **As portas com número** — o mesmo componente do perfil, e isso é
+              decisão: duas cópias divergem (§4.41). Cada número é o que a
+              página atrás dele mostra, senão a porta mente (§4.23) — por isso
+              "estreias" conta só as que NÃO são suas.
+            */}
+            <PortasDoPerfil
+              portas={[
+                {
+                  icone: Users,
+                  rotulo: meus.length === 1 ? "meu clube" : "meus clubes",
+                  total: meus.length,
+                  href: "/clubes/meus",
+                  testid: "porta-meus-clubes",
+                },
+                {
+                  icone: Sparkles,
+                  rotulo: estreias.length === 1 ? "estreia" : "estreias",
+                  total: estreias.length,
+                  href: "/clubes/estreias",
+                  testid: "porta-estreias",
+                },
+                {
+                  icone: Compass,
+                  rotulo: abertos.length === 1 ? "aberto" : "abertos",
+                  total: abertos.length,
+                  href: "/clubes/abertos",
+                  testid: "porta-abertos",
+                },
+              ]}
+            />
 
-        <div className="px-5">
-          <ConviteParaCriar temClube={meus.length > 0} />
-        </div>
+            {/* O agora: os clubes seus que precisam de você antes. Os 8
+                inteiros moram na porta — aqui é urgência, não inventário. */}
+            {urgentes.length > 0 && (
+              <Secao titulo="Próximos encontros" icone={<CalendarDays className="h-3 w-3" />}>
+                <div className="space-y-3 px-5">
+                  {urgentes.map((clube) => (
+                    <CartaoDoSeuClube key={clube.id} clube={clube} />
+                  ))}
+                </div>
+              </Secao>
+            )}
+
+            {/* Sugestão com motivo — some quando não há nada a sugerir, em vez
+                de título com vazio embaixo (§4.23). */}
+            {paraVoce.length > 0 && (
+              <Secao titulo="Para você" icone={<Sparkles className="h-3 w-3 text-primary" />}>
+                <div className="space-y-2.5 px-5">
+                  {paraVoce.map((sugestao) => (
+                    <CartaoComMotivo key={sugestao.clube.id} sugestao={sugestao} />
+                  ))}
+                </div>
+              </Secao>
+            )}
+
+            <div className="px-5">
+              <ConviteParaCriar temClube={meus.length > 0} />
+            </div>
+          </>
+        )}
       </div>
     </div>
-  );
-}
-
-/** Pastilha de assunto — laranja da marca quando ligada, sem cor nova. */
-function Pastilha({
-  ligada,
-  onClick,
-  children,
-}: {
-  ligada: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
-        ligada
-          ? "bg-primary/15 text-primary ring-1 ring-inset ring-primary/40"
-          : "bg-white/[0.06] text-white/55 ring-1 ring-inset ring-white/8 hover:text-white/85"
-      }`}
-      data-testid={`topico-${children}`}
-    >
-      {children}
-    </button>
-  );
-}
-
-/** Título de seção — pequeno, em caixa alta, com um ícone que dá o assunto. */
-function Secao({
-  titulo,
-  icone,
-  children,
-}: {
-  titulo: string;
-  icone: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="space-y-3">
-      <h2 className="flex items-center gap-1.5 px-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-        {icone}
-        {titulo}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
-/**
- * Um clube seu — e o que ele mostra é **o seu estado nele**: onde você está
- * contra a roda, e qual é o próximo prazo. É a informação que faz voltar.
- */
-function CartaoDoSeuClube({ clube }: { clube: Clube }) {
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
-  const totalCapitulos = getChapters(clube.ciclo.bookId).length;
-  const seu = meuCapitulo(clube);
-  const roda = capituloDaRoda(clube);
-  const mensagens = totalDoMural(clube.id);
-  const pct = (valor: number) => `${Math.min(100, (valor / totalCapitulos) * 100)}%`;
-
-  return (
-    <Link
-      href={`/clube/${clube.id}`}
-      className="block rounded-2xl border border-white/[0.07] bg-white/[0.04] p-4 transition-colors hover:bg-white/[0.07]"
-      data-testid={`clube-card-${clube.id}`}
-    >
-      <div className="flex gap-3.5">
-        {livro && (
-          <img
-            src={livro.cover}
-            alt={livro.title}
-            className="h-16 w-16 shrink-0 rounded-xl object-cover"
-          />
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-base font-bold">{clube.nome}</p>
-          <p className="truncate text-[11px] text-white/45">
-            {livro ? livro.title : "Sem livro no ciclo"}
-          </p>
-
-          <div className="mt-2.5">
-            <div className="relative h-1.5 rounded-full bg-white/10">
-              <div className="absolute inset-y-0 left-0 rounded-full bg-primary" style={{ width: pct(seu) }} />
-              <span
-                className="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 rounded-full bg-[#f59e0b]"
-                style={{ left: pct(roda) }}
-              />
-            </div>
-            <p className="mt-1.5 text-[11px] text-white/45">
-              {seu === 0 && roda === 0
-                ? "Ninguém começou ainda — o clube é novo"
-                : seu === 0
-                  ? `Você ainda não começou · a roda está no capítulo ${roda}`
-                  : seu >= roda
-                    ? `Capítulo ${seu} — no ritmo da roda`
-                    : `Capítulo ${seu} · a roda está no ${roda}`}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3 flex items-center gap-4 border-t border-white/5 pt-3 text-[11px] text-white/35">
-        <span className="flex items-center gap-1.5">
-          <CalendarDays className="h-3 w-3" />
-          Encontro {prazoEmTexto(clube.ciclo.encontro)}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <MessageSquare className="h-3 w-3" />
-          {mensagens} no mural
-        </span>
-      </div>
-    </Link>
-  );
-}
-
-/** Cartão vertical de estreia, para o carrossel. */
-/**
- * Um cartão do carrossel de estreias.
- *
- * **O primeiro é maior**, e não por estética: no carrossel a primeira posição é a
- * estreia **mais próxima** — a que ainda dá tempo de pegar e a que some antes.
- * Dar-lhe mais área é dizer isso sem precisar de um rótulo. Os demais ficam no
- * tamanho de sempre, e todos são alcançáveis com o polegar, que era o que o
- * destaque fixo anterior impedia quando havia muitas estreias ao mesmo tempo.
- */
-function CartaoDeEstreia({ clube, grande }: { clube: Clube; grande?: boolean }) {
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
-  if (!livro) return null;
-
-  const lado = grande ? 200 : 148;
-
-  return (
-    <Link
-      href={`/clube/${clube.id}`}
-      className="shrink-0"
-      style={{ width: lado }}
-      data-testid={`clube-estreia-${clube.id}`}
-    >
-      <div className="relative overflow-hidden rounded-xl">
-        <img
-          src={livro.cover}
-          alt={livro.title}
-          className="w-full object-cover"
-          style={{ height: lado }}
-        />
-        {/*
-          **A data virou uma etiqueta no canto, e não uma tarja sobre a arte.**
-          A tarja com degradê cobria o rodapé da capa — e capa de livro tem texto
-          lá embaixo (título, autor, frase de crítica), então o resultado era
-          letra sobre letra. Uma etiqueta pequena no alto tapa o mínimo e se lê
-          num relance, que é tudo o que ela precisa fazer.
-        */}
-        <span className="absolute left-1.5 top-1.5 rounded-md bg-black/75 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#f59e0b] backdrop-blur-sm">
-          {estreiaEmTexto(clube)}
-        </span>
-      </div>
-
-      <p className={`mt-2 line-clamp-2 font-bold leading-tight ${grande ? "text-sm" : "text-xs"}`}>
-        {clube.nome}
-      </p>
-      <p className="mt-0.5 truncate text-[10.5px] text-white/45">{livro.title}</p>
-      <p className="mt-0.5 truncate text-[10.5px] text-white/30">
-        {clube.membros.length} {clube.membros.length === 1 ? "inscrito" : "inscritos"} ·{" "}
-        {dataCurta(clube.ciclo.inicio)}
-      </p>
-    </Link>
-  );
-}
-
-/** Clube que já está rolando — mostra o que se ganha ao entrar. */
-function CartaoParaDescobrir({ clube }: { clube: Clube }) {
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId) as Book | undefined;
-  const mensagens = totalDoMural(clube.id);
-
-  return (
-    <Link
-      href={`/clube/${clube.id}`}
-      className="relative block overflow-hidden rounded-2xl border border-white/[0.07]"
-      data-testid={`clube-card-${clube.id}`}
-    >
-      {livro && (
-        <img
-          src={livro.cover}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full scale-110 object-cover opacity-25 blur-xl"
-        />
-      )}
-      <div className="absolute inset-0 bg-[#141414]/75" />
-
-      <div className="relative flex gap-3.5 p-4">
-        {livro && (
-          <img
-            src={livro.cover}
-            alt={livro.title}
-            className="h-16 w-16 shrink-0 rounded-xl object-cover shadow-lg"
-          />
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-base font-bold">{clube.nome}</p>
-          <p className="line-clamp-2 text-[11px] leading-relaxed text-white/45">
-            {clube.descricao}
-          </p>
-          <div className="mt-2 flex items-center gap-3 text-[11px] text-white/35">
-            <span className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
-              {clube.membros.length}
-            </span>
-            <span className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" />
-              {mensagens}
-            </span>
-            <span className="truncate">
-              lendo {livro?.title} · cap. {capituloDaRoda(clube)}
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-/**
- * O convite para criar.
- *
- * Era uma linha tracejada cinza — o desenho que se usa para "área vazia", não
- * para uma ação que a gente quer que aconteça. Agora é um cartão com o mesmo
- * peso dos outros, e o texto diz o que a pessoa vai ter de decidir (livro,
- * ritmo, quem chamar), em vez de só nomear a ação.
- */
-function ConviteParaCriar({ temClube }: { temClube: boolean }) {
-  return (
-    <Link
-      href="/clubes/novo"
-      className="flex items-center gap-4 rounded-2xl border border-primary/25 bg-primary/[0.07] p-4 transition-colors hover:bg-primary/[0.12]"
-      data-testid="button-novo-clube"
-    >
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-black">
-        <Plus className="h-5 w-5" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block font-display text-base font-bold">
-          {temClube ? "Criar outro clube" : "Criar o seu clube"}
-        </span>
-        <span className="block text-[11px] leading-relaxed text-white/50">
-          Escolha o livro, o ritmo das semanas e a data de estreia. Depois é só chamar gente pelo
-          link.
-        </span>
-      </span>
-    </Link>
   );
 }

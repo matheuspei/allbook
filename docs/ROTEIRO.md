@@ -3361,3 +3361,66 @@ Registro decisão a decisão — **as de rumo valem a partir de agora**:
 **As três tarefas, todas aprovadas ("faz"):** as 10 fotos de comunidade que
 faltam; a conferência de capas a olho nas categorias; a `og:image` própria
 para o link do app.
+
+---
+
+## 4.99 A tela de clubes refeita: as portas com número, cada uma com a sua página (04/08, noite)
+
+**A queixa, com 8 clubes de verdade:** *"eu estou em 8 clubes e ele está muito
+confuso: o que é meus clubes, o que é encontrar um clube."* A medição deu razão
+antes do desenho: a tela tinha **3 telas de rolagem** numa lista só, mostrava
+**3 dos 8** clubes dele (5 atrás de "Ver os outros"), e **dois clubes seus
+apareciam duas vezes** — "Não durmo mais" e "Clube Jane Austen" estavam entre
+os seus E no carrossel de estreias, porque `clubesComecando()` incluía os seus
+de propósito (a justificativa antiga — "quem criou quer vê-lo na vitrine" —
+não sobreviveu ao uso).
+
+**Duas folhas, duas rodadas de decisão dele:**
+
+1. Na primeira (`_clubes-B.html`, 4 filosofias), ele **mesclou A com B** e
+   ditou regras novas: **"não existe botão de busca em canto inferior… a busca
+   sempre está no topo"** (a proposta B tinha busca embaixo — desenho meu,
+   morto na hora); a estreia sua com etiqueta **entre os seus**; a separação
+   meus × encontrar **abrindo outra página**; e *"uma aba de recomendação,
+   mais ou menos como o seu perfil — clubes abertos que você possa entrar"*.
+2. Na segunda (`_clubes-B2.html`, 3 formas da mescla, cada uma com a tela E a
+   página que abre), ele escolheu a **M3**: *"esses quadradinhos aqui em cima
+   ajudam muito a organizar… você sabe exatamente onde você está e para onde
+   aquilo vai te levar"* — e confirmou as três páginas.
+
+**O que ficou (construído em 04/08, janela B):**
+
+- **A busca no topo**, primeira coisa da tela; buscando, varre TUDO (seus,
+  estreias, abertos) — quem digita "Duna" não quer saber de gaveta.
+- **As portas com número** — o MESMO componente `PortasDoPerfil` do perfil
+  (§4.41: duas cópias divergem): **meus clubes · estreias · abertos**, cada
+  uma abrindo `/clubes/meus`, `/clubes/estreias`, `/clubes/abertos`
+  (`pages/ListasDeClubes.tsx`, três páginas irmãs num arquivo, como
+  `RedeDaPessoa`). O número da porta é o que a página mostra (§4.23) — por
+  isso "estreias" conta só as que **não** são suas.
+- **A tela principal virou o agora**: os 3 próximos encontros (a data que
+  ordena é a relevante — estreia usa o início, clube andando usa o encontro)
+  e o **"Para você"**: clubes abertos do gênero dos seus, com o motivo escrito
+  ("você está em 2 clubes de ficção científica") — `clubesParaVoce()` em
+  `lib/clubes.ts`; clube cheio fica de fora (recomendar porta fechada é
+  convite que mente).
+- **A duplicata morreu na fonte**: `estreiasParaDescobrir()` =
+  `clubesComecando()` sem os seus; o clube seu em pré-estreia ganha a
+  **etiqueta laranja** no cartão (no lugar da régua de progresso, que seria
+  uma barra vazia fingindo informação).
+- **As pastilhas de assunto** foram para a página dos abertos, **contadas
+  sobre aquela lista** — a pastilha antiga prometia "Ficção Científica · 6"
+  contando clubes que a lista não mostrava.
+- Os cartões saíram de dentro de `Clubes.tsx` para
+  `components/clube/CartoesDaTelaDeClubes.tsx`: quatro páginas os usam agora.
+
+**Rejeitadas, e por quê:** o M1 (porta única "Encontrar") escondia as estreias
+dos outros da primeira tela; o M2 (abas) não era *"abrir em outra página"*,
+que foi como ele descreveu o gesto — e aba não tem endereço para apontar de
+fora. Da primeira folha: a D (gavetas por estado, seus e alheios juntos com
+selo SEU) reintroduzia a mistura que era a queixa original.
+
+**Apurado no teste, sem virar decisão:** durante a verificação a aba pulou
+duas vezes de `/clubes` para `/community` sozinha — o console provou que eram
+**full reloads do Vite** disparados pelas outras janelas salvando arquivo, não
+defeito da tela. Se acontecer com as outras janelas paradas, aí é assunto.

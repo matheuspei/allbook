@@ -770,6 +770,50 @@ export function clubesParaDescobrir(): Clube[] {
     });
 }
 
+/** Um clube sugerido com o **porquê** escrito — a seção "Para você" (§4.99). */
+export interface ClubeComMotivo {
+  clube: Clube;
+  motivo: string;
+}
+
+/**
+ * Clubes abertos que combinam com os que você **já frequenta** — com o motivo.
+ *
+ * Pedido do Matheus na folha dos clubes (04/08): *"uma aba de recomendação…
+ * clubes abertos que você possa entrar"*. O motivo vai escrito no cartão
+ * ("porque você está no Não durmo mais") porque vitrine genérica não convence
+ * ninguém — é a mesma régua das sugestões com motivo da Comunidade.
+ *
+ * Clube cheio fica de fora: recomendar porta fechada é convite que mente.
+ * A ordem: o gênero em que você está em **mais** clubes vem primeiro — é o
+ * sinal mais forte do que você realmente gosta.
+ */
+export function clubesParaVoce(maximo = 3): ClubeComMotivo[] {
+  const meusPorGenero = new Map<string, Clube[]>();
+  for (const clube of meusClubes()) {
+    meusPorGenero.set(clube.genero, [...(meusPorGenero.get(clube.genero) ?? []), clube]);
+  }
+
+  return todosOsClubes()
+    .filter((clube) => !souMembro(clube) && !clubeCheio(clube) && meusPorGenero.has(clube.genero))
+    .sort((a, b) => {
+      const pesoA = meusPorGenero.get(a.genero)?.length ?? 0;
+      const pesoB = meusPorGenero.get(b.genero)?.length ?? 0;
+      return pesoB - pesoA || b.membros.length - a.membros.length;
+    })
+    .slice(0, maximo)
+    .map((clube) => {
+      const irmaos = meusPorGenero.get(clube.genero) ?? [];
+      return {
+        clube,
+        motivo:
+          irmaos.length > 1
+            ? `você está em ${irmaos.length} clubes de ${clube.genero.toLowerCase()}`
+            : `porque você está no ${irmaos[0]?.nome ?? "seu clube"}`,
+      };
+    });
+}
+
 /**
  * O **seu** clube que está lendo este livro agora — a peça que faz o clube
  * existir dentro do player.
@@ -884,15 +928,28 @@ export function estreiaEmTexto(clube: Clube): string {
 }
 
 /**
- * Os clubes que ainda vão começar, do mais próximo ao mais distante.
- *
- * Inclui os seus: quem criou um clube para estrear semana que vem quer vê-lo na
- * vitrine tanto quanto os outros — é assim que ele junta gente.
+ * Os clubes que ainda vão começar, do mais próximo ao mais distante — **todos**,
+ * os seus incluídos. É a lista bruta; a vitrine usa `estreiasParaDescobrir`.
  */
 export function clubesComecando(): Clube[] {
   return todosOsClubes()
     .filter(estaComecando)
     .sort((a, b) => a.ciclo.inicio.localeCompare(b.ciclo.inicio));
+}
+
+/**
+ * As estreias que **não são suas** — o que a vitrine e a página de estreias
+ * mostram (§4.99).
+ *
+ * Até 04/08 a vitrine usava `clubesComecando` inteiro, com a justificativa de
+ * que "quem criou um clube quer vê-lo na vitrine". O uso provou o contrário: o
+ * Matheus, em 8 clubes, viu "Não durmo mais" e "Clube Jane Austen" **duas vezes
+ * na mesma tela** — entre os seus e no carrossel. A regra que ficou, escolhida
+ * por ele na folha: estreia sua mora **entre os seus**, com a etiqueta de
+ * estreia; a vitrine é só o que dá para você entrar.
+ */
+export function estreiasParaDescobrir(): Clube[] {
+  return clubesComecando().filter((clube) => !souMembro(clube));
 }
 
 /**
