@@ -213,6 +213,24 @@ pública é de **24 horas**.
 - [ ] Trocar por armazenamento real ligado ao Drizzle antes de qualquer dado de
       usuário passar pelo servidor.
 
+### 2.9 ⚠️ O endereço do perfil deriva do nome — com contas, ele precisa congelar
+
+Desde 04/08 a sua página tem endereço público (`/user/<slug>`, função
+`meuSlug()` em `lib/profile.ts`) e o botão "Compartilhar" do perfil envia esse
+link (ROTEIRO §4.97). O slug é **derivado do nome na hora** — mudou o nome,
+mudou o endereço, e todo link já compartilhado morre em silêncio.
+
+- [ ] Com contas, o endereço vira coluna própria (username), **escolhido uma vez
+      e congelado** — não recalculado do nome. A migração deve gerar o inicial a
+      partir do nome com a mesma regra do `meuSlug()` de hoje.
+- [ ] O servidor passa a garantir unicidade (duas pessoas chamadas Matheus não
+      podem dividir `/user/matheus`). Hoje, num empate com um leitor fictício, o
+      seu endereço simplesmente ganha (`UserProfile.tsx` checa você antes de
+      `findMember`) — regra que só se sustenta sem contas.
+- [ ] O `@` visível e a busca por pessoas ficaram **de fora desta etapa por
+      decisão do Matheus** (§4.97); quando entrarem, o username desta coluna é o
+      que a busca indexa.
+
 ---
 
 ## 3. O que só existe com banco (promessas que o app já faz)

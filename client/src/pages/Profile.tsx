@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import SeloDeMedalha from "@/components/SeloDeMedalha";
 import { useToast } from "@/hooks/use-toast";
-import { initialOf, readProfile, type Profile as UserProfile } from "@/lib/profile";
+import { initialOf, meuSlug, readProfile, type Profile as UserProfile } from "@/lib/profile";
 import { readRecommendations } from "@/lib/recommendations";
 import { quantosAcompanho } from "@/lib/acompanhando";
 import { meusClubes, type Clube } from "@/lib/clubes";
@@ -175,9 +175,13 @@ export default function Profile() {
   const desde = resumo ? ouvindoDesde(resumo) : null;
 
   /**
-   * Compartilha o que a página tem de verdade — as suas recomendações. Sem
-   * servidor não existe um link do seu perfil que abra para outra pessoa, e
-   * compartilhar um endereço que mente é pior que não ter botão.
+   * Compartilha o **link da sua página** (§4.97), com as recomendações no
+   * texto. Até 04/08 ia só o endereço genérico do app, com a justificativa
+   * "sem servidor um link do perfil mentiria" — o argumento que o Matheus já
+   * derrubou duas vezes, e que livro, clube e trecho nunca seguiram: todos
+   * compartilham link. O endereço é `/user/<meuSlug()>`, que a rota reconhece
+   * como você. Foi a resposta dele ao `@` (§4.95): *"a pessoa pode compartilhar
+   * um link do perfil dela? Isso já resolveria essa questão"*.
    */
   async function compartilhar() {
     const indicacoes = recommendations
@@ -187,7 +191,7 @@ export default function Profile() {
     const texto = indicacoes
       ? `No AllBook eu recomendo: ${indicacoes}.`
       : "Estou ouvindo audiolivros em português no AllBook.";
-    const url = window.location.origin;
+    const url = `${window.location.origin}/user/${meuSlug()}`;
 
     if (typeof navigator !== "undefined" && navigator.share) {
       try {

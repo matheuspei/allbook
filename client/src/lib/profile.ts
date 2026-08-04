@@ -65,6 +65,32 @@ export function initialOf(name: string): string {
 }
 
 /**
+ * O endereço público da sua página — `/user/<meuSlug()>` (§4.97).
+ *
+ * Derivado do nome, e não escolhido num campo próprio, porque o Matheus
+ * descartou o `@` nesta etapa (04/08): *"hoje o app nem tem busca de pessoas…
+ * um link de compartilhamento já resolveria essa questão"*. O que o link
+ * precisa é só de um identificador — e é este. Um campo para escolher o seu
+ * volta à mesa quando existir busca de gente.
+ *
+ * ⚠️ Deriva do nome ⇒ **muda quando o nome muda**, e o link antigo morre no
+ * mesmo instante. Sem contas isso não fere ninguém (o link só abre nesta
+ * máquina); com contas o endereço precisa congelar — anotado em
+ * `docs/BANCO-DE-DADOS.md`.
+ */
+export function meuSlug(): string {
+  return (
+    readProfile()
+      .name.trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "voce"
+  );
+}
+
+/**
  * Reduz a imagem antes de guardar.
  *
  * Sem isso, uma foto de celular (vários MB) estoura o limite do localStorage,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "wouter";
-import { BookHeart, Check, MessageSquareQuote, Plus, UserPlus, Users } from "lucide-react";
+import { Link, Redirect, useParams } from "wouter";
+import { BookHeart, Check, MessageSquareQuote, Plus, Share2, UserPlus, Users } from "lucide-react";
 
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import PageHeader from "@/components/PageHeader";
@@ -13,6 +13,7 @@ import { convidar, podeConvidarPara, simularResposta } from "@/lib/convites";
 import { useToast } from "@/hooks/use-toast";
 import { catalog } from "@/lib/books";
 import { findMember, recommendationsOf, avatarDeLeitor } from "@/lib/community";
+import { meuSlug } from "@/lib/profile";
 import { isFollowing, toggleFollow } from "@/lib/following";
 import { seguidoresDe, totalSeguindo } from "@/lib/rede";
 import { getAchievementsByIds, melhoresConquistas } from "@/lib/achievements";
@@ -52,6 +53,14 @@ export default function UserProfile() {
     });
   }
 
+  /* O seu link aponta para cá (§4.97): quem abre `/user/<seu-slug>` nesta
+     máquina é você mesmo, e a página de verdade é a sua. A checagem vem antes
+     de `findMember`, então num empate de nome com um fictício o seu endereço
+     ganha — o servidor é quem um dia impede o empate de existir. */
+  if ((params.slug ?? "") === meuSlug()) {
+    return <Redirect to="/profile" />;
+  }
+
   if (!member) {
     return (
       <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="user-profile-missing">
@@ -64,6 +73,34 @@ export default function UserProfile() {
         </div>
       </div>
     );
+  }
+
+  /**
+   * Compartilhar a página de outra pessoa — o mesmo gesto do seu perfil
+   * (§4.97), porque a decisão sobre um gesto vale em todo lugar onde ele
+   * existe (§4.93). E é assim que alguém "encontra uma pessoa" num app sem
+   * busca de gente: um terceiro manda o link. Padrão da casa: folha nativa no
+   * celular, área de transferência no computador.
+   */
+  async function compartilharPerfil() {
+    const url = `${window.location.origin}/user/${member!.slug}`;
+    const texto = `Conheça ${member!.name} no AllBook.`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: member!.name, text: texto, url });
+      } catch {
+        // A pessoa fechou a folha nativa. Não é erro, não avisa nada.
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link copiado", description: "Agora é só colar onde quiser." });
+    } catch {
+      toast({ title: "Não consegui copiar o link", description: url });
+    }
   }
 
   const books = recommendationsOf(member);
@@ -107,6 +144,17 @@ export default function UserProfile() {
             <div className="h-full w-full bg-gradient-to-b from-primary/25 via-primary/[0.06] to-transparent" />
           )}
         </div>
+
+        {/* No canto onde a sua página tem o lápis e a engrenagem, a página dos
+            outros tem o que faz sentido nela: mandar a pessoa para alguém. */}
+        <button
+          onClick={compartilharPerfil}
+          aria-label={`Compartilhar o perfil de ${member.name}`}
+          className="absolute right-4 top-4 z-10 rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          data-testid="button-share-user"
+        >
+          <Share2 className="h-[18px] w-[18px]" strokeWidth={1.9} />
+        </button>
 
         <div className="relative px-5 pt-8 pb-6">
           <div className="flex items-end gap-4">

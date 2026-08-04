@@ -8014,6 +8014,64 @@ a colisão entre contas de verdade; isso é trabalho do servidor e está anotado
 `docs/BANCO-DE-DADOS.md`. **Não é motivo para adiar** — o mesmo argumento
 ("não tem servidor") já foi derrubado duas vezes neste projeto.
 
+> **Decidido em 04/08 (§4.97): o `@` não entra nesta etapa.** O Matheus derrubou
+> a recomendação acima com um argumento melhor do que ela — ver lá.
+
+---
+
+## 4.97 O `@` morre nesta etapa; o endereço que valia era o link do perfil (04/08)
+
+**A decisão é do Matheus, e derruba a recomendação da §4.95** — o registro fica
+porque o argumento dele é o critério para o assunto voltar ou não:
+
+> *"O @ nas redes sociais existe basicamente para você identificar outras
+> pessoas… quando você vai pesquisar aquela pessoa ali, na aba de pesquisar. Mas
+> hoje, no nosso aplicativo, você nem tem a opção de encontrar a pessoa — e eu
+> também não acho que, nessa primeira etapa, seria algo interessante implementar,
+> até porque nem vai ter tantas pessoas assim… A pessoa não pode ter um link de
+> compartilhamento do perfil dela? Isso já resolveria essa questão."*
+
+**Por que ele está certo:** o `@` é um identificador **para digitar** — só paga
+o custo quando existe um campo de busca onde digitá-lo. O link é o mesmo
+identificador **para mandar pronto**, e o app já vive de mandar link (livro,
+clube, trecho). Com ~5 mil usuários na primeira etapa e sem busca de pessoas, o
+caminho de descoberta real é alguém mandar o link para alguém.
+
+**O que a apuração achou de quebrado no caminho:** o botão "Compartilhar" do seu
+perfil **já existia e mentia por omissão** — mandava o endereço genérico do app
+(`localhost:3000`), não a sua página, com um comentário no código justificando:
+*"sem servidor não existe um link do seu perfil que abra para outra pessoa"*. É
+o argumento que o Matheus já derrubou duas vezes (§4.53, sala ao vivo §4.81) — e
+que o resto do app nunca seguiu: livro, clube e trecho sempre compartilharam os
+seus links. O perfil era o único que se recusava.
+
+**O que entrou (04/08, janela B):**
+
+- **A sua página ganhou endereço** — `meuSlug()` em `lib/profile.ts`, derivado
+  do nome ("Matheus" → `/user/matheus`): minúsculas, sem acento, espaços viram
+  hífen. Sem campo para escolher, de propósito: escolher username é a metade do
+  `@` que ficou para a etapa da busca.
+- **O Compartilhar do perfil manda esse link**, com as recomendações no texto
+  (o texto bom que já existia ficou).
+- **`/user/:slug` reconhece você**: abrir o seu endereço desemboca em
+  `/profile`. A checagem vem antes de `findMember`, então num empate de nome com
+  um leitor fictício o seu endereço ganha — o servidor é quem um dia impede o
+  empate de existir.
+- **A página dos outros ganhou o mesmo gesto**: ícone de compartilhar no canto
+  do topo (onde a sua tem o lápis e a engrenagem), mandando `/user/<slug>` da
+  pessoa. É a regra da §4.93 — decisão sobre um gesto vale em todo lugar onde o
+  gesto existe — e é como "encontrar alguém" funciona sem busca: um terceiro
+  manda o link.
+
+**A armadilha, registrada onde se olha antes de mexer em contas
+(`BANCO-DE-DADOS.md` §2.9):** slug derivado do nome **muda quando o nome muda**
+e mata todo link já compartilhado. Sem contas, inofensivo; com contas, o
+endereço congela numa coluna própria.
+
+**O gatilho para o `@` voltar à mesa:** existir busca de pessoas (ou contas
+reais, o que vier primeiro). Aí o assunto não é mais "mostrar um arroba" — é o
+username congelado da §2.9 virar o que a busca indexa.
+
 ---
 
 ## 5. Backlog de faxina técnica (não urgente)
