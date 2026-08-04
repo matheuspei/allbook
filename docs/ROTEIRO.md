@@ -7260,7 +7260,46 @@ parte de outra pergunta — *que forma a conversa toma quando o assunto é som?*
 Mais três decisões de tela: a forma do eixo (régua horizontal / agrupada por
 capítulo / trilho vertical), o que o fórum ganha em troca, e o que fazer quando
 alguém abre tópico sobre um livro — inclusive a opção **"deixa acontecer"**, que
-é a resposta honesta se a forma resolver sozinha. **Nada decidido — a folha é dele.**
+é a resposta honesta se a forma resolver sozinha.
+
+### A recomendação, e a armadilha do "deletar" (04/08)
+
+Ele pediu a **minha** recomendação numa folha clicável, dizendo estar *"levemente
+inclinado a deletar isso"*. Antes de opinar, contei o que existe no código — e os
+números viraram a resposta:
+
+| medida | valor | leitura |
+| --- | --- | --- |
+| arquivos que usam a **tela** (`SalaDoLivro`) | **3** | a tela é barata de tirar |
+| arquivos que importam o **dado** (`lib/comments.ts`) | **15** | o dado é caro de apagar |
+| registros em `comments.ts` que são **avaliação com nota** | **33 de 51** | ⚠️ a armadilha |
+| falas presas a um minuto do áudio | 10 | o ativo que só o AllBook tem |
+| lugares que apontam para `/conversa` | 8 | precisam de destino |
+
+**A armadilha, que quebra em silêncio:** `ratings.ts` lê `notasDoLivro` de
+`comments.ts` — ou seja, **a nota dos livros mora no mesmo arquivo da conversa**.
+Apagar o arquivo tira a estrela da home, da busca, da ficha e do perfil, e
+**nenhum erro aparece na tela**: os livros só ficam sem nota. Se a decisão for
+deletar, o passo 1 obrigatório é *separar avaliação de conversa em dois arquivos*.
+
+**A recomendação: nem manter, nem deletar — encolher.** *Não delete a conversa,
+delete o lugar dela.*
+
+1. **Tirar a lista de conversa da ficha do livro** — é ela que causa o incômodo:
+   na ficha é uma lista de gente falando embaixo de outra lista de gente falando
+   (as avaliações). 1 arquivo, risco zero.
+2. **As falas ficam no player, presas ao minuto** — escuta, não leitura; não
+   compete com fórum nenhum e já está construído (custo 0).
+3. **O debate do livro vai para o fórum, com a capa anexada** — 1 campo e 1 selo,
+   já testado no protótipo. Responde à frase dele sem mapa, lente nem regra nova.
+4. **Os 8 links passam a apontar para a ficha** — obrigatório se o 1 for feito;
+   porta que leva a lugar nenhum é o pior defeito possível.
+
+Folha clicável em `client/public/_recomendacao-conversa.html`, com um **simulador**
+(manter / encolher / deletar mostra as consequências reais na hora), botões
+*faço / não faço* por passo, e o **plano de demolição na ordem certa** caso ele
+opte por deletar mesmo assim — o que eu construo se ele mandar, desde que o passo
+da separação venha primeiro.
 
 ---
 
