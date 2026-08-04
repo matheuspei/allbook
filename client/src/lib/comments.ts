@@ -200,6 +200,58 @@ export const comments: Comment[] = [
   { id: "s10", authorSlug: "carla-lima", bookId: 1, positionSec: 1450, duracaoSec: 30, likes: 27, dislikes: 1, date: "2026-07-22", text: "Guardei esse pedaço. A pausa antes da porta abrir vale o livro inteiro." },
   { id: "s9", authorSlug: "ana-paula", bookId: 106, positionSec: 8200, spoiler: true, likes: 19, dislikes: 2, date: "2026-07-17", text: "O detalhe do diário aqui entrega mais do que parece na primeira escuta." },
 
+  /*
+   * — A CONVERSA CHEIA DE UM LIVRO SÓ: "A Paciente Silenciosa" (id 106) —
+   *
+   * **Por que este livro tem mais falas que os outros (04/08, ROTEIRO §4.87).**
+   * O Matheus pediu para ver *"como é que isso realmente ficaria"* depois que a
+   * conversa saiu da ficha e passou a viver no player. Com 2 falas semeadas, o
+   * que ele via era a própria voz repetida — a tela não mostrava nada do que a
+   * peça promete.
+   *
+   * **As âncoras são reais, não inventadas.** Os 13 capítulos deste livro vêm de
+   * `getChapters(106)` (10h40 no total) e cada `positionSec` abaixo cai dentro do
+   * capítulo que o texto menciona — conferido um a um. Âncora chutada apareceria
+   * na tela como "cap. 9" numa fala que fala do começo, e o trilho do player
+   * mostraria gente conversando onde não há conversa.
+   *
+   * **A curva é de propósito:** muita gente no começo (cap. 1–3), rareando no
+   * meio e voltando a se adensar no fim — é como um livro é ouvido de verdade, e
+   * é o que faz o trilho do player ter forma em vez de ser um chuvisco uniforme.
+   * Os dois `spoiler: true` estão nos capítulos finais, que é onde eles doem.
+   */
+  /*
+   * **As três primeiras existem para a sala não nascer muda** — e isso só ficou
+   * claro testando, em 04/08. Semeei 15 falas espalhadas pelos 13 capítulos e
+   * abri a tela: **nenhuma aparecia**. A trava de posição estava certa (o
+   * Matheus está no minuto 8 do capítulo 1) e o aviso era honesto — *"17
+   * mensagens presas em trechos à frente de onde você parou"* —, mas o efeito
+   * era o pior possível: a conversa parecia conter só a voz dele.
+   *
+   * Daí a regra: **todo livro precisa de fala no primeiro quarto de hora, e de
+   * pelo menos uma sem âncora**. Sem âncora = fala sobre o livro inteiro, que
+   * todo mundo lê a qualquer momento — é ela que dá conteúdo a quem está
+   * decidindo se vai ouvir, e a quem acabou de começar.
+   */
+  { id: "s26", authorSlug: "nara", bookId: 106, likes: 29, dislikes: 2, date: "2026-08-02", text: "Terminei em quatro dias, o que para mim é recorde. A narração ajuda: dá para ouvir horas sem cansar." },
+  { id: "s27", authorSlug: "vitor-h", bookId: 106, positionSec: 95, likes: 13, dislikes: 0, date: "2026-08-03", text: "Os dois primeiros minutos já dizem o que aconteceu — e mesmo assim você quer saber o resto. Bem feito." },
+  { id: "s28", authorSlug: "iara", bookId: 106, positionSec: 310, duracaoSec: 25, likes: 17, dislikes: 1, date: "2026-08-01", text: "Guardei este pedacinho: a primeira vez que ele fala o nome dela. Volta na cabeça depois." },
+  { id: "s11", authorSlug: "carla-lima", bookId: 106, positionSec: 620, likes: 24, dislikes: 1, date: "2026-07-29", text: "Primeira meia hora e a Alicia já não disse uma palavra. O narrador segura esse silêncio muito bem." },
+  { id: "s12", authorSlug: "beto", bookId: 106, positionSec: 2380, likes: 7, dislikes: 3, date: "2026-07-28", text: "Ouvi este capítulo no trânsito e perdi metade. Voltei em casa — vale a atenção inteira." },
+  { id: "s13", authorSlug: "ricardo", bookId: 106, positionSec: 4150, duracaoSec: 35, likes: 31, dislikes: 2, date: "2026-07-30", text: "Guardei estes 35 segundos: a descrição do quadro que ela pintou depois. Arrepio." },
+  { id: "s14", authorSlug: "juliana-s", bookId: 106, positionSec: 5890, likes: 12, dislikes: 0, date: "2026-07-27", text: "O Theo me irrita e acho que é proposital. Alguém mais sentiu isso já no começo?" },
+  { id: "s15", authorSlug: "felipe-g", bookId: 106, positionSec: 7010, likes: 5, dislikes: 8, date: "2026-07-26", text: "Aqui o livro arrasta. Coloquei 1,5x e não perdi nada — só volta a valer no capítulo seguinte." },
+  { id: "s16", authorSlug: "luciana", bookId: 106, positionSec: 9450, rating: 5, likes: 18, dislikes: 1, date: "2026-08-01", text: "A entrada no hospital é onde eu parei de fazer outra coisa e só ouvi. O Aurélio muda o tom e a gente sente." },
+  { id: "s17", authorSlug: "marcos-v", bookId: 106, positionSec: 12300, likes: 9, dislikes: 0, date: "2026-07-31", text: "Reparem no que ele evita perguntar nesta sessão. Na segunda escuta isso fica gritante." },
+  { id: "s18", authorSlug: "bia-costa", bookId: 106, positionSec: 15100, duracaoSec: 28, likes: 22, dislikes: 1, date: "2026-08-02", text: "Este pedaço aqui é a melhor coisa da narração inteira. Ouçam de fone." },
+  { id: "s19", authorSlug: "tereza-m", bookId: 106, positionSec: 17800, likes: 6, dislikes: 2, date: "2026-07-30", text: "Meio do livro e eu ainda não sei de quem desconfiar. Isso é elogio." },
+  { id: "s20", authorSlug: "ana-paula", bookId: 106, positionSec: 20900, likes: 14, dislikes: 0, date: "2026-08-01", text: "Voltei três capítulos para conferir uma data que ele cita aqui. Bate. O livro joga limpo." },
+  { id: "s21", authorSlug: "ricardo", bookId: 106, positionSec: 24600, spoiler: true, likes: 27, dislikes: 3, date: "2026-08-02", text: "O nome que aparece nesta parte do diário muda tudo o que veio antes. Não leiam isto antes de chegar aqui." },
+  { id: "s22", authorSlug: "carla-lima", bookId: 106, positionSec: 27400, likes: 11, dislikes: 1, date: "2026-08-03", text: "Estou ouvindo em 1x de novo, que é raro em mim. Deste ponto em diante não dá para acelerar." },
+  { id: "s23", authorSlug: "elias", bookId: 106, positionSec: 30500, likes: 8, dislikes: 0, date: "2026-08-03", text: "A pausa que o narrador faz antes da última fala da sessão. Ele segurou uns dois segundos e valeu ouro." },
+  { id: "s24", authorSlug: "juliana-s", bookId: 106, positionSec: 33800, spoiler: true, likes: 35, dislikes: 5, date: "2026-08-03", text: "Terminei agora e voltei ao primeiro capítulo. É outro livro quando você sabe o que sabe no fim." },
+  { id: "s25", authorSlug: "beto", bookId: 106, positionSec: 36900, rating: 4, likes: 16, dislikes: 4, date: "2026-08-04", text: "Últimos vinte minutos ouvidos de uma vez, parado no carro na garagem. Quem ouviu sabe." },
+
   // — comentários sobre PESSOAS (autor/narrador). Sem nota, sem bookId. —
   // — Rafael Nogueira, narrador de ficção científica —
   { id: "p1", authorSlug: "carla-lima", personSlug: "rafael-nogueira", about: "narrator", likes: 34, dislikes: 2, date: "2026-07-18", text: "Ele dá voz diferente para cada personagem sem cair na imitação. É raro e faz muita diferença em livro longo." },

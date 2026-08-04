@@ -45,10 +45,27 @@ export default function CommentComposer({
   alvo,
   placeholder = "Deixe seu comentário sobre este livro…",
   ancoraInicial,
+  listarMeus = true,
 }: {
   alvo: CommentTarget;
   /** O convite dentro do campo. Muda com o alvo: livro, pessoa ou editora. */
   placeholder?: string;
+  /**
+   * Desenhar os seus comentários logo abaixo da caixa.
+   *
+   * **Ligado por padrão, e desligado só pela sala do livro** (04/08). O Matheus
+   * abriu a conversa de "A Paciente Silenciosa" e viu quase só a própria voz:
+   * *"aparece um monte de coisa que eu tinha escrito"*. A causa não era o filtro
+   * — os comentários estavam no livro certo — era **o lugar**: os seus vinham
+   * todos empilhados no topo, colados na caixa, e a fala das outras pessoas
+   * começava depois deles. Numa sala presa ao áudio isso é duplamente errado,
+   * porque quebra a ordem do livro.
+   *
+   * Na sala, portanto, quem mistura é ela (`SalaDoLivro`), por minuto. Em perfil
+   * de pessoa e de editora não há âncora nem ordem de áudio, e a lista aqui
+   * continua sendo o certo.
+   */
+  listarMeus?: boolean;
   /**
    * Prender o comentário neste segundo do áudio, já ligado ao abrir.
    *
@@ -252,7 +269,7 @@ export default function CommentComposer({
         </div>
       </div>
 
-      {meus.map((c) => (
+      {listarMeus && meus.map((c) => (
         <div
           key={c.id}
           className="bg-white/5 p-4 rounded-xl border border-white/5"

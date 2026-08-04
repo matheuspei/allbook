@@ -3,9 +3,17 @@ import { Lock, MessageSquare } from "lucide-react";
 
 import CommentComposer from "@/components/CommentComposer";
 import CommentThread from "@/components/CommentThread";
+import MeuComentario from "@/components/MeuComentario";
 import { commentsForBook } from "@/lib/comments";
 import { desfazerDenuncia, idsEscondidos, MODERACAO_EVENT } from "@/lib/moderacao";
+import {
+  MEUS_COMENTARIOS_EVENT,
+  myCommentsFor,
+  removeComment,
+  type MyComment,
+} from "@/lib/myComments";
 import { PLAYBACK_EVENT } from "@/lib/playback";
+import { myRatingOf } from "@/lib/ratings";
 import { comecouOLivro, posicaoNoLivro, separarSala } from "@/lib/sala";
 import type { Reactions } from "@/lib/reactions";
 
@@ -74,6 +82,51 @@ export default function SalaDoLivro({
   const escondidosAqui = commentsForBook(bookId).filter((item) => escondidos.has(item.id));
   const { visiveis, adiante } = separarSala(todos, posicao);
 
+  /*
+   * **As suas falas entram na conversa, não antes dela** (04/08, §4.87).
+   *
+   * Antes elas saíam empilhadas dentro do `CommentComposer`, coladas na caixa de
+   * escrever — e o Matheus abriu "A Paciente Silenciosa" e viu quase só a
+   * própria voz. O filtro estava certo; o lugar é que estava errado.
+   *
+   * **A ordem é a do livro, e não a do engajamento.** Sem âncora primeiro (é
+   * fala sobre a obra inteira, que todo mundo lê a qualquer momento), depois por
+   * minuto crescente. É a única ordem que faz a lista contar a mesma história
+   * que o trilho do player — e agora que a conversa vive lá dentro, elas
+   * precisam concordar.
+   *
+   * **As suas nunca ficam travadas:** você lê o que escreveu mesmo estando à
+   * frente de onde parou. Esconder de você a própria fala seria absurdo.
+   */
+  const [meus, setMeus] = useState<MyComment[]>(() => myCommentsFor({ bookId }));
+
+  useEffect(() => {
+    const atualizar = () => setMeus(myCommentsFor({ bookId }));
+    atualizar();
+    window.addEventListener(MEUS_COMENTARIOS_EVENT, atualizar);
+    return () => window.removeEventListener(MEUS_COMENTARIOS_EVENT, atualizar);
+  }, [bookId]);
+
+  const minhaNota = myRatingOf(bookId);
+
+  type NaSala =
+    | { tipo: "outro"; ordem: number; item: (typeof visiveis)[number] }
+    | { tipo: "meu"; ordem: number; item: MyComment };
+
+  const conversa: NaSala[] = [
+    ...visiveis.map((item) => ({
+      tipo: "outro" as const,
+      ordem: item.positionSec ?? -1,
+      item,
+    })),
+    ...meus.map((item) => ({ tipo: "meu" as const, ordem: item.positionSec ?? -1, item })),
+  ].sort((a, b) => a.ordem - b.ordem);
+
+  function apagarMeu(id: string) {
+    removeComment(id);
+    setMeus(myCommentsFor({ bookId }));
+  }
+
   return (
     <div className="space-y-3" data-testid="sala-do-livro">
       <div className="flex items-baseline justify-between">
@@ -89,16 +142,27 @@ export default function SalaDoLivro({
         O que alguém comenta em um ponto do áudio só aparece quando você chega lá.
       </p>
 
-      <CommentComposer alvo={{ bookId }} />
+      {/* `listarMeus={false}`: quem desenha as suas falas aqui é a lista abaixo,
+          na ordem do livro — ver o comentário longo em cima de `conversa`. */}
+      <CommentComposer alvo={{ bookId }} listarMeus={false} />
 
-      {visiveis.map((comment) => (
-        <CommentThread
-          key={comment.id}
-          comment={comment}
-          reactions={reactions}
-          onReactionsChange={onReactionsChange}
-        />
-      ))}
+      {conversa.map((linha) =>
+        linha.tipo === "meu" ? (
+          <MeuComentario
+            key={linha.item.id}
+            comment={linha.item}
+            nota={minhaNota}
+            onApagar={apagarMeu}
+          />
+        ) : (
+          <CommentThread
+            key={linha.item.id}
+            comment={linha.item}
+            reactions={reactions}
+            onReactionsChange={onReactionsChange}
+          />
+        ),
+      )}
 
       {adiante > 0 && <Adiante quantas={adiante} comecou={comecou} />}
 

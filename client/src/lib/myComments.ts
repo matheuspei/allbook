@@ -111,8 +111,20 @@ export function myCommentsFor(target: CommentTarget): MyComment[] {
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 
+/**
+ * Avisa a tela que a sua lista de comentários mudou.
+ *
+ * **Passou a existir em 04/08 (§4.87)**, quando a sala do livro deixou de
+ * receber os seus comentários prontos de dentro do `CommentComposer` e passou a
+ * montá-los ela mesma, na ordem do áudio: sem um aviso, publicar um comentário
+ * novo não redesenhava a lista — a fala só aparecia ao recarregar. É o mesmo
+ * mecanismo de `PLAYBACK_EVENT` e `MODERACAO_EVENT`.
+ */
+export const MEUS_COMENTARIOS_EVENT = "allbook:meus-comentarios";
+
 function save(list: MyComment[]): MyComment[] {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  window.dispatchEvent(new Event(MEUS_COMENTARIOS_EVENT));
   return list;
 }
 
