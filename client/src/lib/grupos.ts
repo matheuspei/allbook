@@ -1477,6 +1477,24 @@ export function alternarSpoiler(grupoId: string, respostaId: string): boolean {
 
 
 /** Os tópicos de umo grupo: fixado primeiro, depois pela última atividade. */
+/**
+ * Os tópicos de fórum que falam de **um livro** — a ponte de volta.
+ *
+ * Criada em 04/08, quando a conversa saiu da ficha do livro (ROTEIRO §4.87): sem
+ * ela, quem está na página do livro nunca fica sabendo que existe gente
+ * debatendo o final dele num grupo — e era exatamente esse o buraco que fazia as
+ * duas conversas parecerem concorrentes silenciosas.
+ *
+ * Varre **todos** os grupos, e não só os seus: o debate mais vivo sobre um livro
+ * pode estar num grupo em que você não entrou.
+ */
+export function topicosDoLivro(bookId: number): TopicoNaTela[] {
+  return todosOsGrupos()
+    .flatMap((grupo) => topicosDa(grupo.id))
+    .filter((topico) => topico.bookId === bookId && !topico.escondido)
+    .sort((a, b) => b.ultimaAtividade.localeCompare(a.ultimaAtividade));
+}
+
 export function topicosDa(
   grupoId: string,
   opcoes: { incluirEscondidos?: boolean } = {},

@@ -7301,6 +7301,54 @@ Folha clicável em `client/public/_recomendacao-conversa.html`, com um **simulad
 opte por deletar mesmo assim — o que eu construo se ele mandar, desde que o passo
 da separação venha primeiro.
 
+### ✅ CONSTRUÍDO (04/08) — ele aprovou os 4 passos
+
+> `CAMINHO: Encolher` · 1 FAÇO · 2 FAÇO · 3 FAÇO · 4 FAÇO
+
+**Metade já existia, e isso é a notícia mais útil daqui.** Ao abrir o código para
+construir, dois dos quatro passos estavam prontos:
+
+- **Passo 2 (as falas no player):** `MarcasDaConversa` (o trilho), o botão
+  *Conversa* da barra, a gaveta *"Conversa deste trecho"* com âncora, aviso de
+  spoiler e *"Ver a conversa do livro inteiro"*. Custo real: **zero**.
+- **Passo 3 (debate no fórum com a capa):** `criarTopico` já aceita `{ bookId }`,
+  e `LinhaDeTopico` já desenha a capa do livro e o título clicável. **Muitos
+  tópicos semeados já têm `bookId`.** Custo real: **zero**.
+
+**O que foi construído de fato:**
+
+1. **A `SalaDoLivro` saiu da ficha** (`BookDetails.tsx`) e no lugar entrou
+   `FalasDoLivro` — três linhas, não uma lista: quantas falas o livro tem,
+   quantas estão presas ao áudio, e a porta para a conversa. **Regra da peça:
+   ela não mostra as falas** (se mostrasse, viraria a mesma lista, só que menor),
+   **não some em livro mudo** (senão ninguém descobre que dá para falar) e
+   **mostra o debate do fórum quando existe**.
+2. **`topicosDoLivro(bookId)`** em `lib/grupos.ts` — a ponte de volta, varrendo
+   **todos** os grupos (o debate mais vivo pode estar num grupo em que você não
+   entrou). Sem ela, quem está no livro nunca saberia que há gente discutindo o
+   final ali ao lado — e era esse buraco que fazia as duas conversas parecerem
+   concorrentes silenciosas.
+3. **O estado de reações saiu do `BookDetails`** junto com a conversa: quem
+   desenha comentário agora é `/book/:id/conversa`. Estado sem quem o use é
+   código morto.
+
+**⚠️ O passo 4 foi executado ao contrário — e o motivo é o próprio passo 4.**
+Ele dizia "os 8 links passam a apontar para a ficha", partindo da minha
+suposição de que a tela da conversa sumiria. Ao conferir, os links são **6**, e
+**todos apontam para uma fala específica** (o aviso "responderam você", "meus
+comentários", o comentário citado no feed, a conversa acontecendo agora, "ver a
+conversa inteira" do player). Como o passo 2 mantém a conversa viva, mandá-los
+para a ficha criaria exatamente o **beco sem saída** que o passo 4 existia para
+evitar: a pessoa clicaria na resposta que recebeu e cairia numa página que não
+tem a resposta. **Então o vetor se inverteu:** os 6 links continuam apontando
+para a conversa, e o que passou a existir foi o caminho **da ficha para a
+conversa** (`FalasDoLivro`). Mesmo objetivo — nenhuma porta mente —, direção
+oposta.
+
+**A régua:** *encolher é diferente de apagar. O que estava sobrando era o
+lugar, não o conteúdo* — e conferir antes de construir mostrou que metade do
+trabalho já estava feita.
+
 ---
 
 ## 4.89 A segunda leva da sala, e a auditoria de design (31/07, noite)

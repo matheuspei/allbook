@@ -20,7 +20,7 @@ import { findPerson } from "@/lib/people";
 import { publisherOfBook } from "@/lib/publishers";
 import { STUDIO_NAME, narratorKind } from "@/lib/studio";
 import PublisherMark from "@/components/PublisherMark";
-import SalaDoLivro from "@/components/SalaDoLivro";
+import FalasDoLivro from "@/components/FalasDoLivro";
 import PresencaNoLivro from "@/components/PresencaNoLivro";
 import AvaliacoesDoLivro from "@/components/AvaliacoesDoLivro";
 import FaixaDoClubeNoLivro from "@/components/clube/FaixaDoClubeNoLivro";
@@ -28,7 +28,6 @@ import AvaliarLivro from "@/components/AvaliarLivro";
 import SeletorDeNarracao from "@/components/SeletorDeNarracao";
 import { NARRATIONS_EVENT, chosenNarration } from "@/lib/narrations";
 import { notaDaComunidade, MINIMO_PARA_MEDIA, RATINGS_EVENT } from "@/lib/ratings";
-import { readReactions, type Reactions } from "@/lib/reactions";
 import PersonAvatar from "@/components/PersonAvatar";
 import { motion } from "framer-motion";
 import { getChapters, chaptersTotalSec, chapterStartSec, formatChapterDuration, formatBookDuration } from "@/lib/chapters";
@@ -357,18 +356,9 @@ export default function BookDetails({ params }: { params: { id: string } }) {
   }, [params.id, book.narrator]);
 
   /**
-   * As suas curtidas e descurtidas.
-   *
-   * A ordem dos comentários **não é recalculada** ao reagir, de propósito: ver
-   * o comentário pular de lugar debaixo do próprio dedo é desorientador. A
-   * ordem nova vale na próxima visita.
-   */
-  const [reactions, setReactions] = useState<Reactions>({});
-
-  useEffect(() => {
-    setReactions(readReactions());
-  }, []);
-
+  /* As curtidas saíram daqui em 04/08 junto com a conversa (§4.87): quem
+     desenha comentário nesta tela agora é a página `/book/:id/conversa`, e é lá
+     que o estado de reação mora. Estado sem quem o use é código morto. */
 
   // A lista de capítulos agora é estável por livro (lib/chapters.ts), a mesma
   // que o player usa — assim "começar no capítulo X" leva ao capítulo certo.
@@ -770,13 +760,18 @@ export default function BookDetails({ params }: { params: { id: string } }) {
 
         <section className="space-y-6">
           {/*
-            A lista solta de comentários virou a **sala do livro** em 27/07
-            (ROTEIRO 4.39): mesma conversa, agora com cada mensagem podendo estar
-            presa a um ponto do áudio — e o que está à frente de onde a pessoa
-            chegou não aparece. A caixa de escrever continua dentro dela, pelo
-            motivo de sempre: sem caixa, livro sem comentário semeado fica mudo.
-            Desde 28/07 ela recebe SÓ conversa — as resenhas moram na seção
-            Avaliações, acima. O título "Conversa" vem de dentro da sala.
+            ⚠️ **A conversa saiu daqui em 04/08 (ROTEIRO §4.87) — não a traga de
+            volta sem ler o porquê.** Ela era a `SalaDoLivro` inteira, logo abaixo
+            das avaliações, e o Matheus achou o defeito: *"a conversa no livro,
+            junto com os fóruns, pode se tornar muito parecida"*. O defeito estava
+            à vista na tela — **uma lista de gente falando embaixo de outra lista
+            de gente falando**, no mesmo formato e no mesmo lugar.
+
+            A decisão foi **encolher, não apagar**: a conversa passou a viver onde
+            só ela pode existir (o player, presa ao minuto), e aqui ficou o aviso
+            de que ela existe + a porta (`FalasDoLivro`). O dado continua inteiro
+            em `lib/comments.ts` — apagá-lo levaria junto **a nota dos livros**,
+            que sai do mesmo arquivo (33 dos 51 registros têm `rating`).
           */}
           {/* Se algum clube está lendo este livro agora, o convite aparece
               aqui — a pessoa já está olhando o título (ROTEIRO 4.39). */}
@@ -790,11 +785,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             <PresencaNoLivro bookId={Number(params.id)} />
           </div>
 
-          <SalaDoLivro
-            bookId={Number(params.id)}
-            reactions={reactions}
-            onReactionsChange={setReactions}
-          />
+          <FalasDoLivro bookId={Number(params.id)} />
         </section>
 
         <section className="space-y-4 pb-10">
