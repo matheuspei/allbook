@@ -22,31 +22,25 @@
 
 ## A fila de decisões esperando o Matheus
 
-As 31 seções abaixo contêm decisão **não tomada**. Todas estão neste
-arquivo, na íntegra:
+As seções abaixo contêm decisão **não tomada**. Todas estão neste arquivo, na
+íntegra. *(A leva de 04/08 à noite fechou 7 itens desta fila de uma vez — ver
+§4.98.)*
 
-- **Atualização de 26/07: planos com crédito de pedido — a estrutura, com números** — É a forma decidida do modelo (planos não se somam, um pedido = um crédito), traz uma proposta rejeitada com o motivo e lista duas decisões que o Matheus ainda não tomou.
 - **4.7 Auditoria geral do projeto (24/07) — decisões e o que ficou de fora** — É o inventário do que foi rejeitado e adiado com motivo — servidor preso a 127.0.0.1, `audit fix --force` recusado por causar downgrade do drizzle-kit, senha em texto puro a resolver quando o backend nascer.
 - **4.15 Como se avalia no AllBook — decidido (25/07)** — É a regra de avaliação inteira do app (só livro recebe nota, duas réguas, portão dos 20%, média só a partir de 5) e diz em letras que os dois números seguem em calibração.
 - **4.17 O pedido sob demanda ganhou porta — e a promessa das 24 horas (25/07)** — Firma a promessa central das 24h como meta declarada e não medida, decide que a busca sem resultado é a porta principal, e rejeita o ícone de estrelinha e o texto com 'talvez'.
 - **Só com o banco — e um deles não é "falta implementar"** — Explica por que 'Esqueci minha senha' foi removido de propósito (o `auth.ts` não guarda senha nenhuma) e que ele volta junto com o servidor de contas — impede alguém de repor o link achando que é falha.
 - **Preparação para o catálogo crescer** — Pendência explícita: com dezenas de categorias a lista rolável não basta e vai pedir agrupamento ou filtro — decisão não tomada.
-- **Fica em aberto: onde nasce a saída de quem não gosta da narração existente** — Em essência já respondida (os planos com crédito resolvem sem botão novo, e a §4.30 faz o pedido virar segunda narração do mesmo livro, com seletor); o que segue aberto são os **números** dos planos.
-- **4.33 O Bluetooth do modo carro: copiamos a caixinha e jogamos fora a razão (26/07)** — Pesquisa na documentação oficial da Audible que ninguém deve refazer (o app não conecta nada, não se abre sozinho, o Bluetooth é opção nas Configurações), a rejeição do app escolher título sozinho e o aviso de que a falta do avançar 30s não é defeito; a dúvida sobre manter o modo carro fica anotada.
 - **4.34 Proteger o áudio: o que dá e o que não dá (26/07)** — Nada foi construído: é decisão de negócio pendente para o dia em que houver áudio, registrada para não recomeçar do zero.
 - **As camadas, da mais barata para a mais cara** — Apuração técnica não implementada (segmentos HLS com URL assinada, limite de taxa por conta, marca d'água, DRM) que orienta a arquitetura futura do áudio.
-- **Sobre a tela Downloads: não remover — recomendação** — Responde a uma proposta que o Matheus levantou (tirar o download) com recomendação e condição — offline só no app instalado, não no navegador; decisão ainda não fechada.
 - **A vinheta: eu subestimei, e o argumento do Matheus corrigiu** — Argumento de negócio ainda não executado (custo de remoção em escala e prova de origem) e a distinção entre vinheta e marca d'água por usuário, que evita confundir as duas na hora de gastar.
 - **4.35 Abertura do app e vinheta sonora — adiado para depois do backend (26/07)** — Decisão de adiamento explícita, com o motivo (é identidade de marca, não código) — impede que o assunto volte antes da hora.
 - **Três propostas construídas e rejeitadas — "nenhuma me agradou"** — Rejeição que ainda vale, com a direção que ele quer no lugar (livro abrindo com som, fone com livro, clean, possivelmente novo letreiro) — evita reapresentar as mesmas três ideias.
 - **Imagem enviada pelo usuário: decisão tomada, com o mecanismo nomeado** — Decisão sobre moderação com o mecanismo nomeado (custo de reentrada), três condições que viram regra de conta no backend, e a pergunta explicitamente em aberto: quem julga a denúncia no feed, que não tem dono.
-- **Duas escolhas menores** — Uma decisão viva (o perfil nasce público) e uma explicitamente não tomada: se quem é privado aparece nas sugestões de gente, com o cadeado.
-- **4.57 O Clube reorganizado: quatro modos desenhados, decisão em aberto (29/07)** — **O esqueleto já foi decidido**: o clube virou abas (§4.89, 31/07 — a proposta B desta seção). O que resta em aberto é só se a "linha do ciclo" da proposta C entra na aba Conversa.
+- **4.57 O Clube reorganizado: quatro modos desenhados, decisão em aberto (29/07)** — **O esqueleto já foi decidido**: o clube virou abas (§4.89). Sobre a linha do ciclo, ele pediu **ver as duas posições desenhadas** (topo da aba Agora × dentro da Conversa) antes de escolher — folha comparativa a caminho (§4.98 item 1).
 - **O que foi medido no app antes de desenhar** — Apuração cara e explicitamente marcada como válida mesmo que nenhuma proposta vingue: 4,5 telas de rolagem, a conversa no meio da pilha crescendo sem fim, 3 de 4 falas viradas placa de spoiler, e a memória do ciclo sem endereço.
 - **As quatro filosofias (e o preço de cada uma)** — São as opções sobre as quais a decisão em aberto vai ser tomada, cada uma com o preço já apurado.
 - **A recomendação registrada (não é decisão)** — Diz em uma frase o que fazer quando o martelo bater (abas da B + linha do ciclo da C) e por que a C é a única que só o AllBook consegue.
-- **O selo "Pergunta" virou link, e o filtro do feed virou página** — Regra viva (rótulo que nomeia uma categoria precisa levar até ela) e a distinção que impede confusão futura: `/perguntas` é recorte sob demanda, não a "aba de perguntas" rejeitada. Deixa pendente a divisão entre sem resposta e respondidas, hoje já possível.
-- **A aba Pessoas morreu, e cada bloco dela teve um destino** — A ressalva da "lista de leitores na Busca" **deixou de ser pendência**: a §4.97 (04/08) decidiu que busca de pessoas fica fora desta etapa, e nomeou o gatilho para o assunto voltar. Segue aberta só a vitrine do "Ouvindo agora".
 - **Correção na hora seguinte: a roleta volta, e as 36 aparecem** — Régua viva (tela vazia é falta de conteúdo, não de layout; ao trocar um controle, perguntar que gesto o antigo servia) e uma pendência declarada das 10 fotos de comunidade.
 - **4.87 "A conversa do livro não virou inútil?" — apurado, e a resposta é não (31/07) — decisão em aberto** — Abre a única decisão grande explicitamente pendente da fatia; `/book/:id/conversa` e a `SalaDoLivro` continuam no código.
 - **A premissa não se confirma no código** — Apuração custosa (zero `bookId` em grupos e tópicos) que sustenta a decisão pendente e ninguém deve refazer.
@@ -3057,7 +3051,7 @@ username congelado da §2.9 virar o que a busca indexa.
 > título está no arquivo.
 
 - **0. Decisões já tomadas com o Matheus** — Terminar TODO o frontend antes do motor (backend/áudio); a cópia local do Matheus é a fonte da verdade e o GitHub é o espelho, com commit+push a cada etapa.
-- **3. FOCO ATUAL — Terminar o frontend** — Do frontend falta só a tela de Boas-vindas (onboarding); a abertura animada do app é outra coisa e ficou para depois do backend.
+- **3. FOCO ATUAL — Terminar o frontend** — **O frontend está completo por decisão** (§4.98): a tela de Boas-vindas (onboarding), a última que faltava, foi conscientemente adiada para junto do backend; a abertura animada idem.
 - **Modelo de negócio e a função central (24/07) — visão do Matheus, ainda em aberto** — A função central do AllBook é o livro sob demanda: qualquer título que não exista em áudio é narrado por IA — o catálogo é meio, não o produto.
 - **Respostas a comentário (21/07, noite) — FEITO** — Resposta a comentário é de um nível só (aninhamento estilo Reddit rejeitado), não leva estrela, e a resposta que volta é simulada em replies.ts — some quando houver servidor.
 - **Comentar o autor e o narrador (21/07, noite) — FEITO** — Um comentário tem OU bookId, OU personSlug, OU publisherSlug — nunca dois; quem percorrer comments.ts precisa filtrar o alvo, senão comentário de pessoa vaza como se fosse de livro.
@@ -3323,3 +3317,47 @@ documento.**
 
 `docs/BANCO-DE-DADOS.md`, fora a seção 1.1 nova, segue como era: checklist de
 trabalho futuro, lido só ao mexer em banco.
+
+---
+
+## 4.98 A fila respondida de uma vez — nove decisões numa folha (04/08, noite)
+
+A poda deixou a fila de pendências à vista, e o Matheus respondeu as **9
+maduras** (+ 3 tarefas) numa folha clicável (`_fila-de-decisoes-C.html`).
+Registro decisão a decisão — **as de rumo valem a partir de agora**:
+
+1. **Linha do ciclo do clube — decisão ADIADA por ele, de propósito:** *"eu
+   teria que ver as duas opções, tanto no topo da aba Agora quanto dentro da
+   aba Conversa"*. Uma folha comparativa com as duas posições desenhadas está
+   sendo feita; a escolha fica para ela.
+2. **Crédito de pedido ACUMULA, com teto de 3 guardados** (era a pendência 1
+   da "Atualização de 26/07" — fechada). Crédito que expira gera raiva por algo
+   que não custou nada ao AllBook; acúmulo infinito criaria fila de produção
+   que chega toda de uma vez.
+3. **Os números dos planos (R$, nomes, teste grátis) ficam CONGELADOS até a
+   tela de Planos nascer.** Saem da fila de pendências: viram parte do trabalho
+   da tela, no dia dela. Número decidido sem lugar para morar envelhece igual
+   documento.
+4. **O "Ouvindo agora" volta a ter vitrine: fileira no topo da Comunidade,
+   na lente Todos** (rosto + capinha; rosto abre a pessoa, capa abre o livro).
+   Fecha a ressalva que sobrou da morte da aba Pessoas.
+5. **O modo carro SAI do player** — decisão dele, contra a recomendação (que
+   era manter por custo zero). A apuração da §4.33 (Audible não conecta nada;
+   modo carro de todo mundo é tela de botão grande) fica como histórico; o
+   critério da §4.50 (o "…" guarda o que é raro) até melhora: um item a menos.
+6. **A tela Downloads FICA — assunto encerrado.** Offline é função central de
+   app de audiolivro; quando o áudio real chegar, o download vira de verdade
+   (e só no app instalado — regra já no checklist do banco).
+7. **Perfil privado APARECE nas sugestões de gente, com o cadeado à vista**
+   (padrão Instagram: privado limita o que se vê, não a existência). Fecha a
+   escolha que ficou aberta em 29/07; vale como contrato do backend (3.1).
+8. **/perguntas divide em "Ainda sem resposta" (em cima) e "Respondidas"** —
+   quem entra para ajudar acha na hora o que precisa de gente.
+9. **O onboarding fica para JUNTO DO BACKEND** — decisão dele, contra a
+   recomendação de fazer o mínimo de 3 passos agora. Com isso, **o frontend
+   está completo por decisão**: nenhuma tela pendente restante (a última foi
+   conscientemente adiada, não esquecida).
+
+**As três tarefas, todas aprovadas ("faz"):** as 10 fotos de comunidade que
+faltam; a conferência de capas a olho nas categorias; a `og:image` própria
+para o link do app.
