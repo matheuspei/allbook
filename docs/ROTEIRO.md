@@ -3390,16 +3390,47 @@ VIVO AGORA" / "OUVINDO AGORA") na mesma tela, e a confusão era inevitável.
    vermelho de três linhas. ⚠️ O componente antigo
    (`components/sala/SalasAoVivoNoFeed.tsx`, faixa da B) **ficou órfão** —
    candidato à próxima faxina, não apagado por ser de outra faixa.
-3. **O menu "…" virou o quadradinho, à esquerda das lentes** — referência
-   explícita dele: o Facebook. `comunidade/PainelDaComunidade.tsx` abre **a
-   tela inteira** (não mais um suspenso de 230px), com os mesmos 11 destinos em
-   **cartões de ícone colorido**, grade de 2 colunas, salas ao vivo em destaque
-   vermelho no alto e a seção "Criar" separada. `MenuDaComunidade.tsx` foi
-   apagado. **A regra da §4.57 não mudou:** o painel só leva ao que é da
-   comunidade; o que é seu continua no avatar. As contagens continuam reais e
-   condicionais (§4.23).
+3. **O menu "…" virou o quadradinho** — referência explícita dele: o Facebook.
+   `comunidade/PainelDaComunidade.tsx` guarda os mesmos 11 destinos em cartões
+   com grade de 2 colunas, salas ao vivo em destaque vermelho no alto e a seção
+   "Criar" separada. `MenuDaComunidade.tsx` foi apagado. **A regra da §4.57 não
+   mudou:** o painel só leva ao que é da comunidade; o que é seu continua no
+   avatar. As contagens continuam reais e condicionais (§4.23). *(A primeira
+   forma — botão na fileira das lentes, painel de tela inteira, ícones
+   coloridos — durou uma olhada dele; as correções estão logo abaixo.)*
 4. "Meus clubes" no painel já aponta para `/clubes/meus`, a rota que a B criou
    na §4.99 — as duas reformas da mesma noite se encaixaram sem conflito.
+
+**As correções dele, na mesma noite, olhando a tela construída:**
+
+1. **O botão foi para o canto do topo, ao lado da logo** — *"no Facebook tem
+   [o menu] no canto superior esquerdo, do lado do nome… o nosso deveria ser
+   exatamente assim, do lado da logo, mas mais no canto ainda"*. Saiu da
+   fileira das lentes e virou o `BotaoDoPainel`, desenhado pelo `TopNav` **só
+   na rota da Comunidade** — é a primeira peça de tela que o TopNav muda por
+   rota.
+2. **O ícone são as três barrinhas (hambúrguer).** A primeira tentativa foram
+   três quadradinhos desenhados à mão, e ele vetou na hora: *"nem dá para
+   saber que existe alguma coisa aplicável"*. Ícone inventado perde para o
+   consagrado — vale a mesma régua dos nomes de botão (§4.94).
+3. **O painel não cobre mais a tela: é gaveta lateral de ~80%** — *"ele deixa
+   mais ou menos 80% e você consegue ainda ver a outra parte, como se
+   basicamente minimizasse a janela"*. O feed fica visível escurecido atrás;
+   tocar no véu fecha, Esc fecha, trocar de rota fecha. (A gaveta é desenhada
+   fora do `<header>` do TopNav — dentro dele, o `z-50` cria contexto de
+   empilhamento e ela não cobriria o menu de baixo; mesma armadilha já
+   documentada da busca.)
+4. **Os ícones coloridos morreram.** *"Isso deixa uma cara de inteligência
+   artificial muito grande. Não me parece que foi feito por um programador
+   sério, que uma equipe grande fez."* Todos os cartões usam o mesmo cinza
+   neutro; a única cor que sobrou é o vermelho do ao vivo — semântica, não
+   decoração. **Régua nova para telas futuras: cor só quando significa algo.**
+5. **A linha "N perguntas esperando uma opinião" saiu do feed** — *"não faz
+   sentido nesse modelo estar aqui; no máximo um ícone, vizinho do
+   Seguindo"*. Virou exatamente isso: o balão de pergunta com contador na
+   ponta da fileira das lentes, sumindo quando não há pergunta (§4.23). A
+   porta-cartão de 30/07 fica **revogada nessa forma** — o destino
+   `/perguntas` continua sendo um só mecanismo, só mudou o tamanho da porta.
 
 ---
 

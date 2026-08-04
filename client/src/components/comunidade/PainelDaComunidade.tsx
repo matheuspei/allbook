@@ -6,7 +6,7 @@ import {
   Globe,
   Headphones,
   HelpCircle,
-  LayoutGrid,
+  Menu,
   Plus,
   Radio,
   UserPlus,
@@ -25,20 +25,29 @@ import { meusSeguidores } from "@/lib/seguidores";
 import { trechosQuentes } from "@/lib/trechosQuentes";
 
 /**
- * **O painel da Comunidade** — o quadradinho que abre a tela inteira (§4.100).
+ * **O painel da Comunidade** — a gaveta lateral que o quadradinho do topo abre
+ * (§4.100, corrigida no mesmo dia pelas críticas do Matheus).
  *
- * Substitui o menu "…" suspenso (§4.92). Decisão do Matheus (04/08, à noite),
- * com o Facebook como referência: *"em vez de ser uma bolinha, um quadradinho…
- * quando você clica, abre uma aba até o final, pegando toda, como se fosse
- * quase outra janela"* — e ícones nos destinos, como lá.
+ * A referência é o Facebook, e a primeira versão errou nela em três pontos que
+ * ele apontou na hora:
+ *
+ * - **o botão morava na fileira das lentes** — lá, ele fica no `TopNav`, ao
+ *   lado da logo e "mais no canto ainda", com o ícone de três quadradinhos
+ *   (é o `BotaoDoPainel`, que só aparece na rota da Comunidade);
+ * - **o painel cobria a tela inteira** — lá, ele desliza da esquerda e ocupa
+ *   ~80%, com o feed aparecendo escurecido atrás ("é como se ele basicamente
+ *   minimizasse a janela"); tocar no véu fecha;
+ * - **cada ícone tinha uma cor** — "isso deixa uma cara de inteligência
+ *   artificial muito grande… não me parece que foi feito por um programador
+ *   sério". Todos neutros; a única cor é o vermelho do ao vivo, que é
+ *   semântica, não decoração.
  *
  * O que NÃO mudou (a regra da §4.57 continua): **o painel só leva ao que é da
  * comunidade**. O que é seu — perfil, trechos guardados, privacidade — mora no
  * avatar (`/you`). E cada cartão mostra a contagem real; destino sem nada a
  * mostrar some (a régua da §4.23).
  */
-export default function PainelDaComunidade() {
-  const [aberto, setAberto] = useState(false);
+export default function PainelDaComunidade({ onFechar }: { onFechar: () => void }) {
   const [, navegar] = useLocation();
   const [dados, setDados] = useState(() => contar());
 
@@ -58,97 +67,119 @@ export default function PainelDaComunidade() {
   }, []);
 
   useEffect(() => {
-    if (!aberto) return;
     const esc = (evento: KeyboardEvent) => {
-      if (evento.key === "Escape") setAberto(false);
+      if (evento.key === "Escape") onFechar();
     };
     document.addEventListener("keydown", esc);
     return () => document.removeEventListener("keydown", esc);
-  }, [aberto]);
+  }, [onFechar]);
 
   function ir(rota: string) {
-    setAberto(false);
+    onFechar();
     navegar(rota);
   }
 
   return (
-    <>
-      {/* O quadradinho — quadrado de propósito, era o pedido: a bolinha "…"
-          virou o botão de grade, à esquerda. */}
+    <div className="fixed inset-0 z-[70]" data-testid="painel-da-comunidade-aberto">
+      {/* O véu: os ~20% de tela que continuam à vista — tocar fora fecha,
+          como no Facebook. */}
       <button
-        onClick={() => setAberto(true)}
-        aria-label="Abrir o painel da comunidade"
-        className="relative grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/12 bg-white/[0.06] text-white/70 transition-colors hover:bg-white/12 hover:text-white"
-        data-testid="painel-da-comunidade"
-      >
-        <LayoutGrid className="h-[17px] w-[17px]" />
-        {dados.salas > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#141414] bg-red-500" />
-        )}
-      </button>
+        onClick={onFechar}
+        aria-label="Fechar o painel"
+        className="absolute inset-0 w-full bg-black/60 animate-in fade-in duration-200"
+        data-testid="painel-veu"
+      />
 
-      {aberto && (
-        <div
-          className="fixed inset-0 z-[90] overflow-y-auto bg-[#141414] animate-in slide-in-from-left duration-200"
-          data-testid="painel-da-comunidade-aberto"
-        >
-          <header className="sticky top-0 z-10 flex items-center justify-between border-b border-white/[0.07] bg-[#141414]/95 px-5 py-4 backdrop-blur">
-            <h2 className="font-display text-xl font-bold tracking-tight">Comunidade</h2>
+      <aside className="absolute inset-y-0 left-0 flex w-[80%] max-w-[340px] flex-col border-r border-white/[0.07] bg-[#141414] shadow-2xl animate-in slide-in-from-left duration-200">
+        <header className="flex items-center justify-between border-b border-white/[0.07] px-4 py-3.5">
+          <h2 className="font-display text-lg font-bold tracking-tight">Comunidade</h2>
+          <button
+            onClick={onFechar}
+            aria-label="Fechar o painel"
+            className="grid h-8 w-8 place-items-center rounded-full text-white/50 transition-colors hover:text-white"
+            data-testid="fechar-painel"
+          >
+            <X className="h-[17px] w-[17px]" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          {dados.salas > 0 && (
             <button
-              onClick={() => setAberto(false)}
-              aria-label="Fechar o painel"
-              className="grid h-9 w-9 place-items-center rounded-lg border border-white/12 bg-white/[0.06] text-white/70 hover:bg-white/12 hover:text-white"
-              data-testid="fechar-painel"
+              onClick={() => ir(dados.primeiraSala ? `/sala/${dados.primeiraSala}` : "/community")}
+              className="mb-3.5 flex w-full items-center gap-3 rounded-2xl bg-red-500/[0.09] p-3.5 ring-1 ring-inset ring-red-500/25 transition-colors hover:bg-red-500/[0.14]"
+              data-testid="painel-salas"
             >
-              <X className="h-[17px] w-[17px]" />
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-red-500/15">
+                <Radio className="h-[18px] w-[18px] text-red-400" />
+              </span>
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block text-[13.5px] font-semibold">Salas ao vivo agora</span>
+                <span className="block text-[11px] text-white/40">
+                  {dados.salas} {dados.salas === 1 ? "sala aberta" : "salas abertas"} — entre e ouça junto
+                </span>
+              </span>
             </button>
-          </header>
+          )}
 
-          <div className="px-5 py-5">
-            {dados.salas > 0 && (
-              <button
-                onClick={() => ir(dados.primeiraSala ? `/sala/${dados.primeiraSala}` : "/community")}
-                className="mb-4 flex w-full items-center gap-3 rounded-2xl bg-red-500/[0.09] p-4 ring-1 ring-inset ring-red-500/25 transition-colors hover:bg-red-500/[0.14]"
-                data-testid="painel-salas"
-              >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-red-500/15">
-                  <Radio className="h-5 w-5 text-red-400" />
-                </span>
-                <span className="min-w-0 flex-1 text-left">
-                  <span className="block text-[14px] font-semibold">Salas ao vivo agora</span>
-                  <span className="block text-[11.5px] text-white/40">
-                    {dados.salas} {dados.salas === 1 ? "sala aberta" : "salas abertas"} — entre e ouça junto
-                  </span>
-                </span>
-              </button>
+          <Grade>
+            <Cartao icone={<Users />} rotulo="Minhas comunidades" conta={dados.comunidades} onClick={() => ir("/forum/minhas")} testid="painel-minhas-comunidades" />
+            <Cartao icone={<Globe />} rotulo="Todas as comunidades" onClick={() => ir("/forum")} testid="painel-todas-comunidades" />
+            <Cartao icone={<BookOpen />} rotulo="Meus clubes" conta={dados.clubes} onClick={() => ir("/clubes/meus")} testid="painel-meus-clubes" />
+            <Cartao icone={<Compass />} rotulo="Todos os clubes" onClick={() => ir("/clubes")} testid="painel-todos-clubes" />
+            <Cartao icone={<UserPlus />} rotulo="Quem eu sigo" conta={dados.sigo} onClick={() => ir("/seguidores")} testid="painel-quem-eu-sigo" />
+            <Cartao icone={<Users />} rotulo="Quem me segue" conta={dados.meSeguem} onClick={() => ir("/seguidores")} testid="painel-quem-me-segue" />
+            {dados.perguntas > 0 && (
+              <Cartao icone={<HelpCircle />} rotulo="Perguntas sem resposta" conta={dados.perguntas} onClick={() => ir("/perguntas")} testid="painel-perguntas" />
             )}
+            {dados.trechos > 0 && (
+              <Cartao icone={<Headphones />} rotulo="Trechos da semana" conta={dados.trechos} onClick={() => ir("/trechos")} testid="painel-trechos" />
+            )}
+          </Grade>
 
-            <Grade>
-              <Cartao icone={<Users />} cor="text-sky-400 bg-sky-400/12" rotulo="Minhas comunidades" conta={dados.comunidades} onClick={() => ir("/forum/minhas")} testid="painel-minhas-comunidades" />
-              <Cartao icone={<Globe />} cor="text-emerald-400 bg-emerald-400/12" rotulo="Todas as comunidades" onClick={() => ir("/forum")} testid="painel-todas-comunidades" />
-              <Cartao icone={<BookOpen />} cor="text-violet-400 bg-violet-400/12" rotulo="Meus clubes" conta={dados.clubes} onClick={() => ir("/clubes/meus")} testid="painel-meus-clubes" />
-              <Cartao icone={<Compass />} cor="text-cyan-400 bg-cyan-400/12" rotulo="Todos os clubes" onClick={() => ir("/clubes")} testid="painel-todos-clubes" />
-              <Cartao icone={<UserPlus />} cor="text-green-400 bg-green-400/12" rotulo="Quem eu sigo" conta={dados.sigo} onClick={() => ir("/seguidores")} testid="painel-quem-eu-sigo" />
-              <Cartao icone={<Users />} cor="text-rose-400 bg-rose-400/12" rotulo="Quem me segue" conta={dados.meSeguem} onClick={() => ir("/seguidores")} testid="painel-quem-me-segue" />
-              {dados.perguntas > 0 && (
-                <Cartao icone={<HelpCircle />} cor="text-amber-400 bg-amber-400/12" rotulo="Perguntas sem resposta" conta={dados.perguntas} onClick={() => ir("/perguntas")} testid="painel-perguntas" />
-              )}
-              {dados.trechos > 0 && (
-                <Cartao icone={<Headphones />} cor="text-orange-400 bg-orange-400/12" rotulo="Trechos da semana" conta={dados.trechos} onClick={() => ir("/trechos")} testid="painel-trechos" />
-              )}
-            </Grade>
-
-            <p className="mt-5 mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/30">
-              Criar
-            </p>
-            <Grade>
-              <Cartao icone={<Plus />} cor="text-primary bg-primary/12" rotulo="Criar comunidade" onClick={() => ir("/forum?criar=1")} testid="painel-criar-comunidade" />
-              <Cartao icone={<Plus />} cor="text-primary bg-primary/12" rotulo="Criar clube" onClick={() => ir("/clubes/novo")} testid="painel-criar-clube" />
-            </Grade>
-          </div>
+          <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-white/30">
+            Criar
+          </p>
+          <Grade>
+            <Cartao icone={<Plus />} rotulo="Criar comunidade" onClick={() => ir("/forum?criar=1")} testid="painel-criar-comunidade" />
+            <Cartao icone={<Plus />} rotulo="Criar clube" onClick={() => ir("/clubes/novo")} testid="painel-criar-clube" />
+          </Grade>
         </div>
+      </aside>
+    </div>
+  );
+}
+
+/**
+ * **O botão que abre o painel** — vive no `TopNav`, ao lado da logo, e só na
+ * Comunidade. O ícone são as **três barrinhas** (hambúrguer), como o Menu do
+ * Facebook — a primeira tentativa foram três quadradinhos e ele vetou na hora:
+ * *"nem dá para saber que existe alguma coisa aplicável"*. A bolinha vermelha
+ * acende quando há sala ao vivo aberta.
+ */
+export function BotaoDoPainel({ onClick }: { onClick: () => void }) {
+  const [salas, setSalas] = useState(0);
+
+  useEffect(() => {
+    const atualizar = () =>
+      setSalas(salasAoVivo().filter((sala) => !sala.encerradaEm).length);
+    atualizar();
+    window.addEventListener(SALA_AO_VIVO_EVENT, atualizar);
+    return () => window.removeEventListener(SALA_AO_VIVO_EVENT, atualizar);
+  }, []);
+
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Abrir o painel da comunidade"
+      className="relative -ml-2 mr-0.5 rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
+      data-testid="painel-da-comunidade"
+    >
+      <Menu className="h-5 w-5" />
+      {salas > 0 && (
+        <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
       )}
-    </>
+    </button>
   );
 }
 
@@ -158,14 +189,12 @@ function Grade({ children }: { children: React.ReactNode }) {
 
 function Cartao({
   icone,
-  cor,
   rotulo,
   conta,
   onClick,
   testid,
 }: {
   icone: React.ReactNode;
-  cor: string;
   rotulo: string;
   conta?: number;
   onClick: () => void;
@@ -174,10 +203,10 @@ function Cartao({
   return (
     <button
       onClick={onClick}
-      className="rounded-2xl border border-white/[0.07] bg-white/[0.04] p-3.5 text-left transition-colors hover:bg-white/[0.08]"
+      className="rounded-xl border border-white/[0.07] bg-white/[0.04] p-3 text-left transition-colors hover:bg-white/[0.08]"
       data-testid={testid}
     >
-      <span className={`grid h-9 w-9 place-items-center rounded-full [&>svg]:h-[18px] [&>svg]:w-[18px] ${cor}`}>
+      <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/[0.06] text-white/65 [&>svg]:h-4 [&>svg]:w-4">
         {icone}
       </span>
       <span className="mt-2.5 block text-[13px] font-semibold leading-tight">{rotulo}</span>

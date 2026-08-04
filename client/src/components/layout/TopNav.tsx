@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Bell, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import BuscaSobreposta from "@/components/BuscaSobreposta";
+import PainelDaComunidade, { BotaoDoPainel } from "@/components/comunidade/PainelDaComunidade";
 import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notifications";
 import { avisosDeCurtida } from "@/lib/avisosDeCurtida";
 import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
@@ -14,6 +15,11 @@ export default function TopNav() {
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [buscando, setBuscando] = useState(false);
+  // O painel da Comunidade (§4.100): o quadradinho ao lado da logo o abre, e
+  // ele desliza da esquerda. Estado aqui em cima porque a gaveta precisa ser
+  // desenhada FORA do <header> — dentro dele, o z-50 cria um contexto de
+  // empilhamento e ela não cobriria o menu de baixo (mesma armadilha da busca).
+  const [painelAberto, setPainelAberto] = useState(false);
   // Quantos avisos ainda não lidos: respostas "responderam você" + avisos de
   // sistema + **pedidos para te seguir** (ROTEIRO 4.55) + **convites de clube**
   // (§4.58, item 5) + **curtidas agrupadas** (§4.92). É o que acende e conta a
@@ -30,6 +36,8 @@ export default function TopNav() {
 
   useEffect(() => {
     setPerfil(readProfile());
+    // Trocou de rota com a gaveta aberta (menu de baixo, por exemplo)? Fecha.
+    setPainelAberto(false);
   }, [location]);
 
   useEffect(() => {
@@ -100,12 +108,20 @@ export default function TopNav() {
       )}
     >
       <div className="flex items-center justify-between px-4 h-14">
-        <Link href="/" data-testid="link-home-logo">
-          <span className="font-display text-xl font-bold tracking-tight">
-            <span className="text-primary">All</span>
-            <span className="text-foreground">Book</span>
-          </span>
-        </Link>
+        <div className="flex items-center">
+          {/* O botão do painel da Comunidade (§4.100) — só nela, no canto, ao
+              lado da logo: pedido do Matheus, com o menu do Facebook como
+              referência ("do lado do nome… mas mais no canto ainda"). */}
+          {location === "/community" && (
+            <BotaoDoPainel onClick={() => setPainelAberto(true)} />
+          )}
+          <Link href="/" data-testid="link-home-logo">
+            <span className="font-display text-xl font-bold tracking-tight">
+              <span className="text-primary">All</span>
+              <span className="text-foreground">Book</span>
+            </span>
+          </Link>
+        </div>
 
         <div className="flex items-center gap-3">
           {/*
@@ -172,6 +188,9 @@ export default function TopNav() {
       a tela inteira, como um modo, e o "Cancelar" devolve você ao lugar exato.
     */}
     {buscando && <BuscaSobreposta onFechar={() => setBuscando(false)} />}
+
+    {/* A gaveta da Comunidade, fora do <header> pelo mesmo motivo da busca. */}
+    {painelAberto && <PainelDaComunidade onFechar={() => setPainelAberto(false)} />}
     </>
   );
 }

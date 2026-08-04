@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { avatarDeLeitor } from "@/lib/community";
 import { Link } from "wouter";
-import { ChevronRight, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
 import CartaoDeSugestoes from "@/components/comunidade/CartaoDeSugestoes";
 import LinhaDeAtividade from "@/components/comunidade/LinhaDeAtividade";
 import { ConviteDeClube, ConviteDeForum, TrechosQuentes } from "@/components/comunidade/CartaoDeConvite";
 import Compositor from "@/components/comunidade/Compositor";
-import PainelDaComunidade from "@/components/comunidade/PainelDaComunidade";
 import SalasComoStories from "@/components/comunidade/SalasComoStories";
 import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
 import { montarFeed, type ItemDoFeed, type Lente } from "@/lib/feedDaComunidade";
@@ -21,9 +20,10 @@ import { readFollowing } from "@/lib/following";
  * Comunidade (`/community`) — **uma tela só: o feed**, desde 01/08 (§4.92).
  *
  * O que as pessoas escreveram, nas duas lentes (Todos · Seguindo), com os
- * cartões de clube e de fórum intercalados. Fórum e clube se acham pelo **“…”**
- * do cabeçalho e por esses cartões — a aba "Fóruns" que existia aqui era um
- * link disfarçado de aba, e saiu com o resto da fileira morta.
+ * cartões de clube e de fórum intercalados. Fórum e clube se acham pelo
+ * **quadradinho do topo** (o painel, §4.100 — mora no `TopNav`, ao lado da
+ * logo) e por esses cartões — a aba "Fóruns" que existia aqui era um link
+ * disfarçado de aba, e saiu com o resto da fileira morta.
  *
  * **A aba "Pessoas" morreu em 30/07**, e não por espaço: é a decisão 7 da
  * §4.58. Ela tinha três blocos e cada um teve um destino —
@@ -63,9 +63,9 @@ const LENTES: { key: Lente; label: string }[] = [
  * abre no feed, sem fileira de ícones no topo. **Feed · Seguindo são as únicas
  * coisas fixas ali** — e não são destinos: são duas lentes do mesmo conteúdo.”*
  *
- * Fórum e clube não sumiram: estão no **“…”** (para quem procura) e nos
- * **cartões do feed** (para quem só está passando) — que é exatamente a divisão
- * que a §4.57 desenhou.
+ * Fórum e clube não sumiram: estão no **painel do quadradinho** (para quem
+ * procura) e nos **cartões do feed** (para quem só está passando) — que é
+ * exatamente a divisão que a §4.57 desenhou.
  */
 export default function Community() {
   return (
@@ -73,8 +73,8 @@ export default function Community() {
       {/* **O cabeçalho morreu em 04/08 (§4.100), por decisão do Matheus:** o
           título "Comunidade" repetia a aba do menu de baixo, e o subtítulo era
           decorativo. A tela abre direto no que acontece: os stories do ao vivo,
-          o compositor e o feed. O painel (ex-menu "…") virou o quadradinho à
-          esquerda das lentes. */}
+          o compositor e o feed. O painel (ex-menu "…") virou o quadradinho do
+          canto do topo, ao lado da logo — ele mora no `TopNav`. */}
       <FeedDePosts />
     </div>
   );
@@ -194,33 +194,6 @@ function FeedDePosts() {
       <Compositor />
 
       {/*
-        **Uma porta para `/perguntas`, e não um filtro no lugar** (30/07). Havia
-        aqui um par "Tudo · Perguntas" que filtrava a lista sem sair da tela; o
-        Matheus pediu **uma página** — *"levaria para uma página onde só mostraria
-        perguntas"* —, e ele tem razão por um motivo que eu não tinha visto: o
-        filtro mudava a lista **embaixo da pessoa**, sem endereço nem título, e o
-        selo dentro do cartão não conseguia apontar para ele. Com a página, o selo
-        e esta linha levam ao mesmo lugar: **um mecanismo, não dois**.
-
-        **Some quando não há pergunta nenhuma** — porta para sala vazia é o beco
-        sem saída que a §4.23 manda varrer.
-      */}
-      {perguntas > 0 && (
-        <Link
-          href="/perguntas"
-          className="mt-3 flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-2.5 transition-colors hover:bg-white/[0.07]"
-          data-testid="link-perguntas"
-        >
-          <HelpCircle className="h-4 w-4 shrink-0 text-primary" />
-          <span className="min-w-0 flex-1 text-[12.5px] text-white/70">
-            <strong className="font-semibold text-white">{perguntas}</strong>{" "}
-            {perguntas === 1 ? "pergunta esperando" : "perguntas esperando"} uma opinião
-          </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-white/25" />
-        </Link>
-      )}
-
-      {/*
         **As duas lentes.** Ficam **aqui**, embaixo do compositor, e não nas abas
         do alto: as de cima dizem *que parte da Comunidade* (Feed · Fóruns ·
         Pessoas), e estas dizem *de quem*. Misturar os dois critérios numa fileira
@@ -228,9 +201,6 @@ function FeedDePosts() {
         critério, não dois.
       */}
       <div className="mt-3 flex items-center gap-2" data-testid="feed-lentes">
-        {/* O quadradinho do painel, à esquerda — pedido dele, com o Facebook
-            como referência (§4.100). */}
-        <PainelDaComunidade />
         {LENTES.map((item) => (
           <button
             key={item.key}
@@ -245,6 +215,27 @@ function FeedDePosts() {
             {item.label}
           </button>
         ))}
+        {/*
+          **A porta de `/perguntas` virou este iconezinho** (§4.100). A linha
+          inteira "N perguntas esperando uma opinião" ocupava um cartão do feed,
+          e o Matheus a vetou: *"não faz sentido nesse modelo estar aqui — no
+          máximo um ícone, vizinho do Seguindo"*. É exatamente isto: o balão de
+          pergunta com o contador, ao lado das lentes, sumindo quando não há
+          pergunta nenhuma (§4.23 — porta para sala vazia não fica de pé).
+        */}
+        {perguntas > 0 && (
+          <Link
+            href="/perguntas"
+            aria-label={`${perguntas} ${perguntas === 1 ? "pergunta esperando" : "perguntas esperando"} uma opinião`}
+            className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/15 text-white/50 transition-colors hover:text-white/80"
+            data-testid="link-perguntas"
+          >
+            <HelpCircle className="h-4 w-4" />
+            <span className="absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold leading-none text-white">
+              {perguntas}
+            </span>
+          </Link>
+        )}
       </div>
 
       {/* A fita de "ouvindo agora" mora **dentro do Seguindo** desde 30/07 — é
