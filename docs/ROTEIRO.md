@@ -2783,6 +2783,58 @@ Folha clicável em `client/public/_recomendacao-conversa.html`, com um **simulad
 opte por deletar mesmo assim — o que eu construo se ele mandar, desde que o passo
 da separação venha primeiro.
 
+### ✅ DECIDIDO E CONSTRUÍDO (04/08) — encolher (`bd2422b`, `4ce5264`)
+
+> `CAMINHO: Encolher` · os 4 passos aprovados: 1 FAÇO · 2 FAÇO · 3 FAÇO · 4 FAÇO
+
+**Metade já existia** (conferido antes de construir): as falas no player
+(`MarcasDaConversa`, a gaveta "Conversa deste trecho" com âncora e spoiler) e o
+tópico de fórum com livro anexado (`criarTopico` já aceitava `{ bookId }`, a
+linha já desenhava a capa). Custo real dos passos 2 e 3: **zero**.
+
+**Construído:** a `SalaDoLivro` saiu da ficha e no lugar entrou `FalasDoLivro` —
+três linhas, não uma lista (quantas falas, quantas presas ao áudio, a porta), que
+**não mostra as falas** (senão vira a mesma lista menor), **não some em livro
+mudo** e mostra o debate do fórum quando existe, via `topicosDoLivro(bookId)`.
+
+**⚠️ O passo 4 foi executado ao contrário, e o motivo é o próprio passo 4.** Os
+links são **6**, não 8, e **todos apontam para uma fala específica** ("responderam
+você", "meus comentários", o comentário citado no feed). Como o passo 2 mantém a
+conversa viva, mandá-los para a ficha criaria o **beco sem saída** que o passo 4
+existia para evitar. O vetor se inverteu: o caminho novo é **da ficha para a
+conversa**.
+
+### O "bug" que não era bug — e o que ele revelou
+
+> *"Abri A Paciente Silenciosa e, na Conversa, aparece um monte de coisa que eu
+> tinha escrito, que eu não escrevi nesse livro específico."*
+
+**O dado estava certo:** os 4 comentários têm `bookId: 106`, gravados em
+**28/07 entre 22h30 e 22h52** (a hora está no próprio id). Os três caminhos que
+escrevem comentário passam o alvo certo e `ehDoAlvo` compara sem coerção — **não
+há caminho que grave o livro errado**. Duas outras causas, somadas:
+
+1. **Os seus vinham empilhados no topo**, dentro do `CommentComposer`, antes de
+   toda a conversa;
+2. **as falas dos outros estavam travadas** — ele está no minuto 8 do capítulo 1,
+   e as semeadas estavam adiante.
+
+**Consertos:** a sala mistura tudo **na ordem do livro** (sem âncora primeiro,
+depois por minuto); o cartão virou `MeuComentario.tsx` para existir fora da caixa;
+`CommentComposer` ganhou `listarMeus` (ligado em perfil de pessoa/editora, onde
+não há ordem de áudio); e `MEUS_COMENTARIOS_EVENT` faz a lista redesenhar ao
+publicar — sem ele a fala só aparecia recarregando.
+
+**Semeadas 18 falas em "A Paciente Silenciosa"**, com cada âncora conferida contra
+`getChapters(106)` (13 capítulos, 10h40): nenhuma cai fora do livro nem no
+capítulo errado.
+
+**Duas réguas:** *sala precisa de fala no primeiro quarto de hora e de pelo menos
+uma sem âncora* — semear só no meio e no fim faz a sala nascer muda justamente
+para quem ainda não decidiu se vai ouvir. E: *ordem por engajamento serve para
+lista de comentários; conversa presa ao áudio se ordena pelo minuto*, senão a
+lista e o trilho do player contam histórias diferentes.
+
 ### A crítica que fiz da ideia dele, e onde ela procede
 
 **Capa em todo tópico, do tamanho de cartão, destrói a lista.** Fórum é uma
