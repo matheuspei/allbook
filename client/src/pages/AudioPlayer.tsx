@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, Pencil, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Bookmark, Car, Minus, Plus, BookOpen, CheckCircle, Settings, History, Undo2, Search as SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, Pencil, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Bookmark, Minus, Plus, BookOpen, CheckCircle, Settings, History, Undo2, Search as SearchIcon } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -223,7 +223,6 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [customHours, setCustomHours] = useState("0");
   const [customMinutes, setCustomMinutes] = useState("0");
-  const [isCarModeActive, setIsCarModeActive] = useState(false);
   const [showChapters, setShowChapters] = useState(false);
   const [showMarcacoes, setShowMarcacoes] = useState(false);
   const [showHistorico, setShowHistorico] = useState(false);
@@ -409,21 +408,6 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   }
 
   /**
-   * Guarda o ponto — sem abrir nada. É o caminho do **Modo Carro**, onde não se
-   * escreve: um toque, um aviso, e a pessoa continua dirigindo.
-   */
-  function salvarMarcacao(): boolean {
-    const { jaExistia } = addBookmark(book.id, currentTime, currentChapter);
-    toast({
-      title: jaExistia ? "Este ponto já estava marcado" : "Ponto guardado",
-      description: jaExistia
-        ? `Você já tinha guardado ${formatTime(currentTime)} deste título.`
-        : `Guardamos ${formatTime(currentTime)}.`,
-    });
-    return !jaExistia;
-  }
-
-  /**
    * Marcar **e anotar na mesma ação** — o caminho normal, pela barra de baixo.
    *
    * O ponto é gravado primeiro e a caixa de nota abre por cima dele já salvo:
@@ -452,90 +436,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     setSpeed(prev => Math.max(0.5, Math.min(3.0, parseFloat((prev + delta).toFixed(2)))));
   };
 
-  /*
-   * **Um toque, e pronto** (26/07). Antes daqui até a tela grande havia três
-   * caixas — nota de segurança, "conectar por Bluetooth?" e uma imitação do
-   * diálogo de permissão do Android —, quatro toques repetidos a cada uso.
-   *
-   * Saíram todas, por decisão do Matheus. O motivo está no ROTEIRO 4.33: no
-   * Audible o Bluetooth **não conecta nada** (quem conecta é o sistema do
-   * celular); ele serve para o app **saber** que você entrou no carro e abrir o
-   * modo carro sozinho — ou seja, existe para a pessoa **não** precisar tocar no
-   * telefone. Aqui a cópia tinha invertido isso em pedágio, e o navegador não
-   * tem nem como detectar essa conexão. O recado de segurança continua, na
-   * frase do rodapé da própria tela.
-   */
-  const handleCarModeClick = () => {
-    setIsCarModeActive(true);
-  };
-
   const speedPresets = [0.7, 1.0, 1.2, 1.5, 1.7, 2.0];
-
-  /*
-   * O modo carro vinha com um degradê **verde para azul-marinho** (`#1a4d35` →
-   * `#0a101f`), herdado do rascunho antigo: nenhuma das duas cores existe na
-   * identidade do AllBook, e a tela parecia de outro aplicativo. Agora é o
-   * preto da casa com o mesmo calor laranja que abre as telas.
-   */
-  if (isCarModeActive) {
-    return (
-      <div className="fixed inset-0 z-[200] bg-linear-to-b from-[#241a12] via-[#141414] to-[#141414] text-white flex flex-col p-6 animate-in fade-in duration-500">
-        {/* O selo "Conectado ao Carro" com o ícone do Bluetooth saiu em 26/07:
-            ele afirmava uma conexão que o app não faz nem consegue verificar
-            (ROTEIRO 4.33). Ficou só a saída. */}
-        <header className="flex items-center mb-12">
-          <button onClick={() => setIsCarModeActive(false)} className="p-2" aria-label="Sair do modo carro">
-            <ChevronDown className="w-10 h-10" />
-          </button>
-        </header>
-
-        <main className="flex-1 flex flex-col items-center justify-between py-10">
-          <div className="text-center space-y-4">
-            <div className="w-48 h-48 mx-auto rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-              <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
-            </div>
-            <h1 className="text-2xl font-bold line-clamp-1">{book.title}</h1>
-            <p className="text-primary font-medium">{book.author}</p>
-          </div>
-
-          <div className="w-full flex flex-col items-center gap-12">
-            <div className="text-4xl font-black tracking-tighter text-white/70">
-              -{formatTime(chapterDuration - positionInChapter)}
-            </div>
-
-            <div className="w-full flex items-center justify-around">
-              <button 
-                onClick={() => setCurrentTime(prev => Math.max(0, prev - 30))}
-                className="relative p-6 text-white active:scale-90 transition-transform"
-              >
-                <RotateCcw className="w-16 h-16" />
-                <span className="absolute inset-0 flex items-center justify-center text-xl font-black mt-2">30</span>
-              </button>
-
-              <button 
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="w-32 h-32 bg-white text-black rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-all"
-              >
-                {isPlaying ? <Pause className="w-16 h-16 fill-current" /> : <Play className="w-16 h-16 fill-current ml-2" />}
-              </button>
-
-              <button
-                onClick={salvarMarcacao}
-                className="p-6 text-white active:scale-90 transition-transform"
-                aria-label="Marcar este ponto"
-              >
-                <Bookmark className="w-16 h-16" />
-              </button>
-            </div>
-          </div>
-        </main>
-
-        <footer className="mt-auto py-8 text-center text-white/40 text-sm font-medium">
-          Mantenha os olhos na estrada.
-        </footer>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-[#141414] text-white">
@@ -1150,35 +1051,12 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col py-2">
-              {/*
-                **Modo carro veio da barra de baixo em 28/07** (ROTEIRO 4.50), a
-                pedido do Matheus: *"tirar ele daqui da parte de baixo, para não
-                ficar com muitas informações"*. Fica em **primeiro** no menu
-                porque é o único item daqui que muda o modo de uso na hora — os
-                outros levam a outra tela ou marcam um estado.
-              */}
-              <button
-                onClick={() => {
-                  setShowMoreMenu(false);
-                  handleCarModeClick();
-                }}
-                className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors text-left group w-full"
-                data-testid="menu-modo-carro"
-              >
-                <Car className="w-5 h-5 text-white/50 group-hover:text-white" />
-                <span className="text-sm font-medium">Modo carro</span>
-              </button>
-
-              {/* "Detalhes do título" saiu em 27/07: era um segundo caminho para
-                  o mesmo lugar — tocar no título do livro, ali no meio do
-                  player, já abre a ficha, e é o gesto que a pessoa tenta
-                  primeiro. O critério do Matheus para ele voltar: só se trouxer
-                  informação que não exista em nenhum outro lugar (ROTEIRO 4.38).
-
-                  "Conectar dispositivo Bluetooth" saiu em 26/07 por motivo
-                  parecido: era o
-                  mesmo teatro dos diálogos do modo carro — o app não conecta
-                  nada, quem conecta é o sistema do celular (ROTEIRO 4.33). */}
+              {/* "Modo carro" saiu do app em 04/08 por decisão do Matheus
+                  (ROTEIRO §4.98): era só uma tela de botões grandes — nem a
+                  Audible conecta nada de verdade (§4.33) — e ninguém a ligava.
+                  "Detalhes do título" saiu em 27/07: segundo caminho para o
+                  mesmo lugar (§4.38). "Conectar Bluetooth" saiu em 26/07:
+                  teatro de conexão que o app não faz (§4.33). */}
               {/* Abrir sala de escuta ao vivo (§4.81). Fica no menu porque é ação
                   ocasional; o que é do momento — uma sala já no ar — aparece
                   sozinho na faixa junto da barra de progresso. */}

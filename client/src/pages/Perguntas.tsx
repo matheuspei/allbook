@@ -23,13 +23,13 @@ import { MURAL_EVENT } from "@/lib/mural";
  * demanda**, alcançado pelo selo de um post ou pela pílula do feed. Pergunta
  * continua sendo um tipo de post, e continua aparecendo no feed junto com o resto.
  *
- * **O que ela vai ganhar quando existirem respostas** (item 3 da §4.58): a divisão
- * entre "sem resposta" e "já respondidas". É o que dá utilidade de verdade — hoje
- * a página junta, amanhã ela cobra.
+ * **A divisão em duas seções é decisão do Matheus (04/08, §4.98):** "Ainda sem
+ * resposta" vem **em cima** — quem entra para ajudar acha na hora o que precisa
+ * de gente — e "Respondidas" embaixo. Antes era um filtro de pílulas, que
+ * escondia um dos lados; a divisão mostra os dois, na ordem que cobra.
  */
 export default function Perguntas() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [soSemResposta, setSoSemResposta] = useState(false);
 
   useEffect(() => {
     const atualizar = () => setPosts(todosOsPosts().filter((post) => post.pergunta));
@@ -44,15 +44,11 @@ export default function Perguntas() {
     };
   }, []);
 
-  /*
-    **A promessa da página, cumprida** (30/07). Quando ela nasceu, poucas horas
-    antes, só sabia juntar perguntas — e eu registrei que o valor de verdade vinha
-    quando existisse resposta, para ela poder **cobrar**. Existe: `temResposta` lê
-    os comentários. Ninguém respondeu é o caso que precisa de alguém, e é o único
-    filtro que a página tem.
-  */
   const semResposta = posts.filter((post) => !temResposta(post.id));
-  const mostrados = soSemResposta ? semResposta : posts;
+  const respondidas = posts.filter((post) => temResposta(post.id));
+  // Cabeçalho de seção só quando os DOIS grupos existem — com um só, seria
+  // rótulo repetindo o que o subtítulo do topo já disse (§4.23: nada de ruído).
+  const dividida = semResposta.length > 0 && respondidas.length > 0;
 
   return (
     <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="perguntas-page">
@@ -81,34 +77,6 @@ export default function Perguntas() {
               : `${semResposta.length} ${semResposta.length === 1 ? "ainda espera" : "ainda esperam"} uma opinião`}
         </p>
 
-        {/* Duas pílulas, um critério: **tem resposta ou não**. Somem quando todas
-            já foram respondidas — filtro que não filtra é botão morto (§4.23). */}
-        {semResposta.length > 0 && semResposta.length < posts.length && (
-          <div className="relative mt-4 flex gap-2" data-testid="perguntas-filtros">
-            <button
-              onClick={() => setSoSemResposta(false)}
-              className={`rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition-colors ${
-                soSemResposta
-                  ? "border border-white/15 text-white/50 hover:text-white/80"
-                  : "bg-white text-black"
-              }`}
-              data-testid="perguntas-todas"
-            >
-              Todas {posts.length}
-            </button>
-            <button
-              onClick={() => setSoSemResposta(true)}
-              className={`rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition-colors ${
-                soSemResposta
-                  ? "bg-white text-black"
-                  : "border border-white/15 text-white/50 hover:text-white/80"
-              }`}
-              data-testid="perguntas-sem-resposta"
-            >
-              Sem resposta {semResposta.length}
-            </button>
-          </div>
-        )}
       </header>
 
       {posts.length === 0 ? (
@@ -128,10 +96,35 @@ export default function Perguntas() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-3 px-5 pt-1">
-          {mostrados.map((post) => (
-            <CartaoDePost key={post.id} post={post} />
-          ))}
+        <div className="px-5 pt-1">
+          {dividida && (
+            <h2
+              className="mb-3 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wide text-primary"
+              data-testid="secao-sem-resposta"
+            >
+              Ainda sem resposta
+              <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px]">{semResposta.length}</span>
+            </h2>
+          )}
+          <div className="space-y-3">
+            {semResposta.map((post) => (
+              <CartaoDePost key={post.id} post={post} />
+            ))}
+          </div>
+          {dividida && (
+            <h2
+              className="mb-3 mt-7 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wide text-white/40"
+              data-testid="secao-respondidas"
+            >
+              Respondidas
+              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px]">{respondidas.length}</span>
+            </h2>
+          )}
+          <div className="space-y-3">
+            {respondidas.map((post) => (
+              <CartaoDePost key={post.id} post={post} />
+            ))}
+          </div>
         </div>
       )}
     </div>

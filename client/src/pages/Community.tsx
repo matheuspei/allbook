@@ -9,6 +9,7 @@ import LinhaDeAtividade from "@/components/comunidade/LinhaDeAtividade";
 import { ConviteDeClube, ConviteDeForum, TrechosQuentes } from "@/components/comunidade/CartaoDeConvite";
 import Compositor from "@/components/comunidade/Compositor";
 import MenuDaComunidade from "@/components/comunidade/MenuDaComunidade";
+import OuvindoAgoraDaCasa from "@/components/comunidade/OuvindoAgora";
 import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
 import { montarFeed, type ItemDoFeed, type Lente } from "@/lib/feedDaComunidade";
 import SalasAoVivoNoFeed from "@/components/sala/SalasAoVivoNoFeed";
@@ -266,6 +267,11 @@ function FeedDePosts() {
       {/* A fita de "ouvindo agora" mora **dentro do Seguindo** desde 30/07 — é
           atividade, e atividade só existe nesta lente (§4.58, decisão 7). */}
       {lente === "seguindo" && <OuvindoAgora seguindo={seguindo} />}
+
+      {/* No Todos, a casa inteira em versão compacta (rosto + capinha) — a
+          vitrine voltou por decisão do Matheus na folha da fila (§4.98): era a
+          única coisa que só um app de audiolivro tem, e estava escondida. */}
+      {lente === "todos" && <OuvindoAgoraDaCasa />}
 
       <div className="mt-3 space-y-3">
         {itens.map((item) => {

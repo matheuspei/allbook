@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Bookmark, BookmarkPlus, Check, MessageSquare, Timer } from "lucide-react";
 
 /**
- * A barra de ações do tocador — velocidade, modo carro, temporizador, marcar e
- * a lista de marcações.
+ * A barra de ações do tocador — velocidade, temporizador, marcar e a lista de
+ * marcações.
  *
  * **Por que ela virou um componente (26/07).** Do jeito anterior o Matheus não
  * achava o botão de marcação, e com razão. Três defeitos somados:
@@ -151,15 +151,10 @@ export default function BarraDeAcoesDoPlayer({
         onClick={onVelocidade}
       />
       {/*
-        **"Carro" saiu daqui em 28/07 e foi para o menu de "…".** Pedido do
-        Matheus — *"para não ficar com muitas informações aqui"* — e a barra
-        estava mesmo apertada: seis alvos, e o rótulo "Velocidade" já vinha
-        abreviado por falta de espaço (ver acima).
-
-        **O critério é frequência, não importância.** Modo carro se liga **uma
-        vez, antes de dirigir**, e não durante — é ação rara, e ação rara mora no
-        menu. Marcar, Conversa e Notas são do uso corrente, tocadas com o livro
-        andando, e por isso ficam à mão.
+        **O critério da barra é frequência, não importância** (28/07): aqui só
+        mora o que se toca com o livro andando. Ação rara vai para o menu "…" —
+        foi o caminho do modo carro, que depois saiu do app de vez (04/08,
+        ROTEIRO §4.98).
       */}
       <Acao
         testid="action-timer"
