@@ -357,7 +357,8 @@ export default function Library() {
       </header>
 
       {/* Filtros reais. O deslocamento acompanha a altura do TopNav (56px). */}
-      <div className="sticky top-14 z-30 border-b border-white/5 bg-[#141414]/95 backdrop-blur-md">
+      {/* Fundo fechado (§4.104): a 95% as capas transpareciam atrás dos chips. */}
+      <div className="sticky top-14 z-30 border-b border-white/5 bg-[#141414]">
         <div className="scrollbar-hide flex gap-2 overflow-x-auto px-5 py-3">
           {FILTROS.filter((f) => f.key === "tudo" || contagens[f.key] > 0).map((f) => {
             const ativo = filtro === f.key;

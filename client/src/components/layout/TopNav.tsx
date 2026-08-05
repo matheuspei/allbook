@@ -102,8 +102,10 @@ export default function TopNav() {
       data-testid="top-nav"
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        // Fundo FECHADO no estado opaco (§4.104): a 95% de opacidade, um botão
+        // laranja rolando por baixo ainda transparecia de fantasma.
         opaque
-          ? "bg-background/95 backdrop-blur-md shadow-lg"
+          ? "bg-background shadow-lg"
           : "bg-gradient-to-b from-black/80 to-transparent"
       )}
     >

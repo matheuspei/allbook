@@ -39,7 +39,8 @@ export default function PageHeader({
        * ficou para trás abria um vão de 32px no celular por onde o conteúdo
        * aparecia ao rolar.
        */
-      className="sticky top-14 z-30 bg-[#141414]/95 backdrop-blur-md border-b border-white/5"
+      // Fundo fechado (§4.104): a 95% o conteúdo rolado transparecia por trás.
+      className="sticky top-14 z-30 bg-[#141414] border-b border-white/5"
       data-testid="page-header"
     >
       <div className="flex items-center gap-3 px-4 h-14">
