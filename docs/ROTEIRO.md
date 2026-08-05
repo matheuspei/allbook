@@ -4095,10 +4095,22 @@ cor de marca — atende o "mudar para preta", mas deixa o app anônimo), *Abajur
 Relacionado: a §4.108 já previa que o debate dos ícones coloridos pediria uma
 folha comparando paletas — é esta.
 
-## 4.111 A marca ganha símbolo: "a página que vira som" (05/08)
+## 4.111 O rumo da marca — escolhido, mas ainda NÃO implementado (05/08)
 
-**A decisão.** O AllBook passa a ter uma marca desenhada, escolhida por ele na
-folha `_logo-A.html` entre seis propostas:
+> ⚠️ **Leia primeiro: nada disto está no app.** Eu implementei a marca no mesmo
+> dia (componente, favicon, topo trocado) e **ele mandou desfazer** — o app
+> voltou ao que era, com "All" laranja e o favicon antigo. O que segue é **rumo
+> escolhido**, não código entregue.
+>
+> **O erro, e a lição que fica:** as escolhas dele na folha eram **matéria-prima
+> para um prompt** — ele queria gerar a marca numa plataforma de IA de imagem, e
+> a folha servia para decidir *o que descrever no pedido*. Eu li como autorização
+> para desenhar e entregar. **Folha respondida não é ordem de construir**, ainda
+> mais na identidade visual, que a §4.110 deixou explicitamente em aberto. Ele
+> também **não gostou** do desenho feito à mão; o desenho não é o produto, o
+> conceito é.
+
+**O rumo escolhido** na folha `_logo-A.html`, entre seis propostas:
 
 - **O símbolo — "a página que vira som".** Um livro aberto cuja página da
   esquerda é sólida e cuja página da direita **se desfaz em quatro linhas que
@@ -4111,10 +4123,10 @@ folha `_logo-A.html` entre seis propostas:
 - **O ícone do app: marca laranja sobre quadrado escuro** (rejeitados: marca
   escura sobre quadrado laranja, e degradê laranja→âmbar).
 
-Isto **responde uma das lacunas apontadas na §4.110** — lá estava registrado que
-"não existe símbolo, então não há ícone de app nem favicon". Agora há os dois.
-O resto da §4.110 (fundo, paleta, cartão de livro, topo da Início) **continua em
-aberto**.
+Isto **aponta para uma das lacunas da §4.110** — lá está registrado que "não
+existe símbolo, então não há ícone de app nem favicon". O conceito do símbolo
+agora existe; **o arquivo, não**. O resto da §4.110 (fundo, paleta, cartão de
+livro, topo da Início) continua em aberto.
 
 **As cinco rejeitadas, e por quê** — vale guardar, porque a próxima rodada de
 identidade não precisa redescobri-las:
@@ -4139,17 +4151,22 @@ três valem para a próxima vez:
 3. **prompt de logo é feito de proibição**, não de descrição: sem cenário, sem
    fotorrealismo, sem 3D, sem sombra, sem degradê, sem texto.
 
-E mesmo acertando, a saída é **PNG**. Marca precisa ser **vetor** — estica sem
-borrar, troca de cor por CSS, encolhe até 16 px. Por isso as seis propostas
-foram desenhadas em SVG à mão, como os `GenreIcon` (§4.27), e é assim que a
-escolhida entrou no app. **Não trazer imagem gerada para dentro da identidade.**
+As seis propostas da folha foram desenhadas em SVG à mão só para **ele poder
+escolher o conceito olhando**, como os `GenreIcon` (§4.27) — não para virarem a
+marca final.
 
-**Achado colateral:** o `favicon.png` que o app servia desde o começo era **o
-logo do Replit**, laranja, sobra do andaime original. Ninguém tinha reparado.
+**A questão em aberto, e é ela que decide o próximo passo:** a saída de IA de
+imagem é **PNG**, e marca precisa ser **vetor** (estica sem borrar, troca de cor
+por CSS, encolhe até 16 px). Então o que vier da plataforma serve como **arte de
+referência**; alguém ainda terá de redesenhá-la em vetor — eu, ele, ou um
+ilustrador. Isso não foi decidido.
 
-⚠️ **Armadilha para a próxima rodada de identidade.** O componente
-(`components/MarcaAllBook.tsx`) usa `currentColor`/`text-primary`, então trocar a
-cor de marca continua custando **uma linha** do `index.css`, como a §4.110 mediu.
-Mas o **`client/public/favicon.svg` tem o hexadecimal escrito à mão**
-(`#FF6A00` sobre `#141414`) — arquivo estático não lê token de CSS. Mudou a cor
-da marca, **mexa nos dois**; está avisado no cabeçalho dos dois arquivos.
+**Achado colateral, e continua valendo:** o `favicon.png` que o app serve desde o
+começo é **o logo do Replit**, laranja, sobra do andaime original. Ninguém tinha
+reparado, e **ele continua lá** — é um conserto pendente, independente de qual
+marca vencer.
+
+⚠️ **Armadilha para quando a marca finalmente entrar.** Cor de marca em
+componente segue o token (`text-primary`) e custa uma linha do `index.css`, como
+a §4.110 mediu — mas **arquivo estático de ícone não lê CSS**: o hexadecimal fica
+escrito à mão dentro dele. Mudou a cor, são **dois lugares**.
