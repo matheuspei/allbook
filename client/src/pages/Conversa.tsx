@@ -44,7 +44,7 @@ export default function Conversa() {
         <div className="px-8 py-20 text-center space-y-4">
           <p className="text-sm text-white/50">Não existe livro com esse endereço.</p>
           <Link href="/community" className="inline-block text-sm font-bold text-primary">
-            Voltar à Comunidade
+            Voltar ao Feed
           </Link>
         </div>
       </div>

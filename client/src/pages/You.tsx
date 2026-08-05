@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import {
-  BarChart3,
   Bell,
   ChevronRight,
-  Download,
   HelpCircle,
   LogIn,
   Lock,
-  Medal,
   Settings,
   Share2,
-  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,22 +26,27 @@ import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile } from "@/lib/profile";
-import { meusClubes } from "@/lib/clubes";
 import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
-import { readDownloads } from "@/lib/library";
-import { achievements, unlockedCountFor } from "@/lib/achievements";
 import { readSettings } from "@/lib/settings";
-import { lerDadosDeConquista, lerResumo } from "@/lib/stats";
 
 /**
- * "Você" (`/you`) — o painel privado, atrás da engrenagem do Perfil.
+ * "Configurações" (`/you`) — os ajustes da sua conta.
  *
- * Nasceu da separação decidida em 28/07 (ROTEIRO 4.41): o Perfil era vitrine e
- * menu ao mesmo tempo — "Minhas notas" e "Configurações" dividiam a tela com o
- * que era para os outros verem. A regra que ficou é **separar por dono**: a
- * página pública (`/profile`) é para quem te visita; este painel é o que só
- * interessa a você. Nada foi apagado na mudança — os itens do antigo menu do
- * Perfil moram todos aqui.
+ * Nasceu em 28/07 (ROTEIRO 4.41) como o painel privado "Você", com duas
+ * seções: **Seu conteúdo** e **Conta**. A regra de então é a que continua
+ * valendo entre esta tela e o `/profile`: **separar por dono** — a página
+ * pública é para quem te visita, esta é para você.
+ *
+ * **A metade de cima saiu em 05/08 (§4.103), por ordem dele:** *"a gente
+ * deveria colocar lá também estatística, conquista e downloads… ele está um
+ * pouco escondido hoje"*. Estava: notas, trechos, downloads, estatísticas e
+ * conquistas custavam **três toques** (avatar → perfil → engrenagem). Foram
+ * todos para o **Menu do hambúrguer**, onde custam dois, de qualquer tela.
+ * Nada foi apagado — mudou de porta, e a porta velha fechou (sem duplicar).
+ *
+ * **A linha de corte:** o Menu leva a **lugares** (páginas que se visita para
+ * ver algo seu); esta tela guarda os **ajustes** — conta, privacidade,
+ * aparelho, ajuda e sair. Por isso o nome deixou de ser "Você".
  *
  * Segue a sobriedade das listas do app (uma cor de ícone, divisórias finas) —
  * a regra "evitar a cara de IA" do ROTEIRO.
@@ -105,17 +106,11 @@ export default function You() {
   const [session, setSession] = useState<Session | null>(readSession);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [pedidos, setPedidos] = useState(0);
-  const [totalClubes, setTotalClubes] = useState(0);
-  const [downloadCount, setDownloadCount] = useState(0);
-  const [ganhas, setGanhas] = useState(0);
 
   useEffect(() => {
-    // Relê ao voltar da edição — e as contagens, que mudam em uso.
+    // Relê ao voltar da edição do perfil, que muda nome, foto e e-mail.
     setProfile(readProfile());
     setSession(readSession());
-    setDownloadCount(readDownloads().length);
-    setGanhas(unlockedCountFor(lerDadosDeConquista(lerResumo())));
-    setTotalClubes(meusClubes().length);
   }, []);
 
   /* Os pedidos pendentes viram a etiqueta da linha "Privacidade". Relê ao
@@ -170,55 +165,18 @@ export default function You() {
     });
   }
 
-  const conteudo: LinhaDoPainel[] = [
-    /*
-      **"Minhas notas" e "Meus trechos" saíram daqui em 05/08** — moram no Menu
-      do hambúrguer, a dois toques de qualquer tela (aqui eram três: avatar →
-      perfil → engrenagem). A regra é do Matheus e é a mesma que criou a porta
-      nova: **sem porta dupla** — entrou lá, sai daqui. A separação entre nota
-      (privada, um ponto para você voltar) e trecho (um pedaço para mostrar aos
-      outros) continua a da §4.48 — cada um segue com a sua tela.
-    */
-    /*
-      **Meus clubes faltava aqui** (ROTEIRO 4.57), e quem notou foi o Matheus:
-      *"será que não seria interessante colocar, quando você clica na foto, o
-      ícone clube do livro?"*. Faltava mesmo — o clube só se achava pela
-      Comunidade, e é conteúdo seu tanto quanto uma nota ou um download. Some
-      quando você não está em nenhum: linha a zero é beco sem saída (§4.23).
-    */
-    ...(totalClubes > 0
-      ? [
-          {
-            icon: UsersRound,
-            label: "Meus clubes",
-            hint: String(totalClubes),
-            href: "/clubes",
-          },
-        ]
-      : []),
-    {
-      icon: Download,
-      label: "Downloads",
-      hint: downloadCount > 0 ? String(downloadCount) : undefined,
-      href: "/downloads",
-    },
-    { icon: BarChart3, label: "Estatísticas", href: "/statistics" },
-    {
-      icon: Medal,
-      label: "Conquistas",
-      hint: `${ganhas} de ${achievements.length}`,
-      href: "/achievements",
-    },
-  ];
-
   const conta: LinhaDoPainel[] = [
     { icon: Bell, label: "Notificações", href: "/notifications" },
     /* Uma linha como as outras, e não uma seção aberta (ROTEIRO 4.55). O número
        de pedidos aparece aqui porque é a única pendência do painel que espera
        resposta sua — o resto é ajuste, não fila. */
+    /* O nome cresceu junto com a tela (§4.105): ela deixou de ser só
+       interruptor de privacidade e passou a ser a lista inteira do perfil —
+       foto e bio, o que a página mostra, quem pode te seguir, quando o sino
+       toca. "Privacidade" sozinho subestimava o destino. */
     {
       icon: Lock,
-      label: "Privacidade",
+      label: "Perfil e privacidade",
       hint: pedidos > 0 ? `${pedidos} pedido${pedidos === 1 ? "" : "s"}` : undefined,
       href: "/privacidade",
     },
@@ -232,7 +190,7 @@ export default function You() {
 
   return (
     <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="you-page">
-      <PageHeader title="Você" fallback="/profile" />
+      <PageHeader title="Configurações" fallback="/profile" />
 
       {/* Quem você é — e a porta para editar. O e-mail mora aqui, não na página
           pública: é cadastro, não conteúdo. */}
@@ -260,7 +218,6 @@ export default function You() {
         </Link>
       </section>
 
-      <GrupoDoPainel titulo="Seu conteúdo" items={conteudo} />
 
       {/*
         **A privacidade virou uma linha** (ROTEIRO 4.55). Os interruptores viviam

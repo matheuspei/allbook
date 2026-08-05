@@ -3812,11 +3812,15 @@ defensáveis):
 - o código sempre concordou com isso: a rota é `/forum`, o módulo é
   `lib/forum.ts`, e a §4.44 já tinha decidido *"fórum, não grupo"*.
 
-**O nome: "Novidades".** A primeira escolha foi "Feed", e ele corrigiu na hora
-— *"talvez se fosse um feed de notícia, um nome com esse"*. **"Novidades" é
-*news feed* em português**, diz o que a tela mostra (o que há de novo entre as
-pessoas) e não deixa um anglicismo solto entre Início, Biblioteca, Pedir e
-Catálogo. **A rota continua `/community`** — mexer nela quebraria links salvos,
+**O nome: "Feed" — e foram TRÊS tentativas.** Eu propus "Feed"; ele achou seco
+(*"talvez se fosse um feed de notícia, um nome com esse"*). Propus **"Novidades"**
+(*news feed* em português, sem anglicismo) e ele recusou: *"não acho que isso
+remeta exatamente o que isso é"*. Parei de adivinhar e **pus as três saídas numa
+pergunta com maquete** — inclusive a terceira via de renomear os FÓRUNS e
+devolver "Comunidade" à aba. **Ele escolheu "Feed"**, sabendo do custo
+declarado: é o único anglicismo do menu de baixo. A régua aprendida: **depois de
+duas rejeições no mesmo ponto, alinhar vale mais que a terceira tentativa** —
+e a pergunta tem que mostrar as opções desenhadas, não descritas. **A rota continua `/community`** — mexer nela quebraria links salvos,
 e ninguém lê a barra de endereço num app.
 
 **3. O painel `/you` inteiro veio para o Menu.** *"A gente deveria colocar lá

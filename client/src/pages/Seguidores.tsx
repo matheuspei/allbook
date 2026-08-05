@@ -137,7 +137,7 @@ export default function Seguidores() {
               href="/community"
               className="mt-5 inline-block rounded-xl bg-white/[0.07] px-5 py-2.5 text-xs font-bold transition-colors hover:bg-white/12"
             >
-              Ir para a Comunidade
+              Ir para o Feed
             </Link>
           </div>
         ) : (

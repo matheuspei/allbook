@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import {
+  BarChart3,
   BookOpen,
   Bookmark,
   Compass,
+  Download,
   Globe,
   HelpCircle,
+  Medal,
   Menu,
   Plus,
-  Radio,
   Scissors,
   Settings,
   UserPlus,
@@ -16,15 +18,17 @@ import {
   X,
 } from "lucide-react";
 
+import { achievements, unlockedCountFor } from "@/lib/achievements";
 import { BOOKMARK_EVENT, totalBookmarks } from "@/lib/bookmarks";
 import { meusClubes } from "@/lib/clubes";
 import { minhasComunidades } from "@/lib/forum";
 import { COMENTARIOS_EVENT, temResposta } from "@/lib/comentariosDePost";
 import { readFollowing } from "@/lib/following";
 import { GRUPOS_EVENT } from "@/lib/grupos";
+import { readDownloads } from "@/lib/library";
 import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
-import { SALA_AO_VIVO_EVENT, salasAoVivo } from "@/lib/salaAoVivo";
 import { meusSeguidores } from "@/lib/seguidores";
+import { lerDadosDeConquista, lerResumo } from "@/lib/stats";
 import { TRECHOS_EVENT, trechosGuardados } from "@/lib/trechosGuardados";
 
 /**
@@ -73,7 +77,6 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
     window.addEventListener(GRUPOS_EVENT, atualizar);
     window.addEventListener(POSTS_EVENT, atualizar);
     window.addEventListener(COMENTARIOS_EVENT, atualizar);
-    window.addEventListener(SALA_AO_VIVO_EVENT, atualizar);
     // Notas e trechos mudam com o app aberto (o corte acontece no player).
     window.addEventListener(BOOKMARK_EVENT, atualizar);
     window.addEventListener(TRECHOS_EVENT, atualizar);
@@ -81,7 +84,6 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
       window.removeEventListener(GRUPOS_EVENT, atualizar);
       window.removeEventListener(POSTS_EVENT, atualizar);
       window.removeEventListener(COMENTARIOS_EVENT, atualizar);
-      window.removeEventListener(SALA_AO_VIVO_EVENT, atualizar);
       window.removeEventListener(BOOKMARK_EVENT, atualizar);
       window.removeEventListener(TRECHOS_EVENT, atualizar);
     };
@@ -125,26 +127,15 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 py-4">
-          {dados.salas > 0 && (
-            <button
-              onClick={() => ir(dados.primeiraSala ? `/sala/${dados.primeiraSala}` : "/community")}
-              className="mb-3.5 flex w-full items-center gap-3 rounded-2xl bg-red-500/[0.09] p-3.5 ring-1 ring-inset ring-red-500/25 transition-colors hover:bg-red-500/[0.14]"
-              data-testid="painel-salas"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-red-500/15">
-                <Radio className="h-[18px] w-[18px] text-red-400" />
-              </span>
-              <span className="min-w-0 flex-1 text-left">
-                <span className="block text-[13.5px] font-semibold">Salas ao vivo agora</span>
-                <span className="block text-[11px] text-white/40">
-                  {dados.salas} {dados.salas === 1 ? "sala aberta" : "salas abertas"} — entre e ouça junto
-                </span>
-              </span>
-            </button>
-          )}
-
-          {/* Rótulo que a grade não tinha enquanto o painel era SÓ comunidade —
-              agora que há dois domínios na gaveta, cada um diz o seu nome. */}
+          {/*
+            **O cartão vermelho "Salas ao vivo agora" saiu (05/08, ordem dele):**
+            *"não acho que esse botão vermelho, altamente destacado, possa fazer
+            sentido"*. E o argumento por trás é bom: **menu é feito de lugares
+            fixos; sala ao vivo é notícia**, e notícia mora no feed — onde ela já
+            está, nos stories do topo do Feed (§4.100). A bolinha vermelha
+            do hambúrguer saiu junto: ela apontava para este cartão, e marca que
+            aponta para nada é promessa vazia.
+          */}
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/30">
             Comunidade
           </p>
@@ -160,18 +151,22 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
             )}
           </Grade>
 
-          <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-white/30">
-            Criar
-          </p>
-          <Grade>
-            <Cartao icone={<Plus />} rotulo="Criar comunidade" onClick={() => ir("/forum?criar=1")} testid="painel-criar-comunidade" />
-            <Cartao icone={<Plus />} rotulo="Criar clube" onClick={() => ir("/clubes/novo")} testid="painel-criar-clube" />
-          </Grade>
+          {/*
+            **O painel "Você" inteiro veio para cá (05/08, 2ª ordem dele):**
+            *"a gente deveria colocar lá também estatística, conquista e
+            downloads… ele está um pouco escondido hoje"*. Estava mesmo: eram
+            três toques (avatar → perfil → engrenagem) para chegar às suas
+            próprias coisas. Aqui são dois, de qualquer tela.
 
-          {/* O que veio do /you (05/08): as duas linhas mais usadas de lá, agora
-              a dois toques de qualquer tela. "Minhas notas" fica sempre — é
-              linha permanente desde o antigo menu do Perfil; "Meus trechos" só
-              quando existe algum (§4.23), igualzinho a como era lá. */}
+            **A linha de corte entre o que veio e o que ficou:** vieram os
+            **lugares** (páginas suas que se visita para ver algo); ficaram os
+            **ajustes** (privacidade, aparelho, ajuda, sair), atrás da
+            engrenagem do rodapé. Menu leva a lugar; ajuste se configura.
+
+            "Minhas notas", "Downloads", "Estatísticas" e "Conquistas" ficam
+            sempre — são permanentes desde o antigo menu do Perfil. "Meus
+            trechos" só quando existe algum (§4.23), como era lá.
+          */}
           <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-white/30">
             Seu conteúdo
           </p>
@@ -180,12 +175,26 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
             {dados.trechos > 0 && (
               <Cartao icone={<Scissors />} rotulo="Meus trechos" conta={dados.trechos} onClick={() => ir("/trechos")} testid="painel-meus-trechos" />
             )}
+            <Cartao icone={<Download />} rotulo="Downloads" conta={dados.downloads} onClick={() => ir("/downloads")} testid="painel-downloads" />
+            <Cartao icone={<BarChart3 />} rotulo="Estatísticas" onClick={() => ir("/statistics")} testid="painel-estatisticas" />
+            {/* A única contagem que não é "quantos você tem", e sim "quantas de
+                quantas" — por isso vai por `etiqueta`, não por `conta`. */}
+            <Cartao icone={<Medal />} rotulo="Conquistas" etiqueta={`${dados.ganhas} de ${dados.totalConquistas}`} onClick={() => ir("/achievements")} testid="painel-conquistas" />
+          </Grade>
+
+          <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-white/30">
+            Criar
+          </p>
+          <Grade>
+            <Cartao icone={<Plus />} rotulo="Criar comunidade" onClick={() => ir("/forum?criar=1")} testid="painel-criar-comunidade" />
+            <Cartao icone={<Plus />} rotulo="Criar clube" onClick={() => ir("/clubes/novo")} testid="painel-criar-clube" />
           </Grade>
         </div>
 
-        {/* A engrenagem que o Matheus pediu — fixa no rodapé, como no X. Leva ao
-            /you, que segue sendo a casa do resto (notificações, privacidade,
-            downloads, sair); o rótulo promete exatamente o que a página tem. */}
+        {/* A engrenagem que ele pediu — fixa no rodapé, como no X, e visível sem
+            rolar por mais que a grade cresça. Leva ao `/you`, que depois desta
+            rodada é só ajuste: conta, notificações, privacidade, aparelho,
+            ajuda e sair. */}
         <footer className="border-t border-white/[0.07] px-4 py-2">
           <button
             onClick={() => ir("/you")}
@@ -193,7 +202,7 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
             data-testid="painel-conta-e-configuracoes"
           >
             <Settings className="h-[18px] w-[18px] text-white/65" />
-            <span className="text-[13.5px] font-semibold">Conta e configurações</span>
+            <span className="text-[13.5px] font-semibold">Configurações</span>
           </button>
         </footer>
       </aside>
@@ -207,31 +216,19 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
  * **três barrinhas** (hambúrguer), como o Menu do Facebook — a primeira
  * tentativa foram três quadradinhos e ele vetou na hora: *"nem dá para saber
  * que existe alguma coisa aplicável"*. A bolinha vermelha acende quando há
- * sala ao vivo aberta — e agora avisa o app inteiro, não só quem já estava na
- * Comunidade.
+ * **A bolinha vermelha de sala ao vivo saiu em 05/08**, junto com o cartão para
+ * onde ela apontava: marca que não leva a nada é promessa vazia. Quem anuncia
+ * sala aberta é o story no topo do Feed.
  */
 export function BotaoDoPainel({ onClick }: { onClick: () => void }) {
-  const [salas, setSalas] = useState(0);
-
-  useEffect(() => {
-    const atualizar = () =>
-      setSalas(salasAoVivo().filter((sala) => !sala.encerradaEm).length);
-    atualizar();
-    window.addEventListener(SALA_AO_VIVO_EVENT, atualizar);
-    return () => window.removeEventListener(SALA_AO_VIVO_EVENT, atualizar);
-  }, []);
-
   return (
     <button
       onClick={onClick}
       aria-label="Abrir o menu"
-      className="relative -ml-2 mr-0.5 rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
+      className="-ml-2 mr-0.5 rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
       data-testid="painel-da-comunidade"
     >
       <Menu className="h-5 w-5" />
-      {salas > 0 && (
-        <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
-      )}
     </button>
   );
 }
@@ -244,12 +241,15 @@ function Cartao({
   icone,
   rotulo,
   conta,
+  etiqueta,
   onClick,
   testid,
 }: {
   icone: React.ReactNode;
   rotulo: string;
   conta?: number;
+  /** Quando o rodapé do cartão não é uma contagem — "3 de 16", por exemplo. */
+  etiqueta?: string;
   onClick: () => void;
   testid?: string;
 }) {
@@ -263,20 +263,25 @@ function Cartao({
         {icone}
       </span>
       <span className="mt-2.5 block text-[13px] font-semibold leading-tight">{rotulo}</span>
+      {/* Altura fixa mesmo vazio: sem isso os cartões sem número ficam mais
+          baixos e a grade desalinha. */}
       <span className="mt-0.5 block h-[15px] text-[11px] text-white/35">
-        {conta !== undefined && conta > 0 ? conta : ""}
+        {etiqueta ?? (conta !== undefined && conta > 0 ? conta : "")}
       </span>
     </button>
   );
 }
 
-/** Os números do painel, todos de dado que já existe — nenhum inventado (§4.92). */
+/**
+ * Os números do painel, todos de dado que já existe — nenhum inventado (§4.92).
+ *
+ * Roda só com a gaveta aberta (`{painelAberto && <PainelDaComunidade/>}` no
+ * `TopNav`), então as contas mais caras — conquistas, que percorrem o resumo de
+ * audição — não pesam nas telas do dia a dia.
+ */
 function contar() {
-  const salas = salasAoVivo().filter((sala) => !sala.encerradaEm);
   const perguntas = todosOsPosts().filter((post) => post.pergunta && !temResposta(post.id));
   return {
-    salas: salas.length,
-    primeiraSala: salas[0]?.id,
     comunidades: minhasComunidades().length,
     clubes: meusClubes().length,
     sigo: readFollowing().length,
@@ -284,5 +289,8 @@ function contar() {
     perguntas: perguntas.length,
     notas: totalBookmarks(),
     trechos: trechosGuardados().length,
+    downloads: readDownloads().length,
+    ganhas: unlockedCountFor(lerDadosDeConquista(lerResumo())),
+    totalConquistas: achievements.length,
   };
 }

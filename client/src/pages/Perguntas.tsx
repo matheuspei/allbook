@@ -63,7 +63,7 @@ export default function Perguntas() {
           data-testid="voltar-comunidade"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Comunidade
+          Feed
         </Link>
         <h1 className="relative mt-2.5 flex items-center gap-2.5 font-display text-3xl font-bold tracking-tight">
           <HelpCircle className="h-6 w-6 text-primary" />
@@ -92,7 +92,7 @@ export default function Perguntas() {
             className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-[12px] font-bold text-black"
             data-testid="ir-perguntar"
           >
-            Perguntar na Comunidade
+            Perguntar no Feed
           </Link>
         </div>
       ) : (

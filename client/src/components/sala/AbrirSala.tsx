@@ -114,7 +114,7 @@ export default function AbrirSala({
             onEscolher={() => setPorta("aberta")}
             icone={<Globe className="h-4 w-4" />}
             nome="Aberta agora"
-            detalhe="aparece na Comunidade enquanto durar"
+            detalhe="aparece no Feed enquanto durar"
           />
           <Porta
             escolhida={porta === "marcada"}

@@ -48,7 +48,7 @@ export default function UserProfile() {
     toast({
       title: now ? `Seguindo ${name}` : `Você deixou de seguir ${name}`,
       description: now
-        ? "O que essa pessoa recomendar e comentar aparece em Comunidade."
+        ? "O que essa pessoa recomendar e comentar aparece no Feed."
         : undefined,
     });
   }
@@ -68,7 +68,7 @@ export default function UserProfile() {
         <div className="px-8 py-20 text-center space-y-4">
           <p className="text-sm text-white/50">Não existe ninguém com esse endereço.</p>
           <Link href="/community" className="inline-block text-sm font-bold text-primary">
-            Ver a comunidade
+            Ver o Feed
           </Link>
         </div>
       </div>

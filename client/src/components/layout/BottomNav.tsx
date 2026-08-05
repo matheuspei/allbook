@@ -34,6 +34,23 @@ import { cn } from "@/lib/utils";
  * onde se encontra gente, não há a quem convidar. O Perfil não sumiu: virou o
  * **avatar no topo** (`TopNav`), que é onde ele mora em todo app cujo perfil é
  * uma página pública. O Início continua limpo de social, como decidido em 21/07.
+ *
+ * **"Comunidade" virou "Feed" (05/08, §4.103).** Ele achou o defeito: o app
+ * usava **a mesma palavra para duas telas diferentes** — esta aba (o feed de
+ * posts) e as comunidades do Menu (os fóruns de `/forum`). *"Ele dá a entender
+ * que é a mesma coisa, mas são coisas completamente diferentes."* Quem cedeu
+ * foi a aba, por dois motivos: "comunidade" é **preciso** para um fórum
+ * temático e **vago** para um feed; e a palavra está encravada em ~40 textos da
+ * tela de fóruns, contra uma linha aqui.
+ *
+ * **"Feed" foi escolha dele, na terceira tentativa** — as duas primeiras (minhas)
+ * ele derrubou: achou "Feed" seco de início (*"talvez se fosse um feed de
+ * notícia…"*) e depois recusou "Novidades" (*"não acho que isso remeta
+ * exatamente o que isso é"*). Escolheu "Feed" sabendo do custo declarado: é o
+ * **único anglicismo** do menu de baixo. Vale a exceção porque a palavra já é
+ * corrente em português (Instagram, Facebook, LinkedIn) e não promete nada além
+ * do que a tela entrega. A rota segue `/community`: mexer nela quebraria links
+ * salvos.
  */
 export default function BottomNav() {
   const [location] = useLocation();
@@ -43,7 +60,7 @@ export default function BottomNav() {
     { name: "Biblioteca", path: "/library", icon: Bookmark },
     { name: "Pedir", path: "/request", icon: Mic, acao: true },
     { name: "Catálogo", path: "/search", icon: LayoutGrid },
-    { name: "Comunidade", path: "/community", icon: Users },
+    { name: "Feed", path: "/community", icon: Users },
   ];
 
   return (

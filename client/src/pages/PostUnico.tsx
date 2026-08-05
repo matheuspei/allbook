@@ -45,7 +45,7 @@ export default function PostUnico() {
           data-testid="voltar-comunidade"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Comunidade
+          Feed
         </Link>
       </header>
 
@@ -62,7 +62,7 @@ export default function PostUnico() {
               className="mt-3 inline-block text-[12px] font-bold text-primary"
               data-testid="ir-comunidade"
             >
-              Ir para a Comunidade
+              Ir para o Feed
             </Link>
           </div>
         ) : (
