@@ -4020,3 +4020,22 @@ conteúdo (Notas · Trechos · Downloads · Estatísticas · Conquistas) → Cri
 botão "＋ Criar" fixo no topo (§4.102) e `/clubes` também tem o seu. Mantive
 porque criar de qualquer tela é atalho legítimo (é o que o Facebook faz), mas se
 ele quiser podar, são dois cartões a menos.
+
+## 4.108 Ideia registrada para debate futuro: ícones coloridos nas listas e no Menu (05/08)
+
+**Não é decisão — é ideia dele, guardada para não se perder.** Vendo o app em
+05/08: *"tanto nas listas como no menu do hambúrguer, você colocou alguns
+ícones aqui coloridos, dando mais vida a esses ícones. Eu achei interessante.
+Eu acho que a gente talvez possa debater futuramente sobre a utilização desses
+ícones. Aqui como está agora, talvez a gente possa implementar isso
+futuramente."* Fica **como está** por ora; a implementação é para depois, com
+debate antes.
+
+**O estado de hoje, para o debate encontrar o terreno:** a lista "Perfil e
+privacidade" (§4.105) usa ícones em **laranja da marca** (`text-primary`); o
+Menu do hambúrguer usa caixinhas **neutras** (`text-white/65` sobre
+`bg-white/[0.06]`) — e ícones neutros ali foram decisão da §4.100, que este
+debate revisitaria. Quando chegar a hora, o caminho natural é **folha de
+propostas** comparando paletas (só laranja × uma cor por assunto × neutro),
+porque o critério é gosto — e reformulação visual pede 4+ propostas de
+filosofias diferentes, como de costume.
