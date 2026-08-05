@@ -276,6 +276,15 @@ export function duracaoEstimada(pages?: number): string | undefined {
   return `${horas}h ${String(minutos).padStart(2, "0")}min`;
 }
 
+/**
+ * O livro tem capa real baixada (e não a tipográfica gerada de reserva)?
+ * As vitrines de colagem usam isto para nunca estampar a capa-reserva no meio
+ * de artes de verdade (§4.104) — o livro continua no catálogo e nas listas.
+ */
+export function temCapaReal(book: Book): boolean {
+  return book.id in capasPorId;
+}
+
 /** Busca livros por id, mantendo a ordem pedida e ignorando ids inexistentes. */
 export function getBooksByIds(ids: number[]): Book[] {
   return ids

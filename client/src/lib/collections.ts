@@ -110,7 +110,9 @@ export const homeRows: Collection[] = [
   },
   {
     slug: "sugestoes",
-    label: "🔥 Sugestões que você vai adorar",
+    // Sem o emoji de fogo desde §4.104: era o único título de seção com emoji
+    // no app inteiro — os grandes marcam destaque com tipografia, não figurinha.
+    label: "Sugestões que você vai adorar",
     gradient: "from-rose-600 to-orange-500",
     description: "Escolhidos a dedo para o seu gosto.",
     bookIds: [7, 109, 129, 130, 131, 132],

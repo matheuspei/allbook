@@ -3738,3 +3738,49 @@ seguem no cartão do feed, que é a casa deles.
 **Pendência pequena, dele:** "Meus clubes" agora tem duas portas (Menu e
 `/you`). Pela régua desta seção a do `/you` deveria cair, mas ele só citou
 notas e trechos — deixei como está e apontei. Uma linha, quando ele decidir.
+
+## 4.104 A averiguação de design antes do backend — as 12 decisões da folha (05/08)
+
+Ele pediu (*"me diga… o que está deixando esse aplicativo com a cara de algo
+amador"*) uma varredura de TODAS as telas antes de ir ao backend. O resultado
+virou a folha `_averiguacao-de-design-C.html`, e ele respondeu tudo numa
+sentada. **As decisões, todas dele pela folha:**
+
+1. **Sinopse curada em PT-BR no `books.ts`** — a ficha mostrava a `synopsis`
+   da Open Library **em inglês** (`catalog-enriched.ts`, sem tradução). A
+   curada vence; a importada vira reserva. (Rejeitado: traduzir no script —
+   texto com cara de tradução e mexe em arquivo gerado.)
+2. **A ficha do livro vira tela sem o TopNav** (como player/login/sala): o
+   logo ficava atrás do botão de voltar flutuante — duas navegações
+   empilhadas. (Rejeitado: barra própria com título; menos imersiva.) A
+   BottomNav e o MiniPlayer **ficam** — a decisão era sobre o cabeçalho.
+3. **Barras fixas com fundo fechado** — o conteúdo rolado aparecia de
+   fantasma atrás dos cabeçalhos translúcidos (clube, chips da biblioteca).
+4. **A sala ao vivo termina** — a semeada ficou presa no fim ("faltam 0 s",
+   relógio 99 h): entra o estado "sessão encerrada" com saída para o livro, e
+   as semeadas nascem com hora de começo realista. (Rejeitado: sala eterna
+   que emenda outro livro — menos crível.)
+5. **Mosaicos sem capa repetida entre vizinhos e sem capa genérica** — "Só na
+   AllBook" e "Best-sellers" mostravam as mesmas capas coladas.
+6. **O herói da Início ganha a arte sangrada** (Netflix): a própria capa,
+   ampliada e desfocada, preenche o topo. (Rejeitados: gradiente de cor
+   dominante e o fundo chapado de hoje.)
+
+**Limpezas aprovadas:** tirar o 🔥 do título em `collections.ts`; fechar o
+vão morto no fim da Início/Busca (com fim de lista discreto); o selo
+"ALLBOOK ORIGINAL" do player sai de cima da capa (vira selo fora da arte,
+como na ficha); +3 salas semeadas nos stories da Comunidade (fileira se
+esconde com <2); a barrinha laranja de consenso dos posts morre (a frase
+"X gostaram · Y discordou" já diz tudo).
+
+**Rejeitada por ele (não mexer):** a nota ⭐ da fileira "Em alta" **fica**,
+mesmo repetindo 4.9 nos primeiros — foi a única limpeza que ele não marcou.
+
+**Recado formal para a janela B (ele aprovou o registro):** na vitrine nova
+do `/forum`, a comunidade "Ficção Científica" aparece em duas seções vizinhas
+e o motivo laranja "você está em 2 clubes de ficção científica" repete
+idêntico em 3 cartões seguidos — variar o texto e deduplicar entre seções.
+
+**Apurado na varredura, sem virar decisão:** a aba do localhost dele está com
+zoom de 50% no Chrome — todos vemos o app com breakpoints de desktop dentro
+da moldura; vale um teste em celular de verdade antes do backend.

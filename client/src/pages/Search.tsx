@@ -3,11 +3,12 @@ import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 
-import { catalog, genres, getBooksByGenre, genreSlug, type Genre, type Book } from "@/lib/books";
+import { catalog, genres, getBooksByGenre, genreSlug, temCapaReal, type Genre, type Book } from "@/lib/books";
 import SearchResults from "@/components/SearchResults";
 import RequestBanner from "@/components/RequestBanner";
 import CategoryCard from "@/components/CategoryCard";
 import ClubesComecando from "@/components/clube/ClubesComecando";
+import FimDaLista from "@/components/FimDaLista";
 
 /**
  * Tela de Busca — a aba "Buscar" do menu de baixo (`/search`), no modelo da
@@ -61,7 +62,10 @@ function GenreGrid({ onSelect }: { onSelect: (genre: Genre) => void }) {
           >
             <CategoryCard
               label={genre.label}
+              // Capa tipográfica de reserva não entra em colagem (§4.104) — o
+              // livro segue no gênero, só não estampa a vitrine.
               covers={[...getBooksByGenre(genre.label)]
+                .filter(temCapaReal)
                 .sort((a, b) => b.rating - a.rating)
                 .slice(0, 3)
                 .map((book) => book.cover)}
@@ -192,6 +196,8 @@ function SearchSuggestions() {
       <ClubesComecando limite={2} titulo="Clubes começando" />
 
       <EmAltaRow books={emAlta} />
+
+      <FimDaLista />
     </div>
   );
 }
@@ -200,7 +206,9 @@ export default function Search() {
   const [query, setQuery] = useState("");
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414]" data-testid="page-search">
+    // Sem `pb-24` desde §4.104 (somava com o `pb-20` do App e virava vão
+    // morto); o fecho da rolagem é o <FimDaLista /> das sugestões.
+    <div className="min-h-screen bg-[#141414]" data-testid="page-search">
       <div className="px-4 pt-4 pb-2">
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />

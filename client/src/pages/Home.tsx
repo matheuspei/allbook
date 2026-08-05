@@ -1,6 +1,6 @@
 import { Play, Star, ChevronRight, ChevronDown, Info, MoreVertical, X } from "lucide-react";
 import { useLocation } from "wouter";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import {
   catalog,
@@ -8,9 +8,11 @@ import {
   genreSlug,
   duracaoEstimada,
   genres,
+  temCapaReal,
   type Book,
   type Genre,
 } from "@/lib/books";
+import FimDaLista from "@/components/FimDaLista";
 import { collections, homeRows, getBooksForCollection } from "@/lib/collections";
 import GenreIcon from "@/components/GenreIcon";
 import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playback";
@@ -211,12 +213,18 @@ function HeroBillboard() {
             a capa ampliada e BORRADA de propósito (o borrão esconde o serrilhado do
             aumento), e por cima entra a capa NÍTIDA, inteira (`object-contain`) e
             reduzida — como é mostrada menor que o original, sai afiada.
+
+            §4.104: o fundo deixou de ser véu tímido (opacity-50 sob dois véus
+            escuros — na prática parecia fundo chapado) e virou cenário: a arte
+            sangra a tela, estilo Netflix, decisão dele na folha da averiguação.
+            A legibilidade do texto fica por conta do degradê de baixo, que segue
+            fechado no #141414.
           */}
           <img
             src={book.cover}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-50"
+            className="absolute inset-0 w-full h-full object-cover blur-3xl scale-110 opacity-90 saturate-125"
           />
           <div className="absolute inset-x-0 top-0 h-[54%] flex items-center justify-center px-6 pt-6">
             <img
@@ -225,8 +233,8 @@ function HeroBillboard() {
               className="h-full w-auto max-w-[60%] object-contain rounded-xl shadow-2xl shadow-black/60 ring-1 ring-white/10"
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#141414]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/35 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#141414]/40 to-transparent" />
 
           {/*
             A legenda e os botões vivem DENTRO do slide, para trocarem junto com a
@@ -340,6 +348,30 @@ function CategoryGrid() {
   const [, setLocation] = useLocation();
   const [listaAberta, setListaAberta] = useState(false);
 
+  /**
+   * As capas de cada mosaico, sem repetir as dos vizinhos (§4.104). As coleções
+   * se cruzam de propósito (o mesmo livro vive em várias), mas a colagem
+   * ingênua dos 3 primeiros estampava Hábitos Atômicos em dois cards colados e
+   * a Início parecia ter meia dúzia de livros. Cada card gasta primeiro as
+   * capas que os anteriores ainda não usaram; capa tipográfica de reserva não
+   * entra em vitrine (`temCapaReal`). Se faltar inédita, repete das próprias —
+   * mosaico vazio seria pior que mosaico repetido.
+   */
+  const capasDosMosaicos = useMemo(() => {
+    const usadas = new Set<string>();
+    return collections.map((colecao) => {
+      const comCapaReal = getBooksForCollection(colecao).filter(temCapaReal);
+      const ineditas = comCapaReal.filter((livro) => !usadas.has(livro.cover));
+      const doCard: string[] = [];
+      for (const livro of [...ineditas, ...comCapaReal]) {
+        if (!doCard.includes(livro.cover)) doCard.push(livro.cover);
+        if (doCard.length === 3) break;
+      }
+      doCard.forEach((capa) => usadas.add(capa));
+      return doCard;
+    });
+  }, []);
+
   return (
     <section className="px-4 py-6 space-y-4" data-testid="category-grid">
       <div className="flex items-center gap-2 pb-2">
@@ -402,11 +434,11 @@ function CategoryGrid() {
       )}
 
       <div className="grid grid-cols-2 gap-3" data-testid="category-cards">
-        {collections.map((colecao) => (
+        {collections.map((colecao, i) => (
           <CategoryCard
             key={colecao.slug}
             label={colecao.label}
-            covers={getBooksForCollection(colecao).slice(0, 3).map((book) => book.cover)}
+            covers={capasDosMosaicos[i]}
             onClick={() => setLocation(`/collection/${colecao.slug}`)}
             testId={`card-category-${colecao.slug}`}
           />
@@ -592,7 +624,9 @@ function BookCarousel({ slug, title, books }: { slug: string; title: string; boo
 
 export default function Home() {
   return (
-    <div className="min-h-screen pb-24 bg-[#141414]" data-testid="page-home">
+    // Sem `pb-24` desde §4.104: ele somava com o `pb-20` do App e a tela
+    // terminava num vão morto. Quem fecha a rolagem agora é o <FimDaLista />.
+    <div className="min-h-screen bg-[#141414]" data-testid="page-home">
       <HeroBillboard />
 
       {/*
@@ -616,6 +650,7 @@ export default function Home() {
             books={getBooksForCollection(row)}
           />
         ))}
+        <FimDaLista />
       </div>
     </div>
   );
