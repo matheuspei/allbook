@@ -4057,3 +4057,40 @@ inteira na tela de quem te segue.
 **O que a conversa reconfirmou de passagem:** a fila só existe com a **conta
 privada** ligada — com conta pública seguir é imediato, e uma aba "Pedidos" vazia
 ali prometeria um controle que não existe (§4.54/§4.55). Continua valendo.
+
+## 4.110 Identidade visual em aberto: a folha do "redesenho do zero" (05/08)
+
+**O pedido, nas palavras dele:** *"me sugere coisas diferentes na parte do design
+— mudar o fundo, mudar o logo, mudar essa cor laranja, mudar para preta… esqueça
+tudo que a gente já debateu antes no roteiro, como se você tivesse criado do zero
+aqui agora."* Daí a folha `client/public/_design-do-zero-B.html`, com **seis
+decisões**: a direção visual (5 identidades inteiras, cada uma com a Início
+desenhada), o símbolo da logo (5), a grafia do nome, o menu de baixo (3), o
+cartão de livro (3) e o que abre a Início (3). **Nada foi decidido ainda** — a
+folha responde em `_respostas-de-folhas/design-do-zero-B.json`.
+
+**O diagnóstico que sustenta a folha** (conferido no código, não no roteiro):
+o laranja `#FF6A00` sobre `#141414` é a combinação do **Audible**, e o cinza de
+fundo com billboard giratório + fileiras é o **Netflix** — duas marcas
+emprestadas na mesma tela; **não existe símbolo** (a logo é a palavra com o "All"
+colorido, então não há ícone de app nem favicon); a narração sob demanda, que é a
+ideia central, **não aparece no visual**; e sobraram efeitos datados (borrão atrás
+do ícone ativo, sombra colorida sob o botão).
+
+**O custo medido — é o que deve pesar na escolha:** 737 lugares chamam a cor
+**pelo nome** (`primary`), logo trocar a cor de marca é ~1 linha do `index.css`
+mais 99 literais (`orange-*`, `#f59e0b`); mas há **1.740 usos de branco/preto
+transparentes** (`white/10`, `black/60`), que só funcionam sobre fundo escuro, e
+258 hexadecimais em 95 arquivos. Em uma frase: **trocar a cor e a logo é barato;
+trocar o escuro pelo claro é uma obra.**
+
+**O que eu recomendei, e por quê:** direção **"Estúdio"** — grafite quente,
+branco-osso e vermelho de gravação usado só onde há gravação (selo "no ar", onda,
+botão Pedir). Sai do laranja do concorrente, **continua escura** (obra barata) e é
+a única das cinco que conta o que o app faz de diferente. As outras quatro:
+*Tinta* (papel claro, a mais distinta e a mais cara), *Meia-noite* (preto puro sem
+cor de marca — atende o "mudar para preta", mas deixa o app anônimo), *Abajur*
+(azul-noite com luz quente) e *Cartaz* (blocos de cor e tipografia gigante).
+
+Relacionado: a §4.108 já previa que o debate dos ícones coloridos pediria uma
+folha comparando paletas — é esta.
