@@ -3946,3 +3946,37 @@ diferentes** — e o que se pendura num não é aparado pelo outro, então o Top
 em `-translate-y-full` pintava por cima do telefone. A moldura virou um
 elemento só, que referencia E apara, como uma tela de verdade. No celular real
 o defeito nunca existiu.
+
+## 4.107 As lentes do Feed viram as abas do X — "Para você · Seguindo" (05/08)
+
+Com o app do X aberto na mão, ele mandou copiar o par de abas: *"eu gostaria de
+replicar essa coisa do X, para você e o seguindo, na nossa aba de Comunidade,
+exatamente como está aqui… hoje a gente diz o 'todos' e 'seguindo', e tem o
+ícone de perguntas. Minha sugestão era remover esse ícone."*
+
+**O que mudou:**
+- **"Todos" → "Para você"**, e as duas viraram **abas de largura igual** com
+  sublinhado sob a ativa, divisória fina de ponta a ponta, sangrando até as
+  bordas (`-mx-5`). Eram duas pílulas pequenas num canto. O azul do X virou o
+  laranja da marca.
+- **O ícone de perguntas saiu** do topo do feed (era a §4.100).
+
+**Por que tirar o ícone não criou beco (§4.23):** a página `/perguntas`
+continua com **duas portas** — o cartão "Perguntas sem resposta" no Menu do
+hambúrguer (com contador) e o **selo "Pergunta" de cada post**, que é clicável
+desde a §4.59. Conferido no código antes de remover.
+
+**A posição NÃO subiu para o topo absoluto, e isso é decisão, não esquecimento.**
+No X as abas são a primeira coisa da tela porque abaixo delas só existe o feed.
+Aqui, os **stories de sala ao vivo e o compositor não mudam com a lente** —
+pô-las acima deles prometeria um governo que elas não têm. Ficam logo acima do
+que a lente de fato troca.
+
+⚠️ **"Para você" é nome emprestado, não promessa cumprida — e ele sabe.** Eu
+levantei que no X a aba é algoritmo e aqui a lista é cronológica pura (§4.58);
+ele respondeu antes de eu terminar: *"já adianto que o código faz cronologia,
+não tem nenhum algoritmo que rode um script específico… isso aí é tudo por
+ordem"*. Fica registrado que **o nome está adiantado ao comportamento**. O que
+segura a promessa hoje é o montador intercalar sugestões, clube, fórum e trechos
+quentes — não é lista crua. No dia em que houver escolha de verdade, o nome vira
+verdadeiro sem precisar de outra tela.

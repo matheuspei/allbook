@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { avatarDeLeitor } from "@/lib/community";
 import { Link } from "wouter";
-import { HelpCircle } from "lucide-react";
 
 import CartaoDePost from "@/components/comunidade/CartaoDePost";
 import CartaoDeSugestoes from "@/components/comunidade/CartaoDeSugestoes";
@@ -9,7 +8,7 @@ import LinhaDeAtividade from "@/components/comunidade/LinhaDeAtividade";
 import { ConviteDeClube, ConviteDeForum, TrechosQuentes } from "@/components/comunidade/CartaoDeConvite";
 import Compositor from "@/components/comunidade/Compositor";
 import SalasComoStories from "@/components/comunidade/SalasComoStories";
-import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
+import { POSTS_EVENT } from "@/lib/posts";
 import { montarFeed, type ItemDoFeed, type Lente } from "@/lib/feedDaComunidade";
 import SalasAoVivoNoFeed from "@/components/sala/SalasAoVivoNoFeed";
 import { MURAL_EVENT } from "@/lib/mural";
@@ -19,7 +18,7 @@ import { readFollowing } from "@/lib/following";
 /**
  * Comunidade (`/community`) — **uma tela só: o feed**, desde 01/08 (§4.92).
  *
- * O que as pessoas escreveram, nas duas lentes (Todos · Seguindo), com os
+ * O que as pessoas escreveram, nas duas lentes (Para você · Seguindo), com os
  * cartões de clube e de fórum intercalados. Fórum e clube se acham pelo
  * **quadradinho do topo** (o painel, §4.100 — mora no `TopNav`, ao lado da
  * logo) e por esses cartões — a aba "Fóruns" que existia aqui era um link
@@ -38,8 +37,24 @@ import { readFollowing } from "@/lib/following";
  *   uma aba da Comunidade.)*
  */
 
+/**
+ * As duas lentes, com os nomes do X (05/08, ordem dele com o app do X na mão).
+ *
+ * ⚠️ **"Para você" é nome emprestado, não promessa cumprida — e ele sabe.** No X
+ * essa aba é algoritmo; aqui a lista é **cronológica pura**, como a §4.58
+ * decidiu. Levantei o ponto e ele respondeu antes de eu terminar: *"já adianto
+ * que o código faz cronologia, não tem nenhum algoritmo… isso aí é tudo por
+ * ordem"*. Fica registrado para quem ler depois: **o nome está adiantado ao
+ * comportamento**. O dia em que houver escolha de verdade, ele vira verdadeiro
+ * sem precisar de outra tela; até lá, o que salva a promessa é que o montador
+ * (`lib/feedDaComunidade`) **intercala** sugestões, clube, fórum e trechos
+ * quentes — não é uma lista crua.
+ *
+ * As chaves internas seguem `todos`/`seguindo`: são o contrato com o montador e
+ * com o `Lente`, e renomear só o rótulo é o que muda de verdade na tela.
+ */
 const LENTES: { key: Lente; label: string }[] = [
-  { key: "todos", label: "Todos" },
+  { key: "todos", label: "Para você" },
   { key: "seguindo", label: "Seguindo" },
 ];
 
@@ -157,14 +172,12 @@ function FeedDePosts() {
   const [itens, setItens] = useState<ItemDoFeed[]>([]);
   const [lente, setLente] = useState<Lente>("todos");
   const [seguindo, setSeguindo] = useState<string[]>([]);
-  const [perguntas, setPerguntas] = useState(0);
 
   useEffect(() => {
     const atualizar = () => {
       const quemEuSigo = readFollowing();
       setSeguindo(quemEuSigo);
       setItens(montarFeed(lente, quemEuSigo));
-      setPerguntas(todosOsPosts().filter((post) => post.pergunta).length);
     };
     atualizar();
     /* Dois eventos, pelos dois formatos de post seu: o novo (`allbook_posts`) e
@@ -200,42 +213,49 @@ function FeedDePosts() {
         só é o que a régua da casa proíbe — uma fileira de pílulas carrega um
         critério, não dois.
       */}
-      <div className="mt-3 flex items-center gap-2" data-testid="feed-lentes">
-        {LENTES.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => setLente(item.key)}
-            className={`rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold transition-colors ${
-              lente === item.key
-                ? "bg-white text-black"
-                : "border border-white/15 text-white/50 hover:text-white/80"
-            }`}
-            data-testid={`feed-lente-${item.key}`}
-          >
-            {item.label}
-          </button>
-        ))}
-        {/*
-          **A porta de `/perguntas` virou este iconezinho** (§4.100). A linha
-          inteira "N perguntas esperando uma opinião" ocupava um cartão do feed,
-          e o Matheus a vetou: *"não faz sentido nesse modelo estar aqui — no
-          máximo um ícone, vizinho do Seguindo"*. É exatamente isto: o balão de
-          pergunta com o contador, ao lado das lentes, sumindo quando não há
-          pergunta nenhuma (§4.23 — porta para sala vazia não fica de pé).
-        */}
-        {perguntas > 0 && (
-          <Link
-            href="/perguntas"
-            aria-label={`${perguntas} ${perguntas === 1 ? "pergunta esperando" : "perguntas esperando"} uma opinião`}
-            className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/15 text-white/50 transition-colors hover:text-white/80"
-            data-testid="link-perguntas"
-          >
-            <HelpCircle className="h-4 w-4" />
-            <span className="absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold leading-none text-white">
-              {perguntas}
-            </span>
-          </Link>
-        )}
+      {/*
+        **As lentes viraram as abas do X (05/08).** Eram duas pílulas pequenas
+        num canto; ele mandou copiar o par "Para você · Seguindo" do app do X —
+        duas abas de **largura igual**, texto grande, **sublinhado embaixo da
+        ativa** e uma divisória fina de ponta a ponta. O azul do X virou o
+        laranja da marca.
+
+        **Elas sangram até as bordas** (`-mx-5`), porque a divisória cortada no
+        meio da tela leria como caixa, e não como separador — é o que faz a barra
+        parecer parte da estrutura da tela em vez de um filtro solto.
+
+        **A posição não subiu para o topo absoluto, e é de propósito.** No X as
+        abas são a primeira coisa porque abaixo delas só existe o feed. Aqui, os
+        stories de sala ao vivo e o compositor **não mudam com a lente** — pô-las
+        acima deles prometeria um governo que elas não têm. Ficam onde governam:
+        logo acima do que a lente troca.
+      */}
+      <div className="mt-4 -mx-5 flex border-b border-white/10" data-testid="feed-lentes">
+        {LENTES.map((item) => {
+          const ativa = lente === item.key;
+          return (
+            <button
+              key={item.key}
+              onClick={() => setLente(item.key)}
+              className="relative flex-1 px-2 pb-3 pt-1"
+              data-testid={`feed-lente-${item.key}`}
+            >
+              <span
+                className={`text-[15px] transition-colors ${
+                  ativa ? "font-bold text-white" : "font-medium text-white/45"
+                }`}
+              >
+                {item.label}
+              </span>
+              {/* O sublinhado cobre quase toda a aba, como no X — não só a
+                  palavra. `-bottom-px` para ele cair EM CIMA da divisória, e não
+                  acima dela, senão sobram dois traços paralelos. */}
+              {ativa && (
+                <span className="absolute inset-x-5 -bottom-px h-1 rounded-full bg-primary" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* A fita de "ouvindo agora" mora **dentro do Seguindo** desde 30/07 — é
