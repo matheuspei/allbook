@@ -310,9 +310,11 @@ function buildFromCatalog(id: string) {
     // número verdadeiro é melhor do que estampar dois inventados.
     story: notaHistoria(entry),
     performance: notaNarracao(entry),
-    // A sinopse real vem do `npm run catalogo`. Sem ela, um texto que assume a
-    // falta em vez de fingir um resumo.
+    // A sinopse curada em PT-BR vence a importada (§4.104): a da Open Library
+    // vem em inglês e virou reserva de livro que ainda não ganhou a sua. Sem
+    // nenhuma das duas, um texto que assume a falta em vez de fingir resumo.
     summary:
+      entry.sinopse ??
       entry.synopsis ??
       `"${entry.title}", de ${entry.author}. A sinopse deste título ainda não foi importada.`,
     duration: duracaoEstimada(entry.pages) ?? defaultBook.duration,

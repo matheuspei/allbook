@@ -9,6 +9,7 @@ import coverProductivity from "@/assets/images/cover-productivity.png";
 
 import { fichasImportadas } from "./catalog-enriched";
 import { capaTipografica } from "./coverFallback";
+import { sinopsesCuradas } from "./sinopses";
 
 export type Genre =
   | "Ficção Científica"
@@ -60,6 +61,11 @@ export interface Book {
   pages?: number;
   isbn?: string;
   synopsis?: string;
+  /**
+   * A sinopse curada em PT-BR (§4.104), de `sinopses.ts` — na ficha ela VENCE a
+   * `synopsis` importada, que vem em inglês e fica de reserva.
+   */
+  sinopse?: string;
 }
 
 /**
@@ -191,6 +197,7 @@ export const catalog: Book[] = catalogoCurado.map((livro) => ({
   // se repetia e dava cara de protótipo.
   cover: capasPorId[livro.id] ?? capaTipografica(livro.title, livro.author, livro.genre),
   ...(fichasImportadas[livro.id] ?? {}),
+  sinopse: sinopsesCuradas[livro.id],
 }));
 
 /** Gêneros na ordem em que aparecem na grade da tela Descobrir. */
