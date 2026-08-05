@@ -3980,3 +3980,43 @@ ordem"*. Fica registrado que **o nome está adiantado ao comportamento**. O que
 segura a promessa hoje é o montador intercalar sugestões, clube, fórum e trechos
 quentes — não é lista crua. No dia em que houver escolha de verdade, o nome vira
 verdadeiro sem precisar de outra tela.
+
+### 4.103.2 A poda do Menu: seis cartões viram três (05/08)
+
+Ele voltou ao Menu com duas críticas, e as duas procediam.
+
+**1. "Minhas X" + "Todas as X" viraram uma porta só.** *"A gente poderia
+simplesmente colocar 'Comunidades', e as minhas dentro da aba… assim como
+'Meus clubes' e 'Todos os clubes' poderiam ir por aí. A gente enxugaria isso."*
+
+Fundir **só é honesto porque as duas telas de destino já abrem com as suas em
+cima** — `/forum` tem a fileira "Suas comunidades" (§4.102) e `/clubes` lê
+`meusClubes()` na abertura (§4.99). **Conferi no código antes de fundir:** sem
+isso, unir esconderia o conteúdo dele atrás de uma lista de estranhos, e o
+enxugamento viraria perda. O número das suas não se perdeu — virou a etiqueta
+do cartão ("5 suas", "8 seus").
+
+**A régua que fica:** *fundir "meu" com "todos" só quando a tela de destino
+mostra o "meu" primeiro.* Se ela não mostrar, o atalho para o meu tem que
+existir em algum lugar.
+
+**2. "Quem eu sigo" e "Quem me segue" saíram** — e o código deu um motivo mais
+forte que o dele. Ele desconfiou (*"não sei se faz muito sentido, não existe
+isso em rede social nenhuma"*); a verdade é que **os dois cartões apontavam
+para o MESMO endereço** (`/seguidores`). Dois botões, um destino, rótulos
+diferentes prometendo listas diferentes.
+
+E isto **já tinha sido decidido uma vez**: a §4.55 tirou seguidores do painel
+privado com uma frase dele — *"seguidor é assunto de perfil"* — e mandou para a
+linha de números do `/profile`, onde continuam. O painel os ressuscitou sem
+querer na §4.100. **Decisão revogada volta se ninguém lembrar dela na hora de
+montar tela nova**; é para isso que este documento existe.
+
+**Como o Menu ficou:** Comunidade (Comunidades · Clubes · Perguntas) → Seu
+conteúdo (Notas · Trechos · Downloads · Estatísticas · Conquistas) → Criar
+(comunidade · clube) → engrenagem no rodapé.
+
+**Apontado e não mexido:** a seção **"Criar"** ficou discutível — `/forum` ganhou
+botão "＋ Criar" fixo no topo (§4.102) e `/clubes` também tem o seu. Mantive
+porque criar de qualquer tela é atalho legítimo (é o que o Facebook faz), mas se
+ele quiser podar, são dois cartões a menos.

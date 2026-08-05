@@ -4,7 +4,6 @@ import {
   BarChart3,
   BookOpen,
   Bookmark,
-  Compass,
   Download,
   Globe,
   HelpCircle,
@@ -13,8 +12,6 @@ import {
   Plus,
   Scissors,
   Settings,
-  UserPlus,
-  Users,
   X,
 } from "lucide-react";
 
@@ -23,11 +20,9 @@ import { BOOKMARK_EVENT, totalBookmarks } from "@/lib/bookmarks";
 import { meusClubes } from "@/lib/clubes";
 import { minhasComunidades } from "@/lib/forum";
 import { COMENTARIOS_EVENT, temResposta } from "@/lib/comentariosDePost";
-import { readFollowing } from "@/lib/following";
 import { GRUPOS_EVENT } from "@/lib/grupos";
 import { readDownloads } from "@/lib/library";
 import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
-import { meusSeguidores } from "@/lib/seguidores";
 import { lerDadosDeConquista, lerResumo } from "@/lib/stats";
 import { TRECHOS_EVENT, trechosGuardados } from "@/lib/trechosGuardados";
 
@@ -136,16 +131,32 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
             do hambúrguer saiu junto: ela apontava para este cartão, e marca que
             aponta para nada é promessa vazia.
           */}
+          {/*
+            **Seis cartões viraram três (05/08, 2ª poda dele).** O que saiu e por
+            quê:
+
+            - **"Minhas" + "Todas" viraram uma porta só**, para comunidades e
+              para clubes: *"a gente poderia simplesmente colocar 'Comunidades',
+              e as minhas dentro da aba"*. Só cabe porque **as duas telas já
+              abrem com as suas em cima** — `/forum` tem a fileira "Suas
+              comunidades" (§4.102) e `/clubes` lê `meusClubes()` na abertura
+              (§4.99). Conferido no código antes de fundir; sem isso, unir
+              esconderia o seu conteúdo atrás de uma lista de estranhos. O
+              número das suas não se perdeu: virou a etiqueta do cartão.
+            - **"Quem eu sigo" e "Quem me segue" saíram.** Ele questionou
+              (*"não existe isso em rede social nenhuma"*) e o código deu um
+              motivo ainda mais forte: **os dois cartões iam para o MESMO
+              endereço** (`/seguidores`) — dois botões, um destino. E a §4.55 já
+              tinha decidido isso uma vez, com a frase dele: *"seguidor é
+              assunto de perfil"*. A porta está lá, na linha de números do
+              `/profile`; o painel a tinha ressuscitado sem querer na §4.100.
+          */}
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/30">
             Comunidade
           </p>
           <Grade>
-            <Cartao icone={<Users />} rotulo="Minhas comunidades" conta={dados.comunidades} onClick={() => ir("/forum/minhas")} testid="painel-minhas-comunidades" />
-            <Cartao icone={<Globe />} rotulo="Todas as comunidades" onClick={() => ir("/forum")} testid="painel-todas-comunidades" />
-            <Cartao icone={<BookOpen />} rotulo="Meus clubes" conta={dados.clubes} onClick={() => ir("/clubes/meus")} testid="painel-meus-clubes" />
-            <Cartao icone={<Compass />} rotulo="Todos os clubes" onClick={() => ir("/clubes")} testid="painel-todos-clubes" />
-            <Cartao icone={<UserPlus />} rotulo="Quem eu sigo" conta={dados.sigo} onClick={() => ir("/seguidores")} testid="painel-quem-eu-sigo" />
-            <Cartao icone={<Users />} rotulo="Quem me segue" conta={dados.meSeguem} onClick={() => ir("/seguidores")} testid="painel-quem-me-segue" />
+            <Cartao icone={<Globe />} rotulo="Comunidades" etiqueta={dados.comunidades > 0 ? `${dados.comunidades} suas` : undefined} onClick={() => ir("/forum")} testid="painel-todas-comunidades" />
+            <Cartao icone={<BookOpen />} rotulo="Clubes" etiqueta={dados.clubes > 0 ? `${dados.clubes} seus` : undefined} onClick={() => ir("/clubes")} testid="painel-todos-clubes" />
             {dados.perguntas > 0 && (
               <Cartao icone={<HelpCircle />} rotulo="Perguntas sem resposta" conta={dados.perguntas} onClick={() => ir("/perguntas")} testid="painel-perguntas" />
             )}
@@ -284,8 +295,6 @@ function contar() {
   return {
     comunidades: minhasComunidades().length,
     clubes: meusClubes().length,
-    sigo: readFollowing().length,
-    meSeguem: meusSeguidores().length,
     perguntas: perguntas.length,
     notas: totalBookmarks(),
     trechos: trechosGuardados().length,
