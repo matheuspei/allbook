@@ -15,8 +15,8 @@ export default function TopNav() {
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [buscando, setBuscando] = useState(false);
-  // O painel da Comunidade (§4.100): o quadradinho ao lado da logo o abre, e
-  // ele desliza da esquerda. Estado aqui em cima porque a gaveta precisa ser
+  // O Menu (§4.100; global desde 05/08): o hambúrguer ao lado da logo o abre,
+  // e ele desliza da esquerda. Estado aqui em cima porque a gaveta precisa ser
   // desenhada FORA do <header> — dentro dele, o z-50 cria um contexto de
   // empilhamento e ela não cobriria o menu de baixo (mesma armadilha da busca).
   const [painelAberto, setPainelAberto] = useState(false);
@@ -109,12 +109,13 @@ export default function TopNav() {
     >
       <div className="flex items-center justify-between px-4 h-14">
         <div className="flex items-center">
-          {/* O botão do painel da Comunidade (§4.100) — só nela, no canto, ao
-              lado da logo: pedido do Matheus, com o menu do Facebook como
-              referência ("do lado do nome… mas mais no canto ainda"). */}
-          {location === "/community" && (
-            <BotaoDoPainel onClick={() => setPainelAberto(true)} />
-          )}
+          {/* O botão do Menu — em TODA tela com topo, desde 05/08 (decisão do
+              Matheus). Nasceu preso à Comunidade (§4.100) e ali era uma porta
+              que aparecia e sumia conforme a rota — ninguém decorava onde
+              morava, e fóruns e clubes ficavam inalcançáveis do resto do app.
+              A referência é a gaveta do Reddit/X: fixa no canto esquerdo, o
+              mesmo gesto em qualquer aba. */}
+          <BotaoDoPainel onClick={() => setPainelAberto(true)} />
           <Link href="/" data-testid="link-home-logo">
             <span className="font-display text-xl font-bold tracking-tight">
               <span className="text-primary">All</span>
@@ -189,7 +190,7 @@ export default function TopNav() {
     */}
     {buscando && <BuscaSobreposta onFechar={() => setBuscando(false)} />}
 
-    {/* A gaveta da Comunidade, fora do <header> pelo mesmo motivo da busca. */}
+    {/* A gaveta do Menu, fora do <header> pelo mesmo motivo da busca. */}
     {painelAberto && <PainelDaComunidade onFechar={() => setPainelAberto(false)} />}
     </>
   );

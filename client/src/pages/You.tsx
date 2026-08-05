@@ -3,14 +3,12 @@ import { Link } from "wouter";
 import {
   BarChart3,
   Bell,
-  Bookmark,
   ChevronRight,
   Download,
   HelpCircle,
   LogIn,
   Lock,
   Medal,
-  Scissors,
   Settings,
   Share2,
   UsersRound,
@@ -32,9 +30,7 @@ import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile } from "@/lib/profile";
-import { totalBookmarks } from "@/lib/bookmarks";
 import { meusClubes } from "@/lib/clubes";
-import { TRECHOS_EVENT, trechosGuardados } from "@/lib/trechosGuardados";
 import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
 import { readDownloads } from "@/lib/library";
 import { achievements, unlockedCountFor } from "@/lib/achievements";
@@ -108,8 +104,6 @@ export default function You() {
   const [profile, setProfile] = useState<Profile>(readProfile);
   const [session, setSession] = useState<Session | null>(readSession);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
-  const [bookmarkTotal, setBookmarkTotal] = useState(0);
-  const [totalTrechos, setTotalTrechos] = useState(0);
   const [pedidos, setPedidos] = useState(0);
   const [totalClubes, setTotalClubes] = useState(0);
   const [downloadCount, setDownloadCount] = useState(0);
@@ -119,19 +113,9 @@ export default function You() {
     // Relê ao voltar da edição — e as contagens, que mudam em uso.
     setProfile(readProfile());
     setSession(readSession());
-    setBookmarkTotal(totalBookmarks());
     setDownloadCount(readDownloads().length);
     setGanhas(unlockedCountFor(lerDadosDeConquista(lerResumo())));
     setTotalClubes(meusClubes().length);
-  }, []);
-
-  /* Os trechos mudam com o app aberto (cortar acontece no player), então este
-     ouve o evento em vez de contar uma vez só na montagem. */
-  useEffect(() => {
-    const atualizar = () => setTotalTrechos(trechosGuardados().length);
-    atualizar();
-    window.addEventListener(TRECHOS_EVENT, atualizar);
-    return () => window.removeEventListener(TRECHOS_EVENT, atualizar);
   }, []);
 
   /* Os pedidos pendentes viram a etiqueta da linha "Privacidade". Relê ao
@@ -187,29 +171,14 @@ export default function You() {
   }
 
   const conteudo: LinhaDoPainel[] = [
-    {
-      icon: Bookmark,
-      label: "Minhas notas",
-      hint: bookmarkTotal > 0 ? String(bookmarkTotal) : undefined,
-      href: "/bookmarks",
-    },
     /*
-      Logo abaixo das notas, e não junto delas (ROTEIRO 4.48): são vizinhos —
-      os dois nascem ouvindo — mas não são a mesma coisa. A nota guarda um ponto
-      para você; o trecho guarda um pedaço para mostrar aos outros. Só aparece
-      quando existe algum: linha "Meus trechos" a zero seria o beco sem saída
-      que a §4.23 mandou varrer.
+      **"Minhas notas" e "Meus trechos" saíram daqui em 05/08** — moram no Menu
+      do hambúrguer, a dois toques de qualquer tela (aqui eram três: avatar →
+      perfil → engrenagem). A regra é do Matheus e é a mesma que criou a porta
+      nova: **sem porta dupla** — entrou lá, sai daqui. A separação entre nota
+      (privada, um ponto para você voltar) e trecho (um pedaço para mostrar aos
+      outros) continua a da §4.48 — cada um segue com a sua tela.
     */
-    ...(totalTrechos > 0
-      ? [
-          {
-            icon: Scissors,
-            label: "Meus trechos",
-            hint: String(totalTrechos),
-            href: "/trechos",
-          },
-        ]
-      : []),
     /*
       **Meus clubes faltava aqui** (ROTEIRO 4.57), e quem notou foi o Matheus:
       *"será que não seria interessante colocar, quando você clica na foto, o

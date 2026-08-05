@@ -3694,3 +3694,47 @@ carrosséis; (2) *"assim que ela abre, ela deveria ter um botão"* de criar —
 entrou o **botão laranja "＋ Criar" fixo ao lado da busca**, visível na
 abertura da tela; o cartão-convite do fim continua, mas a porta principal é a
 de cima.
+
+## 4.103 O painel do hambúrguer vira o Menu do app — global, com "Seu conteúdo" e a engrenagem (05/08)
+
+**A queixa dele:** *"os fóruns de discussões a gente não consegue abrir bem,
+como também não consegue abrir os clubes de leitura… não existe um caminho
+fácil"*. E era verdade — mas não por falta de porta: o painel da §4.100 já
+tinha as oito, e o botão que o abre só existia na rota da Comunidade. **Porta
+que aparece e some conforme a tela ninguém decora onde mora.**
+
+**O caminho da decisão, porque ele muda a regra da §4.57:**
+
+1. Minha primeira recomendação foi replicar o painel **como estava** para
+   todas as telas (o molde Reddit/X: gaveta fixa no canto esquerdo). Ele
+   vetou: *"replicar da forma como está agora não faz sentido"* — e pôs duas
+   alternativas na mesa: **menu diferente por aba** ou **menu único revisado**.
+2. **Menu por aba foi rejeitado** (com concordância dele): no Catálogo e na
+   Biblioteca não há o que pôr — os filtros e gêneros já moram no corpo das
+   telas, então a gente inventaria conteúdo para justificar o botão; e botão
+   que muda de comportamento conforme a tela não se aprende, que era
+   justamente a doença original.
+3. **Ficou o menu único, revisado pela régua que ele mesmo enunciou:** *"se a
+   gente já coloca as minhas notas ali, a gente tiraria da aba de
+   configuração"* — **porta nova não convive com a porta velha**. "Minhas
+   notas" e "Meus trechos" entraram na gaveta (seção "Seu conteúdo") e
+   **saíram do `/you`**, onde custavam três toques (avatar → perfil →
+   engrenagem); agora custam dois, de qualquer tela.
+4. A ideia dele de itens soltos de "notificação, privacidade" virou **uma
+   engrenagem só, no rodapé** ("Conta e configurações" → `/you`), como no X:
+   o sino já mora no topo de toda tela (item de notificação seria porta
+   dupla), e privacidade vive dentro do `/you` a um toque.
+
+**A §4.57 fica revogada neste ponto:** o painel não é mais "só o que é da
+comunidade" — é o **Menu** (título novo), com o social + o seu conteúdo + a
+conta. A divisão que sobrevive: o hambúrguer é navegação; o **avatar continua
+sendo a página pública** de quem você é.
+
+**Conserto no mesmo passo:** o cartão "Trechos da semana" do painel contava os
+trechos quentes da comunidade (`trechosQuentes()`) mas navegava para
+`/trechos` — a prancheta PESSOAL. Destino que mente saiu; os trechos quentes
+seguem no cartão do feed, que é a casa deles.
+
+**Pendência pequena, dele:** "Meus clubes" agora tem duas portas (Menu e
+`/you`). Pela régua desta seção a do `/you` deveria cair, mas ele só citou
+notas e trechos — deixei como está e apontei. Uma linha, quando ele decidir.

@@ -2,18 +2,21 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import {
   BookOpen,
+  Bookmark,
   Compass,
   Globe,
-  Headphones,
   HelpCircle,
   Menu,
   Plus,
   Radio,
+  Scissors,
+  Settings,
   UserPlus,
   Users,
   X,
 } from "lucide-react";
 
+import { BOOKMARK_EVENT, totalBookmarks } from "@/lib/bookmarks";
 import { meusClubes } from "@/lib/clubes";
 import { minhasComunidades } from "@/lib/forum";
 import { COMENTARIOS_EVENT, temResposta } from "@/lib/comentariosDePost";
@@ -22,7 +25,7 @@ import { GRUPOS_EVENT } from "@/lib/grupos";
 import { POSTS_EVENT, todosOsPosts } from "@/lib/posts";
 import { SALA_AO_VIVO_EVENT, salasAoVivo } from "@/lib/salaAoVivo";
 import { meusSeguidores } from "@/lib/seguidores";
-import { trechosQuentes } from "@/lib/trechosQuentes";
+import { TRECHOS_EVENT, trechosGuardados } from "@/lib/trechosGuardados";
 
 /**
  * **O painel da Comunidade** — a gaveta lateral que o quadradinho do topo abre
@@ -42,10 +45,23 @@ import { trechosQuentes } from "@/lib/trechosQuentes";
  *   sério". Todos neutros; a única cor é o vermelho do ao vivo, que é
  *   semântica, não decoração.
  *
- * O que NÃO mudou (a regra da §4.57 continua): **o painel só leva ao que é da
- * comunidade**. O que é seu — perfil, trechos guardados, privacidade — mora no
- * avatar (`/you`). E cada cartão mostra a contagem real; destino sem nada a
- * mostrar some (a régua da §4.23).
+ * **Em 05/08 o painel virou o MENU do app** — global, aberto de qualquer tela
+ * com topo — e a regra da §4.57 ("só leva ao que é da comunidade") foi revogada
+ * pelo Matheus, com a duplicação resolvida NA ORIGEM: "Minhas notas" e "Meus
+ * trechos" entraram aqui e **saíram do `/you`** — porta nova não convive com a
+ * porta velha. A engrenagem do rodapé leva ao resto (`/you`: conta,
+ * notificações, privacidade). O desenho é a gaveta do X: suas coisas + o
+ * social + configurações embaixo, idêntica em todas as abas — menu que muda
+ * conforme a tela ninguém aprende, e o objetivo original era justamente achar
+ * fórum e clube de onde se estiver.
+ *
+ * **"Trechos da semana" saiu no mesmo dia:** o cartão contava os trechos
+ * quentes da comunidade mas navegava para `/trechos` — a prancheta PESSOAL.
+ * Destino que mente é pior que destino nenhum; a casa dos trechos quentes é o
+ * cartão do feed (`TrechosQuentes`), onde eles continuam.
+ *
+ * O que continua valendo: cada cartão mostra a contagem real; destino sem nada
+ * a mostrar some (a régua da §4.23).
  */
 export default function PainelDaComunidade({ onFechar }: { onFechar: () => void }) {
   const [, navegar] = useLocation();
@@ -58,11 +74,16 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
     window.addEventListener(POSTS_EVENT, atualizar);
     window.addEventListener(COMENTARIOS_EVENT, atualizar);
     window.addEventListener(SALA_AO_VIVO_EVENT, atualizar);
+    // Notas e trechos mudam com o app aberto (o corte acontece no player).
+    window.addEventListener(BOOKMARK_EVENT, atualizar);
+    window.addEventListener(TRECHOS_EVENT, atualizar);
     return () => {
       window.removeEventListener(GRUPOS_EVENT, atualizar);
       window.removeEventListener(POSTS_EVENT, atualizar);
       window.removeEventListener(COMENTARIOS_EVENT, atualizar);
       window.removeEventListener(SALA_AO_VIVO_EVENT, atualizar);
+      window.removeEventListener(BOOKMARK_EVENT, atualizar);
+      window.removeEventListener(TRECHOS_EVENT, atualizar);
     };
   }, []);
 
@@ -92,7 +113,7 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
 
       <aside className="absolute inset-y-0 left-0 flex w-[80%] max-w-[340px] flex-col border-r border-white/[0.07] bg-[#141414] shadow-2xl animate-in slide-in-from-left duration-200">
         <header className="flex items-center justify-between border-b border-white/[0.07] px-4 py-3.5">
-          <h2 className="font-display text-lg font-bold tracking-tight">Comunidade</h2>
+          <h2 className="font-display text-lg font-bold tracking-tight">Menu</h2>
           <button
             onClick={onFechar}
             aria-label="Fechar o painel"
@@ -122,6 +143,11 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
             </button>
           )}
 
+          {/* Rótulo que a grade não tinha enquanto o painel era SÓ comunidade —
+              agora que há dois domínios na gaveta, cada um diz o seu nome. */}
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/30">
+            Comunidade
+          </p>
           <Grade>
             <Cartao icone={<Users />} rotulo="Minhas comunidades" conta={dados.comunidades} onClick={() => ir("/forum/minhas")} testid="painel-minhas-comunidades" />
             <Cartao icone={<Globe />} rotulo="Todas as comunidades" onClick={() => ir("/forum")} testid="painel-todas-comunidades" />
@@ -132,9 +158,6 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
             {dados.perguntas > 0 && (
               <Cartao icone={<HelpCircle />} rotulo="Perguntas sem resposta" conta={dados.perguntas} onClick={() => ir("/perguntas")} testid="painel-perguntas" />
             )}
-            {dados.trechos > 0 && (
-              <Cartao icone={<Headphones />} rotulo="Trechos da semana" conta={dados.trechos} onClick={() => ir("/trechos")} testid="painel-trechos" />
-            )}
           </Grade>
 
           <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-white/30">
@@ -144,18 +167,48 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
             <Cartao icone={<Plus />} rotulo="Criar comunidade" onClick={() => ir("/forum?criar=1")} testid="painel-criar-comunidade" />
             <Cartao icone={<Plus />} rotulo="Criar clube" onClick={() => ir("/clubes/novo")} testid="painel-criar-clube" />
           </Grade>
+
+          {/* O que veio do /you (05/08): as duas linhas mais usadas de lá, agora
+              a dois toques de qualquer tela. "Minhas notas" fica sempre — é
+              linha permanente desde o antigo menu do Perfil; "Meus trechos" só
+              quando existe algum (§4.23), igualzinho a como era lá. */}
+          <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-white/30">
+            Seu conteúdo
+          </p>
+          <Grade>
+            <Cartao icone={<Bookmark />} rotulo="Minhas notas" conta={dados.notas} onClick={() => ir("/bookmarks")} testid="painel-minhas-notas" />
+            {dados.trechos > 0 && (
+              <Cartao icone={<Scissors />} rotulo="Meus trechos" conta={dados.trechos} onClick={() => ir("/trechos")} testid="painel-meus-trechos" />
+            )}
+          </Grade>
         </div>
+
+        {/* A engrenagem que o Matheus pediu — fixa no rodapé, como no X. Leva ao
+            /you, que segue sendo a casa do resto (notificações, privacidade,
+            downloads, sair); o rótulo promete exatamente o que a página tem. */}
+        <footer className="border-t border-white/[0.07] px-4 py-2">
+          <button
+            onClick={() => ir("/you")}
+            className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-white/[0.06]"
+            data-testid="painel-conta-e-configuracoes"
+          >
+            <Settings className="h-[18px] w-[18px] text-white/65" />
+            <span className="text-[13.5px] font-semibold">Conta e configurações</span>
+          </button>
+        </footer>
       </aside>
     </div>
   );
 }
 
 /**
- * **O botão que abre o painel** — vive no `TopNav`, ao lado da logo, e só na
- * Comunidade. O ícone são as **três barrinhas** (hambúrguer), como o Menu do
- * Facebook — a primeira tentativa foram três quadradinhos e ele vetou na hora:
- * *"nem dá para saber que existe alguma coisa aplicável"*. A bolinha vermelha
- * acende quando há sala ao vivo aberta.
+ * **O botão que abre o Menu** — vive no `TopNav`, ao lado da logo, em toda
+ * tela com topo (global desde 05/08; antes só na Comunidade). O ícone são as
+ * **três barrinhas** (hambúrguer), como o Menu do Facebook — a primeira
+ * tentativa foram três quadradinhos e ele vetou na hora: *"nem dá para saber
+ * que existe alguma coisa aplicável"*. A bolinha vermelha acende quando há
+ * sala ao vivo aberta — e agora avisa o app inteiro, não só quem já estava na
+ * Comunidade.
  */
 export function BotaoDoPainel({ onClick }: { onClick: () => void }) {
   const [salas, setSalas] = useState(0);
@@ -171,7 +224,7 @@ export function BotaoDoPainel({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      aria-label="Abrir o painel da comunidade"
+      aria-label="Abrir o menu"
       className="relative -ml-2 mr-0.5 rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
       data-testid="painel-da-comunidade"
     >
@@ -229,6 +282,7 @@ function contar() {
     sigo: readFollowing().length,
     meSeguem: meusSeguidores().length,
     perguntas: perguntas.length,
-    trechos: trechosQuentes().length,
+    notas: totalBookmarks(),
+    trechos: trechosGuardados().length,
   };
 }
