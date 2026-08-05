@@ -125,27 +125,36 @@ export default function DevMobileWrapper({ children }: { children: ReactNode }) 
         }}
       >
         {janela && <MarcaDaJanela letra={janela} />}
-        <div style={{ transform: `scale(${scale})`, transformOrigin: "center center", position: "relative", zIndex: 1 }}>
+        {/* A moldura é UM elemento só, de propósito: o `transform` (o scale)
+            faz dela o referencial de todo `position: fixed` do app, e o
+            `overflow: hidden` só apara o que se pendura NELA. Quando eram dois
+            elementos — o scale por fora, o corte por dentro — o cabeçalho que
+            desliza para cima (§4.106) escapava POR CIMA do telefone em vez de
+            ser engolido pela borda, porque quem cortava não era o referencial
+            do fixed. Tela de celular corta; a moldura agora também. */}
+        <div
+          style={{
+            transform: `scale(${scale})`,
+            transformOrigin: "center center",
+            position: "relative",
+            zIndex: 1,
+            width: outerW,
+            height: outerH,
+            border: `${FRAME_BORDER}px solid #333`,
+            borderRadius: FRAME_RADIUS,
+            overflow: "hidden",
+            background: "#000",
+          }}
+        >
           <div
             style={{
-              width: outerW,
-              height: outerH,
-              border: `${FRAME_BORDER}px solid #333`,
-              borderRadius: FRAME_RADIUS,
-              overflow: "hidden",
-              background: "#000",
+              width: device.width,
+              height: device.height,
+              overflowY: "auto",
+              overflowX: "hidden",
             }}
           >
-            <div
-              style={{
-                width: device.width,
-                height: device.height,
-                overflowY: "auto",
-                overflowX: "hidden",
-              }}
-            >
-              {children}
-            </div>
+            {children}
           </div>
         </div>
       </div>

@@ -3936,3 +3936,13 @@ foco — a automação via terminal parecia provar que o conserto não funcionav
 quando era o teste que mentia. Rolagem de verdade se testa com a roda do mouse
 (`computer scroll`); e screenshots de aba sem foco congelam transições CSS no
 meio (`top: 54px` de um `top-14 → top-0`) — artefato, não defeito.
+
+**Conserto na sequência (mesmo dia, achado pelo Matheus):** o cabeçalho *"não
+some de cima — ele simplesmente vai mais para cima, saindo do telefone"*. O
+defeito era da **moldura de prévia**, não do app: no `DevMobileWrapper`, o
+`scale` (que faz do elemento o referencial de todo `position: fixed`) e o
+`overflow: hidden` (quem apara o que sai da tela) moravam em **elementos
+diferentes** — e o que se pendura num não é aparado pelo outro, então o TopNav
+em `-translate-y-full` pintava por cima do telefone. A moldura virou um
+elemento só, que referencia E apara, como uma tela de verdade. No celular real
+o defeito nunca existiu.
