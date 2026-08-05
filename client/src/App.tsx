@@ -116,6 +116,16 @@ function Router() {
   const isSalaPage = location.startsWith('/sala/');
 
   /**
+   * A ficha do livro esconde SÓ o TopNav (§4.104): o logo do app ficava por
+   * baixo do botão de voltar flutuante da própria ficha — duas navegações
+   * empilhadas no topo, decisão dele na folha da averiguação. O menu de baixo e
+   * o MiniPlayer ficam, por isso ela NÃO entra em `isBare`. A conversa do livro
+   * (`/book/:id/conversa`) fica de fora: lá não há arte de fundo nem botão
+   * flutuante, e o TopNav segue fazendo sentido.
+   */
+  const isBookPage = /^\/book\/[^/]+$/.test(location);
+
+  /**
    * Você está dentro de alguma sala? É isto que troca a barrinha do rodapé pela
    * da sala. Reavaliado a cada troca de rota e a cada aviso de sala — sem o
    * ouvinte, entrar numa sala e voltar para o app não mudava nada no rodapé.
@@ -160,8 +170,8 @@ function Router() {
 
   return (
     <div className={`min-h-screen bg-[#141414] ${isBare ? "" : "pb-20"}`}>
-      {!isBare && <TopNav />}
-      <div className={!isBare && !isHomePage ? "pt-14" : ""}>
+      {!isBare && !isBookPage && <TopNav />}
+      <div className={!isBare && !isHomePage && !isBookPage ? "pt-14" : ""}>
         {/* Transição suave entre telas: a tela nova entra com um fade-in curto.
             Feito com classe CSS (`animate-in fade-in`, do tw-animate-css) e NÃO
             com framer/AnimatePresence de propósito — keyframe CSS não sofre o
