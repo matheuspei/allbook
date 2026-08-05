@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { Link } from "wouter";
-import { ChevronRight, Search, X } from "lucide-react";
+import { ChevronRight, Plus, Search, X } from "lucide-react";
 
 import {
   BotaoDoForum,
@@ -71,6 +71,9 @@ export default function Comunidades() {
   const [criando, setCriando] = useState(
     () => new URLSearchParams(window.location.search).get("criar") === "1",
   );
+  /* O censo nasce FECHADO — correção dele em 05/08: com as 30 abertas, chegar
+     ao fim da página era "rolar tudo isso… fica muito distante". */
+  const [vendoTodas, setVendoTodas] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -184,9 +187,13 @@ export default function Comunidades() {
     <PaginaDoForum titulo="Comunidades" voltarPara="/community" testid="comunidades-page">
       <div className="pt-4">
         {/* A busca no topo — regra dele desde a folha dos clubes: "a busca
-            sempre está no topo". Redonda, como a do Reddit. */}
-        <div className="px-5">
-          <div className="flex items-center gap-2.5 rounded-full bg-white/[0.07] px-4 py-2.5 ring-1 ring-inset ring-white/10 focus-within:ring-primary/40">
+            sempre está no topo". Redonda, como a do Reddit. O **Criar mora ao
+            lado dela** por correção de 05/08: *"assim que ela abre, ela
+            deveria ter um botão… do jeito que está, tá muito difícil de um
+            usuário criar a própria comunidade"* — o convite do fim da página
+            continua existindo, mas a porta principal é esta. */}
+        <div className="flex items-center gap-2 px-5">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-full bg-white/[0.07] px-4 py-2.5 ring-1 ring-inset ring-white/10 focus-within:ring-primary/40">
             <Search className="h-4 w-4 shrink-0 text-white/35" />
             <input
               value={busca}
@@ -205,6 +212,15 @@ export default function Comunidades() {
               </button>
             )}
           </div>
+          <button
+            type="button"
+            onClick={() => setCriando((v) => !v)}
+            className="flex shrink-0 items-center gap-1 rounded-full bg-primary py-2.5 pl-2.5 pr-3.5 text-[12.5px] font-bold text-black transition-opacity hover:opacity-90"
+            data-testid="criar-comunidade"
+          >
+            <Plus className="h-4 w-4" />
+            Criar
+          </button>
         </div>
 
         {criando && (
@@ -352,19 +368,37 @@ export default function Comunidades() {
               />
             ))}
 
-            {/* ---------------- o censo, para ninguém ficar invisível ---------------- */}
+            {/* ---------------- o censo, FECHADO por padrão ----------------
+                A primeira versão listava as 30 abertas, e ele reprovou na
+                hora: "para a pessoa chegar até o criar, ela tem que rolar
+                tudo isso? Fica muito distante". A linha fechada mantém o
+                ninguém-invisível (§4.23) sem virar muro de rolagem. */}
             <section className="px-5 pt-7" data-testid="todas-as-comunidades">
-              <h2 className="font-display text-[17px] font-bold tracking-tight">
-                Todas as comunidades{" "}
-                <span className="font-sans text-[12px] font-normal text-white/40">
-                  · {todas.length}
+              <button
+                type="button"
+                onClick={() => setVendoTodas((v) => !v)}
+                className="flex w-full items-center justify-between gap-2 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3.5 transition-colors hover:bg-white/[0.05]"
+                data-testid="abrir-todas"
+              >
+                <span className="font-display text-[15px] font-bold tracking-tight">
+                  Todas as comunidades{" "}
+                  <span className="font-sans text-[12px] font-normal text-white/40">
+                    · {todas.length}
+                  </span>
                 </span>
-              </h2>
-              <div className="mt-3 space-y-2.5">
-                {todas.map((grupo) => (
-                  <LinhaDeComunidade key={grupo.id} grupo={grupo} />
-                ))}
-              </div>
+                <ChevronRight
+                  className={`h-4.5 w-4.5 shrink-0 text-white/40 transition-transform ${
+                    vendoTodas ? "rotate-90" : ""
+                  }`}
+                />
+              </button>
+              {vendoTodas && (
+                <div className="mt-3 space-y-2.5">
+                  {todas.map((grupo) => (
+                    <LinhaDeComunidade key={grupo.id} grupo={grupo} />
+                  ))}
+                </div>
+              )}
             </section>
 
             {/* ---------------- criar ---------------- */}
@@ -377,7 +411,11 @@ export default function Comunidades() {
                   Crie a comunidade — você vira o dono, e o assunto vira casa.
                 </p>
                 <div className="mt-3">
-                  <BotaoDoForum primario onClick={() => setCriando(true)} testid="criar-comunidade">
+                  <BotaoDoForum
+                    primario
+                    onClick={() => setCriando(true)}
+                    testid="criar-comunidade-fim"
+                  >
                     Criar comunidade
                   </BotaoDoForum>
                 </div>

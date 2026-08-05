@@ -3685,3 +3685,12 @@ eles que dão motivo verdadeiro ao Recomendado.
 **Fica de aviso para a próxima janela:** a docstring de `Grupo.tsx` ("a
 estrutura é para ficar") continua CORRETA — ele a reconfirmou hoje. Quem for
 mexer lá dentro precisa de ordem nova dele, não desta seção.
+
+**As duas correções dele, minutos depois (05/08):** (1) o censo aberto era um
+muro — *"para a pessoa chegar até o criar, ela tem que rolar tudo isso? Fica
+muito distante"* — virou uma **linha fechada** ("Todas as comunidades · 30")
+que só abre no toque, e o convite de criar subiu para logo depois dos
+carrosséis; (2) *"assim que ela abre, ela deveria ter um botão"* de criar —
+entrou o **botão laranja "＋ Criar" fixo ao lado da busca**, visível na
+abertura da tela; o cartão-convite do fim continua, mas a porta principal é a
+de cima.
