@@ -3892,3 +3892,43 @@ subestimava um destino que agora tem foto, bio e recomendações.
 
 **A regra da §4.95 sobrevive inteira:** o que liga/desliga fica na lista; o que
 se escreve (foto, bio, recomendação) abre página, porque formulário quer tela.
+
+## 4.106 O cabeçalho se esconde ao rolar — o app inteiro ganha o gesto da ficha (05/08)
+
+**O pedido dele**, depois de elogiar a ficha do livro sem TopNav (§4.104):
+*"nas outras páginas — na página de início, na página de catálogo e no todo o
+resto do aplicativo — a gente poderia replicar mais ou menos a mesma coisa…
+quando a gente vai pra baixo, isso poderia sumir, e ele voltaria quando a gente
+[rolasse] pra cima. Ele simplesmente toma aquele espaço que é dedicado a isso."*
+
+**A decisão:** o TopNav desliza para fora ao rolar para baixo e volta com
+qualquer rolada para cima — o padrão do YouTube e do Instagram. Perto do topo
+da página (os primeiros 56px) ele nunca se esconde, e esconder pede 48px
+somados de descida, para um dedo trêmulo não fazer a barra piscar.
+
+**Como é feito (e por que assim):** um estado **compartilhado de módulo** em
+`hooks/use-cabecalho-recolhido.ts`, com um único ouvinte de `scroll` em fase
+de captura no `document` — o truque que já servia ao fundo opaco do TopNav, e
+que funciona tanto no app real (quem rola é a janela) quanto na moldura de
+desenvolvimento (quem rola é um contêiner). Estado de módulo, e não um estado
+por componente, porque **quatro peças se movem juntas**: o TopNav
+(`-translate-y-full`) e os três grudados em `top-14` que descolariam dele —
+o `PageHeader` das telas internas, os chips da Biblioteca e a faixa de prévia
+do Perfil, que transicionam para `top-0` e assumem o lugar do topo, sem vão.
+
+**Os cantos cobertos:** carrossel horizontal não conta como rolagem (o
+`scrollTop` de cada contêiner é comparado consigo mesmo — sem isso, passar
+capas de lado faria a barra piscar); tela nova nasce com o topo à mostra; e
+fechar a busca ou o Menu chama `mostrarCabecalho()`, porque a rolagem dentro
+de uma sobreposição não pode roubar o cabeçalho de trás dela.
+
+**O que ficou de fora, de propósito:** o menu de baixo e o MiniPlayer não se
+escondem — o pedido foi só sobre o topo, e o rodapé é onde mora o controle do
+que está tocando.
+
+**Apurado no teste (vale para as próximas janelas):** mexer em `scrollTop` por
+JavaScript **não dispara evento de scroll** quando a janela do Chrome está sem
+foco — a automação via terminal parecia provar que o conserto não funcionava,
+quando era o teste que mentia. Rolagem de verdade se testa com a roda do mouse
+(`computer scroll`); e screenshots de aba sem foco congelam transições CSS no
+meio (`top: 54px` de um `top-14 → top-0`) — artefato, não defeito.

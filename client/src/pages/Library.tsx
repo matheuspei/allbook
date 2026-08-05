@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import BookActionsMenu from "@/components/BookActionsMenu";
+import { useCabecalhoRecolhido } from "@/hooks/use-cabecalho-recolhido";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -307,6 +308,9 @@ export default function Library() {
   const tituloDoAcervo =
     filtro === "tudo" ? "Seu acervo" : FILTROS.find((f) => f.key === filtro)!.label;
 
+  // Os chips sobem para o lugar do TopNav quando ele se recolhe (§4.106).
+  const recolhido = useCabecalhoRecolhido();
+
   function trocarOrdem(nova: OrdemKey) {
     setOrdem(nova);
     gravarPreferencia(ORDEM_KEY, nova);
@@ -356,9 +360,14 @@ export default function Library() {
         </p>
       </header>
 
-      {/* Filtros reais. O deslocamento acompanha a altura do TopNav (56px). */}
+      {/* Filtros reais. O deslocamento acompanha a altura do TopNav (56px) —
+          e sobe para 0 quando ele se recolhe ao rolar (§4.106). */}
       {/* Fundo fechado (§4.104): a 95% as capas transpareciam atrás dos chips. */}
-      <div className="sticky top-14 z-30 border-b border-white/5 bg-[#141414]">
+      <div
+        className={`sticky z-30 border-b border-white/5 bg-[#141414] transition-[top] duration-300 ${
+          recolhido ? "top-0" : "top-14"
+        }`}
+      >
         <div className="scrollbar-hide flex gap-2 overflow-x-auto px-5 py-3">
           {FILTROS.filter((f) => f.key === "tudo" || contagens[f.key] > 0).map((f) => {
             const ativo = filtro === f.key;

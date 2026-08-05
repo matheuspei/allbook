@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarAmpliavel from "@/components/AvatarAmpliavel";
 import SeloDeMedalha from "@/components/SeloDeMedalha";
 import { useToast } from "@/hooks/use-toast";
+import { useCabecalhoRecolhido } from "@/hooks/use-cabecalho-recolhido";
 import { initialOf, meuSlug, readProfile, type Profile as UserProfile } from "@/lib/profile";
 import { readRecommendations } from "@/lib/recommendations";
 import { quantosAcompanho } from "@/lib/acompanhando";
@@ -166,6 +167,9 @@ export default function Profile() {
       )
     : [];
 
+  // A faixa da prévia sobe para o lugar do TopNav quando ele se recolhe (§4.106).
+  const recolhido = useCabecalhoRecolhido();
+
   // O interruptor desliga a vitrine inteira do "ouvindo": o bloco E o fundo
   // do topo — a capa desfocada também entrega o que está tocando.
   const livroTocando =
@@ -220,7 +224,9 @@ export default function Profile() {
           coisas faltando — pareceria defeito, não recurso. */}
       {visitante && (
         <div
-          className="sticky top-14 z-40 flex items-center justify-between gap-3 bg-primary/15 border-b border-primary/25 px-5 py-2.5 backdrop-blur-md"
+          className={`sticky z-40 flex items-center justify-between gap-3 bg-primary/15 border-b border-primary/25 px-5 py-2.5 backdrop-blur-md transition-[top] duration-300 ${
+            recolhido ? "top-0" : "top-14"
+          }`}
           data-testid="visitor-banner"
         >
           <p className="text-xs text-white/80">

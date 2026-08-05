@@ -10,6 +10,7 @@ import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
 import { CONVITES_EVENT, convitesParaMim } from "@/lib/convites";
 import { readSettings } from "@/lib/settings";
 import { initialOf, readProfile } from "@/lib/profile";
+import { mostrarCabecalho, useCabecalhoRecolhido } from "@/hooks/use-cabecalho-recolhido";
 
 export default function TopNav() {
   const [location] = useLocation();
@@ -38,6 +39,8 @@ export default function TopNav() {
     setPerfil(readProfile());
     // Trocou de rota com a gaveta aberta (menu de baixo, por exemplo)? Fecha.
     setPainelAberto(false);
+    // Tela nova nasce com o topo à mostra (§4.106) — a rolagem é da outra tela.
+    mostrarCabecalho();
   }, [location]);
 
   useEffect(() => {
@@ -96,12 +99,21 @@ export default function TopNav() {
   const isHome = location === "/";
   const opaque = scrolled || !isHome;
 
+  /**
+   * O topo se esconde ao rolar para baixo e volta ao subir (§4.106) — mas
+   * nunca com a busca ou o Menu abertos: são sobreposições, e a rolagem
+   * dentro delas não pode mexer no cabeçalho que está por trás.
+   */
+  const recolhido = useCabecalhoRecolhido();
+  const escondido = recolhido && !buscando && !painelAberto;
+
   return (
     <>
     <header
       data-testid="top-nav"
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        escondido && "-translate-y-full",
         // Fundo FECHADO no estado opaco (§4.104): a 95% de opacidade, um botão
         // laranja rolando por baixo ainda transparecia de fantasma.
         opaque
@@ -190,10 +202,26 @@ export default function TopNav() {
       continuava aparecendo e navegável por trás da busca. Aqui fora, ele cobre
       a tela inteira, como um modo, e o "Cancelar" devolve você ao lugar exato.
     */}
-    {buscando && <BuscaSobreposta onFechar={() => setBuscando(false)} />}
+    {/* Ao fechar, `mostrarCabecalho`: a rolagem DENTRO da sobreposição pode
+        ter marcado o topo como recolhido, e sem o aceno ele sumiria no fecho. */}
+    {buscando && (
+      <BuscaSobreposta
+        onFechar={() => {
+          setBuscando(false);
+          mostrarCabecalho();
+        }}
+      />
+    )}
 
     {/* A gaveta do Menu, fora do <header> pelo mesmo motivo da busca. */}
-    {painelAberto && <PainelDaComunidade onFechar={() => setPainelAberto(false)} />}
+    {painelAberto && (
+      <PainelDaComunidade
+        onFechar={() => {
+          setPainelAberto(false);
+          mostrarCabecalho();
+        }}
+      />
+    )}
     </>
   );
 }

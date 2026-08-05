@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
 import { ArrowLeft } from "lucide-react";
+import { useCabecalhoRecolhido } from "@/hooks/use-cabecalho-recolhido";
 
 /**
  * Cabeçalho das telas internas: seta de voltar + título.
@@ -21,6 +22,9 @@ export default function PageHeader({
   action?: React.ReactNode;
 }) {
   const [, setLocation] = useLocation();
+  // Quando o TopNav se recolhe (§4.106), este cabeçalho sobe junto para o
+  // lugar dele — senão ficava um vão de 56px com o conteúdo passando dentro.
+  const recolhido = useCabecalhoRecolhido();
 
   function goBack() {
     if (window.history.length > 1) {
@@ -40,7 +44,9 @@ export default function PageHeader({
        * aparecia ao rolar.
        */
       // Fundo fechado (§4.104): a 95% o conteúdo rolado transparecia por trás.
-      className="sticky top-14 z-30 bg-[#141414] border-b border-white/5"
+      className={`sticky z-30 bg-[#141414] border-b border-white/5 transition-[top] duration-300 ${
+        recolhido ? "top-0" : "top-14"
+      }`}
       data-testid="page-header"
     >
       <div className="flex items-center gap-3 px-4 h-14">
