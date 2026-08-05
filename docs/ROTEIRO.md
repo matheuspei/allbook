@@ -4039,3 +4039,21 @@ debate revisitaria. Quando chegar a hora, o caminho natural é **folha de
 propostas** comparando paletas (só laranja × uma cor por assunto × neutro),
 porque o critério é gosto — e reformulação visual pede 4+ propostas de
 filosofias diferentes, como de costume.
+
+## 4.109 Discussão encerrada sem mudança: o pedido para te seguir já tem dois lares (05/08)
+
+**Registrado para não reabrir.** Ele pediu para ver um pedido de seguir chegando
+— com uma preocupação por trás: *"eu pensei que só ficava nas notificações"*. É
+uma preocupação boa: aviso é coisa que passa, e um pedido perdido no meio de
+dezoito linhas seria alguém perdido para sempre.
+
+**Não é o caso, e por isso nada muda.** O pedido aparece em **quatro** lugares,
+e um deles é permanente: o cartão com ✓/✗ em `/notifications` (§4.55), a aba
+**"Pedidos · N"** em `/seguidores` — que guarda a fila enquanto ela existir —, o
+contador do sino no `TopNav` (que soma `pedidosPendentes`) e o número na linha do
+painel em `/you` e `/profile`. Ver o aviso passar não custa nada: a fila continua
+inteira na tela de quem te segue.
+
+**O que a conversa reconfirmou de passagem:** a fila só existe com a **conta
+privada** ligada — com conta pública seguir é imediato, e uma aba "Pedidos" vazia
+ali prometeria um controle que não existe (§4.54/§4.55). Continua valendo.
