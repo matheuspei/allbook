@@ -5,6 +5,7 @@ import { BookOpen, Lock, LogOut, Radio, Share2, Shield, UserPlus, Users } from "
 
 import PageHeader from "@/components/PageHeader";
 import CartaoDoCiclo from "@/components/clube/CartaoDoCiclo";
+import { LinhaCompactaDoCiclo } from "@/components/clube/LinhaDoCiclo";
 import MuralDoClube from "@/components/clube/MuralDoClube";
 import PautaNoClube from "@/components/clube/PautaNoClube";
 import RodadaDoClube from "@/components/clube/RodadaDoClube";
@@ -441,6 +442,9 @@ export default function Clube({ params }: { params: { id: string } }) {
         {/* ---------------------------------------------------------------- */}
         {aba === "conversa" && membro && (
           <>
+            {/* A versão de uma linha só da linha do ciclo (§4.101): situa a
+                turma junto das falas, sem repetir a régua inteira da Agora. */}
+            <LinhaCompactaDoCiclo clube={clube} />
             <MuralDoClube clube={clube} />
             {/* A discussão por trecho do livro do ciclo (§4.81) — a "aba de
                 conversa do capítulo" que ele achava que já existia. Fica **junto**

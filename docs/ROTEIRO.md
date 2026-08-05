@@ -37,10 +37,6 @@ As seções abaixo contêm decisão **não tomada**. Todas estão neste arquivo,
 - **4.35 Abertura do app e vinheta sonora — adiado para depois do backend (26/07)** — Decisão de adiamento explícita, com o motivo (é identidade de marca, não código) — impede que o assunto volte antes da hora.
 - **Três propostas construídas e rejeitadas — "nenhuma me agradou"** — Rejeição que ainda vale, com a direção que ele quer no lugar (livro abrindo com som, fone com livro, clean, possivelmente novo letreiro) — evita reapresentar as mesmas três ideias.
 - **Imagem enviada pelo usuário: decisão tomada, com o mecanismo nomeado** — Decisão sobre moderação com o mecanismo nomeado (custo de reentrada), três condições que viram regra de conta no backend, e a pergunta explicitamente em aberto: quem julga a denúncia no feed, que não tem dono.
-- **4.57 O Clube reorganizado: quatro modos desenhados, decisão em aberto (29/07)** — **O esqueleto já foi decidido**: o clube virou abas (§4.89). Sobre a linha do ciclo, ele pediu **ver as duas posições desenhadas** (topo da aba Agora × dentro da Conversa) antes de escolher — folha comparativa a caminho (§4.98 item 1).
-- **O que foi medido no app antes de desenhar** — Apuração cara e explicitamente marcada como válida mesmo que nenhuma proposta vingue: 4,5 telas de rolagem, a conversa no meio da pilha crescendo sem fim, 3 de 4 falas viradas placa de spoiler, e a memória do ciclo sem endereço.
-- **As quatro filosofias (e o preço de cada uma)** — São as opções sobre as quais a decisão em aberto vai ser tomada, cada uma com o preço já apurado.
-- **A recomendação registrada (não é decisão)** — Diz em uma frase o que fazer quando o martelo bater (abas da B + linha do ciclo da C) e por que a C é a única que só o AllBook consegue.
 - **Correção na hora seguinte: a roleta volta, e as 36 aparecem** — Régua viva (tela vazia é falta de conteúdo, não de layout; ao trocar um controle, perguntar que gesto o antigo servia) e uma pendência declarada das 10 fotos de comunidade.
 - **4.87 "A conversa do livro não virou inútil?" — apurado, e a resposta é não (31/07) — decisão em aberto** — Abre a única decisão grande explicitamente pendente da fatia; `/book/:id/conversa` e a `SalaDoLivro` continuam no código.
 - **A premissa não se confirma no código** — Apuração custosa (zero `bookId` em grupos e tópicos) que sustenta a decisão pendente e ninguém deve refazer.
@@ -1768,9 +1764,10 @@ governam *o quê*).
 
 ## 4.57 O Clube reorganizado: quatro modos desenhados, decisão em aberto (29/07)
 
-> ⚠️ **[DECIDIDA EM PARTE na §4.89, 31/07]** — o clube virou **abas** (a
-> proposta B daqui). Fica em aberto só a "linha do ciclo" da proposta C. As
-> medições e os preços por filosofia abaixo continuam valendo como apuração.
+> ⚠️ **[DECIDIDA POR INTEIRO]** — o clube virou **abas** na §4.89 (a proposta B
+> daqui), e a "linha do ciclo" da proposta C **foi decidida na §4.101 (04/08)**:
+> posição A, no topo da aba Agora. As medições e os preços por filosofia abaixo
+> continuam valendo como apuração.
 
 **O pedido do Matheus:** *"a página do Clube de Leitura… ela vai ter muitos livros
 e muitos clubes, e a forma como está não tá bem organizada"*. Pediu **pelo menos
@@ -3361,6 +3358,38 @@ Registro decisão a decisão — **as de rumo valem a partir de agora**:
 **As três tarefas, todas aprovadas ("faz"):** as 10 fotos de comunidade que
 faltam; a conferência de capas a olho nas categorias; a `og:image` própria
 para o link do app.
+
+---
+
+## 4.101 A linha do ciclo tem endereço: o topo da aba "Agora" (04/08, noite)
+
+**A última ponta em aberto da §4.57 fechou.** Na folha `_linha-do-ciclo-C.html`
+— as duas posições desenhadas *no lugar real*, como ele pediu — o Matheus
+escolheu a **posição A**: a linha inteira no topo da aba *Agora*, com a versão
+de uma linha só acompanhando na *Conversa* (fazia parte da opção escolhida).
+
+**O que ficou de pé (`components/clube/LinhaDoCiclo.tsx`):**
+
+- A linha vive **dentro do `CartaoDoCiclo`** — que já é a primeira coisa da
+  aba — **no lugar da régua você×roda**: duas barras de progresso na mesma
+  tela seriam a mesma informação duas vezes. A régua saiu; a regra dela (§4.39)
+  ficou: a comparação é **agregada, sem nomear ninguém** — apontar "Fulano está
+  no 9" leva a mentir progresso, e progresso mentido quebra a trava de spoiler.
+- A escala é a dos **capítulos do livro do ciclo**: o preenchimento vai até
+  onde VOCÊ ouviu (etiqueta "você · cap. N" na ponta), as bolinhas são os
+  **marcos do combinado** — acesas quando o prazo já passou —, e as pontas
+  dizem as datas de início e de encontro.
+- Embaixo, a frase da turma: *"A turma está entre o cap. 3 e o 6 · 5 já
+  passaram de você"* — números de `progressoDosMembros`, os mesmos da roda,
+  nada inventado (§4.92).
+- Na aba *Conversa*, a **compacta**: só a frase, num filete acima do mural.
+- A linha **some no clube que ainda vai estrear** (barra vazia fingindo
+  informação — a lição da §4.99), e a frase some para quem está sozinho no
+  clube (não há turma a situar).
+
+**Rejeitadas na folha:** a posição B (só na Conversa — a aba Agora perderia o
+resumo do momento), o "nas duas por inteiro" (a mesma régua em dois lugares) e
+o "não construir".
 
 ---
 

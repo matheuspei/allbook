@@ -2,10 +2,8 @@ import { Link } from "wouter";
 import { Calendar, Headphones, Lock } from "lucide-react";
 
 import { catalog } from "@/lib/books";
-import { getChapters } from "@/lib/chapters";
 import {
   capituloCombinado,
-  capituloDaRoda,
   dataCurta,
   estaComecando,
   estreiaEmTexto,
@@ -14,16 +12,18 @@ import {
   prazoEmTexto,
   type Clube,
 } from "@/lib/clubes";
+import { LinhaDoCiclo } from "@/components/clube/LinhaDoCiclo";
 import { savePlaying } from "@/lib/playback";
 
 /**
  * O cartão do ciclo: o livro do mês, o prazo e onde a turma está.
  *
- * **A régua compara você com a RODA, não com cada pessoa.** Mostrar "Fulano
- * está no capítulo 9, você no 4" é a pressão social que leva alguém a mentir o
- * progresso — e progresso mentido quebra a trava de spoiler, que é justamente
- * o que faz o clube funcionar aqui dentro (ROTEIRO 4.39). Por isso a barra tem
- * duas marcas apenas: a sua e a mediana do grupo.
+ * **A régua você×roda virou a linha do ciclo** (§4.101, folha
+ * `_linha-do-ciclo-C.html`): a barra agora mostra os marcos do combinado e a
+ * faixa da turma, em `LinhaDoCiclo`. A regra da §4.39 segue valendo lá: a
+ * comparação é agregada, sem nomear ninguém — apontar "Fulano está no 9" é a
+ * pressão que leva a mentir progresso, e progresso mentido quebra a trava de
+ * spoiler, que é o que faz o clube funcionar.
  *
  * **O marco é a regra de spoiler do clube**, dita em uma linha: "até o capítulo
  * 6, prazo em 3 dias". É mais fácil de seguir do que marcar mensagem por
@@ -33,14 +33,10 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
   const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
   if (!livro) return null;
 
-  const totalCapitulos = getChapters(clube.ciclo.bookId).length;
   const meu = meuCapitulo(clube);
-  const roda = capituloDaRoda(clube);
   const marco = marcoAtual(clube);
   const combinado = capituloCombinado(clube);
   const comecando = estaComecando(clube);
-
-  const pct = (valor: number) => `${Math.min(100, (valor / totalCapitulos) * 100)}%`;
 
   return (
     <section
@@ -76,7 +72,7 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
         </div>
       </div>
 
-      {/* A régua: você contra a roda. */}
+      {/* A linha do ciclo: os marcos, você e a faixa da turma (§4.101). */}
       <div className="px-4 pb-4">
         {comecando && (
           <p className="mb-3 rounded-lg bg-black/25 px-3 py-2 text-[11px] leading-relaxed text-white/60">
@@ -86,28 +82,7 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
           </p>
         )}
 
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="text-white/55">
-            Você: {meu === 0 ? "não começou" : `capítulo ${meu}`}
-          </span>
-          {/* "capítulo 0" não existe: num clube recém-criado ninguém começou
-              ainda, e o número solto parecia defeito. */}
-          <span className="text-white/55">
-            {roda === 0 ? "A roda: ninguém começou" : `A roda: capítulo ${roda}`}
-          </span>
-        </div>
-
-        <div className="relative mt-2 h-1.5 rounded-full bg-white/10">
-          <div
-            className="absolute inset-y-0 left-0 rounded-full bg-primary"
-            style={{ width: pct(meu) }}
-          />
-          <span
-            className="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 rounded-full bg-[#f59e0b]"
-            style={{ left: pct(roda) }}
-            aria-label={`A roda está no capítulo ${roda}`}
-          />
-        </div>
+        <LinhaDoCiclo clube={clube} />
 
         {/*
           **O texto foi corrigido em 28/07 porque mentia** (ROTEIRO 4.40). Ele
