@@ -252,6 +252,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    */
   const [totalDeMarcacoes, setTotalDeMarcacoes] = useState(0);
   const [showConversa, setShowConversa] = useState(false);
+  /* Em que segundo a gaveta da conversa abriu. `null` = no ponto onde o áudio
+     está agora (o caso do botão "Conversa" da barra). Preenchido quando a pessoa
+     toca numa marca do trilho — inclusive numa de trecho ainda não ouvido. */
+  const [pontoDaConversa, setPontoDaConversa] = useState<number | null>(null);
   /** O trecho recém-guardado que está sendo aparado na folha de ajuste. */
   const [ajustandoTrecho, setAjustandoTrecho] = useState<TrechoGuardado | null>(null);
   /**
@@ -648,8 +652,17 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               chapterDuration={chapterDuration}
               currentTime={currentTime}
               slugsDaTurma={clubeDoLivro?.membros}
-              onAbrir={(posicao) => {
-                setCurrentTime(posicao);
+              /*
+                **Marca do futuro não move o áudio** (05/08). Tocar numa marca já
+                ouvida leva o player até lá — é o que se espera de "voltar
+                naquele ponto". Tocar numa marca à frente **abre só a conversa**,
+                num ponto avulso: mover o áudio ali seria adiantar o livro sem
+                pedir, e quem quis espiar a conversa não pediu para pular a
+                história.
+              */
+              onAbrir={(posicao, adiante) => {
+                if (!adiante) setCurrentTime(posicao);
+                setPontoDaConversa(posicao);
                 setShowConversa(true);
               }}
             />
@@ -809,16 +822,24 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
         onMarcar={marcarEAnotar}
         onVerMarcacoes={() => setShowMarcacoes(true)}
         falasNoTrecho={falasNoTrecho}
-        onConversa={() => setShowConversa(true)}
+        onConversa={() => {
+          setPontoDaConversa(null);
+          setShowConversa(true);
+        }}
       />
 
       {/* A conversa deste ponto do áudio — a metade da sala do livro que mora
-          dentro do player (ROTEIRO 4.39). */}
+          dentro do player (ROTEIRO 4.39). O ponto pode ser o de agora ou o de
+          uma marca do trilho, inclusive à frente (§4.87, 05/08). */}
       {showConversa && (
         <ConversaDoTrecho
           bookId={book.id}
-          posicaoSec={currentTime}
-          onFechar={() => setShowConversa(false)}
+          posicaoSec={pontoDaConversa ?? currentTime}
+          adiante={pontoDaConversa !== null && pontoDaConversa > currentTime}
+          onFechar={() => {
+            setShowConversa(false);
+            setPontoDaConversa(null);
+          }}
         />
       )}
 

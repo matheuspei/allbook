@@ -95,7 +95,16 @@ export default function MarcasDaConversa({
   chapterDuration: number;
   currentTime: number;
   /** Tocar numa marca liberada: leva o áudio até lá e abre a conversa. */
-  onAbrir: (posicaoSec: number) => void;
+  /**
+   * Abrir a conversa daquele ponto.
+   *
+   * O segundo parâmetro diz se o ponto está **à frente** de onde a pessoa está.
+   * Ele existe porque as duas aberturas não podem fazer a mesma coisa: numa
+   * marca já ouvida, levar o áudio até lá é o que se espera; numa marca do
+   * futuro do livro, **mover o áudio seria pular o livro sem pedir** — a pessoa
+   * quis espiar a conversa, não adiantar a história.
+   */
+  onAbrir: (posicaoSec: number, adiante?: boolean) => void;
   /**
    * Quem é do seu clube neste livro. Vazio (ou ausente) = você não está em
    * clube nenhum aqui, e nenhuma marca ganha anel.
@@ -154,14 +163,34 @@ export default function MarcasDaConversa({
           e não uma fileira de botões soltos. */}
       <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-white/[0.07]" aria-hidden />
 
+      {/*
+        **As marcas adiante passaram a abrir** (05/08). Elas eram `<span>` — um
+        desenho apagado, sem clique: mostravam que havia conversa e não deixavam
+        chegar nela. O Matheus derrubou isso junto com a trava da sala: *"gosto
+        da ideia de o usuário poder ver, desde que ele saiba que provavelmente
+        vai ter spoiler. Hoje está bloqueado completamente"*.
+
+        Continuam **apagadas** de propósito — a diferença entre "já passei por
+        aqui" e "isto é do futuro do livro" tem de se ler num relance —, mas
+        agora são botão, com o aviso no próprio rótulo de acessibilidade. Quem
+        toca sabe o que está abrindo: a gaveta avisa antes de mostrar.
+      */}
       {adiante.map((grupo) => (
-        <span
+        <button
           key={`adiante-${grupo.sec}`}
+          type="button"
+          onClick={() => onAbrir(grupo.sec, true)}
           style={{ left: `${grupo.posicaoPct}%` }}
-          className="absolute top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/25"
-          aria-label="Há conversa mais adiante"
+          className="group absolute top-1/2 flex h-7 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+          aria-label={
+            grupo.quantas > 1
+              ? `Abrir ${grupo.quantas} falas de um trecho à frente — pode ter spoiler`
+              : "Abrir a conversa de um trecho à frente — pode ter spoiler"
+          }
           data-testid="marca-adiante"
-        />
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-white/25 transition-all group-hover:h-2.5 group-hover:w-2.5 group-hover:bg-white/50" />
+        </button>
       ))}
 
       {liberados.map((grupo) => (

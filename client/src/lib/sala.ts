@@ -81,16 +81,28 @@ export function estadoNaSala(comment: Comment, posicaoSec: number): EstadoNaSala
 export function separarSala(
   comentarios: Comment[],
   posicaoSec: number,
-): { visiveis: Comment[]; adiante: number } {
+): { visiveis: Comment[]; adiante: number; adianteItens: Comment[] } {
   const visiveis: Comment[] = [];
-  let adiante = 0;
+  const adianteItens: Comment[] = [];
 
   for (const comment of comentarios) {
-    if (estadoNaSala(comment, posicaoSec) === "adiante") adiante += 1;
+    if (estadoNaSala(comment, posicaoSec) === "adiante") adianteItens.push(comment);
     else visiveis.push(comment);
   }
 
-  return { visiveis, adiante };
+  /*
+   * **`adianteItens` entrou em 05/08 e mudou o sentido desta função.** Antes ela
+   * devolvia só a *contagem* do que estava à frente — de propósito: a tela não
+   * podia nem tocar no texto escondido. O Matheus derrubou essa premissa:
+   * *"não gosto dessa trava de spoiler forçada… eu gosto da ideia de o usuário
+   * poder ver isso, desde que ele saiba que ali provavelmente vai ter spoiler.
+   * E hoje está bloqueado completamente. Isso não é legal."*
+   *
+   * A trava continua sendo o **padrão** — ninguém leva spoiler sem querer. O que
+   * mudou é que ela deixou de ser parede e virou porta: quem quiser abre, sabendo
+   * o que há do outro lado. Por isso a lista precisa chegar à tela.
+   */
+  return { visiveis, adiante: adianteItens.length, adianteItens };
 }
 
 /**

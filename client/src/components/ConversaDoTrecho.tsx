@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { ChevronRight, MessageSquare, X } from "lucide-react";
+import { ChevronRight, EyeOff, MessageSquare, X } from "lucide-react";
 
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import CommentComposer from "@/components/CommentComposer";
@@ -34,10 +34,20 @@ import { rastroNoTrecho } from "@/lib/salaAoVivo";
 export default function ConversaDoTrecho({
   bookId,
   posicaoSec,
+  adiante = false,
   onFechar,
 }: {
   bookId: number;
   posicaoSec: number;
+  /**
+   * O trecho está **à frente** de onde a pessoa parou (05/08).
+   *
+   * Só é `true` quando ela tocou de propósito numa marca apagada do trilho —
+   * ou seja, escolheu espiar o futuro do livro. A gaveta abre igual, mas diz na
+   * cara o que está fazendo: sem esse aviso, a mesma tela apareceria para quem
+   * chegou ali ouvindo e para quem pulou, e as duas coisas não são iguais.
+   */
+  adiante?: boolean;
   onFechar: () => void;
 }) {
   /*
@@ -92,6 +102,15 @@ export default function ConversaDoTrecho({
           <div>
             <h2 className="font-display text-lg font-bold">Conversa deste trecho</h2>
             <p className="mt-1 text-xs text-white/40">{rotuloDaAncora(bookId, ponto)}</p>
+            {adiante && (
+              <p
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#f59e0b]/10 px-2.5 py-1 text-[11px] font-semibold text-[#f59e0b]"
+                data-testid="aviso-trecho-adiante"
+              >
+                <EyeOff className="h-3 w-3" />
+                Você ainda não chegou aqui — pode ter spoiler
+              </p>
+            )}
           </div>
           <button
             onClick={onFechar}
@@ -122,10 +141,20 @@ export default function ConversaDoTrecho({
           </div>
         )}
 
+        {/*
+          **O convite diz para quem se está falando** (05/08). Era *"O que você
+          achou deste trecho?"* — que se lê como caderno de anotações, e foi
+          assim que quatro comentários de teste do Matheus foram parar na
+          conversa pública de um livro sem ele perceber (*"isso nem tem nada a
+          ver com o livro, não sei o que está fazendo aqui"*). O player tem, lado
+          a lado, um botão que **anota para você** (Marcar) e esta caixa, que
+          **fala com os outros**: se o texto não disser qual é qual, o erro é do
+          app, não de quem escreveu.
+        */}
         <CommentComposer
           alvo={{ bookId }}
           ancoraInicial={ponto}
-          placeholder="O que você achou deste trecho?"
+          placeholder="Comente este trecho — quem chegar aqui vai ler…"
         />
 
         <div className="mt-4 space-y-3">

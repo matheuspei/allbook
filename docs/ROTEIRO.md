@@ -2826,6 +2826,52 @@ para quem ainda não decidiu se vai ouvir. E: *ordem por engajamento serve para
 lista de comentários; conversa presa ao áudio se ordena pelo minuto*, senão a
 lista e o trilho do player contam histórias diferentes.
 
+### A trava de spoiler deixou de ser parede e virou porta (05/08)
+
+> *"Não gosto dessa trava de spoiler forçada. […] Eu gosto da ideia de o usuário
+> poder ver isso, desde que ele saiba que ali provavelmente vai ter spoiler. E
+> hoje está bloqueado completamente. Isso não é legal."*
+
+**Ele tem razão, e o app já se contradizia:** o comentário marcado como spoiler
+sempre teve *"toque para ver"*, mas o que estava **à frente no áudio** era
+cadeado sem chave — decisão tomada no lugar da pessoa, no único ponto do app que
+fazia isso.
+
+**O que mudou (a trava continua ligada por padrão — o que mudou é ter saída):**
+
+- **Na sala:** o aviso *"N mensagens presas em trechos à frente"* ganhou
+  **"Mostrar mesmo assim — pode ter spoiler"**. Cada fala aberta vem com o selo
+  âmbar *à frente de onde você está*, e o véu do spoiler explícito **continua por
+  baixo** — duas camadas, porque são duas coisas diferentes (estar adiante ≠ ser
+  spoiler declarado). Há o botão de esconder de volta.
+- **No trilho do player:** as marcas apagadas eram `<span>` sem clique. Viraram
+  botão. A gaveta abre com a tarja *"Você ainda não chegou aqui — pode ter
+  spoiler"*.
+- **⚠️ E o áudio não pula.** Tocar numa marca já ouvida leva o player até lá (é o
+  esperado); tocar numa marca do futuro **abre só a conversa**, num ponto avulso
+  (`pontoDaConversa`). Mover o áudio ali seria adiantar o livro sem pedir — quem
+  quis espiar a conversa não pediu para pular a história. Testado: 00:31 → 00:33
+  (só o tempo correndo) ao abrir uma marca de 50:03.
+
+**Não fica guardado:** sair da tela recoloca a trava. *Destravar custa um toque;
+um spoiler custa o livro.* Trocar para persistente é uma linha, se ele pedir.
+
+**A régua:** *proteção boa é a que se pode dispensar. Sem saída, ela deixa de
+proteger e passa a mandar.*
+
+### O que os comentários de teste dele revelaram
+
+Os quatro comentários que ele estranhou (*"isso nem tem nada a ver com o livro,
+não sei o que está fazendo aqui"*) foram **apagados a pedido** — eram "surreal",
+"isso foi profundo", "isso foi muito bom" e "bom".
+
+**O que ficou como conserto:** a caixa da gaveta do player convidava com *"O que
+você achou deste trecho?"* — que se lê como **caderno de anotações**. E o player
+tem, lado a lado, um botão que anota **para você** (Marcar) e uma caixa que fala
+**com os outros**. O convite virou *"Comente este trecho — quem chegar aqui vai
+ler…"*. **Se o texto não diz para quem se está falando, o erro é do app, não de
+quem escreveu.**
+
 ### A crítica que fiz da ideia dele, e onde ela procede
 
 **Capa em todo tópico, do tamanho de cartão, destrói a lista.** Fórum é uma

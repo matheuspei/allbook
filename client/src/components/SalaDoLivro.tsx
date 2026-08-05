@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Lock, MessageSquare } from "lucide-react";
+import { Eye, EyeOff, Lock, MessageSquare } from "lucide-react";
 
 import CommentComposer from "@/components/CommentComposer";
 import CommentThread from "@/components/CommentThread";
@@ -80,7 +80,20 @@ export default function SalaDoLivro({
 
   const todos = commentsForBook(bookId).filter((item) => !escondidos.has(item.id));
   const escondidosAqui = commentsForBook(bookId).filter((item) => escondidos.has(item.id));
-  const { visiveis, adiante } = separarSala(todos, posicao);
+  const { visiveis, adiante, adianteItens } = separarSala(todos, posicao);
+
+  /*
+   * **Você pode abrir o que está à frente** (05/08). A trava continua ligada por
+   * padrão — ninguém tropeça num spoiler —, mas deixou de ser parede: um toque
+   * mostra tudo, e cada fala aberta vem com o selo de que está adiante.
+   *
+   * **Não fica guardado de propósito.** Sair da tela e voltar recoloca a trava.
+   * Destravar custa um toque; um spoiler custa o livro. Se ele quiser que fique
+   * lembrado por livro, é trocar este `useState` por uma chave no armazenamento.
+   */
+  const [mostrarAdiante, setMostrarAdiante] = useState(false);
+
+  useEffect(() => setMostrarAdiante(false), [bookId]);
 
   /*
    * **As suas falas entram na conversa, não antes dela** (04/08, §4.87).
@@ -164,7 +177,37 @@ export default function SalaDoLivro({
         ),
       )}
 
-      {adiante > 0 && <Adiante quantas={adiante} comecou={comecou} />}
+      {adiante > 0 && !mostrarAdiante && (
+        <Adiante quantas={adiante} comecou={comecou} onMostrar={() => setMostrarAdiante(true)} />
+      )}
+
+      {/* Aberto por escolha sua: cada fala vem com o selo de que está à frente,
+          para não se confundir com o que já estava liberado. */}
+      {mostrarAdiante &&
+        adianteItens.map((comment) => (
+          <div key={comment.id} className="relative" data-testid={`adiante-aberto-${comment.id}`}>
+            <p className="mb-1 flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-[#f59e0b]">
+              <EyeOff className="h-3 w-3" />
+              à frente de onde você está
+            </p>
+            <CommentThread
+              comment={comment}
+              reactions={reactions}
+              onReactionsChange={onReactionsChange}
+            />
+          </div>
+        ))}
+
+      {mostrarAdiante && adiante > 0 && (
+        <button
+          type="button"
+          onClick={() => setMostrarAdiante(false)}
+          className="w-full rounded-xl border border-white/10 py-2.5 text-xs font-semibold text-white/45 transition-colors hover:text-white/80"
+          data-testid="sala-esconder-adiante"
+        >
+          Esconder as {adiante} de novo
+        </button>
+      )}
 
       {todos.length === 0 && escondidosAqui.length === 0 && <SalaVazia />}
 
@@ -193,21 +236,54 @@ export default function SalaDoLivro({
  * é uma promessa ("aparecem conforme você avança"); para quem nunca abriu, é um
  * convite — e é o que impede a sala de parecer vazia na ficha de um livro novo.
  */
-function Adiante({ quantas, comecou }: { quantas: number; comecou: boolean }) {
+/**
+ * O que está à frente — **e o botão para abrir mesmo assim** (05/08).
+ *
+ * Antes isto era só um aviso com cadeado: informava e não deixava fazer nada. O
+ * Matheus derrubou: *"não gosto dessa trava de spoiler forçada… gosto da ideia
+ * de o usuário poder ver, desde que ele saiba que provavelmente vai ter spoiler.
+ * Hoje está bloqueado completamente"*. Ele tem razão — **cadeado sem chave é
+ * decisão tomada no lugar da pessoa**, e o app inteiro foi construído no
+ * princípio oposto (o véu do spoiler no comentário sempre teve "ver mesmo
+ * assim").
+ *
+ * O aviso continua sendo o padrão, e o texto diz **o que há do outro lado** em
+ * vez de só contar: quem toca sabe exatamente o que está aceitando.
+ */
+function Adiante({
+  quantas,
+  comecou,
+  onMostrar,
+}: {
+  quantas: number;
+  comecou: boolean;
+  onMostrar: () => void;
+}) {
   return (
     <div
-      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5"
+      className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5"
       data-testid="sala-adiante"
     >
-      <Lock className="h-4 w-4 shrink-0 text-white/30" />
-      <p className="text-xs leading-relaxed text-white/45">
-        <span className="font-semibold text-white/70">
-          {quantas} {quantas === 1 ? "mensagem presa" : "mensagens presas"}
-        </span>{" "}
-        {comecou
-          ? "em trechos à frente de onde você parou. Elas aparecem conforme você avança."
-          : "em trechos deste livro. Comece a ouvir e elas vão se abrindo."}
-      </p>
+      <div className="flex items-center gap-3">
+        <Lock className="h-4 w-4 shrink-0 text-white/30" />
+        <p className="text-xs leading-relaxed text-white/45">
+          <span className="font-semibold text-white/70">
+            {quantas} {quantas === 1 ? "mensagem presa" : "mensagens presas"}
+          </span>{" "}
+          {comecou
+            ? "em trechos à frente de onde você parou. Elas aparecem conforme você avança."
+            : "em trechos deste livro. Comece a ouvir e elas vão se abrindo."}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onMostrar}
+        className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-primary transition-colors hover:text-primary/80"
+        data-testid="sala-mostrar-adiante"
+      >
+        <Eye className="h-3.5 w-3.5" />
+        Mostrar mesmo assim — pode ter spoiler
+      </button>
     </div>
   );
 }
