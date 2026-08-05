@@ -171,34 +171,71 @@ function gravar(salas: SalaAoVivo[]): void {
 /* ------------------------------------------------------------------ */
 
 /**
- * Uma sala ao vivo acontecendo agora, para a tela ter o que mostrar.
+ * As salas ao vivo acontecendo agora, para a Comunidade ter o que mostrar.
  *
- * `abertaEm` é **relativo ao momento em que a página abre**: 22 minutos atrás.
- * Assim a sala está sempre "no meio", nunca no segundo zero nem terminada — e
- * não depende de uma data fixa que envelhece.
+ * `abertaEm` é **relativo ao momento em que a página abre** (ex.: 22 minutos
+ * atrás). Assim cada sala está sempre "no meio", nunca no segundo zero nem
+ * terminada — e não depende de uma data fixa que envelhece.
+ *
+ * Eram uma só; §4.104 semeou mais três (decisão dele na folha): fileira de
+ * stories com um item único entregava app vazio. Horários, livros e anfitriões
+ * variados de propósito — vitrine igual demais também entrega semente.
  */
-const ABERTA_HA_MIN = 22;
-const COMECOU_EM_SEC = 3_580; // ~59min de livro quando a sala abriu
-
-export function salaSemeada(): SalaAoVivo {
-  const abertaEm = Date.now() - ABERTA_HA_MIN * 60_000;
-
-  return {
+const MOLDES_DAS_SEMEADAS = [
+  {
     id: "sala-semeada-1",
-    bookId: 1,
+    bookId: 1, // O massacre da família Hope
     anfitriao: "ana-paula",
-    porta: "aberta",
-    posicaoSec: COMECOU_EM_SEC,
-    marcoEm: abertaEm,
-    tocando: true,
+    abertaHaMin: 22,
+    comecouEmSec: 3_580, // ~59min de livro quando a sala abriu
     presentes: ["ana-paula", "marcos-v", "juliana-s", "carla-lima", "beto"],
-    falas: FALAS_SEMEADAS,
-    abertaEm,
-  };
+  },
+  {
+    id: "sala-semeada-2",
+    bookId: 106, // A Paciente Silenciosa
+    anfitriao: "juliana-s",
+    abertaHaMin: 8,
+    comecouEmSec: 4_680,
+    presentes: ["juliana-s", "beto", "ricardo"],
+  },
+  {
+    id: "sala-semeada-3",
+    bookId: 102, // Hábitos Atômicos
+    anfitriao: "marcos-v",
+    abertaHaMin: 47,
+    comecouEmSec: 6_400,
+    presentes: ["marcos-v", "carla-lima", "felipe-g", "luciana"],
+  },
+  {
+    id: "sala-semeada-4",
+    bookId: 140, // Orgulho e Preconceito
+    anfitriao: "carla-lima",
+    abertaHaMin: 3,
+    comecouEmSec: 540,
+    presentes: ["carla-lima", "ana-paula"],
+  },
+];
+
+export function salasSemeadas(): SalaAoVivo[] {
+  return MOLDES_DAS_SEMEADAS.map((molde) => {
+    const abertaEm = Date.now() - molde.abertaHaMin * 60_000;
+    return {
+      id: molde.id,
+      bookId: molde.bookId,
+      anfitriao: molde.anfitriao,
+      porta: "aberta" as const,
+      posicaoSec: molde.comecouEmSec,
+      marcoEm: abertaEm,
+      tocando: true,
+      presentes: molde.presentes,
+      falas: FALAS_SEMEADAS_POR_SALA[molde.id] ?? [],
+      abertaEm,
+    };
+  });
 }
 
 /**
- * As falas da sala fictícia, **cada uma presa a um segundo do áudio**.
+ * As falas das salas fictícias, **cada uma presa a um segundo do áudio**.
  *
  * Elas não aparecem por sorteio: entram no chat quando a transmissão passa por
  * elas (ver `falasAteAgora`). É o mesmo mecanismo que faz o rastro — de propósito.
@@ -220,6 +257,26 @@ const FALAS_SEMEADAS: FalaDaSala[] = [
   { id: "f14", autor: "carla-lima", texto: "concordo demais", posicaoSec: 5_010, em: 14 },
 ];
 
+/** As falas de cada sala semeada — as da 1 são as originais; as outras têm menos porque as salas são mais novas. */
+const FALAS_SEMEADAS_POR_SALA: Record<string, FalaDaSala[]> = {
+  "sala-semeada-1": FALAS_SEMEADAS,
+  "sala-semeada-2": [
+    { id: "s2-f1", autor: "juliana-s", texto: "entrem sem medo, aqui ninguém solta spoiler", posicaoSec: 4_690, em: 1 },
+    { id: "s2-f2", autor: "beto", texto: "esse psicólogo não me engana", posicaoSec: 4_760, em: 2 },
+    { id: "s2-f3", autor: "ricardo", texto: "a Alicia não fala, mas o silêncio dela grita", posicaoSec: 4_890, em: 3 },
+  ],
+  "sala-semeada-3": [
+    { id: "s3-f1", autor: "marcos-v", texto: "a regra dos 2 minutos mudou a minha manhã", posicaoSec: 6_450, em: 1 },
+    { id: "s3-f2", autor: "felipe-g", texto: "eu ouço isso lavando louça, combina demais", posicaoSec: 6_700, em: 2 },
+    { id: "s3-f3", autor: "luciana", texto: "pausem e anotem essa parte do empilhamento", posicaoSec: 7_020, em: 3 },
+    { id: "s3-f4", autor: "carla-lima", texto: "anotado!", posicaoSec: 7_050, em: 4 },
+  ],
+  "sala-semeada-4": [
+    { id: "s4-f1", autor: "carla-lima", texto: "começando agora, cheguem", posicaoSec: 560, em: 1 },
+    { id: "s4-f2", autor: "ana-paula", texto: "a Helena narrando Austen é perfeito", posicaoSec: 640, em: 2 },
+  ],
+};
+
 /**
  * Onde a transmissão de uma sala está **agora**.
  *
@@ -235,7 +292,32 @@ export function posicaoAgora(sala: SalaAoVivo): number {
   if (sala.encerradaEm || !sala.tocando) return sala.posicaoSec;
 
   const corridos = Math.floor((Date.now() - sala.marcoEm) / 1000);
-  return sala.posicaoSec + Math.max(0, corridos);
+  const semTeto = sala.posicaoSec + Math.max(0, corridos);
+
+  /*
+   * Teto no fim do livro (§4.104). A cópia que o app grava quando você entra
+   * numa sala carrega o `marcoEm` daquele dia e `tocando: true` — dias depois,
+   * a soma dava 99 h e a pílula dizia "faltam 0 s" para sempre. Transmissão
+   * não passa da última palavra.
+   */
+  const totalSec = duracaoDoLivroSec(sala.bookId);
+  return totalSec > 0 ? Math.min(semTeto, totalSec) : semTeto;
+}
+
+/** A duração total do livro em segundos — o fim da transmissão de qualquer sala dele. */
+export function duracaoDoLivroSec(bookId: number): number {
+  return getChapters(bookId).reduce((soma, capitulo) => soma + capitulo.durationSec, 0);
+}
+
+/**
+ * A transmissão chegou ao fim do livro (§4.104)?
+ *
+ * Não existe "ao vivo" depois da última palavra: as vitrines escondem a sessão
+ * terminada e a tela da sala mostra o encerramento em vez do player.
+ */
+export function sessaoTerminou(sala: SalaAoVivo): boolean {
+  const totalSec = duracaoDoLivroSec(sala.bookId);
+  return totalSec > 0 && posicaoAgora(sala) >= totalSec;
 }
 
 /* ------------------------------------------------------------------ */
@@ -253,10 +335,11 @@ export function posicaoAgora(sala: SalaAoVivo): number {
  */
 export function todasAsSalas(): SalaAoVivo[] {
   const minhas = lerMinhas();
-  const semeada = salaSemeada();
-  const tenhoMinhaVersao = minhas.some((sala) => sala.id === semeada.id);
+  const semeadas = salasSemeadas().filter(
+    (semeada) => !minhas.some((sala) => sala.id === semeada.id),
+  );
 
-  return tenhoMinhaVersao ? minhas : [semeada, ...minhas];
+  return [...semeadas, ...minhas];
 }
 
 export function salaPorId(id: string): SalaAoVivo | undefined {
@@ -271,7 +354,12 @@ export function salaPorId(id: string): SalaAoVivo | undefined {
  */
 export function salasAoVivo(): SalaAoVivo[] {
   return todasAsSalas().filter(
-    (sala) => !sala.encerradaEm && sala.porta !== "privada" && sessaoNoAr(sala),
+    (sala) =>
+      !sala.encerradaEm &&
+      sala.porta !== "privada" &&
+      sessaoNoAr(sala) &&
+      // Sessão que chegou ao fim do livro não é vitrine de "ao vivo" (§4.104).
+      !sessaoTerminou(sala),
   );
 }
 
@@ -304,7 +392,13 @@ export function salasDoClube(clubeId: string): SalaAoVivo[] {
  */
 export function minhaSalaAberta(): SalaAoVivo | undefined {
   return todasAsSalas().find(
-    (sala) => !sala.encerradaEm && sala.presentes.includes(EU) && sessaoNoAr(sala),
+    (sala) =>
+      !sala.encerradaEm &&
+      sala.presentes.includes(EU) &&
+      sessaoNoAr(sala) &&
+      // Transmissão que chegou ao fim do livro não segura barrinha no rodapé
+      // (§4.104) — a sessão acabou, você não está mais "dentro" de nada.
+      !sessaoTerminou(sala),
   );
 }
 

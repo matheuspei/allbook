@@ -10,6 +10,7 @@ import {
   euConfirmei,
   faltaParaComecar,
   sessaoNoAr,
+  sessaoTerminou,
   encerrarSala,
   entrarNaSala,
   faltaEmTexto,
@@ -79,9 +80,11 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
     return () => window.clearInterval(relogio);
   }, [sala?.id, sala?.tocando, sala?.encerradaEm]);
 
-  /* Entrar é automático ao abrir a tela: você chegou na sala, você está nela. */
+  /* Entrar é automático ao abrir a tela: você chegou na sala, você está nela.
+     Menos na sessão que já chegou ao fim do livro (§4.104) — não se entra no
+     que acabou; a tela mostra o encerramento. */
   useEffect(() => {
-    if (sala && !sala.encerradaEm) entrarNaSala(sala.id);
+    if (sala && !sala.encerradaEm && !sessaoTerminou(sala)) entrarNaSala(sala.id);
     // Só ao trocar de sala — não a cada tique do relógio.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sala?.id]);
@@ -153,6 +156,51 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
           : "A conversa ficou guardada no livro, no minuto de cada fala.",
     });
     navigate(ultimaTelaNavegavel(), { replace: true });
+  }
+
+  /*
+   * A sessão passou do fim do livro (§4.104): não existe "ao vivo" depois da
+   * última palavra. Antes disto a sala semeada ficava presa no fim — o relógio
+   * somava 99 h e a pílula dizia "faltam 0 s" para sempre.
+   */
+  if (sessaoTerminou(sala) && !encerrada) {
+    return (
+      <div
+        className="flex h-[100dvh] flex-col items-center justify-center gap-4 bg-[#141414] px-8 text-center text-white"
+        data-testid="sessao-terminada"
+      >
+        {book && (
+          <img
+            src={book.cover}
+            alt={book.title}
+            className="h-40 w-40 rounded-xl object-cover shadow-2xl"
+          />
+        )}
+        <h1 className="font-display text-xl font-bold">Esta sessão terminou</h1>
+        <p className="text-sm leading-relaxed text-white/50">
+          A sala {anfitriao ? `de ${anfitriao.name} ` : ""}chegou ao fim de{" "}
+          <b className="text-white/80">{book?.title ?? "um livro"}</b>.
+        </p>
+        <div className="flex items-center gap-3 pt-2">
+          {book && (
+            <Link
+              href={`/book/${book.id}`}
+              className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-black"
+              data-testid="link-livro-da-sessao-terminada"
+            >
+              Ver o livro
+            </Link>
+          )}
+          <button
+            onClick={euMando ? encerrar : sair}
+            className="rounded-xl bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/80"
+            data-testid="button-sair-da-sessao-terminada"
+          >
+            {euMando ? "Encerrar a sala" : "Voltar"}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

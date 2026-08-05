@@ -32,7 +32,9 @@ export default function SalasComoStories() {
   }, []);
 
   const agora = salas.filter((sala) => sala.porta !== "marcada" && !sala.presentes.includes(EU));
-  if (agora.length === 0) return null;
+  // Fileira com UM story entrega app vazio (§4.104, decisão dele na folha):
+  // com menos de 2 salas a fileira some inteira, como já sumia com zero.
+  if (agora.length < 2) return null;
 
   return (
     <section className="mb-1" data-testid="salas-como-stories">
