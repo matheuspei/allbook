@@ -3784,3 +3784,111 @@ idêntico em 3 cartões seguidos — variar o texto e deduplicar entre seções.
 **Apurado na varredura, sem virar decisão:** a aba do localhost dele está com
 zoom de 50% no Chrome — todos vemos o app com breakpoints de desktop dentro
 da moldura; vale um teste em celular de verdade antes do backend.
+
+### 4.103.1 A 2ª rodada, no mesmo dia: o nome que colidia e o `/you` inteiro (05/08)
+
+Ele abriu o Menu novo e achou dois defeitos — o segundo é dos que se paga caro
+por deixar passar.
+
+**1. O cartão vermelho "Salas ao vivo agora" saiu.** *"Não acho que esse botão
+vermelho, altamente destacado, possa fazer sentido."* O argumento que sustenta:
+**menu é feito de lugares fixos; sala ao vivo é notícia** — e notícia mora no
+feed, onde ela já está (os stories do topo, §4.100). A **bolinha vermelha do
+hambúrguer saiu junto**, porque apontava para esse cartão: marca que leva a nada
+é promessa vazia.
+
+**2. A colisão de nomes — "Comunidade" nomeava DUAS telas.** *"A gente tem
+'Todas as comunidades' e o botão embaixo 'Comunidade'. Ele dá a entender que é
+a mesma coisa, mas são coisas completamente diferentes. Todas as comunidades
+são os fóruns; e comunidade é aquela coisa que a gente viu, o feed de uma rede
+social."*
+
+**Quem cedeu foi a aba de baixo, e o porquê** (as duas saídas eram
+defensáveis):
+- **"comunidade" é preciso para um fórum temático e vago para um feed** — é o
+  que o Reddit chama assim, e é o que a tela `/forum` é;
+- a palavra está encravada em **~40 textos** da tela de fóruns (reformada na
+  §4.102, no dia anterior), contra **uma linha** na barra de baixo;
+- o código sempre concordou com isso: a rota é `/forum`, o módulo é
+  `lib/forum.ts`, e a §4.44 já tinha decidido *"fórum, não grupo"*.
+
+**O nome: "Novidades".** A primeira escolha foi "Feed", e ele corrigiu na hora
+— *"talvez se fosse um feed de notícia, um nome com esse"*. **"Novidades" é
+*news feed* em português**, diz o que a tela mostra (o que há de novo entre as
+pessoas) e não deixa um anglicismo solto entre Início, Biblioteca, Pedir e
+Catálogo. **A rota continua `/community`** — mexer nela quebraria links salvos,
+e ninguém lê a barra de endereço num app.
+
+**3. O painel `/you` inteiro veio para o Menu.** *"A gente deveria colocar lá
+também estatística, conquista e downloads… ele está um pouco escondido hoje."*
+Estava mesmo: três toques (avatar → perfil → engrenagem) para chegar às suas
+próprias coisas.
+
+**A linha de corte que ficou — e que vale para o que vier depois:** o **Menu
+leva a lugares** (páginas suas que se visita para ver algo: notas, trechos,
+downloads, estatísticas, conquistas); a **engrenagem guarda ajustes**
+(privacidade, aparelho, ajuda, convidar, sair). Por isso o `/you` deixou de se
+chamar "Você" e virou **"Configurações"** — a palavra que ele usou.
+
+**Ordem das seções do Menu:** Comunidade → Seu conteúdo → **Criar por último**,
+colado ao rodapé. Os dois blocos de "ir a algum lugar" ficam juntos; ação fica
+no fim.
+
+**Apontado e NÃO mexido (decisão dele):** "Notificações" continua sendo linha
+das Configurações **e** o sino do topo — duas portas para `/notifications`.
+Deixei porque, numa tela de configurações, esse item costuma ser *ajuste de
+notificação*, que ainda não existe; se ele não vier, a linha deve cair.
+
+---
+
+## 4.105 Os ajustes do perfil viram uma lista só, e as duas placas morrem (05/08)
+
+**A queixa dele**, navegando nas Configurações: *"quando a gente clica na
+privacidade, a gente tem conta privada, e aqui tem um problema: o que aparece na
+sua página — a gente clica e a gente vai para outro menu, para outra página,
+para outra coisa. Eu acho que isso não faz muito sentido. O que poderia ser
+feito é colocar todo esse botão do editar perfil nas configurações normais
+mesmo… ele passa para o botão de privacidade e a gente faz uma única lista,
+descendo de cima até embaixo, de todas essas coisas."*
+
+**O defeito era circular, e pior do que ele descreveu.** A tela `/privacidade`
+tinha uma **placa** no meio da lista mandando para o lápis do perfil (§4.95), e
+o lápis tinha uma **porta** ("Quem pode me seguir") mandando de volta para a
+`/privacidade`. Cada lado guardava metade dos interruptores e apontava para o
+outro: quem procurava um ajuste pingava entre os dois sem nunca ver a lista
+inteira. Na tela, a placa ainda ficava **entre** dois grupos de interruptores —
+o lugar exato onde se espera outro interruptor.
+
+**O que foi rejeitado, e o motivo (é o que mais se perde).**
+
+- *Só trazer os cinco interruptores de volta para a Privacidade* — a leitura
+  literal do pedido. **Desfaria a §4.95, que é decisão dele de 01/08**: o lápis
+  voltaria a entregar um terço do que promete (foto, nome e bio), que é
+  exatamente o que ele reprovou naquele dia. Atender um pedido reabrindo o
+  buraco de outro não é atender.
+- *Matar a folha e deixar só a tela* — a folha foi escolha dele numa folha de
+  quatro propostas desenhadas (*"prefiro da forma como está o C"*), e o motivo
+  dela continua de pé: ajustar o perfil olhando para o perfil, com a página
+  mudando atrás.
+- *Copiar os interruptores nos dois lugares* — dois blocos de código com o mesmo
+  estado é a redundância varrida do compositor (§4.58) e da caixa de comentário
+  (§4.93).
+
+**A saída: uma peça só, em dois pontos de entrada.**
+`components/perfil/AjustesDoPerfil.tsx` é a lista inteira; a tela
+`/privacidade` a mostra por completo, e a folha do lápis mostra **a mesma**. Não
+é controle duplicado — é o mesmo controle, lendo e gravando no mesmo `settings`,
+com o `SETTINGS_EVENT` avisando a página atrás. Nenhum dos dois caminhos tem
+mais placa apontando para o outro, porque os dois chegam na lista completa.
+
+**A ordem da lista, de cima a baixo:** quem você é (foto/bio e recomendações) →
+o que aparece na sua página (os 5 interruptores) → quem pode te seguir (conta
+privada) → quando me avisar (os 2 do sino). Vai do mais visível ao mais
+silencioso.
+
+**Dois nomes mudaram junto:** a tela virou **"Perfil e privacidade"** (a rota
+segue `/privacidade`) e a linha nas Configurações também — "Privacidade" sozinho
+subestimava um destino que agora tem foto, bio e recomendações.
+
+**A regra da §4.95 sobrevive inteira:** o que liga/desliga fica na lista; o que
+se escreve (foto, bio, recomendação) abre página, porque formulário quer tela.

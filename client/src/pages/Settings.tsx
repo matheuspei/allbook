@@ -133,7 +133,7 @@ export default function Settings() {
         <p className="text-xs leading-relaxed text-white/30">
           Conta, perfil e privacidade ficam em{" "}
           <Link href="/you" className="font-semibold text-primary">
-            Você
+            Configurações
           </Link>
           .
         </p>
