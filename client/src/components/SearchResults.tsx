@@ -98,13 +98,27 @@ function pareceCom(query: string, book: Book): boolean {
   );
 }
 
-export function ResultCard({ book }: { book: Book }) {
+export function ResultCard({ book, onEscolher }: { book: Book; onEscolher?: () => void }) {
   const [, setLocation] = useLocation();
 
   return (
     <div
       className="group cursor-pointer"
-      onClick={() => setLocation(`/book/${book.id}`)}
+      /*
+       * ⚠️ **`onEscolher` antes de navegar, e ele não é opcional na prática**
+       * (05/08). Navegar sozinho parecia bastar — e basta na página `/search`,
+       * onde a tela inteira é trocada. Mas a **lupa do topo** abre a busca como
+       * uma folha `fixed inset-0`: a rota mudava por baixo e a folha continuava
+       * montada por cima, então a ficha do livro abria **atrás** e a pessoa
+       * ficava olhando a mesma lista. O Matheus descreveu exatamente assim:
+       * *"clico no livro, ele não abre, simplesmente trava"*. Pior no caso de
+       * clicar no livro em que já se está: aí nem a rota muda, e o app parece
+       * morto.
+       */
+      onClick={() => {
+        onEscolher?.();
+        setLocation(`/book/${book.id}`);
+      }}
       data-testid={`card-search-${book.id}`}
     >
       <div className="relative rounded-lg overflow-hidden aspect-[3/4] mb-2 transition-transform duration-200 group-hover:scale-105">
@@ -118,7 +132,23 @@ export function ResultCard({ book }: { book: Book }) {
   );
 }
 
-export default function SearchResults({ query, onClear }: { query: string; onClear: () => void }) {
+export default function SearchResults({
+  query,
+  onClear,
+  onEscolher,
+}: {
+  query: string;
+  onClear: () => void;
+  /**
+   * A pessoa escolheu um resultado e a tela vai mudar.
+   *
+   * Quem abre a busca **por cima** de outra tela (a lupa do topo) passa aqui o
+   * seu "fechar": sem isso a folha fica montada sobre a página nova e o app
+   * parece travado — ver o comentário em `ResultCard`. Na página `/search` não é
+   * preciso, porque ali a busca *é* a tela.
+   */
+  onEscolher?: () => void;
+}) {
   const results = useMemo(() => {
     if (!query.trim()) return [];
 
@@ -145,7 +175,7 @@ export default function SearchResults({ query, onClear }: { query: string; onCle
       {results.length > 0 ? (
         <div className="grid grid-cols-3 gap-3">
           {results.map((book) => (
-            <ResultCard key={book.id} book={book} />
+            <ResultCard key={book.id} book={book} onEscolher={onEscolher} />
           ))}
         </div>
       ) : (
@@ -174,6 +204,7 @@ export default function SearchResults({ query, onClear }: { query: string; onCle
 
             <Link
               href={`/request?titulo=${encodeURIComponent(query.trim())}`}
+              onClick={onEscolher}
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 h-11 font-bold text-black transition-colors hover:bg-primary/90"
               data-testid="button-request-narration"
             >

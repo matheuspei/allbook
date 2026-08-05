@@ -86,8 +86,10 @@ export default function BuscaSobreposta({ onFechar }: { onFechar: () => void }) 
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
+        {/* `onEscolher={onFechar}`: sem isto a folha ficava montada por cima da
+            tela nova e o app parecia travado (05/08) — ver `SearchResults`. */}
         {query.trim() ? (
-          <SearchResults query={query} onClear={() => setQuery("")} />
+          <SearchResults query={query} onClear={() => setQuery("")} onEscolher={onFechar} />
         ) : (
           /*
            * Estado vazio com **saída**, não só uma frase: quem abriu a lupa sem
