@@ -245,6 +245,145 @@ export const grupos: Grupo[] = [
     membros: ["felipe-g", "vitor-h", "nara", "lia-f", "elias"],
     categoria: "Ouvir na academia",
   },
+
+  /* ------------------------------------------------------------------ *
+   * A leva de 05/08 (§4.102) — porque 16 não enchem a vitrine do Reddit
+   *
+   * Quando a aba virou a cadeia de carrosséis do app do Reddit, o Matheus
+   * mandou: *"crie mais comunidades para deixar isso mais robusto da forma
+   * como seria"*. As catorze abaixo seguem a régua das anteriores (nenhuma
+   * nasce vazia, membros do elenco de `community.ts`, assunto que gente de
+   * audiolivro discute de verdade) — e as categorias são escolhidas de
+   * propósito: **uma nova na categoria de cada comunidade dele** (é o que dá
+   * conteúdo aos "Semelhantes a X"), e o resto espalhado para os carrosséis
+   * por assunto terem nome e corpo.
+   * ------------------------------------------------------------------ */
+  {
+    id: "clube-do-plot-twist",
+    nome: "Clube do plot twist",
+    emoji: "🌀",
+    descricao:
+      "A gente ouve suspense pela virada — e depois vem aqui discutir se ela foi honesta ou puxada da cartola.",
+    membros: ["beto", "sandra-l", "gustavo-a", "iara"],
+    categoria: "Suspense e Mistério",
+  },
+  {
+    id: "metro-onibus-fone",
+    nome: "Metrô, ônibus e fone",
+    emoji: "🚇",
+    descricao:
+      "O transporte público é a nossa sala de leitura. Capítulos por baldeação e o drama de perder o ponto.",
+    membros: ["marcos-v", "dani-r", "caio", "tereza-m"],
+    categoria: "Ouvir no trânsito",
+  },
+  {
+    id: "russos-sem-medo",
+    nome: "Russos sem medo",
+    emoji: "🐻",
+    descricao:
+      "Dostoiévski e Tolstói no fone, com os patronímicos pronunciados por alguém que sabe. Ninguém desiste sozinho.",
+    membros: ["juliana-s", "paulo-s", "otavio", "hugo-p"],
+    categoria: "Clássicos",
+  },
+  {
+    id: "primeiro-investimento",
+    nome: "Do zero ao primeiro investimento",
+    emoji: "🌱",
+    descricao:
+      "Para quem ouviu o livro de finanças e quer dar o primeiro passo de verdade — sem promessa de ficar rico.",
+    membros: ["ricardo", "gustavo-a", "marina-t"],
+    categoria: "Dinheiro e Negócios",
+  },
+  {
+    id: "terror-com-luz-acesa",
+    nome: "Terror com a luz acesa",
+    emoji: "👻",
+    descricao:
+      "A voz no ouvido deixa tudo pior — e a gente volta sempre. Confissões de quem pausou no meio do capítulo.",
+    membros: ["hugo-p", "elias", "vitor-h", "carla-lima"],
+    categoria: "Terror",
+  },
+  {
+    id: "romance-de-fone",
+    nome: "Romance de fone de ouvido",
+    emoji: "💛",
+    descricao:
+      "Do clássico ao contemporâneo, com narração que faz suspirar no ônibus. Sem vergonha e sem spoiler de final.",
+    membros: ["dani-r", "renata-v", "bia-costa", "lia-f"],
+    categoria: "Romance",
+  },
+  {
+    id: "vidas-de-20-horas",
+    nome: "Vidas que valem 20 horas",
+    emoji: "🏛️",
+    descricao:
+      "Biografia e história em áudio: a vida dos outros contada no seu fone, e o que ela ensina sobre a sua.",
+    membros: ["otavio", "sandra-l", "paulo-s", "tereza-m"],
+    categoria: "História e Biografia",
+  },
+  {
+    id: "aprendi-ouvindo",
+    nome: "Aprendi ouvindo",
+    emoji: "📗",
+    descricao:
+      "Não-ficção que sobreviveu ao teste do mês seguinte. O que ficou, o que era só frase de capa.",
+    membros: ["ricardo", "luciana", "felipe-g", "marina-t"],
+    categoria: "Não-ficção",
+  },
+  {
+    id: "cronica-de-fim-de-tarde",
+    nome: "Crônica de fim de tarde",
+    emoji: "🕯️",
+    descricao:
+      "Texto curto, voz boa e vinte minutos de janela. A crônica talvez seja o formato perfeito para áudio.",
+    membros: ["iara", "juliana-s", "dani-r"],
+    categoria: "Poesia e Crônica",
+  },
+  {
+    id: "rir-sozinho-no-fone",
+    nome: "Rir sozinho no fone",
+    emoji: "😂",
+    descricao:
+      "Humor em áudio e o constrangimento público que ele causa. Se você já gargalhou na fila, é dos nossos.",
+    membros: ["beto", "caio", "nara", "gustavo-a"],
+    categoria: "Comédia e Humor",
+  },
+  {
+    id: "agatha-e-herdeiras",
+    nome: "Agatha e herdeiras",
+    emoji: "🖋️",
+    descricao:
+      "A rainha do crime e as autoras que herdaram o trono. Enigma clássico, sem sangue desnecessário.",
+    membros: ["ana-paula", "renata-v", "tereza-m"],
+    categoria: "Autores",
+  },
+  {
+    id: "ouvindo-com-os-filhos",
+    nome: "Ouvindo com os filhos",
+    emoji: "🧸",
+    descricao:
+      "Audiolivro na viagem, na hora de dormir e na birra. O que prende as crianças — e o que salva os adultos.",
+    membros: ["tereza-m", "sandra-l", "felipe-g", "marina-t"],
+    categoria: "Família e Infância",
+  },
+  {
+    id: "ingles-pelo-fone",
+    nome: "Inglês pelo fone",
+    emoji: "🎓",
+    descricao:
+      "Aprender idioma ouvindo história, não lista de verbo. Qual nível, qual velocidade, qual narrador ajuda.",
+    membros: ["gustavo-a", "vitor-h", "lia-f"],
+    categoria: "Estudo e Idiomas",
+  },
+  {
+    id: "grandes-perguntas",
+    nome: "Grandes perguntas, voz calma",
+    emoji: "🤔",
+    descricao:
+      "Filosofia em áudio para gente sem tempo de ler filosofia. A caminhada vira aula, a dúvida vira conversa.",
+    membros: ["paulo-s", "elias", "iara", "hugo-p"],
+    categoria: "Filosofia e Ideias",
+  },
 ];
 
 const topicosSemeados: TopicoSemeado[] = [
@@ -1018,6 +1157,293 @@ const topicosSemeados: TopicoSemeado[] = [
         texto:
           "Sigo. Se o livro é bom eu percebo que perdi alguma coisa e volto; se não percebo, é porque não fazia falta.",
         date: "2026-07-31",
+      },
+    ],
+  },
+
+  /* ------------------------------------------------------------------ *
+   * Um tópico para cada comunidade da leva de 05/08 (§4.102) — a mesma
+   * régua das levas anteriores: comunidade sem conversa dentro é o beco
+   * sem saída da §4.23. As datas são desta semana de propósito: são elas
+   * que fazem o "Recomendado para você" ter motivo verdadeiro.
+   * ------------------------------------------------------------------ */
+  {
+    id: "t-twist-honesto",
+    grupoId: "clube-do-plot-twist",
+    titulo: "Existe plot twist bom que NÃO esconde nada do leitor?",
+    autorSlug: "beto",
+    date: "2026-08-02",
+    bookId: 3,
+    respostas: [
+      {
+        autorSlug: "beto",
+        texto:
+          "Garota Exemplar é o teste: a pista estava lá. Para mim, twist honesto é o que te deixa com raiva de você, não do autor.",
+        date: "2026-08-02",
+      },
+      {
+        autorSlug: "iara",
+        texto: "E em áudio é mais justo ainda — a narradora muda o tom e você DEVIA ter percebido.",
+        date: "2026-08-03",
+      },
+    ],
+  },
+  {
+    id: "t-perder-o-ponto",
+    grupoId: "metro-onibus-fone",
+    titulo: "Você já passou do ponto por causa de um capítulo?",
+    autorSlug: "dani-r",
+    date: "2026-08-03",
+    respostas: [
+      {
+        autorSlug: "dani-r",
+        texto: "Três estações. O capítulo era bom demais para apertar o botão.",
+        date: "2026-08-03",
+      },
+      {
+        autorSlug: "marcos-v",
+        texto: "Regra minha: cena de revelação só depois de descer. Aprendi da pior forma.",
+        date: "2026-08-04",
+      },
+    ],
+  },
+  {
+    id: "t-russos-comecar",
+    grupoId: "russos-sem-medo",
+    titulo: "Por qual russo começar sem desistir na página 50?",
+    autorSlug: "juliana-s",
+    date: "2026-08-01",
+    respostas: [
+      {
+        autorSlug: "juliana-s",
+        texto:
+          "Crime e Castigo, sem medo. Em áudio os nomes deixam de assustar: o narrador pronuncia por você e cada personagem tem um tom.",
+        date: "2026-08-01",
+      },
+      {
+        autorSlug: "paulo-s",
+        texto: "E anota os apelidos no começo. Rodion, Ródia e Romanovitch são a MESMA pessoa.",
+        date: "2026-08-02",
+      },
+    ],
+  },
+  {
+    id: "t-primeiros-100",
+    grupoId: "primeiro-investimento",
+    titulo: "O que você fez com os primeiros 100 reais depois do livro?",
+    autorSlug: "ricardo",
+    date: "2026-08-02",
+    bookId: 101,
+    respostas: [
+      {
+        autorSlug: "ricardo",
+        texto: "Reserva de emergência, sem glamour nenhum. O livro tinha razão: o difícil é começar.",
+        date: "2026-08-02",
+      },
+      {
+        autorSlug: "marina-t",
+        texto: "Paguei uma dívida pequena só para sentir o gosto. Melhor investimento do ano.",
+        date: "2026-08-04",
+      },
+    ],
+  },
+  {
+    id: "t-terror-pausa",
+    grupoId: "terror-com-luz-acesa",
+    titulo: "Qual cena te fez tirar o fone e olhar para o corredor?",
+    autorSlug: "hugo-p",
+    date: "2026-08-03",
+    bookId: 105,
+    respostas: [
+      {
+        autorSlug: "hugo-p",
+        texto: "O corredor do hotel no Iluminado. Eu estava num corredor de hotel. Erro meu.",
+        date: "2026-08-03",
+      },
+      {
+        autorSlug: "elias",
+        texto: "Qualquer sussurro no canal esquerdo. Quem mixa terror em estéreo sabe o que faz.",
+        date: "2026-08-04",
+      },
+    ],
+  },
+  {
+    id: "t-romance-vozes",
+    grupoId: "romance-de-fone",
+    titulo: "Narração dupla em romance: essencial ou moda?",
+    autorSlug: "renata-v",
+    date: "2026-08-01",
+    bookId: 140,
+    respostas: [
+      {
+        autorSlug: "renata-v",
+        texto:
+          "Essencial quando os capítulos alternam o casal. Uma voz só fazendo os dois me tira da história.",
+        date: "2026-08-01",
+      },
+      {
+        autorSlug: "lia-f",
+        texto: "Discordo com carinho: a Helena Vasques sozinha faz um baile inteiro. Depende de quem narra.",
+        date: "2026-08-03",
+      },
+    ],
+  },
+  {
+    id: "t-biografia-autor",
+    grupoId: "vidas-de-20-horas",
+    titulo: "Biografia narrada pelo próprio autor: melhor ou pior?",
+    autorSlug: "otavio",
+    date: "2026-08-02",
+    respostas: [
+      {
+        autorSlug: "otavio",
+        texto:
+          "Melhor quando é memória, pior quando é história. Emoção de quem viveu não se imita — dicção de narrador também não.",
+        date: "2026-08-02",
+      },
+      {
+        autorSlug: "sandra-l",
+        texto: "Metade a metade: já ouvi autor que soava lendo lista de compras da própria vida.",
+        date: "2026-08-04",
+      },
+    ],
+  },
+  {
+    id: "t-uso-ate-hoje",
+    grupoId: "aprendi-ouvindo",
+    titulo: "O que você aprendeu num audiolivro e usa até hoje?",
+    autorSlug: "luciana",
+    date: "2026-08-04",
+    bookId: 102,
+    respostas: [
+      {
+        autorSlug: "luciana",
+        texto: "A regra dos 2 minutos. Três anos depois, ainda é ela que me tira do sofá.",
+        date: "2026-08-04",
+      },
+      {
+        autorSlug: "felipe-g",
+        texto: "Ouvir o capítulo de novo antes de recomendar. Metade dos livros não sobrevive à segunda escuta.",
+        date: "2026-08-05",
+      },
+    ],
+  },
+  {
+    id: "t-cronica-formato",
+    grupoId: "cronica-de-fim-de-tarde",
+    titulo: "Crônica é o formato perfeito para áudio?",
+    autorSlug: "iara",
+    date: "2026-08-03",
+    respostas: [
+      {
+        autorSlug: "iara",
+        texto:
+          "Cabe no trajeto, termina antes do ponto e não exige memória de saga. Para mim é o formato que mais combina com fone.",
+        date: "2026-08-03",
+      },
+      {
+        autorSlug: "dani-r",
+        texto: "E crônica boa lida em voz alta vira quase música. O Braga em áudio me desmontou.",
+        date: "2026-08-05",
+      },
+    ],
+  },
+  {
+    id: "t-rir-em-publico",
+    grupoId: "rir-sozinho-no-fone",
+    titulo: "Onde você pagou o maior mico rindo de audiolivro?",
+    autorSlug: "caio",
+    date: "2026-08-04",
+    respostas: [
+      {
+        autorSlug: "caio",
+        texto: "Fila do banco. Gargalhada seca, sozinho, com o segurança olhando. Valeu a pena.",
+        date: "2026-08-04",
+      },
+      {
+        autorSlug: "nara",
+        texto: "Reunião com câmera desligada e microfone LIGADO. O livro era de humor, a reunião não.",
+        date: "2026-08-05",
+      },
+    ],
+  },
+  {
+    id: "t-poirot-marple",
+    grupoId: "agatha-e-herdeiras",
+    titulo: "Poirot ou Miss Marple: quem funciona melhor em áudio?",
+    autorSlug: "ana-paula",
+    date: "2026-08-01",
+    respostas: [
+      {
+        autorSlug: "ana-paula",
+        texto:
+          "Poirot, pelo sotaque — narrador bom faz o francês dele virar personagem. Miss Marple depende mais do texto que da voz.",
+        date: "2026-08-01",
+      },
+      {
+        autorSlug: "tereza-m",
+        texto: "Marple, ora. A malícia de senhora educada pede EXATAMENTE o tom de quem conta caso de vizinha.",
+        date: "2026-08-02",
+      },
+    ],
+  },
+  {
+    id: "t-filhos-viagem",
+    grupoId: "ouvindo-com-os-filhos",
+    titulo: "Estrada com crianças: qual audiolivro salvou a viagem?",
+    autorSlug: "tereza-m",
+    date: "2026-08-02",
+    respostas: [
+      {
+        autorSlug: "tereza-m",
+        texto:
+          "Fábula com vozes diferentes para cada bicho. 40 minutos de silêncio no banco de trás — quem tem filho sabe o que é isso.",
+        date: "2026-08-02",
+      },
+      {
+        autorSlug: "marina-t",
+        texto: "Aqui funcionou deixar ELES escolherem. Criança ouve de novo o mesmo livro dez vezes, e tudo bem.",
+        date: "2026-08-04",
+      },
+    ],
+  },
+  {
+    id: "t-ingles-nivel",
+    grupoId: "ingles-pelo-fone",
+    titulo: "Primeiro audiolivro em inglês: qual foi e em que velocidade?",
+    autorSlug: "gustavo-a",
+    date: "2026-08-03",
+    respostas: [
+      {
+        autorSlug: "gustavo-a",
+        texto:
+          "Livro que eu JÁ tinha ouvido em português, em 0.9x. Conhecer a história libera o cérebro para o idioma.",
+        date: "2026-08-03",
+      },
+      {
+        autorSlug: "lia-f",
+        texto: "Infantojuvenil, sem vergonha. Vocabulário simples, narração clara, e a história segura.",
+        date: "2026-08-05",
+      },
+    ],
+  },
+  {
+    id: "t-filosofia-15x",
+    grupoId: "grandes-perguntas",
+    titulo: "Filosofia em 1.5x é pecado?",
+    autorSlug: "paulo-s",
+    date: "2026-08-04",
+    respostas: [
+      {
+        autorSlug: "paulo-s",
+        texto:
+          "É. Filosofia não é informação para extrair, é pensamento para acompanhar — e pensamento tem andamento.",
+        date: "2026-08-04",
+      },
+      {
+        autorSlug: "elias",
+        texto: "Depende: história da filosofia aguenta 1.5x; o texto original, não. Sêneca apressado vira coach.",
+        date: "2026-08-05",
       },
     ],
   },

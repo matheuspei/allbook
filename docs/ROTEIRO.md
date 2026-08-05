@@ -3627,3 +3627,61 @@ defeito da tela. Se acontecer com as outras janelas paradas, aí é assunto.
 
 O "Para você" ficou — *"tá ok"* — com a ressalva dele de que talvez ainda mude
 algo ali; se mexer, é iteração nova, não pendência.
+
+## 4.102 A aba Comunidades vira o app do Reddit — e a página de dentro fica (05/08)
+
+Ele navegou pela aba e sentenciou: *"não gosto do layout da forma como está…
+os fóruns, a forma como estão os fóruns, as comunidades, isso não me agrada"*.
+Em seguida mandou **screenshots do app do Reddit** e a ordem: *"pegue toda a
+biblioteca de como é o Reddit pelo formato de aplicativo e a gente colocar
+exatamente como é"*. Sem folha desta vez — a referência veio pronta, dele.
+
+**O recorte, ditado por ele na mesma hora:** *"a página de dentro a gente
+poderia manter… eu acho que até me agrada a parte de dentro assim como está."*
+Ou seja: a **estrutura Orkut da §4.74/4.77 segue valendo em `Grupo.tsx` e
+`Topico.tsx`** — reconfirmada por ele hoje. Só a vitrine de fora
+(`Comunidades.tsx`, `/forum`) mudou de molde.
+
+**O molde construído** (o screenshot dele, com as cores do AllBook): busca
+redonda no topo → pastilhas "Explore comunidades por assunto" em três fileiras
+que rolam de lado → fileira "Suas comunidades" (rosto redondo) → **cadeia de
+carrosséis**: Recomendado para você, Semelhantes a X (uma por comunidade
+dele), Mais populares, e carrosséis com nome de assunto → censo "Todas as
+comunidades" → cartão de criar. O botão **Entrar mora no próprio cartão**
+(entrar/pedir/cancelar/sair conforme a governança) — na lista antiga era
+preciso abrir a comunidade para participar.
+
+**A correção dele na primeira olhada** — registrada porque é método: *"ainda
+não está como é no Reddit… tem bem mais carrosséis do que a forma como está.
+Você meio que quis implementar do seu jeito"*. A primeira versão tinha UM
+carrossel de fileira única; virou a cadeia acima, cada carrossel com **duas
+fileiras de cartões empilhados** (coluna seguinte espiando), que é como o
+Reddit faz. Fidelidade ao molde escolhido ganha de "meu jeito".
+
+**Diferente do Reddit, de propósito (regras dele que não são de molde):**
+o motivo escrito no cartão recomendado ("também é de suspense…", "2 conversas
+esta semana") — recomendação sem porquê é lista aleatória (§4.78); as 36
+categorias TODAS nas pastilhas, vazias apagadas mas clicáveis (§4.82); os
+ícones de categoria (§4.82); a fileira "Suas comunidades" com "ver todas"
+(§4.92); e o censo completo no fim — carrossel repete comunidade entre seções
+como no Reddit, mas ninguém fica invisível.
+
+**O que morreu nesta tela, e por quê:** os blocos "Acontecendo agora" e "Em
+alta" da §4.82, os números do rodapé, a **paginação de 10 em 10** e a roleta
+`<select>` de categoria — tudo era molde Orkut/vitrine antiga; a ordem foi
+"exatamente como o Reddit". As funções da `forumVitrine` continuam vivas
+(`Search.tsx` usa; `emAlta` agora completa o "Recomendado para você" quando
+as sugestões pessoais não enchem as 6 vagas).
+
+**A semeadura que a vitrine cobrou:** *"se só tem 16 hoje, crie mais
+comunidades para deixar isso mais robusto da forma como seria"*. Entraram
+**14 novas (16 → 30)** em `lib/grupos.ts`, na régua de sempre (nenhuma nasce
+vazia, membros do elenco, assunto de audiolivro de verdade) e com estratégia:
+uma nova **na categoria de cada comunidade dele** (alimenta os "Semelhantes a
+X") e o resto espalhado (Terror, Romance, História, Humor, Autores, Filosofia,
+Idiomas, Família, Poesia, Não-ficção). Tópicos datados **desta semana** — são
+eles que dão motivo verdadeiro ao Recomendado.
+
+**Fica de aviso para a próxima janela:** a docstring de `Grupo.tsx` ("a
+estrutura é para ficar") continua CORRETA — ele a reconfirmou hoje. Quem for
+mexer lá dentro precisa de ordem nova dele, não desta seção.
