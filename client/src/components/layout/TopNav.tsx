@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Bell, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import BuscaSobreposta from "@/components/BuscaSobreposta";
+import MarcaAllBook from "@/components/MarcaAllBook";
 import PainelDaComunidade, { BotaoDoPainel } from "@/components/comunidade/PainelDaComunidade";
 import { NOTIFICATIONS_EVENT, unreadNotificationCount } from "@/lib/notifications";
 import { avisosDeCurtida } from "@/lib/avisosDeCurtida";
@@ -130,11 +131,11 @@ export default function TopNav() {
               A referência é a gaveta do Reddit/X: fixa no canto esquerdo, o
               mesmo gesto em qualquer aba. */}
           <BotaoDoPainel onClick={() => setPainelAberto(true)} />
+          {/* A marca ganhou símbolo em 05/08 — até aqui o topo era só o nome
+              escrito, e "All" é que vinha em laranja. O desenho e o porquê da
+              inversão estão em `components/MarcaAllBook.tsx`. */}
           <Link href="/" data-testid="link-home-logo">
-            <span className="font-display text-xl font-bold tracking-tight">
-              <span className="text-primary">All</span>
-              <span className="text-foreground">Book</span>
-            </span>
+            <MarcaAllBook />
           </Link>
         </div>
 

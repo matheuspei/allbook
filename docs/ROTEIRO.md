@@ -4094,3 +4094,62 @@ cor de marca — atende o "mudar para preta", mas deixa o app anônimo), *Abajur
 
 Relacionado: a §4.108 já previa que o debate dos ícones coloridos pediria uma
 folha comparando paletas — é esta.
+
+## 4.111 A marca ganha símbolo: "a página que vira som" (05/08)
+
+**A decisão.** O AllBook passa a ter uma marca desenhada, escolhida por ele na
+folha `_logo-A.html` entre seis propostas:
+
+- **O símbolo — "a página que vira som".** Um livro aberto cuja página da
+  esquerda é sólida e cuja página da direita **se desfaz em quatro linhas que
+  encurtam e desbotam**. As linhas são ao mesmo tempo texto e onda sonora, e a
+  ambiguidade é o ponto: é a ideia central do app (§ da narração sob demanda)
+  num desenho só — o livro que só existe escrito virando voz.
+- **O nome: "All" branco + "Book" laranja** — o **inverso** do que o topo trazia
+  desde sempre ("All" em laranja). O laranja passa a cair sobre a palavra que o
+  símbolo ilustra, e "All" para de competir com ele.
+- **O ícone do app: marca laranja sobre quadrado escuro** (rejeitados: marca
+  escura sobre quadrado laranja, e degradê laranja→âmbar).
+
+Isto **responde uma das lacunas apontadas na §4.110** — lá estava registrado que
+"não existe símbolo, então não há ícone de app nem favicon". Agora há os dois.
+O resto da §4.110 (fundo, paleta, cartão de livro, topo da Início) **continua em
+aberto**.
+
+**As cinco rejeitadas, e por quê** — vale guardar, porque a próxima rodada de
+identidade não precisa redescobri-las:
+
+| | Marca | Por que caiu |
+|---|---|---|
+| A | Lombadas numa prateleira que também são um equalizador | A leitura "livro" dependia inteira do risco da prateleira; sem ele, é app de música |
+| B | O "A" de AllBook feito de duas páginas abertas | Casa com o nome, mas **não fala de áudio** em lugar nenhum |
+| C | Livro aberto com o botão de play recortado | Entende-se na hora — e é o que todo app de audiolivro já fez |
+| E | Livro com ondas subindo, como sinal no ar | O arco de fora é fino e some primeiro; exigiria versão separada só para o ícone |
+| F | Marcador de página com barras de som dentro | A silhueta mais forte no tamanho pequeno, mas "marcador" já é o ícone de **salvar** dentro do próprio app |
+
+**Apurado no caminho: IA de imagem não serve para fazer logo.** Ele tentou no
+davinci.ai (Nano Banana Pro) e o que voltou foram cenários dourados de biblioteca
+com uma marca carimbada em cima. Três causas, todas no texto do pedido — e as
+três valem para a próxima vez:
+
+1. **um pedido não pode conter dois produtos.** O texto pedia o fundo *e* a logo
+   na mesma frase; gerador de imagem não separa, ele funde;
+2. **linguagem de briefing humano vira cenário.** "Espaço vasto e acolhedor",
+   "biblioteca viva" — a máquina pinta a cena descrita, ao pé da letra;
+3. **prompt de logo é feito de proibição**, não de descrição: sem cenário, sem
+   fotorrealismo, sem 3D, sem sombra, sem degradê, sem texto.
+
+E mesmo acertando, a saída é **PNG**. Marca precisa ser **vetor** — estica sem
+borrar, troca de cor por CSS, encolhe até 16 px. Por isso as seis propostas
+foram desenhadas em SVG à mão, como os `GenreIcon` (§4.27), e é assim que a
+escolhida entrou no app. **Não trazer imagem gerada para dentro da identidade.**
+
+**Achado colateral:** o `favicon.png` que o app servia desde o começo era **o
+logo do Replit**, laranja, sobra do andaime original. Ninguém tinha reparado.
+
+⚠️ **Armadilha para a próxima rodada de identidade.** O componente
+(`components/MarcaAllBook.tsx`) usa `currentColor`/`text-primary`, então trocar a
+cor de marca continua custando **uma linha** do `index.css`, como a §4.110 mediu.
+Mas o **`client/public/favicon.svg` tem o hexadecimal escrito à mão**
+(`#FF6A00` sobre `#141414`) — arquivo estático não lê token de CSS. Mudou a cor
+da marca, **mexa nos dois**; está avisado no cabeçalho dos dois arquivos.
