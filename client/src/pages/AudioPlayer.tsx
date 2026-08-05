@@ -491,12 +491,13 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               alt={book.title}
               className="w-full h-full object-cover"
             />
-            <div className="absolute top-0 right-0 overflow-hidden w-20 h-20">
-              <div className="absolute transform rotate-45 bg-[#f59e0b] text-black text-[9px] font-bold py-1 right-[-25px] top-[15px] w-32 text-center uppercase tracking-wider shadow-sm">
-                AllBook<br/>Original
-              </div>
-            </div>
           </div>
+
+          {/* O selo saiu de CIMA da arte (§4.104): a fita diagonal cobria a
+              capa. Fora da imagem, como a ficha do livro já faz. */}
+          <span className="-my-1 rounded-md bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-500">
+            AllBook Original
+          </span>
 
           {/* Título e autor — clicáveis, levam à página do livro. Antes o único
               caminho para os detalhes era o menu "Mais" > "Detalhes do título",

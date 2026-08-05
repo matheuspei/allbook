@@ -200,10 +200,9 @@ function BotaoDeReacao({
  *   *sobre pessoas* — texto sem corpo. Isto não é aquilo: as pessoas não são o
  *   conteúdo, são a **recepção** dele, em 20px. E é o que responde a pergunta que
  *   um número nunca responde: *quem?*
- * - **A barra só aparece quando houve discordância.** Post que só agradou não
- *   precisa de gráfico; post que **dividiu** ganha uma linha de duas cores, e aí
- *   ela significa alguma coisa. Elemento que só existe quando carrega informação
- *   é a régua da casa contra enfeite (§4.23).
+ * - **A barra de divisão existiu e saiu (§4.104).** Ela aparecia quando o post
+ *   dividia opiniões, mas repetia em desenho, sem rótulo, o que a frase já diz
+ *   por extenso — na averiguação de design ele mandou tirar. A frase é o dado.
  * - **A frase é escrita, não uma soma.** "Ana Paula e mais 3 gostaram · 1
  *   discordou" se lê de relance; "4 · 1" obriga a decifrar.
  *
@@ -285,20 +284,9 @@ export function LinhaDeRecepcao({
           </span>
         </button>
 
-        {/* A barra da divisão — só quando houve os dois lados (ver o cabeçalho). */}
-        {totalCurtiu > 0 && totalDescurtiu > 0 && (
-          <span
-            className="flex h-1 w-14 shrink-0 overflow-hidden rounded-full bg-white/10"
-            aria-hidden
-            data-testid={`barra-recepcao-${id}`}
-          >
-            <span
-              className="h-full bg-amber-500"
-              style={{ width: `${(totalCurtiu / (totalCurtiu + totalDescurtiu)) * 100}%` }}
-            />
-            <span className="h-full flex-1 bg-white/55" />
-          </span>
-        )}
+        {/* A barra da divisão morreu na §4.104 (decisão dele na folha): ela
+            repetia em desenho, sem rótulo, o que a frase ao lado já dizia por
+            extenso — era o "número supérfluo" que a régua da casa corta. */}
       </div>
 
       {vendo && (
