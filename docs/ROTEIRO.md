@@ -2872,6 +2872,39 @@ tem, lado a lado, um botão que anota **para você** (Marcar) e uma caixa que fa
 ler…"*. **Se o texto não diz para quem se está falando, o erro é do app, não de
 quem escreveu.**
 
+### Três defeitos na gaveta do player, e um na busca (05/08)
+
+**1. A gaveta desenhava um segundo cartão de comentário, mais pobre.** O Matheus
+listou os buracos de uma vez: *"a pessoa que faz o comentário: eu não posso
+comentar em cima do comentário dela, não posso clicar no perfil dela, não vejo a
+foto dela"*. Os três vinham da mesma causa — um componente próprio
+(`FalaDoTrecho`) em vez do `CommentThread` da sala. Trocado: agora vêm juntos
+foto que amplia, nome que leva ao perfil (testado: leva a `/user/beto`), curtir,
+responder e denunciar. **Duas peças para a mesma coisa sempre divergem, e quem
+perde é a mais escondida.**
+
+**2. A gaveta abria na aba do clube.** *"Seria mais interessante que a primeira
+coisa que aparecer fosse as conversas de todos."* Ele tem razão e o custo era
+alto: um clube tem 6 pessoas e o livro tem o app inteiro, então a gaveta abria
+quase sempre vazia, com a conversa cheia escondida atrás de um toque. **"De
+todos" virou o padrão e foi para a esquerda** (a ordem na tela tem de acompanhar
+qual é o padrão). A aba do clube **fica** — ver o que a *sua turma* disse naquele
+minuto é diferente de ver o que o mundo disse, e é a decisão da §4.40 (o clube é
+um filtro da sala, não uma segunda conversa). *O errado era o padrão, não a
+existência* — e tirá-la é uma linha, se ele quiser.
+
+**3. Clicar num resultado da lupa não abria o livro.** *"Clico no livro, ele não
+abre e simplesmente trava."* Reproduzido: `SearchResults` navegava com
+`setLocation` mas **não avisava quem o chamou**. Na página `/search` isso basta —
+a tela inteira troca. Mas a **lupa do topo** abre a busca como folha
+`fixed inset-0`: a rota mudava por baixo e a folha continuava montada por cima,
+então a ficha abria **atrás**. Pior ao clicar no livro em que já se estava: nem a
+rota mudava, e o app parecia morto. Agora `SearchResults` recebe `onEscolher`, e
+a folha fecha antes de navegar (testado: `/book/106` → `/book/7`, "Duna").
+
+**A régua:** *componente que navega precisa avisar quem o montou — quem abre por
+cima é o único que sabe que precisa sair da frente.*
+
 ### A crítica que fiz da ideia dele, e onde ela procede
 
 **Capa em todo tópico, do tamanho de cartão, destrói a lista.** Fórum é uma

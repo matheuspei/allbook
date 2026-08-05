@@ -1,14 +1,22 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { ChevronRight, EyeOff, MessageSquare, X } from "lucide-react";
 
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import CommentComposer from "@/components/CommentComposer";
+import CommentThread from "@/components/CommentThread";
+import MeuComentario from "@/components/MeuComentario";
 import { citacaoDoComentario, type Citacao } from "@/lib/citacoes";
 import { meuClubeDoLivro } from "@/lib/clubes";
 import { commentsForBook } from "@/lib/comments";
 import { findMember } from "@/lib/community";
-import { myCommentsFor } from "@/lib/myComments";
+import {
+  MEUS_COMENTARIOS_EVENT,
+  myCommentsFor,
+  removeComment,
+  type MyComment,
+} from "@/lib/myComments";
+import { readReactions, type Reactions } from "@/lib/reactions";
 import { comentariosNoTrecho, rotuloDaAncora } from "@/lib/sala";
 import RastroDaSessao from "@/components/sala/RastroDaSessao";
 import { rastroNoTrecho } from "@/lib/salaAoVivo";
@@ -57,13 +65,38 @@ export default function ConversaDoTrecho({
    */
   const [ponto] = useState(posicaoSec);
 
+  /** As suas falas presas nos 5 minutos que terminam neste ponto. */
+  function meusAqui(livro: number, segundo: number): MyComment[] {
+    return myCommentsFor({ bookId: livro }).filter(
+      (item) =>
+        item.positionSec !== undefined &&
+        item.positionSec <= segundo + 1 &&
+        item.positionSec >= segundo - 300,
+    );
+  }
+
   const todosDoTrecho = comentariosNoTrecho(commentsForBook(bookId), ponto);
-  const meusDoTrecho = myCommentsFor({ bookId }).filter(
-    (item) =>
-      item.positionSec !== undefined &&
-      item.positionSec <= ponto + 1 &&
-      item.positionSec >= ponto - 300,
-  );
+
+  /* As suas falas do trecho vivem no estado para a lista redesenhar quando você
+     publica ou apaga uma — o mesmo `MEUS_COMENTARIOS_EVENT` que a sala escuta. */
+  const [meusDoTrecho, setMeusDoTrecho] = useState<MyComment[]>(() => meusAqui(bookId, ponto));
+
+  useEffect(() => {
+    const atualizar = () => setMeusDoTrecho(meusAqui(bookId, ponto));
+    window.addEventListener(MEUS_COMENTARIOS_EVENT, atualizar);
+    return () => window.removeEventListener(MEUS_COMENTARIOS_EVENT, atualizar);
+  }, [bookId, ponto]);
+
+  function apagarMeu(id: string) {
+    removeComment(id);
+    setMeusDoTrecho(meusAqui(bookId, ponto));
+  }
+
+  /* As curtidas do trecho: mesmo mecanismo da sala, para o número que você vê
+     aqui ser o mesmo que aparece lá. */
+  const [reactions, setReactions] = useState<Reactions>({});
+
+  useEffect(() => setReactions(readReactions()), []);
 
   /*
    * O clube entra aqui como **filtro**, não como conversa separada (ROTEIRO
@@ -76,7 +109,21 @@ export default function ConversaDoTrecho({
   const temRastro = rastroNoTrecho(bookId, ponto).length > 0;
 
   const clube = useMemo(() => meuClubeDoLivro(bookId), [bookId]);
-  const [aba, setAba] = useState<"turma" | "todos">("turma");
+
+  /*
+   * **A gaveta abre em "De todos", não na turma** (05/08). Abria no clube, e o
+   * Matheus mostrou o custo: *"seria mais interessante que a primeira coisa que
+   * aparecer fosse as conversas de todos"* — a aba da turma quase sempre está
+   * vazia (um clube tem 6 pessoas; o livro tem o app inteiro), então a gaveta
+   * abria parecendo que ninguém falou naquele ponto, com a conversa cheia
+   * escondida atrás de um toque.
+   *
+   * A aba do clube **fica**, e é uma linha para tirar se ele quiser: ver o que a
+   * *sua turma* disse naquele minuto é diferente de ver o que o mundo disse, e é
+   * a mesma decisão da §4.40 (o clube é um filtro da sala, não uma segunda
+   * conversa). O que estava errado era o padrão, não a existência.
+   */
+  const [aba, setAba] = useState<"turma" | "todos">("todos");
 
   const daTurma = clube
     ? todosDoTrecho.filter((item) => clube.membros.includes(item.authorSlug))
@@ -126,17 +173,19 @@ export default function ConversaDoTrecho({
           duas pastilhas com o mesmo conteúdo — o tipo de escolha falsa que a
           4.23 mandou varrer.
         */}
+        {/* "De todos" vem primeiro e nasce ligada — a ordem na tela acompanha
+            qual é o padrão, senão a pastilha da esquerda parece a principal. */}
         {temAbas && clube && (
           <div className="mb-4 flex gap-2" data-testid="abas-conversa-trecho">
+            <Aba ligada={aba === "todos"} onClick={() => setAba("todos")} testid="aba-todos">
+              De todos · {todosDoTrecho.length + meusDoTrecho.length}
+            </Aba>
             <Aba
               ligada={aba === "turma"}
               onClick={() => setAba("turma")}
               testid="aba-turma"
             >
               {clube.nome} · {daTurma.length + meusDoTrecho.length}
-            </Aba>
-            <Aba ligada={aba === "todos"} onClick={() => setAba("todos")} testid="aba-todos">
-              De todos · {todosDoTrecho.length + meusDoTrecho.length}
             </Aba>
           </div>
         )}
@@ -187,26 +236,30 @@ export default function ConversaDoTrecho({
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
                 Nos últimos 5 minutos de áudio
               </p>
+              {/*
+                ⚠️ **Aqui era o `FalaDoTrecho`, um cartão simplificado — e ele
+                tirava da fala tudo o que faz dela conversa** (05/08). O Matheus
+                listou os três buracos de uma vez: *"a pessoa que faz o
+                comentário: eu não posso comentar em cima do comentário dela, não
+                posso clicar no perfil dela, não vejo a foto dela"*. Os três
+                existiam porque a gaveta desenhava **um segundo cartão de
+                comentário**, mais pobre que o da sala, em vez de usar o mesmo.
+
+                Agora usa o `CommentThread` — o mesmo da conversa do livro. Vem
+                junto: foto que amplia, nome que leva ao perfil, curtir,
+                responder e denunciar. **Duas peças para a mesma coisa sempre
+                divergem, e quem perde é a mais escondida** — que era esta.
+              */}
               {doTrecho.map((comment) => (
-                <FalaDoTrecho
+                <CommentThread
                   key={comment.id}
-                  nome={findMember(comment.authorSlug)?.name ?? "Alguém"}
-                  quando={rotuloDaAncora(bookId, comment.positionSec ?? ponto)}
-                  texto={comment.text}
-                  spoiler={comment.spoiler}
-                  citacao={citacaoDoComentario({ ...comment, bookId })}
+                  comment={comment}
+                  reactions={reactions}
+                  onReactionsChange={setReactions}
                 />
               ))}
               {meusDoTrecho.map((meu) => (
-                <FalaDoTrecho
-                  key={meu.id}
-                  nome="Você"
-                  quando={rotuloDaAncora(bookId, meu.positionSec ?? ponto)}
-                  texto={meu.text}
-                  spoiler={meu.spoiler}
-                  citacao={citacaoDoComentario({ ...meu, bookId })}
-                  ehSeu
-                />
+                <MeuComentario key={meu.id} comment={meu} onApagar={apagarMeu} />
               ))}
             </>
           )}
