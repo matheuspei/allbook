@@ -1234,7 +1234,7 @@ três em minutos, contra dezenas em segundos num gerador.
 
 | Etapa | Onde |
 | --- | --- |
-| Descobrir o desenho (símbolo, letreiro) | Grok, **Ideogram** (melhor com letra), Midjourney |
+| Descobrir o desenho (símbolo, letreiro) | ⚠️ **desatualizado — ver §4.112**; era Grok/Ideogram/Midjourney, e os dois primeiros deixaram de servir de graça |
 | Ver a ideia mexendo | Sora, Veo, Runway, Kling |
 | A vinheta sonora | **ElevenLabs** (efeito sonoro por descrição), Suno, ou contratar |
 | Virar app: vetorizar, animar, sincronizar com o som | **aqui** |
@@ -4170,3 +4170,66 @@ marca vencer.
 componente segue o token (`text-primary`) e custa uma linha do `index.css`, como
 a §4.110 mediu — mas **arquivo estático de ícone não lê CSS**: o hexadecimal fica
 escrito à mão dentro dele. Mudou a cor, são **dois lugares**.
+
+## 4.112 As ferramentas para gerar a marca — o mercado grátis mudou (06/08)
+
+**O pedido do Matheus:** ferramenta **gratuita** e no modelo que ele descreveu —
+*"você digitava um prompt e ele gerava diversas imagens, aí você ia clicando
+nessas imagens e ia aparecendo outras, mais ou menos como é no Pinterest, só que
+no contexto daquela logo"*. Não é "gerar 4 e acabou": é **garimpo por
+vizinhança**, onde cada imagem é a semente da próxima rodada.
+
+**Duas recomendações da §4.35 morreram** (verificado na web em 06/08/2026):
+
+| Ferramenta | O que mudou | Serve? |
+|---|---|---|
+| **Grok** | Tirou imagem e vídeo do plano grátis em **19/03/2026**; free virou só texto | ❌ não |
+| **Ideogram** | Free caiu de 10/dia para **10 por semana**, e o **Remix virou pago** — justo o botão do modelo Pinterest | ❌ não |
+| **Bing / Copilot Imagens** | Sempre gerou 4 e parou ali; **nunca teve** variar-a-partir-desta | ❌ não |
+| **Midjourney** | Continua o melhor em variação (Vary sutil/forte, Remix), mas **não tem plano grátis** (~US$10/mês) | 💰 só pagando |
+
+**O que ficou, na ordem em que recomendei:**
+
+1. **Leonardo.ai** — é literalmente o que ele descreveu: a home é um **feed
+   estilo Pinterest** das criações de todo mundo e cada imagem tem **Remix**, que
+   abre o prompt daquela imagem para você mexer. **150 tokens/dia** de graça
+   (~10–15 imagens). No plano grátis **as criações ficam públicas** no feed.
+2. **Google AI Studio** (modelo *Nano Banana*) — não tem feed, mas é de longe o
+   mais generoso de graça (**centenas de imagens/dia**, contra 10–15 do
+   Leonardo) e o refino é por **conversa**: "essa terceira, barras mais grossas".
+   Para **afinar um símbolo já escolhido**, conversar bate feed.
+3. **Recraft** — ~30–50 créditos/dia e **o único que entrega SVG vetorial de
+   graça**. É o que ataca a questão em aberto da §4.111 (saída PNG × marca
+   precisa ser vetor). Também deixa as imagens públicas no grátis.
+4. **NightCafe** — feed e "evolve", mas **5 créditos/dia**: pouco para garimpar.
+
+**O caminho recomendado, em três passos:** garimpar o conceito no **Leonardo**
+(feed + Remix, com o prompt 1 da folha `_logo-A.html`, só o símbolo) → afinar o
+escolhido no **AI Studio** conversando → tirar em vetor no **Recraft**, ou mandar
+o PNG para eu redesenhar em SVG aqui. O passo 3 continua sendo a decisão em
+aberto da §4.111 — só que agora existe uma opção que não depende de ninguém
+redesenhar à mão.
+
+**Apurado que vale além desta tarefa:** plano grátis de IA de imagem **apodrece
+rápido** — duas das três indicações escritas em 26/07 estavam furadas em 06/08.
+Recomendação de ferramenta escrita em documento tem prazo de validade; **conferir
+antes de mandar ele usar**.
+
+**Achado que atravessa duas folhas: os prompts da §4.111 já nasceram velhos de
+cor.** Enquanto eu conferia as ferramentas, a janela A começou a implementar a
+direção **"Estúdio"** da §4.110 — grafite `#121110`, **vermelho de gravação
+`#FF4438`**, título em Space Grotesk e o nome escrito **"allbook" minúsculo**. Os
+dois prompts pedem **laranja `#FF6A00` sobre `#141414`** e **"AllBook"** com
+maiúsculas: duas das três escolhas da folha `_logo-A.html` foram **superadas por
+uma decisão dele em outra folha**.
+
+**A saída, e vale como regra:** gerar o símbolo **monocromático** — branco sobre
+preto, sem letra. Forma que só funciona porque é laranja não é boa forma; e assim
+o garimpo não depende de qual paleta vence. **A cor entra no fim, num clique.**
+Escrevi esse terceiro prompt na folha e rebaixei os dois coloridos para "depois
+que a paleta parar de mexer". **O letreiro não precisa de IA** — nome escrito é
+escolher fonte e digitar, e é onde esses modelos mais erram (dois L virando um).
+
+**A folha:** `client/public/_ferramentas-de-logo-C.html`, com os links, o passo a
+passo, o alerta da cor e os três prompts com botão de copiar — para ele não
+precisar abrir duas folhas enquanto testa.

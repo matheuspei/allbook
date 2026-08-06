@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🟣 C — Onde gerar a logo: as ferramentas grátis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --laranja:#FF6A00;--ambar:#f59e0b;--fundo:#101010;--tela:#141414;--carta:#1a1a1a;
+    --borda:rgba(255,255,255,.08);--fraco:rgba(255,255,255,.42);--fraquinho:rgba(255,255,255,.26);
+    --verde:#34d399;--vermelho:#f87171;--roxo:#a78bfa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fundo);color:#fff;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .folha{max-width:1180px;margin:0 auto;padding:34px 20px 120px}
+
+  .marca{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--fraco)}
+  .pastilha-c{background:rgba(167,139,250,.14);color:#c4b5fd;border:1px solid rgba(167,139,250,.35);
+    border-radius:999px;padding:3px 10px;font-weight:700;font-size:11px}
+  h1{font-family:Outfit,sans-serif;font-weight:800;letter-spacing:-.03em;font-size:clamp(27px,4.6vw,40px);
+    line-height:1.07;margin:16px 0 12px}
+  h1 em{font-style:normal;color:var(--laranja)}
+  .abertura{font-size:15px;line-height:1.65;color:rgba(255,255,255,.62);max-width:74ch;margin:0}
+  .abertura b{color:#fff;font-weight:600}
+  .abertura + .abertura{margin-top:12px}
+  .citacao{margin:16px 0 0;border-left:3px solid rgba(255,106,0,.5);padding:2px 0 2px 14px;
+    font-size:14.5px;line-height:1.6;color:rgba(255,255,255,.75);font-style:italic}
+
+  .indice{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0}
+  .indice a{font-size:12px;text-decoration:none;color:rgba(255,255,255,.7);border:1px solid var(--borda);
+    background:rgba(255,255,255,.03);border-radius:999px;padding:7px 13px}
+  .indice a:hover{border-color:rgba(255,106,0,.5);color:#fff}
+
+  .bloco{border:1px solid var(--borda);background:var(--carta);border-radius:20px;padding:20px;margin-top:22px}
+  .bloco.rec{border-color:rgba(255,106,0,.35);background:linear-gradient(180deg,rgba(255,106,0,.05),rgba(255,106,0,.015))}
+  .bloco.erro{border-color:rgba(248,113,113,.25)}
+  .cab{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  .cab h2{font-family:Outfit,sans-serif;font-weight:800;letter-spacing:-.02em;font-size:21px;margin:0}
+  .etiq{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:5px 11px}
+  .etiq.err{background:rgba(248,113,113,.12);color:#fca5a5;border:1px solid rgba(248,113,113,.3)}
+  .etiq.rec{background:rgba(255,106,0,.16);color:#ffab6b;border:1px solid rgba(255,106,0,.35)}
+  .etiq.neutra{background:rgba(255,255,255,.04);color:var(--fraquinho);border:1px solid var(--borda)}
+  .sub{font-size:13.5px;line-height:1.65;color:rgba(255,255,255,.6);margin:6px 0 0;max-width:84ch}
+  .sub b{color:#fff;font-weight:600}
+
+  /* ============ as ferramentas ============ */
+  .grade{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  @media (max-width:980px){.grade{grid-template-columns:1fr}}
+  .fer{border:1px solid var(--borda);border-radius:18px;background:rgba(255,255,255,.015);padding:16px;display:flex;flex-direction:column}
+  .fer.ouro{border-color:var(--laranja);background:rgba(255,106,0,.06)}
+  .fer-topo{display:flex;align-items:center;gap:9px}
+  .fer-topo .pos{font-family:Outfit,sans-serif;font-weight:800;font-size:12px;color:var(--laranja);
+    border:1px solid rgba(255,106,0,.4);background:rgba(255,106,0,.1);border-radius:8px;
+    width:26px;height:26px;display:grid;place-items:center;flex:none}
+  .fer-topo h3{margin:0;font-family:Outfit,sans-serif;font-weight:800;font-size:17px;letter-spacing:-.02em}
+  .fer .porque{font-size:12.5px;line-height:1.65;color:rgba(255,255,255,.7);margin:11px 0 0}
+  .fer .porque b{color:#fff;font-weight:600}
+  .fer .contra{font-size:11.5px;line-height:1.6;color:#fca5a5;margin:9px 0 0;opacity:.9}
+  .fer .contra b{color:#fca5a5;font-weight:700}
+  .fatos{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:6px}
+  .fatos li{font-size:11.5px;line-height:1.5;color:var(--fraco);display:flex;gap:7px}
+  .fatos li::before{content:"·";color:var(--laranja);font-weight:800}
+  .fatos li b{color:rgba(255,255,255,.82);font-weight:600}
+  .fer a.ir{margin-top:auto;padding-top:14px;font-size:12.5px;font-weight:700;color:var(--laranja);text-decoration:none}
+  .fer a.ir:hover{text-decoration:underline}
+
+  /* ============ as descartadas ============ */
+  .fora{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+  @media (max-width:900px){.fora{grid-template-columns:1fr}}
+  .fora div{border:1px solid rgba(248,113,113,.22);background:rgba(248,113,113,.04);border-radius:14px;padding:12px}
+  .fora h4{margin:0;font-family:Outfit,sans-serif;font-size:13.5px;font-weight:800;color:#fca5a5}
+  .fora p{margin:6px 0 0;font-size:12px;line-height:1.6;color:rgba(255,255,255,.6)}
+  .fora p b{color:rgba(255,255,255,.85);font-weight:600}
+
+  /* ============ o caminho ============ */
+  .passos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  @media (max-width:900px){.passos{grid-template-columns:1fr}}
+  .passo{border:1px solid var(--borda);background:rgba(255,255,255,.02);border-radius:16px;padding:14px}
+  .passo .n{font-family:Outfit,sans-serif;font-weight:800;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--laranja)}
+  .passo h4{margin:6px 0 0;font-family:Outfit,sans-serif;font-size:15px;font-weight:800;letter-spacing:-.02em}
+  .passo p{margin:7px 0 0;font-size:12px;line-height:1.6;color:rgba(255,255,255,.62)}
+  .passo p b{color:#fff;font-weight:600}
+
+  /* ============ os prompts ============ */
+  .prompt{margin-top:14px;background:#0c0c0c;border:1px solid var(--borda);border-radius:14px;
+    padding:14px 16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;
+    line-height:1.7;color:rgba(255,255,255,.82);white-space:pre-wrap}
+
+  .simbolo-lado{display:flex;align-items:center;gap:18px;margin-top:14px;flex-wrap:wrap}
+  .palco{background:var(--tela);border:1px solid rgba(255,255,255,.07);border-radius:14px;
+    padding:16px 20px;display:grid;place-items:center}
+  .palco svg{width:76px;height:76px;color:var(--laranja);display:block}
+
+  /* ============ escolha ============ */
+  .decisao{margin-top:16px;border-top:1px dashed rgba(255,255,255,.12);padding-top:14px}
+  .decisao > p{font-size:12.5px;color:var(--fraco);margin:0 0 10px}
+  .ops{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .ops.tres{grid-template-columns:repeat(3,1fr)}
+  @media (max-width:900px){.ops,.ops.tres{grid-template-columns:1fr}}
+  .op{border:1px solid var(--borda);border-radius:14px;padding:12px;cursor:pointer;background:rgba(255,255,255,.02);transition:.15s}
+  .op:hover{border-color:rgba(255,255,255,.22)}
+  .op.viva{border-color:var(--laranja);background:rgba(255,106,0,.08)}
+  .op b{display:block;font-family:Outfit,sans-serif;font-size:14px;font-weight:800;letter-spacing:-.02em}
+  .op small{display:block;font-size:11.5px;line-height:1.55;color:var(--fraco);margin-top:5px}
+  .btesc{display:inline-block;margin-top:9px;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+    border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:5px 11px;color:rgba(255,255,255,.75)}
+  .op.viva .btesc{background:var(--laranja);border-color:var(--laranja);color:#000}
+
+  .envio{margin-top:28px;border:1px solid var(--borda);background:var(--carta);border-radius:20px;padding:22px}
+  .envio h2{font-family:Outfit,sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px}
+  #resumo{font-size:13px;color:rgba(255,255,255,.6);margin:10px 0;line-height:1.8}
+  #resumo b{color:#fff}
+  #resumo .falta{color:var(--fraquinho)}
+  textarea{width:100%;min-height:88px;resize:vertical;background:#111;color:#fff;border:1px solid var(--borda);
+    border-radius:13px;padding:12px 14px;font:inherit;font-size:13.5px}
+  textarea:focus{outline:none;border-color:rgba(255,106,0,.5)}
+  .acoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px;align-items:center}
+  button{font:inherit;font-weight:700;font-size:13px;border-radius:999px;padding:10px 18px;cursor:pointer;border:1px solid transparent}
+  #btn-enviar{background:var(--laranja);color:#000}
+  #btn-enviar:disabled{opacity:.45;cursor:default}
+  #btn-copiar,.btn-copia{background:transparent;color:rgba(255,255,255,.75);border-color:rgba(255,255,255,.18)}
+  .btn-copia{margin-top:12px;font-size:12px;padding:8px 15px}
+  .btn-copia:hover{border-color:rgba(255,106,0,.55);color:#fff}
+  #estado,.estado-copia{font-size:12.5px;margin-left:4px}
+  #estado.ok,.estado-copia.ok{color:var(--verde)}
+  #estado.erro{color:var(--vermelho)}
+  .barra{position:fixed;left:0;right:0;bottom:0;background:rgba(10,10,10,.94);backdrop-filter:blur(8px);
+    border-top:1px solid var(--borda);padding:10px 20px;display:flex;align-items:center;gap:14px;z-index:20}
+  .barra span{font-size:12.5px;color:var(--fraco)}
+  .barra span b{color:#fff}
+  .barra a{margin-left:auto;font-size:12.5px;color:var(--laranja);text-decoration:none;font-weight:700}
+  footer{margin-top:30px;font-size:11.5px;color:var(--fraquinho);line-height:1.7}
+  footer a{color:rgba(255,255,255,.5)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:rgba(255,255,255,.55)}
+</style>
+</head>
+<body>
+
+<div class="folha">
+
+  <div class="marca">
+    <span class="pastilha-c">Janela C</span>
+    <span>AllBook · a marca · onde gerar</span>
+  </div>
+
+  <h1>Onde gerar a logo: as <em>gratuitas</em> que fazem o<br>“clica na imagem e vem outra”</h1>
+
+  <p class="abertura">Você descreveu exatamente o que precisa, e tem nome: <b>garimpo por
+    vizinhança</b> — cada imagem vira a semente da rodada seguinte, em vez de “gerou quatro e
+    acabou”. Fui conferir hoje, <b>06/08/2026</b>, quais plataformas ainda fazem isso <b>de
+    graça</b>.</p>
+
+  <p class="citacao">“você digitava um prompt e ele gerava diversas imagens, aí você poderia ir
+    clicando nessas imagens e ir aparecendo outras, mais ou menos como é no Pinterest, só que no
+    contexto que você fez naquela logo ali.”</p>
+
+  <p class="abertura" style="margin-top:14px">⚠️ <b>Antes de tudo, a má notícia:</b> as duas
+    ferramentas que o nosso próprio roteiro recomendava <b>deixaram de servir</b>. O mercado
+    gratuito de IA de imagem apodrece rápido, e as indicações escritas em julho já estavam furadas.</p>
+
+  <div class="indice">
+    <a href="#fora">O que saiu da lista</a>
+    <a href="#servem">As três que servem</a>
+    <a href="#caminho">O caminho em 3 passos</a>
+    <a href="#cor">⚠️ A cor dos prompts está velha</a>
+    <a href="#prompts">Os prompts para colar</a>
+    <a href="#decidir">Decidir</a>
+  </div>
+
+  <!-- ============================= O QUE SAIU ============================= -->
+  <section class="bloco erro" id="fora">
+    <div class="cab">
+      <h2>O que saiu da lista — e por quê</h2>
+      <span class="etiq err">conferido hoje</span>
+    </div>
+    <p class="sub">Três não fazem mais o que você quer de graça, e uma faz muito bem — mas cobra.</p>
+
+    <div class="fora">
+      <div>
+        <h4>Grok — ❌ acabou o grátis</h4>
+        <p>Em <b>19 de março de 2026</b> a xAI tirou geração de imagem e vídeo do plano gratuito.
+          Free agora é <b>só texto</b>. É a ferramenta que você lembrava, e ela mudou.</p>
+      </div>
+      <div>
+        <h4>Ideogram — ❌ o Remix virou pago</h4>
+        <p>O gratuito caiu de 10 por dia para <b>10 por semana</b>, e o <b>Remix</b> — justamente
+          o botão do “clica e vem outra” — ficou atrás da assinatura. Sobrou pouco de graça.</p>
+      </div>
+      <div>
+        <h4>Bing / Copilot Imagens — ❌ nunca teve</h4>
+        <p>É o que você ia tentar. Ele gera quatro e <b>para ali</b>: não existe “variar a partir
+          desta”. Cada rodada começa do zero, e é isso que cansa.</p>
+      </div>
+      <div>
+        <h4>Midjourney — 💰 o melhor, mas cobra</h4>
+        <p>Continua imbatível em variação (<i>Vary</i> sutil e forte, <i>Remix</i>, feed de
+          exploração). <b>Não tem plano grátis</b> — começa em cerca de US$ 10 por mês. Fica de
+          reserva, se as gratuitas não derem conta.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= AS QUE SERVEM ============================= -->
+  <section class="bloco rec" id="servem">
+    <div class="cab">
+      <h2>As três que servem, na ordem que eu recomendo</h2>
+      <span class="etiq rec">minha recomendação</span>
+    </div>
+    <p class="sub">A primeira é literalmente o Pinterest que você descreveu. A segunda é a mais
+      generosa de graça. A terceira resolve um problema que as outras duas <b>não</b> resolvem.</p>
+
+    <div class="grade">
+      <div class="fer ouro">
+        <div class="fer-topo"><span class="pos">1</span><h3>Leonardo.ai</h3></div>
+        <p class="porque">É o que você descreveu, sem adaptação: a página inicial é um
+          <b>mural estilo Pinterest</b> das criações de todo mundo, e cada imagem tem um botão
+          <b>Remix</b> que abre o prompt daquela imagem para você mexer e gerar outra.</p>
+        <ul class="fatos">
+          <li><b>150 fichas por dia</b>, de graça (~10 a 15 imagens)</li>
+          <li>Feed + Remix no plano gratuito</li>
+          <li>Renova a cada 24h, não acumula</li>
+        </ul>
+        <p class="contra"><b>O preço do grátis:</b> o que você gerar fica <b>público</b> no mural
+          da comunidade. Como aqui é só garimpo de conceito, não atrapalha.</p>
+        <a class="ir" href="https://app.leonardo.ai/" target="_blank" rel="noopener">Abrir o Leonardo.ai →</a>
+      </div>
+
+      <div class="fer">
+        <div class="fer-topo"><span class="pos">2</span><h3>Google AI Studio</h3></div>
+        <p class="porque">Não tem mural, mas é <b>de longe o mais generoso</b>: centenas de
+          imagens por dia sem pagar nada, com o modelo <i>Nano&nbsp;Banana</i>. O refino é por
+          <b>conversa</b> — “essa terceira, com as barras mais grossas” — e para <b>afinar um
+          símbolo já escolhido</b> conversar bate mural.</p>
+        <ul class="fatos">
+          <li><b>Centenas de imagens/dia</b> de graça</li>
+          <li>Refino conversando, não sorteando</li>
+          <li>Só precisa de conta Google</li>
+        </ul>
+        <p class="contra"><b>O que falta:</b> não existe feed de exploração — a inspiração vem
+          de você, não dos outros.</p>
+        <a class="ir" href="https://aistudio.google.com/" target="_blank" rel="noopener">Abrir o AI Studio →</a>
+      </div>
+
+      <div class="fer">
+        <div class="fer-topo"><span class="pos">3</span><h3>Recraft</h3></div>
+        <p class="porque">O único da lista que entrega <b>vetor de verdade (SVG)</b> de graça —
+          e é o furo que sobrou da conversa anterior: <b>PNG não serve como marca</b> (borra ao
+          esticar, não troca de cor, não vira ícone de 16 pixels). Ele é feito para logo e ícone.</p>
+        <ul class="fatos">
+          <li><b>~30 a 50 fichas por dia</b>, de graça</li>
+          <li><b>Sai em SVG</b>, não em PNG</li>
+          <li>2 imagens por pedido</li>
+        </ul>
+        <p class="contra"><b>Cuidado:</b> menos variedade que os outros dois, e as imagens do
+          plano grátis também ficam públicas. Use no fim, não no começo.</p>
+        <a class="ir" href="https://www.recraft.ai/" target="_blank" rel="noopener">Abrir o Recraft →</a>
+      </div>
+    </div>
+
+    <p class="sub" style="margin-top:16px">Uma quarta, se quiser conhecer: o
+      <a href="https://creator.nightcafe.studio/" target="_blank" rel="noopener"
+      style="color:var(--laranja);font-weight:600">NightCafe</a> tem comunidade e “evoluir imagem”,
+      mas dá <b>5 fichas por dia</b> — pouco demais para garimpar.</p>
+  </section>
+
+  <!-- ============================= O CAMINHO ============================= -->
+  <section class="bloco" id="caminho">
+    <div class="cab">
+      <h2>O caminho em três passos</h2>
+      <span class="etiq neutra">cada ferramenta no que ela é boa</span>
+    </div>
+    <p class="sub">Não é escolher uma. É usar cada uma na etapa em que ela ganha das outras.</p>
+
+    <div class="passos">
+      <div class="passo">
+        <div class="n">Passo 1 · descobrir</div>
+        <h4>Leonardo, com o prompt do símbolo</h4>
+        <p>Cole o <b>prompt 1</b> (só o símbolo, sem letra nenhuma) e garimpe no mural. Quando uma
+          imagem chegar perto, <b>Remix</b> nela e siga puxando a linha. É aqui que você acha o
+          desenho.</p>
+      </div>
+      <div class="passo">
+        <div class="n">Passo 2 · afinar</div>
+        <h4>AI Studio, conversando</h4>
+        <p>Com o desenho já escolhido, o mural atrapalha: você quer <b>aquele</b>, um pouco
+          diferente. Suba a imagem e peça em português: barras mais grossas, página mais reta,
+          margem maior.</p>
+      </div>
+      <div class="passo">
+        <div class="n">Passo 3 · virar arquivo</div>
+        <h4>Recraft — ou eu desenho aqui</h4>
+        <p>O que sai dos passos 1 e 2 é <b>PNG</b>, e marca precisa ser vetor. Duas saídas: repetir
+          o prompt no Recraft e baixar em SVG, ou <b>me mandar a imagem</b> que eu redesenho em
+          vetor no código. Isso é a pergunta lá embaixo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= O CONFLITO DE COR ============================= -->
+  <section class="bloco erro" id="cor">
+    <div class="cab">
+      <h2>Pare um minuto: a cor dos prompts está velha</h2>
+      <span class="etiq err">achei agora, no quadro das janelas</span>
+    </div>
+    <p class="sub">Enquanto eu conferia as ferramentas, vi que a <b>janela A começou hoje</b> a
+      trocar a identidade visual inteira do app — a direção <b>“Estúdio”</b>, que você aprovou na
+      outra folha. E ela derruba duas das três escolhas que os prompts da logo carregam:</p>
+
+    <div class="fora" style="grid-template-columns:1fr 1fr">
+      <div>
+        <h4>A cor mudou</h4>
+        <p>Os prompts pedem <b>laranja #FF6A00 sobre #141414</b>. A direção Estúdio é
+          <b>grafite #121110 com vermelho de gravação #FF4438</b> — e ainda tem um tema claro.
+          Marca gerada em laranja nasce <b>brigando com o app novo</b>.</p>
+      </div>
+      <div>
+        <h4>O letreiro mudou</h4>
+        <p>O prompt 2 pede <b>“AllBook”, All branco e Book laranja</b>, em fonte geométrica. Na
+          direção Estúdio o nome aparece <b>“allbook” todo minúsculo</b>, na fonte Space Grotesk.
+          São coisas diferentes.</p>
+      </div>
+    </div>
+
+    <p class="sub" style="margin-top:14px"><b>Minha recomendação, e é a prática de quem desenha
+      marca:</b> gere o símbolo <b>sem cor nenhuma</b> — branco sobre preto. Se a forma se sustenta
+      em preto e branco, ela se sustenta em qualquer cor; se ela só funciona porque é laranja, ela
+      não é uma boa forma. Assim você garimpa hoje sem depender de qual paleta vence, e a cor entra
+      no fim, num clique. <b>É o prompt 1 abaixo</b> — o de cor e o do nome ficam para depois que a
+      janela A terminar.</p>
+  </section>
+
+  <!-- ============================= OS PROMPTS ============================= -->
+  <section class="bloco rec" id="prompts">
+    <div class="cab">
+      <h2>Os prompts, prontos para colar</h2>
+      <span class="etiq rec">comece pelo 1</span>
+    </div>
+    <p class="sub">Todos descrevem a mesma marca que você escolheu — <b>“a página que vira som”</b>
+      — e todos são metade <b>lista de proibição</b>, que é como gerador de imagem entende que se
+      quer um símbolo, e não um quadro de biblioteca. O <b>1 é meu</b>, sem cor; os <b>2 e 3 são os
+      que a janela A escreveu</b>, com o laranja antigo, e ficam aqui para quando a paleta parar
+      de mexer.</p>
+
+    <div class="simbolo-lado">
+      <div class="palco">
+        <svg viewBox="0 0 64 64" aria-label="O símbolo escolhido: a página que vira som">
+          <path d="M29 16 C22 11 14 10 7 12 L7 48 C14 46 22 47 29 52 Z" fill="currentColor"/>
+          <rect x="35" y="15" width="24" height="5.4" rx="2.7" fill="currentColor"/>
+          <rect x="35" y="25" width="17" height="5.4" rx="2.7" fill="currentColor" opacity=".72"/>
+          <rect x="35" y="35" width="22" height="5.4" rx="2.7" fill="currentColor" opacity=".48"/>
+          <rect x="35" y="45" width="13" height="5.4" rx="2.7" fill="currentColor" opacity=".26"/>
+        </svg>
+      </div>
+      <p class="sub" style="margin:0;flex:1;min-width:260px">É <b>este conceito</b> que os prompts
+        descrevem: livro aberto, página da esquerda sólida, e a da direita desfeita em quatro
+        linhas que encurtam e desbotam — ao mesmo tempo texto e onda de som. O rascunho ao lado foi
+        desenhado à mão só para você reconhecer a ideia; <b>não é a marca final</b>.</p>
+    </div>
+
+    <div class="cab" style="margin-top:20px">
+      <h2 style="font-size:16px">1 · O símbolo sem cor <span style="font-weight:400;color:var(--laranja)">— é por aqui que você começa hoje</span></h2>
+    </div>
+    <p class="sub">Branco sobre preto, sem letra nenhuma. <b>Serve para qualquer paleta</b> — a
+      laranja de antes, o vermelho de gravação da direção Estúdio, ou o que vier depois. É também
+      onde os modelos erram menos: sem cor e sem texto, sobra só a forma, que é o que interessa.</p>
+    <div class="prompt copiavel">Flat vector logo icon, minimal, monochrome. An open book seen from the front. The left page is a single solid filled shape with a soft curved outer edge. The right page is not drawn: in its place there are four horizontal rounded bars of decreasing length, stacked with even gaps, each bar fainter than the one above, so the page appears to dissolve into sound waves.
+
+Pure white on a flat black background. No other color at all. Geometric, symmetrical, thick even strokes, wide empty margins, centered, app icon composition, 1:1.
+
+No text, no letters, no words, no numbers. No library, no bookshelf, no room, no scene, no desk, no headphones, no people. No photorealism, no 3D, no perspective, no outline, no gradient, no shadow, no glow, no sparkle, no texture, no paper grain. No color, no orange, no gold, no blue, no beige.</div>
+    <button class="btn-copia">Copiar o prompt sem cor</button> <span class="estado-copia"></span>
+
+    <div class="cab" style="margin-top:22px">
+      <h2 style="font-size:16px">2 · O mesmo símbolo, em laranja <span style="font-weight:400;color:var(--fraco)">— só se a paleta antiga ficar</span></h2>
+    </div>
+    <p class="sub">É o prompt original da janela A. Use <b>depois</b> que a troca da identidade
+      acabar — e trocando <code>#FF6A00</code> por <code>#FF4438</code> e <code>#141414</code> por
+      <code>#121110</code> se a direção Estúdio for mesmo a vencedora.</p>
+    <div class="prompt copiavel">Flat vector logo icon, minimal. An open book seen from the front. The left page is a single solid filled shape with a soft curved outer edge. The right page is not drawn: in its place there are four horizontal rounded bars of decreasing length, stacked with even gaps, each bar fainter than the one above, so the page appears to dissolve into sound waves.
+
+One accent color only: vibrant orange #FF6A00, on a flat dark charcoal #141414 background. Geometric, symmetrical, thick even strokes, wide empty margins, centered, app icon composition, 1:1.
+
+No text, no letters, no words, no numbers. No library, no bookshelf, no room, no scene, no desk, no headphones, no people. No photorealism, no 3D, no perspective, no outline, no gradient, no shadow, no glow, no sparkle, no texture, no paper grain. No gold, no blue, no beige, no cream, no white background.</div>
+    <button class="btn-copia">Copiar o prompt em laranja</button> <span class="estado-copia"></span>
+
+    <div class="cab" style="margin-top:22px">
+      <h2 style="font-size:16px">3 · Símbolo + o nome escrito <span style="font-weight:400;color:var(--fraco)">— por último, e talvez nem precise</span></h2>
+    </div>
+    <p class="sub">Só depois de gostar do símbolo — e este é o mais atingido pela troca da
+      identidade: ele pede <b>“AllBook”</b> com A e B maiúsculos, e a direção Estúdio escreve
+      <b>“allbook”</b> minúsculo em outra fonte. <b>Nome escrito não precisa de IA:</b> é escolher
+      uma fonte e digitar. Se for usar mesmo assim, <b>confira a grafia letra por letra</b> — dois
+      L é onde o modelo mais tropeça, costuma sair “Albook” ou “AllBok”.</p>
+    <div class="prompt copiavel">Flat vector logo lockup, minimal. Top: an open book seen from the front. The left page is a single solid filled shape with a soft curved outer edge. The right page is not drawn: in its place there are four horizontal rounded bars of decreasing length, stacked with even gaps, each bar fainter than the one above, so the page appears to dissolve into sound waves.
+
+Below the symbol, centered, the single word "AllBook" in a bold geometric sans-serif with tight letter spacing. Spell it exactly A-l-l-B-o-o-k: capital A, two lowercase L, capital B. "All" in pure white, "Book" in vibrant orange #FF6A00.
+
+Flat dark charcoal #141414 background. One accent color only: orange #FF6A00. Geometric, symmetrical, thick even strokes, generous empty margin, centered, 1:1.
+
+No other text, no tagline, no slogan, no extra words. No library, no bookshelf, no room, no scene, no headphones, no people. No photorealism, no 3D, no perspective, no gradient, no shadow, no glow, no sparkle, no texture. No gold, no blue, no beige, no cream.</div>
+    <button class="btn-copia">Copiar o prompt com o nome</button> <span class="estado-copia"></span>
+  </section>
+
+  <!-- ============================= DECIDIR ============================= -->
+  <section class="bloco" id="decidir">
+    <div class="cab">
+      <h2>Duas coisas que só você decide</h2>
+      <span class="etiq neutra">clique e envie</span>
+    </div>
+
+    <div class="decisao">
+      <p><b>1 · Por onde você quer começar?</b></p>
+      <div class="ops" data-pergunta="comecar">
+        <div class="op" data-v="C1">
+          <b>Leonardo</b>
+          <small>O mural com Remix, igual ao que você descreveu. <b>É o que eu recomendo</b> para
+            achar o desenho.</small>
+          <span class="btesc">Escolher</span>
+        </div>
+        <div class="op" data-v="C2">
+          <b>AI Studio</b>
+          <small>Sem mural, mas centenas de imagens por dia e refino conversando em português.</small>
+          <span class="btesc">Escolher</span>
+        </div>
+        <div class="op" data-v="C3">
+          <b>Recraft</b>
+          <small>Já sai em vetor. Menos variedade — melhor no fim do que no começo.</small>
+          <span class="btesc">Escolher</span>
+        </div>
+        <div class="op" data-v="C4">
+          <b>Os três, na ordem</b>
+          <small>Seguir os três passos como estão descritos acima, sem escolher agora.</small>
+          <span class="btesc">Escolher</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="decisao">
+      <p><b>2 · Quando o desenho estiver escolhido, quem transforma em arquivo de marca?</b>
+        (a questão que ficou em aberto na conversa anterior)</p>
+      <div class="ops tres" data-pergunta="vetor">
+        <div class="op" data-v="V1">
+          <b>Eu redesenho aqui</b>
+          <small>Você me manda a imagem e eu desenho em SVG no código. <b>É o que eu recomendo:</b>
+            dá controle total — cor por CSS, funciona a 16 pixels, sem lixo no traço.</small>
+          <span class="btesc">Escolher</span>
+        </div>
+        <div class="op" data-v="V2">
+          <b>O Recraft resolve</b>
+          <small>Baixar o SVG direto da plataforma. Mais rápido, mas o vetor costuma vir com nós
+            demais e precisa de limpeza.</small>
+          <span class="btesc">Escolher</span>
+        </div>
+        <div class="op" data-v="V3">
+          <b>Um ilustrador</b>
+          <small>Contratar alguém para desenhar a marca final a partir da referência. Custa
+            dinheiro e tempo, e entrega o melhor acabamento.</small>
+          <span class="btesc">Escolher</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= ENVIO ============================= -->
+  <section class="envio">
+    <h2>Enviar para a janela C</h2>
+    <p class="sub">Escolheu? Manda que eu sigo daqui. Se quiser, cole também no campo abaixo o que
+      apareceu de bom (ou de ruim) na plataforma que você testar.</p>
+    <div id="resumo"></div>
+    <textarea id="obs" placeholder="O que você viu por lá, o que não funcionou, ou qualquer outra ideia…"></textarea>
+    <div class="acoes">
+      <button id="btn-enviar" disabled>Enviar para a janela C</button>
+      <button id="btn-copiar">Copiar como texto</button>
+      <span id="estado"></span>
+    </div>
+  </section>
+
+  <footer>
+    Folha da <b>janela C</b> · conferido na web em 06/08/2026 — planos gratuitos de IA de imagem
+    mudam rápido, confira de novo se muito tempo passar · o registro está em
+    <code>docs/ROTEIRO.md §4.112</code> · os prompts vieram da folha
+    <code>_logo-A.html</code> (§4.111) · nada disto mexeu no app.
+  </footer>
+</div>
+
+<div class="barra">
+  <span id="barra-txt">Nenhuma escolha ainda — <b>2</b> perguntas</span>
+  <a href="#decidir">Ir para as perguntas ↓</a>
+</div>
+
+<script>
+(function () {
+  var respostas = {};
+  var estadoEl = document.getElementById("estado");
+
+  var rotulos = {
+    comecar: {
+      titulo: "Por onde começar",
+      C1: "C1 — Leonardo.ai (o mural com Remix)",
+      C2: "C2 — Google AI Studio (centenas por dia, refino conversando)",
+      C3: "C3 — Recraft (já sai em vetor)",
+      C4: "C4 — os três, na ordem dos 3 passos"
+    },
+    vetor: {
+      titulo: "Quem faz o arquivo de marca",
+      V1: "V1 — eu redesenho em SVG no código",
+      V2: "V2 — baixar o SVG do Recraft",
+      V3: "V3 — contratar um ilustrador"
+    }
+  };
+  var ordem = ["comecar", "vetor"];
+
+  function pintar() {
+    document.querySelectorAll(".op").forEach(function (el) {
+      var id = el.closest(".ops").dataset.pergunta;
+      el.classList.toggle("viva", respostas[id] === el.dataset.v);
+    });
+
+    var linhas = ordem.map(function (id) {
+      var v = respostas[id];
+      return v
+        ? "· <b>" + rotulos[id].titulo + ":</b> " + rotulos[id][v]
+        : "· <span class='falta'>" + rotulos[id].titulo + ": ainda não escolhido</span>";
+    });
+    document.getElementById("resumo").innerHTML = linhas.join("<br>");
+
+    var feitas = ordem.filter(function (id) { return respostas[id]; }).length;
+    document.getElementById("btn-enviar").disabled = feitas === 0;
+    document.getElementById("barra-txt").innerHTML = feitas === 0
+      ? "Nenhuma escolha ainda — <b>2</b> perguntas"
+      : "<b>" + feitas + "</b> de <b>2</b> escolhidas";
+  }
+
+  function textoDaResposta() {
+    var linhas = ["Folha “Onde gerar a logo” (janela C):"];
+    ordem.forEach(function (id) {
+      var v = respostas[id];
+      linhas.push("· " + rotulos[id].titulo + ": " + (v ? rotulos[id][v] : "— não escolhido —"));
+    });
+    var obs = document.getElementById("obs").value.trim();
+    if (obs) linhas.push("Observação: " + obs);
+    return linhas.join("\n");
+  }
+
+  document.querySelectorAll(".op").forEach(function (el) {
+    el.addEventListener("click", function () {
+      var id = el.closest(".ops").dataset.pergunta;
+      respostas[id] = (respostas[id] === el.dataset.v) ? null : el.dataset.v;
+      if (!respostas[id]) delete respostas[id];
+      pintar();
+    });
+  });
+
+  /* Cada botão "copiar" leva o texto do bloco <div class="prompt"> logo acima dele,
+     e o aviso vai no <span> logo depois. */
+  document.querySelectorAll(".btn-copia").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var aviso = btn.nextElementSibling;
+      var bloco = btn.previousElementSibling;
+      while (bloco && !bloco.classList.contains("prompt")) bloco = bloco.previousElementSibling;
+      if (!bloco) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(bloco.textContent.trim()).then(
+          function () { aviso.className = "estado-copia ok"; aviso.textContent = "Copiado — cole na plataforma."; },
+          function () { aviso.className = "estado-copia"; aviso.textContent = "Não deu; selecione e copie à mão."; }
+        );
+      }
+    });
+  });
+
+  document.getElementById("btn-copiar").addEventListener("click", function () {
+    var texto = textoDaResposta();
+    function feito() { estadoEl.className = "ok"; estadoEl.textContent = "Copiado — é só colar no chat da janela C."; }
+    function falhou() { estadoEl.className = "erro"; estadoEl.textContent = "Não deu para copiar. O texto está no resumo acima."; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texto).then(feito, falhou);
+    } else { falhou(); }
+  });
+
+  document.getElementById("btn-enviar").addEventListener("click", function () {
+    var btn = document.getElementById("btn-enviar");
+    btn.disabled = true;
+    btn.textContent = "Enviando…";
+    fetch("/api/folha/respostas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        folha: "ferramentas-de-logo-C",
+        quando: new Date().toISOString(),
+        respostas: respostas,
+        observacao: document.getElementById("obs").value.trim(),
+        resumo: textoDaResposta()
+      })
+    }).then(function (r) {
+      if (!r.ok) throw new Error("status " + r.status);
+      btn.textContent = "✓ Enviado";
+      estadoEl.className = "ok";
+      estadoEl.textContent = "Recebido! Agora é só avisar a janela C (a Dora) — pela voz ou pelo chat.";
+    }).catch(function () {
+      btn.disabled = false;
+      btn.textContent = "Enviar para a janela C";
+      estadoEl.className = "erro";
+      estadoEl.textContent = "O servidor não respondeu. Use o “Copiar como texto” e cole no chat.";
+    });
+  });
+
+  pintar();
+})();
+</script>
+</body>
+</html>
