@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🟣 C — 18 letreiros AllBook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Space+Grotesk:wght@500;700&family=Archivo+Black&family=Inter:wght@400;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{--acento:#FF4438;--fundo:#0c0b0a;--carta:#161513;--borda:rgba(245,241,234,.10);
+        --tinta:#F5F1EA;--fraco:rgba(245,241,234,.45);--verde:#34d399;--vermelho:#f87171;--roxo:#a78bfa}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fundo);color:var(--tinta);font-family:Inter,system-ui,sans-serif;
+       -webkit-font-smoothing:antialiased}
+  .folha{max-width:1240px;margin:0 auto;padding:30px 20px 130px}
+
+  .marca-topo{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--fraco)}
+  .pastilha{background:rgba(167,139,250,.14);color:#c4b5fd;border:1px solid rgba(167,139,250,.35);
+            border-radius:999px;padding:3px 10px;font-weight:700;font-size:11px}
+  h1{font-family:Outfit,sans-serif;font-weight:800;letter-spacing:-.03em;
+     font-size:clamp(26px,4.4vw,38px);line-height:1.08;margin:14px 0 10px}
+  h1 em{font-style:normal;color:var(--acento)}
+  .abertura{font-size:14.5px;line-height:1.65;color:rgba(245,241,234,.62);max-width:78ch;margin:0}
+  .abertura b{color:var(--tinta);font-weight:600}
+  .abertura + .abertura{margin-top:10px}
+
+  .regras{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0 0}
+  .regras span{font-size:11.5px;border:1px solid var(--borda);background:rgba(245,241,234,.03);
+               border-radius:999px;padding:6px 12px;color:rgba(245,241,234,.72)}
+  .regras span b{color:var(--tinta)}
+
+  .grade{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+  @media (max-width:1080px){.grade{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:700px){.grade{grid-template-columns:1fr}}
+
+  .cartao{border:1px solid var(--borda);border-radius:16px;overflow:hidden;cursor:pointer;
+          background:var(--carta);transition:.15s;position:relative}
+  .cartao:hover{border-color:rgba(245,241,234,.28)}
+  .cartao.viva{border-color:var(--acento);box-shadow:0 0 0 1px var(--acento)}
+  .cartao .cod{position:absolute;top:9px;left:10px;z-index:2;font-family:Outfit,sans-serif;
+               font-weight:800;font-size:11px;letter-spacing:.04em;
+               background:rgba(0,0,0,.45);color:#fff;border-radius:6px;padding:2px 7px}
+  .cartao.viva .cod{background:var(--acento);color:#fff}
+  .palco{display:grid;place-items:center;padding:22px 14px;min-height:132px}
+  .palco svg{width:100%;height:auto;display:block}
+  .pe{padding:10px 13px 12px;border-top:1px solid var(--borda)}
+  .pe h3{margin:0;font-family:Outfit,sans-serif;font-weight:800;font-size:13.5px;letter-spacing:-.01em}
+  .pe p{margin:4px 0 0;font-size:11.5px;line-height:1.5;color:var(--fraco)}
+  .provas{display:flex;align-items:center;gap:11px;margin-top:9px;padding-top:9px;
+          border-top:1px dashed rgba(245,241,234,.1)}
+  .provas .rot{font-size:9px;letter-spacing:.05em;text-transform:uppercase;
+               color:rgba(245,241,234,.28);font-weight:700}
+  .provas .mini{display:grid;place-items:center;border-radius:5px;overflow:hidden}
+
+  .envio{margin-top:26px;border:1px solid var(--borda);background:var(--carta);border-radius:18px;padding:20px}
+  .envio h2{font-family:Outfit,sans-serif;font-size:19px;font-weight:800;letter-spacing:-.02em;margin:0}
+  #resumo{font-size:13px;color:rgba(245,241,234,.62);margin:10px 0;line-height:1.7}
+  #resumo b{color:var(--tinta)}
+  textarea{width:100%;min-height:80px;resize:vertical;background:#100f0e;color:var(--tinta);
+           border:1px solid var(--borda);border-radius:12px;padding:11px 13px;font:inherit;font-size:13px}
+  textarea:focus{outline:none;border-color:rgba(255,68,56,.5)}
+  .acoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:11px;align-items:center}
+  button{font:inherit;font-weight:700;font-size:13px;border-radius:999px;padding:9px 17px;
+         cursor:pointer;border:1px solid transparent}
+  #btn-enviar{background:var(--acento);color:#fff}
+  #btn-enviar:disabled{opacity:.4;cursor:default}
+  #btn-copiar{background:transparent;color:rgba(245,241,234,.75);border-color:rgba(245,241,234,.18)}
+  #estado{font-size:12.5px;margin-left:4px}
+  #estado.ok{color:var(--verde)} #estado.erro{color:var(--vermelho)}
+  .barra{position:fixed;left:0;right:0;bottom:0;background:rgba(8,8,8,.94);backdrop-filter:blur(8px);
+         border-top:1px solid var(--borda);padding:10px 20px;display:flex;align-items:center;gap:14px;z-index:20}
+  .barra span{font-size:12.5px;color:var(--fraco)} .barra span b{color:var(--tinta)}
+  .barra a{margin-left:auto;font-size:12.5px;color:var(--acento);text-decoration:none;font-weight:700}
+  footer{margin-top:26px;font-size:11.5px;color:rgba(245,241,234,.28);line-height:1.7}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:rgba(245,241,234,.5)}
+</style>
+</head>
+<body>
+<div class="folha">
+
+  <div class="marca-topo">
+    <span class="pastilha">Janela C</span><span>AllBook · o letreiro · 18 desenhos</span>
+  </div>
+
+  <h1>Dezoito letreiros, todos com as suas <em>quatro regras</em></h1>
+
+  <p class="abertura">Você mandou variar <b>de verdade</b> — não só de cor. Então além da paleta
+    muda a <b>estrutura</b>: o jeito de fazer o infinito, onde o livro entra, como o som aparece,
+    a fonte, o peso e a caixa das letras. Todas respeitam o que você definiu:</p>
+
+  <div class="regras">
+    <span><b>1.</b> tudo dentro do letreiro — nada em cima nem do lado</span>
+    <span><b>2.</b> o infinito mora nos dois <b>o</b> de “Book”</span>
+    <span><b>3.</b> uma referência de <b>livro</b></span>
+    <span><b>4.</b> uma referência de <b>áudio</b></span>
+    <span><b>5.</b> simples e minimalista</span>
+  </div>
+
+  <p class="abertura" style="margin-top:14px">Embaixo de cada uma está a <b>prova de tamanho</b>:
+    a mesma marca encolhida até virar ícone. É ali que a maioria das ideias bonitas morre — vale
+    olhar antes de escolher. <b>Marque quantas quiser</b> e me mande.</p>
+
+  <div class="grade" id="grade"></div>
+
+  <section class="envio">
+    <h2>Enviar para a janela C</h2>
+    <div id="resumo"></div>
+    <textarea id="obs" placeholder="O que você gostou, o que incomodou, o que quer que eu misture…"></textarea>
+    <div class="acoes">
+      <button id="btn-enviar" disabled>Enviar para a janela C</button>
+      <button id="btn-copiar">Copiar como texto</button>
+      <span id="estado"></span>
+    </div>
+  </section>
+
+  <footer>
+    Folha da <b>janela C</b> · desenhado em vetor (SVG), então o que você escolher já nasce pronto
+    para virar ícone e trocar de cor pelo tema · as regras vieram da sua conversa de 06/08 ·
+    registro em <code>docs/ROTEIRO.md §4.115</code>
+  </footer>
+</div>
+
+<div class="barra">
+  <span id="barra-txt">Nenhum marcado ainda — <b>18</b> desenhos</span>
+  <a href="#" id="ir-envio">Ir para o envio ↓</a>
+</div>
+
+<script>
+(function () {
+const NS = "http://www.w3.org/2000/svg";
+
+/* ===========================================================================
+   MOTOR
+   A palavra é montada em pedaços — [esquerda] [livro?] [meio] [infinito] [k] —
+   e cada desenho recebe a largura de que precisa. As larguras dos textos são
+   medidas de verdade (getComputedTextLength) depois que a fonte carrega, e é
+   por isso que nada fica torto quando a fonte muda.
+   =========================================================================== */
+
+// --- o infinito, em cinco feitios ------------------------------------------
+// A lemniscata clássica: a linha ENTRA no centro vindo de baixo e SAI por cima,
+// e é esse cruzamento em X que faz o olho ler "infinito". A versão anterior saía
+// do centro na horizontal — os laços encostavam e o desenho virava um "W".
+// Os controles a 1.9R fazem cada laço estufar acima da própria altura, o que
+// mantém o miolo aberto mesmo com traço grosso.
+function caminhoInfinito(cx, cy, L, R) {
+  const a = L, b = R * 1.9, c = R * 1.35;
+  return `M ${cx - a} ${cy}
+    C ${cx - a} ${cy - c} ${cx - a * 0.48} ${cy - b} ${cx} ${cy}
+    C ${cx + a * 0.48} ${cy + b} ${cx + a} ${cy + c} ${cx + a} ${cy}
+    C ${cx + a} ${cy - c} ${cx + a * 0.48} ${cy - b} ${cx} ${cy}
+    C ${cx - a * 0.48} ${cy + b} ${cx - a} ${cy + c} ${cx - a} ${cy} Z`;
+}
+
+function infTraco(cx, cy, L, R, t, cor) {
+  return `<path d="${caminhoInfinito(cx, cy, L, R)}" fill="none" stroke="${cor}"
+    stroke-width="${t}" stroke-linejoin="round" stroke-linecap="round"/>`;
+}
+
+function infFita(cx, cy, L, R, t, cor) {
+  // duas linhas paralelas: o laço vira uma fita de gravação
+  return infTraco(cx, cy, L, R * 1.12, t * 0.34, cor) +
+         infTraco(cx, cy, L * 0.86, R * 0.62, t * 0.34, cor);
+}
+
+function infCirculos(cx, cy, L, R, t, cor) {
+  const r = Math.min(R, L / 2);
+  return `<circle cx="${cx - r}" cy="${cy}" r="${r}" fill="none" stroke="${cor}" stroke-width="${t}"/>
+          <circle cx="${cx + r}" cy="${cy}" r="${r}" fill="none" stroke="${cor}" stroke-width="${t}"/>`;
+}
+
+// o infinito desenhado COM barras de equalizador: o som é a própria forma
+function infBarras(cx, cy, L, R, t, cor, svg) {
+  const p = document.createElementNS(NS, "path");
+  p.setAttribute("d", caminhoInfinito(cx, cy, L, R));
+  svg.appendChild(p);
+  const comp = p.getTotalLength();
+  const n = 34, saida = [];
+  for (let i = 0; i < n; i++) {
+    const pt = p.getPointAtLength((comp / n) * i);
+    const h = R * (0.34 + 0.46 * Math.abs(Math.sin(i * 1.7)));
+    saida.push(`<line x1="${pt.x}" y1="${pt.y - h / 2}" x2="${pt.x}" y2="${pt.y + h / 2}"
+      stroke="${cor}" stroke-width="${t * 0.42}" stroke-linecap="round"/>`);
+  }
+  p.remove();
+  return saida.join("");
+}
+
+// --- o livro, em três feitios ----------------------------------------------
+function livroTraco(x, yBase, w, h, t, cor) {
+  const cx = x + w / 2, topo = yBase - h;
+  const pag = (s) => `M ${cx} ${topo + h * 0.16}
+      C ${cx + s * w * 0.10} ${topo} ${cx + s * w * 0.38} ${topo - h * 0.02} ${cx + s * w * 0.48} ${topo + h * 0.06}
+      L ${cx + s * w * 0.48} ${yBase - h * 0.04}
+      C ${cx + s * w * 0.38} ${yBase - h * 0.12} ${cx + s * w * 0.10} ${yBase - h * 0.10} ${cx} ${yBase}`;
+  return `<path d="${pag(-1)}" fill="none" stroke="${cor}" stroke-width="${t}" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="${pag(1)}"  fill="none" stroke="${cor}" stroke-width="${t}" stroke-linejoin="round" stroke-linecap="round"/>
+          <line x1="${cx}" y1="${topo + h * 0.16}" x2="${cx}" y2="${yBase}" stroke="${cor}" stroke-width="${t}" stroke-linecap="round"/>`;
+}
+
+function livroCheio(x, yBase, w, h, cor) {
+  const cx = x + w / 2, topo = yBase - h;
+  const pag = (s) => `M ${cx} ${topo + h * 0.16}
+      C ${cx + s * w * 0.10} ${topo} ${cx + s * w * 0.38} ${topo - h * 0.02} ${cx + s * w * 0.48} ${topo + h * 0.06}
+      L ${cx + s * w * 0.48} ${yBase - h * 0.04}
+      C ${cx + s * w * 0.38} ${yBase - h * 0.12} ${cx + s * w * 0.10} ${yBase - h * 0.10} ${cx} ${yBase} Z`;
+  return `<path d="${pag(-1)}" fill="${cor}"/><path d="${pag(1)}" fill="${cor}" opacity=".58"/>`;
+}
+
+// as duas hastes do "ll" continuam de pé; a página abre entre elas
+function livroHastes(x, yBase, w, h, t, cor, corPag) {
+  const esp = t * 0.9, topo = yBase - h;
+  return `<rect x="${x + w * 0.06}" y="${topo}" width="${esp}" height="${h}" rx="${esp / 2}" fill="${cor}"/>
+          <rect x="${x + w * 0.94 - esp}" y="${topo}" width="${esp}" height="${h}" rx="${esp / 2}" fill="${cor}"/>
+          <path d="M ${x + w * 0.06 + esp} ${yBase - h * 0.06}
+                   C ${x + w * 0.30} ${yBase - h * 0.42} ${x + w * 0.70} ${yBase - h * 0.42} ${x + w * 0.94 - esp} ${yBase - h * 0.06} Z"
+                fill="${corPag}"/>`;
+}
+
+// --- o som, em quatro feitios ----------------------------------------------
+function somDentro(cx, cy, L, R, t, cor) {
+  return [0.45, 0.95, 0.45].map((f, i) => {
+    const xx = cx - L * 0.16 + i * (L * 0.16), m = R * 0.46 * f;
+    return `<line x1="${xx}" y1="${cy - m}" x2="${xx}" y2="${cy + m}" stroke="${cor}"
+             stroke-width="${t * 0.55}" stroke-linecap="round"/>`;
+  }).join("");
+}
+
+function somNaPagina(x, yBase, w, h, t, cor) {
+  const cx = x + w / 2;
+  return [0.85, 0.55, 0.95].map((f, i) => {
+    const yy = yBase - h * (0.62 - i * 0.17), lg = w * 0.32 * f;
+    return `<line x1="${cx + w * 0.08}" y1="${yy}" x2="${cx + w * 0.08 + lg}" y2="${yy}"
+             stroke="${cor}" stroke-width="${t * 0.5}" stroke-linecap="round"/>`;
+  }).join("");
+}
+
+// onda fina sob a palavra: alta demais ela vira um paredão e come o letreiro
+function somSublinha(x1, x2, y, t, cor) {
+  const n = 26, larg = x2 - x1, saida = [];
+  for (let i = 0; i < n; i++) {
+    const xx = x1 + (larg / (n - 1)) * i;
+    const h = t * (0.35 + 0.85 * Math.abs(Math.sin(i * 0.9)));
+    saida.push(`<line x1="${xx}" y1="${y - h / 2}" x2="${xx}" y2="${y + h / 2}"
+      stroke="${cor}" stroke-width="${t * 0.30}" stroke-linecap="round"/>`);
+  }
+  return saida.join("");
+}
+
+/* --------------------------------------------------------------------------
+   As 18 receitas. Cada linha muda pelo menos DUAS coisas em relação às outras:
+   estrutura e paleta.
+   -------------------------------------------------------------------------- */
+const CORES = {
+  estudio:   { fundo:"#121110", tinta:"#F5F1EA", acento:"#FF4438" },
+  brasa:     { fundo:"#1E4FA8", tinta:"#FFB05C", acento:"#FFE1B0", grad:["#FFC46B","#E8323C"] },
+  papel:     { fundo:"#FFFFFF", tinta:"#14110F", acento:"#D93B2B" },
+  carvao:    { fundo:"#000000", tinta:"#FFFFFF", acento:"#FFFFFF" },
+  mata:      { fundo:"#12281F", tinta:"#F1EDE4", acento:"#E9C46A" },
+  mare:      { fundo:"#EDE7DC", tinta:"#0F3D56", acento:"#FF6B35" },
+  lavanda:   { fundo:"#EFE9FF", tinta:"#3A2A6B", acento:"#7C4DFF" },
+  menta:     { fundo:"#05202B", tinta:"#E8FFFB", acento:"#2EC4B6" },
+  neon:      { fundo:"#14142A", tinta:"#FFFFFF", acento:"#FF4D8D" },
+  fita:      { fundo:"#0A0A0A", tinta:"#FFD400", acento:"#FFD400" },
+  barro:     { fundo:"#EDE0D4", tinta:"#3B2A21", acento:"#C1462F" },
+  gelo:      { fundo:"#FFFFFF", tinta:"#0B2A4A", acento:"#0EA5E9", grad:["#22D3EE","#2563EB"] },
+  chumbo:    { fundo:"#E7E5E2", tinta:"#3F3F46", acento:"#71717A" },
+  ouro:      { fundo:"#2B1D14", tinta:"#F3E3C3", acento:"#C9A227" },
+  sangue:    { fundo:"#FFFFFF", tinta:"#B00020", acento:"#B00020" },
+  real:      { fundo:"#FFC900", tinta:"#1C2E8A", acento:"#1C2E8A" },
+  violeta:   { fundo:"#0D0D14", tinta:"#F2E9FF", acento:"#B14BFF", grad:["#8B5CF6","#EC4899"] },
+  limao:     { fundo:"#14210A", tinta:"#EAF7D4", acento:"#B8E62D" },
+};
+
+const RECEITAS = [
+  { cod:"01", nome:"Estúdio", desc:"O feitio mais direto: infinito em traço, livro no “ll” e o som nas linhas da página. A paleta é a do app.",
+    fonte:"Poppins", peso:800, texto:"AllBook", inf:"traco", livro:"traco", som:"pagina", cor:"estudio" },
+
+  { cod:"02", nome:"Brasa", desc:"Degradê quente sobre azul, como a que você aprovou — só que agora com o livro e o som embutidos.",
+    fonte:"Poppins", peso:800, texto:"AllBook", inf:"traco", livro:"hastes", som:"dentro", cor:"brasa" },
+
+  { cod:"03", nome:"O som é o infinito", desc:"O laço é feito de barras de equalizador: o áudio não é um enfeite, é a própria forma do símbolo.",
+    fonte:"Poppins", peso:700, texto:"AllBook", inf:"barras", livro:"cheio", som:"nenhum", cor:"papel" },
+
+  { cod:"04", nome:"Carvão", desc:"Branco no preto, o teste mais duro de todos: se funciona aqui, funciona em qualquer lugar.",
+    fonte:"Space Grotesk", peso:700, texto:"AllBook", inf:"traco", livro:"cheio", som:"dentro", cor:"carvao" },
+
+  { cod:"05", nome:"Mata", desc:"Verde profundo com dourado. O livro vira sólido e o som sublinha a palavra inteira.",
+    fonte:"Archivo Black", peso:400, texto:"AllBook", inf:"cheio", livro:"cheio", som:"sublinha", cor:"mata" },
+
+  { cod:"06", nome:"Maré", desc:"Fundo de papel, tinta petróleo, acento laranja. Fita no lugar do traço — o laço vira rolo de gravação.",
+    fonte:"Poppins", peso:700, texto:"AllBook", inf:"fita", livro:"traco", som:"pagina", cor:"mare" },
+
+  { cod:"07", nome:"Lavanda", desc:"Roxo em fundo claro, tudo leve. A versão mais delicada — e a que mais sofre no tamanho pequeno.",
+    fonte:"Space Grotesk", peso:500, texto:"allbook", inf:"traco", livro:"hastes", som:"dentro", cor:"lavanda" },
+
+  { cod:"08", nome:"Menta", desc:"Dois círculos que se tocam em vez do laço cruzado: mais geométrico, menos “símbolo do infinito”.",
+    fonte:"Poppins", peso:700, texto:"allbook", inf:"circulos", livro:"cheio", som:"sublinha", cor:"menta" },
+
+  { cod:"09", nome:"Neon", desc:"Rosa forte no escuro, peso alto. O som fica dentro dos laços e o livro só sugerido nas hastes.",
+    fonte:"Archivo Black", peso:400, texto:"AllBook", inf:"traco", livro:"hastes", som:"dentro", cor:"neon" },
+
+  { cod:"10", nome:"Fita cassete", desc:"Amarelo sobre preto e o laço em fita dupla. É a mais “estúdio de gravação” do conjunto.",
+    fonte:"Space Grotesk", peso:700, texto:"AllBook", inf:"fita", livro:"cheio", som:"pagina", cor:"fita" },
+
+  { cod:"11", nome:"Barro", desc:"Terracota em fundo areia, com o infinito de barras. Quente e analógica, sem parecer retrô demais.",
+    fonte:"Poppins", peso:700, texto:"AllBook", inf:"barras", livro:"traco", som:"nenhum", cor:"barro" },
+
+  { cod:"12", nome:"Gelo", desc:"Degradê ciano-azul no branco. Aqui a onda sublinha a palavra e o livro é sólido.",
+    fonte:"Poppins", peso:800, texto:"AllBook", inf:"traco", livro:"cheio", som:"sublinha", cor:"gelo" },
+
+  { cod:"13", nome:"Chumbo", desc:"Sem cor de marca nenhuma, só cinzas. Serve de prova: o desenho se explica sozinho?",
+    fonte:"Space Grotesk", peso:700, texto:"AllBook", inf:"traco", livro:"traco", som:"pagina", cor:"chumbo" },
+
+  { cod:"14", nome:"Ouro", desc:"Dourado no marrom, tipografia pesada — o clima de edição especial, capa dura.",
+    fonte:"Archivo Black", peso:400, texto:"AllBook", inf:"cheio", livro:"cheio", som:"dentro", cor:"ouro" },
+
+  { cod:"15", nome:"Sangue", desc:"Uma cor só, vermelha, no branco. A mais econômica de todas: nada além do necessário.",
+    fonte:"Poppins", peso:700, texto:"AllBook", inf:"traco", livro:"hastes", som:"nenhum", cor:"sangue" },
+
+  { cod:"16", nome:"Real", desc:"Azul sobre amarelo, contraste no talo. Chama atenção na loja de aplicativos — e cansa rápido.",
+    fonte:"Archivo Black", peso:400, texto:"AllBook", inf:"circulos", livro:"cheio", som:"sublinha", cor:"real" },
+
+  { cod:"17", nome:"Violeta", desc:"Degradê violeta-rosa no quase preto, com o laço de barras. A mais “aplicativo novo” do conjunto.",
+    fonte:"Poppins", peso:700, texto:"allbook", inf:"barras", livro:"hastes", som:"nenhum", cor:"violeta" },
+
+  { cod:"18", nome:"Limão", desc:"Verde-limão no verde escuro. Fita dupla e som na página: duas referências discretas, nenhuma gritando.",
+    fonte:"Space Grotesk", peso:700, texto:"AllBook", inf:"fita", livro:"traco", som:"pagina", cor:"limao" },
+];
+
+/* --------------------------------------------------------------------------
+   Montagem
+   -------------------------------------------------------------------------- */
+function desenhar(r, W, H) {
+  const c = CORES[r.cor];
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  document.body.appendChild(svg);           // no DOM para poder medir
+
+  const TAM = 100, yb = H * 0.63;
+  const idGrad = "g" + r.cod;
+  const corTinta = c.grad ? `url(#${idGrad})` : c.tinta;
+  const corAcento = c.grad ? `url(#${idGrad})` : c.acento;
+
+  // LARGURA vem do SVG (getComputedTextLength é exato e respeita o letter-spacing).
+  // ALTURA precisa vir do canvas: getBBox() de um <text> devolve a altura da LINHA
+  // inteira da fonte, não a do glifo — medindo por ele, a altura do "o" dava 115
+  // em vez de 52, e o livro, o infinito e a espessura do traço saíam todos ao dobro.
+  const cv = document.createElement("canvas").getContext("2d");
+  cv.font = `${r.peso} ${TAM}px "${r.fonte}", sans-serif`;
+
+  const medir = (s) => {
+    const t = document.createElementNS(NS, "text");
+    t.setAttribute("font-family", r.fonte + ",sans-serif");
+    t.setAttribute("font-weight", r.peso);
+    t.setAttribute("font-size", TAM);
+    t.setAttribute("letter-spacing", "-1.5");
+    t.setAttribute("visibility", "hidden");
+    t.textContent = s;
+    svg.appendChild(t);
+    const l = t.getComputedTextLength();
+    t.remove();
+    const m = cv.measureText(s);
+    const alt = (m.actualBoundingBoxAscent || 0) + (m.actualBoundingBoxDescent || 0);
+    return { l, alt: alt || TAM * 0.52 };
+  };
+
+  const T = r.texto;                        // "AllBook" ou "allbook"
+  const mO = medir(T[4]), mL = medir(T[1]);
+  const XH = mO.alt, ASC = mL.alt;
+  const traco = XH * (r.fonte === "Archivo Black" ? 0.34 : 0.30);
+
+  const semLivro = false;
+  const esq = T[0];                          // "A" ou "a"
+  const meio = T[3];                         // "B" ou "b"
+  const dir = T[6];                          // "k"
+  const mEsq = medir(esq), mMeio = medir(meio), mDir = medir(dir);
+
+  const wLivro = Math.max(mL.l * 2, XH * 1.15);  // o "ll" é estreito; o livro precisa de largura
+  // O vão do infinito é a largura do DESENHO, não a dos dois "o" que ele
+  // substitui: reservar a largura das letras deixava um buraco no meio da
+  // palavra e o letreiro parecia partido em pedaços.
+  const rInf = XH * 0.42;
+  const lInf = rInf * 1.9;
+  const wInf = lInf * 2 + traco;
+  const folga = TAM * 0.02;
+
+  const total = mEsq.l + folga + wLivro + folga + mMeio.l + folga + wInf + folga + mDir.l;
+  let x = (W - total) / 2;
+  const x0 = x;
+
+  const txt = (s, xx, cor) => `<text x="${xx}" y="${yb}" font-family="${r.fonte},sans-serif"
+      font-weight="${r.peso}" font-size="${TAM}" letter-spacing="-1.5" fill="${cor}">${s}</text>`;
+
+  // gradientUnits="userSpaceOnUse" por dois motivos: (1) no modo padrão
+  // (objectBoundingBox) um elemento de largura zero — como as barrinhas
+  // verticais do equalizador — tem caixa degenerada e simplesmente NÃO PINTA,
+  // que foi o que sumiu com o infinito da 17; (2) assim o degradê atravessa a
+  // palavra inteira em vez de recomeçar em cada letra.
+  const defs = c.grad
+    ? `<defs><linearGradient id="${idGrad}" gradientUnits="userSpaceOnUse"
+         x1="0" y1="0" x2="${W}" y2="0">
+         <stop offset="0" stop-color="${c.grad[0]}"/><stop offset="1" stop-color="${c.grad[1]}"/>
+       </linearGradient></defs>` : "";
+
+  let out = defs + `<rect x="0" y="0" width="${W}" height="${H}" fill="${c.fundo}"/>`;
+  out += txt(esq, x, corTinta);
+  x += mEsq.l + folga;
+
+  // --- o livro, no lugar do "ll"
+  const xLivro = x, hLivro = ASC * 0.92;
+  if (r.livro === "traco")  out += livroTraco(xLivro, yb, wLivro, hLivro, traco * 0.72, corTinta);
+  if (r.livro === "cheio")  out += livroCheio(xLivro, yb, wLivro, hLivro, corTinta);
+  if (r.livro === "hastes") out += livroHastes(xLivro, yb, wLivro, hLivro, traco, corTinta, corAcento);
+  if (r.som === "pagina")   out += somNaPagina(xLivro, yb, wLivro, hLivro, traco, corAcento);
+  x += wLivro + folga;
+
+  out += txt(meio, x, corTinta);
+  x += mMeio.l + folga;
+
+  // --- o infinito, no lugar do "oo"
+  const cx = x + wInf / 2, cy = yb - XH / 2;
+  const R = rInf, L = lInf;
+  if (r.inf === "traco")    out += infTraco(cx, cy, L, R, traco * 0.82, corAcento);
+  if (r.inf === "cheio")    out += infTraco(cx, cy, L, R, traco * 1.25, corAcento);
+  if (r.inf === "fita")     out += infFita(cx, cy, L, R, traco, corAcento);
+  if (r.inf === "circulos") out += infCirculos(cx, cy, L, R, traco, corAcento);
+  if (r.inf === "barras")   out += infBarras(cx, cy, L, R, traco, corAcento, svg);
+  if (r.som === "dentro")   out += somDentro(cx, cy, L, R, traco, corTinta);
+  x += wInf + folga;
+
+  out += txt(dir, x, corTinta);
+  const xFim = x + mDir.l;
+
+  if (r.som === "sublinha") out += somSublinha(x0, xFim, yb + XH * 0.42, traco, corAcento);
+
+  svg.innerHTML = out;
+  svg.remove();
+  return svg;
+}
+
+// --- pintura da folha -------------------------------------------------------
+const escolhidos = new Set();
+const grade = document.getElementById("grade");
+const estadoEl = document.getElementById("estado");
+
+function pintar() {
+  document.querySelectorAll(".cartao").forEach(el =>
+    el.classList.toggle("viva", escolhidos.has(el.dataset.cod)));
+  const n = escolhidos.size;
+  document.getElementById("btn-enviar").disabled = n === 0;
+  document.getElementById("barra-txt").innerHTML = n === 0
+    ? "Nenhum marcado ainda — <b>18</b> desenhos"
+    : `<b>${n}</b> marcado${n > 1 ? "s" : ""}: ${[...escolhidos].sort().join(", ")}`;
+  const lista = [...escolhidos].sort()
+    .map(cod => { const r = RECEITAS.find(x => x.cod === cod); return `<b>${cod}</b> — ${r.nome}`; });
+  document.getElementById("resumo").innerHTML = lista.length
+    ? "Marcados: " + lista.join(" · ")
+    : "<span style='opacity:.55'>Clique nos desenhos que te agradarem — pode marcar vários.</span>";
+}
+
+function textoDaResposta() {
+  const linhas = ["Folha “18 letreiros AllBook” (janela C):"];
+  [...escolhidos].sort().forEach(cod => {
+    const r = RECEITAS.find(x => x.cod === cod);
+    linhas.push(`· ${cod} — ${r.nome} (infinito ${r.inf}, livro ${r.livro}, som ${r.som}, ${r.fonte})`);
+  });
+  if (!escolhidos.size) linhas.push("· nenhum marcado");
+  const obs = document.getElementById("obs").value.trim();
+  if (obs) linhas.push("Observação: " + obs);
+  return linhas.join("\n");
+}
+
+document.fonts.ready.then(() => {
+  RECEITAS.forEach(r => {
+    const el = document.createElement("div");
+    el.className = "cartao";
+    el.dataset.cod = r.cod;
+    el.innerHTML = `<span class="cod">${r.cod}</span>`;
+
+    const palco = document.createElement("div");
+    palco.className = "palco";
+    palco.style.background = CORES[r.cor].fundo;
+    palco.appendChild(desenhar(r, 720, 150));
+    el.appendChild(palco);
+
+    const pe = document.createElement("div");
+    pe.className = "pe";
+    pe.innerHTML = `<h3>${r.nome}</h3><p>${r.desc}</p>`;
+
+    const provas = document.createElement("div");
+    provas.className = "provas";
+    provas.innerHTML = `<span class="rot">prova de tamanho</span>`;
+    [110, 54, 26].forEach(w => {
+      const cx = document.createElement("span");
+      cx.className = "mini";
+      cx.style.background = CORES[r.cor].fundo;
+      const s = desenhar(r, 720, 150);
+      s.style.width = w + "px"; s.style.height = "auto"; s.style.display = "block";
+      cx.appendChild(s);
+      provas.appendChild(cx);
+    });
+    pe.appendChild(provas);
+    el.appendChild(pe);
+
+    el.addEventListener("click", () => {
+      if (escolhidos.has(r.cod)) escolhidos.delete(r.cod); else escolhidos.add(r.cod);
+      pintar();
+    });
+    grade.appendChild(el);
+  });
+  pintar();
+});
+
+document.getElementById("ir-envio").addEventListener("click", (e) => {
+  e.preventDefault();
+  document.querySelector(".envio").scrollIntoView({ behavior: "smooth" });
+});
+
+document.getElementById("btn-copiar").addEventListener("click", () => {
+  const t = textoDaResposta();
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(
+    () => { estadoEl.className = "ok"; estadoEl.textContent = "Copiado — cole no chat."; },
+    () => { estadoEl.className = "erro"; estadoEl.textContent = "Não deu; o texto está no resumo."; });
+});
+
+document.getElementById("btn-enviar").addEventListener("click", () => {
+  const btn = document.getElementById("btn-enviar");
+  btn.disabled = true; btn.textContent = "Enviando…";
+  fetch("/api/folha/respostas", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      folha: "logos-C",
+      quando: new Date().toISOString(),
+      respostas: { escolhidos: [...escolhidos].sort() },
+      observacao: document.getElementById("obs").value.trim(),
+      resumo: textoDaResposta()
+    })
+  }).then(r => {
+    if (!r.ok) throw new Error(r.status);
+    btn.textContent = "✓ Enviado";
+    estadoEl.className = "ok";
+    estadoEl.textContent = "Recebido! Avise a janela C (a Dora).";
+  }).catch(() => {
+    btn.disabled = false; btn.textContent = "Enviar para a janela C";
+    estadoEl.className = "erro";
+    estadoEl.textContent = "O servidor não respondeu. Use o “Copiar como texto”.";
+  });
+});
+})();
+</script>
+</body>
+</html>
