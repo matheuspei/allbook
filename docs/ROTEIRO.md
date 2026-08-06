@@ -4395,3 +4395,30 @@ desenhada à mão aqui.** Quem quiser retomar, leia esta tabela antes.
 grátis já faz o que precisamos; *ChatGPT Plus* / *Google AI Pro* (~US$ 20) — IA
 para tudo, imagem é acessório e nenhum dos dois tem o "clica e varia"; *fábricas
 de logo* (Looka, Brandmark) — marca genérica de catálogo, e o conceito já existe.
+
+**Ele assinou no mesmo dia.** O passo a passo e o prompt adaptado estão na folha,
+na seção "Você assinou o Midjourney — comece por aqui".
+
+### A armadilha do prompt no Midjourney: proibição não se escreve no texto
+
+**Os prompts da §4.111 não servem no Midjourney como estão.** Metade deles é
+lista de `No text, no library, no gradient…`, e o Midjourney **não lê negação em
+linguagem natural** — pior, a palavra proibida escrita no meio do prompt tende a
+**puxar** aquilo para a imagem. Proibição ali é um parâmetro no fim da linha:
+`--no text, letters, gradient, …`.
+
+Os outros três parâmetros que mudam o resultado em logo:
+
+| Parâmetro | O que faz |
+|---|---|
+| `--ar 1:1` | quadrado, formato de ícone |
+| `--style raw` | **o que mais importa** — desliga o embelezamento automático, que é o que enche logo de brilho, sombra e "arte" |
+| `--stylize 50` | segura a mão do artista dele (0–40 também serve) |
+
+⚠️ **Armadilha dentro da armadilha:** `--no` separa por vírgula, e frase sem
+vírgula é fatiada em pedaços soltos (`--no modern clothing` vira "no modern" +
+"no clothing", que chega a disparar a moderação). **Lista com vírgulas, sempre.**
+
+**O que rende o plano de US$ 10:** ~3,5 h de geração rápida por mês, e cada
+rodada de 4 imagens leva menos de um minuto — são centenas de rodadas. Não há
+motivo para economizar clique.
