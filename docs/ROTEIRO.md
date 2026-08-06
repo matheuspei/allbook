@@ -4453,3 +4453,30 @@ estraga o enquadramento (mockup, cartão de visita, grade de variações).
 6 desenhos meus, não contra o que uma ferramenta de verdade produz. Se o garimpo
 aberto trouxer coisa melhor, **o conceito escolhido não é compromisso** — o que
 vale é o que ele reconhecer batendo o olho.
+
+### O conceito novo, e ele é dele: os dois L de AllBook são o livro aberto
+
+*"a gente pode colocar esses dois AllBook com alguma coisa como um fone de
+ouvido… a gente aproveita esses dois AllBook e L como um livro aberto"*. **É
+melhor que os seis conceitos anteriores, por três motivos:**
+
+1. **Ninguém copia.** Livro-com-fone qualquer concorrente desenha; o **duplo L**
+   existe só no nome AllBook. Identidade que nasce da palavra é própria por
+   construção.
+2. **Resolve a queixa da rodada 1** — ele queria o nome junto do símbolo. Aqui
+   **o nome é o símbolo**: não há lockup para equilibrar, e o letreiro sozinho já
+   é a marca.
+3. **Aguenta o tamanho pequeno** justamente porque é letra: forma que o olho já
+   sabe ler.
+
+**O risco, e é o fone.** *Livro + fone* é a imagem mais batida do ramo (foi por
+isso que a proposta C caiu na §4.111 — *"é o que todo app de audiolivro já
+fez"*). Se o fone entrar, tem de ser **o arco por cima da palavra**, não um fone
+desenhado ao lado: aí ele vira estrutura da marca em vez de ilustração colada.
+
+⚠️ **Limite técnico que decide quem faz o quê:** logotipo tipográfico depende de
+a letra estar **exata**, e é justamente onde IA de imagem falha — ela *desenha*
+letra, não escreve. Então o Midjourney serve aqui para achar **o mecanismo** (como
+os dois L se abrem, onde o arco passa), e **a execução é minha**, compondo com
+fonte de verdade. Pela primeira vez a divisão de trabalho da §4.35 fica confortável
+nos dois lados.
