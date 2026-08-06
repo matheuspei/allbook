@@ -4282,3 +4282,44 @@ a cor do texto estava correta o tempo todo.
 logo**, a grafia do nome, o cartão de livro e o topo da Início. Enquanto isso a
 marca segue sendo a palavra com o "All" colorido — agora em vermelho — e o
 favicon continua sendo o do Replit.
+
+## 4.113 A folha das 48 logos — e por que voltamos a desenhar à mão (06/08)
+
+**O pedido:** *"crie uma folha com diversas sugestões de logo… muitas sugestões
+mesmo… uma logo tem que ser algo mais profissional, com a cara mais de prêmio"*.
+No meio do trabalho, um segundo recado: *"pode colocar a cor"* — as logos saem
+já coloridas, não em preto e branco.
+
+**A folha:** `client/public/_muitas-logos-B.html` — 48 símbolos em 8 famílias
+(a página que vira som · o monograma A · o ponto de gravação · lombadas ·
+voz e onda · o marcador · geométrico · play e escuta), 12 grafias do nome e
+6 trajes do ícone. Marcação **múltipla** nos símbolos (3 a 5 é o ideal), única
+no nome e no traje; responde em `_respostas-de-folhas/muitas-logos-B.json`.
+
+**A contradição que eu precisava enfrentar antes de aceitar a tarefa:** a §4.111
+registra que ele **não gostou de logo desenhada à mão** e que o caminho combinado
+virou gerar por IA de imagem (§4.112). Fiz a folha assim mesmo, e disse isso
+dentro dela, por dois motivos:
+
+1. **6 conceitos não são um leque.** Com 48 ele reconhece o que gosta batendo o
+   olho, que é como ele decide (memória de design: ele escolhe vendo).
+2. **SVG à mão fecha a lacuna que a IA não fecha.** A pergunta em aberto da
+   §4.111 era "IA devolve PNG e marca precisa ser vetor — quem redesenha?".
+   Um símbolo desenhado aqui **já é vetor**: estica sem borrar, troca de cor por
+   token e vira favicon. Se um dos 48 servir, **não há plataforma no meio**.
+
+**Como a cor entra, agora que ele pediu cor.** Em cada símbolo o vermelho de
+gravação cai **só na parte que é som** (onda, barras, ponto do REC) e o
+branco-osso fica com a parte que é livro. Mecanismo: os elementos de acento usam
+`var(--acento, currentColor)`, e só o palco do cartão define `--acento`. Assim o
+mesmo desenho serve às duas leituras — e as provas embaixo de cada cartão
+(1 cor · ícone do app · 16 px) continuam mostrando que **nenhum depende da cor**.
+*(Detalhe técnico que vale guardar: dentro de `<use>` o CSS por classe não
+alcança o conteúdo clonado — propriedade herdável e propriedade personalizada
+alcançam. Por isso acento por variável, não por classe.)*
+
+**Duas janelas fizeram folha de logo ao mesmo tempo.** Ele pediu o mesmo trabalho
+na A e na B; a A montou 12 marcas curadas (`_logo-premium-A.html`), a B montou o
+leque de 48. Ficaram as duas — ângulos diferentes, não duplicata. **Vale como
+alerta de coordenação:** pedido repetido em duas janelas não aparece no quadro
+até alguém escrever nele, e as duas só se descobriram no meio do caminho.
