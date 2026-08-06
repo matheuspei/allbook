@@ -4501,3 +4501,36 @@ arco. É a mesma lógica dele levada até o fim.
 **Aviso de método que ele precisou ouvir:** ele estava **rodando prompts novos**
 em vez de clicar em *V Forte* / *V Sutil* na imagem que já tinha chegado perto.
 O garimpo mora no botão, não no texto — prompt novo recomeça do zero.
+
+### A especificação final da marca — dita por ele, e o Midjourney não dá conta
+
+Ele me pediu para **assumir o navegador** e operar o Midjourney; rodei **12
+rodadas** na conta dele. Do que ele rejeitou saiu a especificação mais precisa
+que a marca já teve:
+
+1. **Tudo dentro do letreiro.** Nada de símbolo separado em cima, embaixo ou ao
+   lado — *"as referências de livros e áudios teriam que ser embutidas no
+   letreiro e não ser uma coisa separada"*.
+2. **O infinito mora nos dois O de "Book"** — não é um símbolo à parte, e não
+   pode se fundir com o B (o defeito da única que ele quase gostou: *"juntou o
+   símbolo do infinito com o B"*, e ainda saíram **três** infinitos).
+3. **Uma referência de livro e uma de áudio**, também embutidas nas letras.
+4. **Simples e minimalista** — *"não pode ser uma coisa muito complexa"*.
+5. Uma linha só.
+
+**Por que a ferramenta não entrega isso, e é limite dela, não do prompt:** o
+modelo **insere** o infinito e o livro como *caracteres a mais* em vez de
+**transformar** as letras que já existem. Saiu `AlB∞k`, `All∞[livro]ook`,
+`All ∞ B[livro]k` — a palavra quebra toda vez. IA de imagem **desenha** letra,
+não escreve, e fundir dois glifos existentes mantendo a palavra legível está
+fora do alcance dela.
+
+**Onde isso deixa a marca:** a especificação virou trabalho de **execução**, não
+de descoberta — e execução de spec é desenho, não sorteio. Isso **não contradiz**
+a regra das três rejeições (§ acima): o que foi reprovado três vezes foi eu
+**inventar** conceito; aqui o conceito é dele, detalhado ao nível da letra. Mas a
+decisão é dele, e está registrada como pendente.
+
+**O que também apareceu no caminho, e vale guardar:** os ajustes fixos da conta
+dele estavam com **Estranheza 157** e **modo Cru ligado**, sujando toda geração —
+e **voltam sozinhos** depois de mexer. Só `--weird 0` no fim do prompt segura.
