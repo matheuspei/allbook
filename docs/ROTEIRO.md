@@ -1234,7 +1234,7 @@ três em minutos, contra dezenas em segundos num gerador.
 
 | Etapa | Onde |
 | --- | --- |
-| Descobrir o desenho (símbolo, letreiro) | ⚠️ **desatualizado — ver §4.112**; era Grok/Ideogram/Midjourney, e os dois primeiros deixaram de servir de graça |
+| Descobrir o desenho (símbolo, letreiro) | ⚠️ **desatualizado — ver §4.115**; era Grok/Ideogram/Midjourney, e os dois primeiros deixaram de servir de graça |
 | Ver a ideia mexendo | Sora, Veo, Runway, Kling |
 | A vinheta sonora | **ElevenLabs** (efeito sonoro por descrição), Suno, ou contratar |
 | Virar app: vetorizar, animar, sincronizar com o som | **aqui** |
@@ -4171,69 +4171,6 @@ componente segue o token (`text-primary`) e custa uma linha do `index.css`, como
 a §4.110 mediu — mas **arquivo estático de ícone não lê CSS**: o hexadecimal fica
 escrito à mão dentro dele. Mudou a cor, são **dois lugares**.
 
-## 4.112 As ferramentas para gerar a marca — o mercado grátis mudou (06/08)
-
-**O pedido do Matheus:** ferramenta **gratuita** e no modelo que ele descreveu —
-*"você digitava um prompt e ele gerava diversas imagens, aí você ia clicando
-nessas imagens e ia aparecendo outras, mais ou menos como é no Pinterest, só que
-no contexto daquela logo"*. Não é "gerar 4 e acabou": é **garimpo por
-vizinhança**, onde cada imagem é a semente da próxima rodada.
-
-**Duas recomendações da §4.35 morreram** (verificado na web em 06/08/2026):
-
-| Ferramenta | O que mudou | Serve? |
-|---|---|---|
-| **Grok** | Tirou imagem e vídeo do plano grátis em **19/03/2026**; free virou só texto | ❌ não |
-| **Ideogram** | Free caiu de 10/dia para **10 por semana**, e o **Remix virou pago** — justo o botão do modelo Pinterest | ❌ não |
-| **Bing / Copilot Imagens** | Sempre gerou 4 e parou ali; **nunca teve** variar-a-partir-desta | ❌ não |
-| **Midjourney** | Continua o melhor em variação (Vary sutil/forte, Remix), mas **não tem plano grátis** (~US$10/mês) | 💰 só pagando |
-
-**O que ficou, na ordem em que recomendei:**
-
-1. **Leonardo.ai** — é literalmente o que ele descreveu: a home é um **feed
-   estilo Pinterest** das criações de todo mundo e cada imagem tem **Remix**, que
-   abre o prompt daquela imagem para você mexer. **150 tokens/dia** de graça
-   (~10–15 imagens). No plano grátis **as criações ficam públicas** no feed.
-2. **Google AI Studio** (modelo *Nano Banana*) — não tem feed, mas é de longe o
-   mais generoso de graça (**centenas de imagens/dia**, contra 10–15 do
-   Leonardo) e o refino é por **conversa**: "essa terceira, barras mais grossas".
-   Para **afinar um símbolo já escolhido**, conversar bate feed.
-3. **Recraft** — ~30–50 créditos/dia e **o único que entrega SVG vetorial de
-   graça**. É o que ataca a questão em aberto da §4.111 (saída PNG × marca
-   precisa ser vetor). Também deixa as imagens públicas no grátis.
-4. **NightCafe** — feed e "evolve", mas **5 créditos/dia**: pouco para garimpar.
-
-**O caminho recomendado, em três passos:** garimpar o conceito no **Leonardo**
-(feed + Remix, com o prompt 1 da folha `_logo-A.html`, só o símbolo) → afinar o
-escolhido no **AI Studio** conversando → tirar em vetor no **Recraft**, ou mandar
-o PNG para eu redesenhar em SVG aqui. O passo 3 continua sendo a decisão em
-aberto da §4.111 — só que agora existe uma opção que não depende de ninguém
-redesenhar à mão.
-
-**Apurado que vale além desta tarefa:** plano grátis de IA de imagem **apodrece
-rápido** — duas das três indicações escritas em 26/07 estavam furadas em 06/08.
-Recomendação de ferramenta escrita em documento tem prazo de validade; **conferir
-antes de mandar ele usar**.
-
-**Achado que atravessa duas folhas: os prompts da §4.111 já nasceram velhos de
-cor.** Enquanto eu conferia as ferramentas, a janela A começou a implementar a
-direção **"Estúdio"** da §4.110 — grafite `#121110`, **vermelho de gravação
-`#FF4438`**, título em Space Grotesk e o nome escrito **"allbook" minúsculo**. Os
-dois prompts pedem **laranja `#FF6A00` sobre `#141414`** e **"AllBook"** com
-maiúsculas: duas das três escolhas da folha `_logo-A.html` foram **superadas por
-uma decisão dele em outra folha**.
-
-**A saída, e vale como regra:** gerar o símbolo **monocromático** — branco sobre
-preto, sem letra. Forma que só funciona porque é laranja não é boa forma; e assim
-o garimpo não depende de qual paleta vence. **A cor entra no fim, num clique.**
-Escrevi esse terceiro prompt na folha e rebaixei os dois coloridos para "depois
-que a paleta parar de mexer". **O letreiro não precisa de IA** — nome escrito é
-escolher fonte e digitar, e é onde esses modelos mais erram (dois L virando um).
-
-**A folha:** `client/public/_ferramentas-de-logo-C.html`, com os links, o passo a
-passo, o alerta da cor e os três prompts com botão de copiar — para ele não
-precisar abrir duas folhas enquanto testa.
-
 ## 4.112 A identidade nova: direção "Estúdio", com o tema claro "Tinta" ao lado (06/08)
 
 **Ele decidiu na folha `_design-do-zero-B.html`, e mudou de ideia no caminho:**
@@ -4298,7 +4235,7 @@ no nome e no traje; responde em `_respostas-de-folhas/muitas-logos-B.json`.
 
 **A contradição que eu precisava enfrentar antes de aceitar a tarefa:** a §4.111
 registra que ele **não gostou de logo desenhada à mão** e que o caminho combinado
-virou gerar por IA de imagem (§4.112). Fiz a folha assim mesmo, e disse isso
+virou gerar por IA de imagem (§4.115). Fiz a folha assim mesmo, e disse isso
 dentro dela, por dois motivos:
 
 1. **6 conceitos não são um leque.** Com 48 ele reconhece o que gosta batendo o
@@ -4323,3 +4260,138 @@ na A e na B; a A montou 12 marcas curadas (`_logo-premium-A.html`), a B montou o
 leque de 48. Ficaram as duas — ângulos diferentes, não duplicata. **Vale como
 alerta de coordenação:** pedido repetido em duas janelas não aparece no quadro
 até alguém escrever nele, e as duas só se descobriram no meio do caminho.
+
+## 4.114 A folha das 12 marcas curadas — e dois desenhos que não liam o que deviam (06/08)
+
+**A folha:** `client/public/_logo-premium-A.html` — doze símbolos desenhados à
+mão, um de cada família (livro+som, selo de estúdio, monograma, aspas de
+narração, quadrado abstrato…), todos numa cor só primeiro (a regra do §4.115:
+"forma que só funciona porque é laranja não é boa forma"), com a cor entrando
+só na terceira pergunta. Cada marca traz o porquê e o ponto fraco de verdade,
+inclusive a recomendada — o **selo do estúdio** (nº4): um carimbo/selo redondo
+com o corte de play dentro, escolhido por separar o AllBook dos ícones
+quadrados cheios de Audible e Storytel.
+
+**Conferir no navegador antes de mostrar a ele valeu a pena — pegou dois
+desenhos que não liam o conceito pretendido:**
+
+1. **O "carimbo de gravação" (nº5) lia como pen-drive ou controle remoto**, não
+   como livro — um retângulo arredondado com uma linha vertical solta dentro
+   não tem nenhum gancho visual de "livro". Redesenhado com as páginas
+   aparecendo na lateral direita (o jeito clássico de ícone de "livro
+   fechado", como o do próprio app de Livros da Apple): agora lê na hora.
+2. **O monograma "a" (nº7) lia como "d"** — a haste vertical subia acima do
+   corpo da letra, criando um ascendente que é exatamente o que distingue um
+   "d" de um "a". Cortei a haste na altura do topo do corpo; agora não
+   ultrapassa e volta a ler como "a".
+
+**Por que isso importa registrar:** a §4.111 já tinha registrado que ele não
+gostou do desenho à mão da rodada anterior — "o desenho não é o produto, o
+conceito é". Um desenho que não bate com o conceito que ele descreve embaixo é
+pior que não ter desenho: é dele que decide, e ele decide vendo. Testar cada
+marca na tela antes de entregar (em vez de confiar só na leitura do código
+SVG) é o que pegou os dois erros acima.
+
+## 4.115 As ferramentas para gerar a marca — o mercado grátis mudou (06/08)
+
+**O pedido do Matheus:** ferramenta **gratuita** e no modelo que ele descreveu —
+*"você digitava um prompt e ele gerava diversas imagens, aí você ia clicando
+nessas imagens e ia aparecendo outras, mais ou menos como é no Pinterest, só que
+no contexto daquela logo"*. Não é "gerar 4 e acabou": é **garimpo por
+vizinhança**, onde cada imagem é a semente da próxima rodada.
+
+**Duas recomendações da §4.35 morreram** (verificado na web em 06/08/2026):
+
+| Ferramenta | O que mudou | Serve? |
+|---|---|---|
+| **Grok** | Tirou imagem e vídeo do plano grátis em **19/03/2026**; free virou só texto | ❌ não |
+| **Ideogram** | Free caiu de 10/dia para **10 por semana**, e o **Remix virou pago** — justo o botão do modelo Pinterest | ❌ não |
+| **Bing / Copilot Imagens** | Sempre gerou 4 e parou ali; **nunca teve** variar-a-partir-desta | ❌ não |
+| **Midjourney** | Continua o melhor em variação (Vary sutil/forte, Remix), mas **não tem plano grátis** (~US$10/mês) | 💰 só pagando |
+
+**O que ficou, na ordem em que recomendei:**
+
+1. **Leonardo.ai** — é literalmente o que ele descreveu: a home é um **feed
+   estilo Pinterest** das criações de todo mundo e cada imagem tem **Remix**, que
+   abre o prompt daquela imagem para você mexer. **150 tokens/dia** de graça
+   (~10–15 imagens). No plano grátis **as criações ficam públicas** no feed.
+2. **Google AI Studio** (modelo *Nano Banana*) — não tem feed, mas é de longe o
+   mais generoso de graça (**centenas de imagens/dia**, contra 10–15 do
+   Leonardo) e o refino é por **conversa**: "essa terceira, barras mais grossas".
+   Para **afinar um símbolo já escolhido**, conversar bate feed.
+3. **Recraft** — ~30–50 créditos/dia. **Correção do que eu disse primeiro:** no
+   plano grátis ele **não exporta SVG** do que a IA dele gera, só PNG/JPEG —
+   exportar vetor do gerado exige o pago. **O que é grátis é o vetorizador**
+   (joga um PNG, sai SVG), e é para isso que ele serve aqui: converter o que veio
+   do Leonardo. Ataca a questão em aberto da §4.111 (PNG × marca precisa ser
+   vetor), só que por outro caminho.
+4. **NightCafe** — feed e "evolve", mas **5 créditos/dia**: pouco para garimpar.
+
+**O caminho recomendado, em três passos:** garimpar o conceito no **Leonardo**
+(feed + Remix, com o prompt 1 da folha `_logo-A.html`, só o símbolo) → afinar o
+escolhido no **AI Studio** conversando → tirar em vetor no **Recraft**, ou mandar
+o PNG para eu redesenhar em SVG aqui. O passo 3 continua sendo a decisão em
+aberto da §4.111 — só que agora existe uma opção que não depende de ninguém
+redesenhar à mão.
+
+**Apurado que vale além desta tarefa:** plano grátis de IA de imagem **apodrece
+rápido** — duas das três indicações escritas em 26/07 estavam furadas em 06/08.
+Recomendação de ferramenta escrita em documento tem prazo de validade; **conferir
+antes de mandar ele usar**.
+
+**Achado que atravessa duas folhas: os prompts da §4.111 já nasceram velhos de
+cor.** Enquanto eu conferia as ferramentas, a janela A começou a implementar a
+direção **"Estúdio"** da §4.110 — grafite `#121110`, **vermelho de gravação
+`#FF4438`**, título em Space Grotesk e o nome escrito **"allbook" minúsculo**. Os
+dois prompts pedem **laranja `#FF6A00` sobre `#141414`** e **"AllBook"** com
+maiúsculas: duas das três escolhas da folha `_logo-A.html` foram **superadas por
+uma decisão dele em outra folha**.
+
+**A saída, e vale como regra:** gerar o símbolo **monocromático** — branco sobre
+preto, sem letra. Forma que só funciona porque é laranja não é boa forma; e assim
+o garimpo não depende de qual paleta vence. **A cor entra no fim, num clique.**
+Escrevi esse terceiro prompt na folha e rebaixei os dois coloridos para "depois
+que a paleta parar de mexer". **O letreiro não precisa de IA** — nome escrito é
+escolher fonte e digitar, e é onde esses modelos mais erram (dois L virando um).
+
+**A folha:** `client/public/_ferramentas-de-logo-C.html`, com os links, o passo a
+passo, o alerta da cor e os três prompts com botão de copiar — para ele não
+precisar abrir duas folhas enquanto testa.
+
+### A terceira rejeição de desenho à mão — e a decisão que sai dela
+
+**Ele viu as 60 logos das §4.113 e §4.114 e reprovou todas:** *"Nenhuma me
+agradou. Todas eram muito ruim. Todas tinham o mesmo: era um vermelho, era outra
+sem cores"*. **A frase que importa é essa última:** o que ele viu como variação
+foi **variação de cor**, não de forma — 60 desenhos com a mesma assinatura
+visual.
+
+**É a terceira vez, e o padrão fecha:**
+
+| Quando | O que foi | Veredito |
+|---|---|---|
+| 26/07 | 3 animações de abertura (`3669f8d`) | *"nenhuma me agradou"* |
+| 05/08 | 6 conceitos de marca (§4.111) | escolheu o conceito, **não gostou do desenho** |
+| 06/08 | 48 + 12 símbolos (§4.113, §4.114) | *"todas eram muito ruim"* |
+
+**Não é falta de empenho — é limite da ferramenta.** SVG escrito à mão sai
+geométrico, plano e simétrico, sempre com a mesma mão; e "cara de prêmio" mora no
+refinamento de proporção e no acidente feliz, que aparecem quando se veem
+**centenas** de tentativas, não dezenas. **Decisão: paramos de propor logo
+desenhada à mão aqui.** Quem quiser retomar, leia esta tabela antes.
+
+### A recomendação de assinatura (ele perguntou: *"qual plano eu assinaria?"*)
+
+**Midjourney Basic, US$ 10, um mês — e cancelar.** Razões, na ordem:
+
+1. **É a única saída ainda não tentada**, e é literalmente a que ele descreveu
+   desde a §4.35: *"você digitava e ele te dava centenas de opções"*.
+2. **Ele não precisa saber desenhar nem escrever prompt** — os prompts estão
+   prontos na folha; ele cola e vai clicando em *Vary sutil* / *Vary forte*.
+3. **Logo é trabalho de uma vez.** Mensalidade permanente para um arquivo só é
+   dinheiro parado; dá para reassinar quando precisar.
+
+**Rejeitados, com o motivo:** *Recraft Pro* (US$ 25–48) — caro, e o vetorizador
+grátis já faz o que precisamos; *ChatGPT Plus* / *Google AI Pro* (~US$ 20) — IA
+para tudo, imagem é acessório e nenhum dos dois tem o "clica e varia"; *fábricas
+de logo* (Looka, Brandmark) — marca genérica de catálogo, e o conceito já existe.
