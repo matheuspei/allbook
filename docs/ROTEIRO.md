@@ -4480,3 +4480,24 @@ letra, não escreve. Então o Midjourney serve aqui para achar **o mecanismo** (
 os dois L se abrem, onde o arco passa), e **a execução é minha**, compondo com
 fonte de verdade. Pela primeira vez a divisão de trabalho da §4.35 fica confortável
 nos dois lados.
+
+**Rodado, e o mecanismo funciona.** Primeira vez em toda a história da marca que
+algo não foi rejeitado de saída: o duplo L virando livro aberto **se lê na hora**,
+e a grafia "AllBook" saiu **certa** em várias imagens (a preocupação com os dois L
+era exagerada — a palavra é curta e comum o bastante). O que continua ruim:
+
+1. **A tipografia sai genérica** — itálico pesado com contorno, cara de logo de
+   time ou de editora dos anos 90. É o oposto de "cara de prêmio".
+2. **O arco do fone virou um sorriso** — não lê como fone e some no tamanho
+   pequeno. Confirma o risco que já estava anotado aqui.
+3. **`--no mockup` não segura o mockup** — voltou livro fotografado sobre mesa.
+   Só `--no photo, photography` junto resolve.
+
+**Extensão que eu propus, e é o próximo teste: os dois O de "Book" viram as
+conchas do fone.** Assim o **nome inteiro** conta a história — `ll` é o livro,
+`oo` é o fone — e nada fica colado por cima da palavra, que era o defeito do
+arco. É a mesma lógica dele levada até o fim.
+
+**Aviso de método que ele precisou ouvir:** ele estava **rodando prompts novos**
+em vez de clicar em *V Forte* / *V Sutil* na imagem que já tinha chegado perto.
+O garimpo mora no botão, não no texto — prompt novo recomeça do zero.
