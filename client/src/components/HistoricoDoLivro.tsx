@@ -100,7 +100,7 @@ export default function HistoricoDoLivro({
 
   return (
     <Drawer open={aberto} onOpenChange={(estado) => !estado && onClose()}>
-      <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
+      <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-card text-white">
         <DrawerHeader className="text-left">
           <DrawerTitle className="font-display tracking-tight text-white">
             Meu ritmo neste livro
@@ -177,7 +177,7 @@ export default function HistoricoDoLivro({
                       num relance em que dia a pessoa emendou horas. */}
                   <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-primary to-[#f59e0b]"
+                      className="h-full rounded-full bg-gradient-to-r from-primary to-primary"
                       style={{ width: `${maiorDia ? (dia.sec / maiorDia) * 100 : 0}%` }}
                     />
                   </div>

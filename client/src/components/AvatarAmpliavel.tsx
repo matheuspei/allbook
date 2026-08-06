@@ -169,7 +169,7 @@ export default function AvatarAmpliavel({
                 onClick={(evento) => evento.stopPropagation()}
                 className={cn(
                   "relative w-[72vw] max-w-[17rem] aspect-square rounded-full overflow-hidden ring-1 ring-white/15 shadow-2xl shadow-black/60 flex items-center justify-center",
-                  !retrato && (fundoClasse ?? "bg-gradient-to-br from-primary to-amber-500"),
+                  !retrato && (fundoClasse ?? "bg-gradient-to-br from-primary to-primary/60"),
                 )}
                 style={!retrato ? fundoStyle : undefined}
               >

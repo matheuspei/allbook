@@ -88,7 +88,7 @@ export default function ProfileEdit() {
   }
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="profile-edit-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="profile-edit-page">
       <PageHeader
         title="Editar perfil"
         fallback="/profile"

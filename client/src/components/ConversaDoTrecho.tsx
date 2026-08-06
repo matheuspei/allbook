@@ -140,7 +140,7 @@ export default function ConversaDoTrecho({
       data-testid="conversa-do-trecho"
     >
       <div
-        className="max-h-[85vh] w-full overflow-y-auto rounded-t-[32px] border-t border-white/10 bg-[#1a1a1a] p-6 pb-10 animate-in slide-in-from-bottom duration-300"
+        className="max-h-[85vh] w-full overflow-y-auto rounded-t-[32px] border-t border-white/10 bg-card p-6 pb-10 animate-in slide-in-from-bottom duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto -mt-2 mb-5 h-1.5 w-12 rounded-full bg-white/15" />
@@ -151,7 +151,7 @@ export default function ConversaDoTrecho({
             <p className="mt-1 text-xs text-white/40">{rotuloDaAncora(bookId, ponto)}</p>
             {adiante && (
               <p
-                className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#f59e0b]/10 px-2.5 py-1 text-[11px] font-semibold text-[#f59e0b]"
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
                 data-testid="aviso-trecho-adiante"
               >
                 <EyeOff className="h-3 w-3" />
@@ -353,7 +353,7 @@ function FalaDoTrecho({
         <span className={`font-bold ${ehSeu ? "text-primary" : "text-white"}`}>{nome}</span>
         <span className="text-white/30">{quando}</span>
         {spoiler && (
-          <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-[#f59e0b]">
+          <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-primary">
             spoiler
           </span>
         )}

@@ -44,7 +44,7 @@ export function PaginaDoForum({
   testid?: string;
 }) {
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid={testid}>
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid={testid}>
       <PageHeader title={titulo} fallback={voltarPara} action={acao} />
       {children}
     </div>
@@ -168,7 +168,7 @@ export function AvatarDoForum({
   nome,
   slug,
   src,
-  cor = "from-primary to-orange-600",
+  cor = "from-primary to-primary/60",
   tamanho = 44,
   testid,
 }: {

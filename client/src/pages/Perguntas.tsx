@@ -51,7 +51,7 @@ export default function Perguntas() {
   const dividida = semResposta.length > 0 && respondidas.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="perguntas-page">
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid="perguntas-page">
       <header className="relative overflow-hidden px-5 pb-4 pt-7">
         <div
           aria-hidden

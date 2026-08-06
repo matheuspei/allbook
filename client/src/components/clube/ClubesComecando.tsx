@@ -52,7 +52,7 @@ export default function ClubesComecando({
     <section className="space-y-3" data-testid="clubes-comecando">
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-          <CalendarPlus className="h-3 w-3 text-[#f59e0b]" />
+          <CalendarPlus className="h-3 w-3 text-primary" />
           {titulo}
         </h2>
         {verTodos && (
@@ -72,7 +72,7 @@ export default function ClubesComecando({
             <Link
               key={clube.id}
               href={`/clube/${clube.id}`}
-              className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-[#241a10] to-[#1a1a1a] p-3 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.22)] transition-colors hover:from-[#2b1f12]"
+              className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-[#241a10] to-card p-3 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.22)] transition-colors hover:from-[#2b1f12]"
               data-testid={`clube-estreia-${clube.id}`}
             >
               {livro && (
@@ -83,7 +83,7 @@ export default function ClubesComecando({
                 />
               )}
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#f59e0b]">
+                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
                   {estreiaEmTexto(clube)} · {dataCurta(clube.ciclo.inicio)}
                 </p>
                 <p className="mt-0.5 truncate text-sm font-bold">{clube.nome}</p>

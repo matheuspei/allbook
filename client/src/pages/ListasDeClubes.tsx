@@ -62,7 +62,7 @@ export default function MeusClubes() {
   );
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="meus-clubes-page">
+    <div className="min-h-screen bg-background pb-28 text-white" data-testid="meus-clubes-page">
       <PageHeader title={`Meus clubes · ${meus.length}`} fallback="/clubes" />
 
       <div className="space-y-3 px-5 pt-4">
@@ -99,7 +99,7 @@ export function EstreiasDeClubes() {
   const estreias = usarClubes(estreiasParaDescobrir);
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="estreias-page">
+    <div className="min-h-screen bg-background pb-28 text-white" data-testid="estreias-page">
       <PageHeader title={`Estreiam em breve · ${estreias.length}`} fallback="/clubes" />
 
       {estreias.length === 0 ? (
@@ -148,7 +148,7 @@ export function ClubesAbertos() {
   const filtrados = topico ? abertos.filter((clube) => clube.genero === topico) : abertos;
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="abertos-page">
+    <div className="min-h-screen bg-background pb-28 text-white" data-testid="abertos-page">
       <PageHeader title={`Clubes abertos · ${abertos.length}`} fallback="/clubes" />
 
       <div className="space-y-3 pt-4">

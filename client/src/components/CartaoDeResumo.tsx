@@ -123,15 +123,15 @@ function textoQueCabe(ctx: CanvasRenderingContext2D, texto: string, largura: num
 /** Fundo, brilho da marca e a assinatura — o que as duas peças dividem. */
 function moldura(ctx: CanvasRenderingContext2D, altura: number): void {
   ctx.clearRect(0, 0, LARGURA, altura);
-  ctx.fillStyle = "#141414";
+  ctx.fillStyle = "#121110";
   ctx.fillRect(0, 0, LARGURA, altura);
 
   // O mesmo brilho da marca que abre as telas do app — contido: na primeira
   // versão ele tomava metade do cartão e deixava o topo todo amarronzado.
   const alcance = altura * 0.46;
   const brilho = ctx.createRadialGradient(LARGURA / 2, 0, 0, LARGURA / 2, 0, alcance);
-  brilho.addColorStop(0, "rgba(255,106,0,0.22)");
-  brilho.addColorStop(1, "rgba(255,106,0,0)");
+  brilho.addColorStop(0, "rgba(255,68,56,0.22)");
+  brilho.addColorStop(1, "rgba(255,68,56,0)");
   ctx.fillStyle = brilho;
   ctx.fillRect(0, 0, LARGURA, alcance);
 
@@ -145,8 +145,8 @@ function moldura(ctx: CanvasRenderingContext2D, altura: number): void {
     altura * 1.04,
     altura * 0.5
   );
-  calor.addColorStop(0, "rgba(255,106,0,0.08)");
-  calor.addColorStop(1, "rgba(255,106,0,0)");
+  calor.addColorStop(0, "rgba(255,68,56,0.08)");
+  calor.addColorStop(1, "rgba(255,68,56,0)");
   ctx.fillStyle = calor;
   ctx.fillRect(0, altura * 0.5, LARGURA, altura * 0.5);
 
@@ -156,8 +156,8 @@ function moldura(ctx: CanvasRenderingContext2D, altura: number): void {
 
 /** A marca, no tamanho pedido. */
 function marca(ctx: CanvasRenderingContext2D, y: number, tamanho: number): void {
-  ctx.font = `700 ${tamanho}px Outfit, sans-serif`;
-  ctx.fillStyle = "#FF6A00";
+  ctx.font = `700 ${tamanho}px Space Grotesk, sans-serif`;
+  ctx.fillStyle = "#FF4438";
   ctx.fillText("All", MARGEM, y);
   const largoAll = ctx.measureText("All").width;
   ctx.fillStyle = "#ffffff";
@@ -288,7 +288,7 @@ async function desenharResumo(ctx: CanvasRenderingContext2D, dados: DadosDoCarta
 
   rotulo(ctx, "MINHA AUDIÇÃO", 300, 26);
 
-  ctx.font = "700 132px Outfit, sans-serif";
+  ctx.font = "700 132px Space Grotesk, sans-serif";
   ctx.fillStyle = "#ffffff";
   ctx.fillText(dados.total, MARGEM, 430);
 
@@ -319,7 +319,7 @@ async function desenharResumo(ctx: CanvasRenderingContext2D, dados: DadosDoCarta
 
   // A assinatura é a mesma da Story — as duas peças assinam igual, de
   // propósito: quem vê uma depois da outra reconhece a família.
-  ctx.font = "700 32px Outfit, sans-serif";
+  ctx.font = "700 32px Space Grotesk, sans-serif";
   ctx.fillStyle = "#ffffff";
   ctx.fillText("AllBook", MARGEM, ALTURA_RESUMO - 104);
   ctx.font = "400 26px Inter, sans-serif";
@@ -341,7 +341,7 @@ function desenharDestaques(
   if (destaques.length === 0) return;
 
   const util = LARGURA - MARGEM * 2;
-  ctx.fillStyle = "#FF6A00";
+  ctx.fillStyle = "#FF4438";
   ctx.fillRect(MARGEM, topo, 88, 3);
   ctx.fillStyle = "rgba(255,255,255,0.09)";
   ctx.fillRect(MARGEM + 88, topo + 1, util - 88, 1);
@@ -354,12 +354,12 @@ function desenharDestaques(
     const cabe = coluna - 32;
 
     ctx.font = "600 23px Inter, sans-serif";
-    ctx.fillStyle = "rgba(255,106,0,0.85)";
+    ctx.fillStyle = "rgba(255,68,56,0.85)";
     ctx.letterSpacing = "4px";
     ctx.fillText(textoQueCabe(ctx, destaques[i].rotulo, cabe), x, yRotulo);
     ctx.letterSpacing = "0px";
 
-    ctx.font = "600 40px Outfit, sans-serif";
+    ctx.font = "600 40px Space Grotesk, sans-serif";
     ctx.fillStyle = "#ffffff";
     ctx.fillText(textoQueCabe(ctx, destaques[i].valor, cabe), x, yRotulo + 50);
   }
@@ -381,7 +381,7 @@ async function desenharStory(ctx: CanvasRenderingContext2D, dados: DadosDoCartao
   rotulo(ctx, s.periodo, 296, 28);
 
   // O número gigante e o rótulo dele.
-  ctx.font = "700 260px Outfit, sans-serif";
+  ctx.font = "700 260px Space Grotesk, sans-serif";
   ctx.fillStyle = "#ffffff";
   ctx.fillText(s.destaque, MARGEM, 560);
 
@@ -438,7 +438,7 @@ async function desenharStory(ctx: CanvasRenderingContext2D, dados: DadosDoCartao
    * a ~180px do fim de propósito: **o Instagram cobre a faixa de baixo** com a
    * caixa de resposta, e o que ficar ali não é lido.
    */
-  ctx.font = "700 36px Outfit, sans-serif";
+  ctx.font = "700 36px Space Grotesk, sans-serif";
   ctx.fillStyle = "#ffffff";
   ctx.fillText("AllBook", MARGEM, ALTURA_STORY - 180);
   /*
@@ -594,7 +594,7 @@ export default function CartaoDeResumo({
     <div className="fixed inset-0 z-[60] flex items-end justify-center" data-testid="summary-card">
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="animate-in slide-in-from-bottom fade-in relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border-t border-white/10 bg-[#1c1c1c] px-5 pb-8 pt-4 duration-300">
+      <div className="animate-in slide-in-from-bottom fade-in relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border-t border-white/10 bg-card px-5 pb-8 pt-4 duration-300">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-base font-bold tracking-tight">Compartilhar</h2>
 

@@ -208,7 +208,7 @@ function LinhaDeNota({
             >
               <Star
                 className={`w-5 h-5 transition-colors ${
-                  cheia ? "text-amber-400" : "text-white/20"
+                  cheia ? "text-primary" : "text-white/20"
                 }`}
                 strokeWidth={1.75}
                 fill={cheia ? "currentColor" : "none"}

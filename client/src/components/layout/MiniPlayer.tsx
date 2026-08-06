@@ -170,7 +170,7 @@ export default function MiniPlayer() {
       onPointerCancel={onPointerUp}
       data-testid="mini-player"
     >
-      <div className="bg-[#1f1f1f]/95 backdrop-blur-lg border border-white/10 rounded-xl shadow-2xl overflow-hidden">
+      <div className="bg-card/95 backdrop-blur-lg border border-white/10 rounded-xl shadow-2xl overflow-hidden">
         <div className="h-1 w-full bg-white/5">
           <div className="h-full bg-primary" style={{ width: `${percent}%` }} />
         </div>

@@ -43,6 +43,13 @@ import { cn } from "@/lib/utils";
  * temático e **vago** para um feed; e a palavra está encravada em ~40 textos da
  * tela de fóruns, contra uma linha aqui.
  *
+ * **O desenho mudou em 06/08 (§4.112), escolha dele na folha do redesenho.** A
+ * aba em que você está passa a ter o **ícone preenchido** e o rótulo em negrito,
+ * e nada mais: saíram o borrão colorido atrás do ícone e a sombra laranja sob a
+ * pastilha do Pedir — o sotaque visual de 2019 que a folha apontou. É como o
+ * iPhone e o Instagram marcam a aba atual, envelhece bem em qualquer paleta, e
+ * deixa **uma só cor forte na barra**: a do Pedir, que é o que deve ser visto.
+ *
  * **"Feed" foi escolha dele, na terceira tentativa** — as duas primeiras (minhas)
  * ele derrubou: achou "Feed" seco de início (*"talvez se fosse um feed de
  * notícia…"*) e depois recusou "Novidades" (*"não acho que isso remeta
@@ -66,8 +73,11 @@ export default function BottomNav() {
   return (
     <div
       data-testid="bottom-nav"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10"
-      style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.85))' }}
+      /* O degradê preto saiu com a troca de identidade (§4.112): era escrito à
+         mão em `rgba(0,0,0,…)` e, no tema claro, seria uma faixa preta no pé de
+         uma tela de papel. `bg-card` é um tom acima do fundo nos DOIS temas, que
+         é o bastante para separar a barra do conteúdo. */
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-card"
     >
       <div className="flex justify-around items-center h-16 max-w-md mx-auto px-2">
         {navItems.map((item) => {
@@ -96,22 +106,20 @@ export default function BottomNav() {
               */}
               <div className="relative flex h-8 items-center justify-center">
                 {ehAcao ? (
-                  <span className="grid h-9 w-9 place-items-center rounded-full bg-primary shadow-[0_2px_12px_hsl(var(--primary)/0.45)] transition-transform duration-200 active:scale-95">
-                    <Icon className="w-[18px] h-[18px] text-white" strokeWidth={2.2} />
+                  /* A pastilha do Pedir perdeu o círculo e a sombra colorida
+                     (§4.112): canto de 8px, como as capas e os cartões do resto
+                     do app, e nenhum brilho. */
+                  <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary transition-transform duration-200 active:scale-95">
+                    <Icon className="w-[18px] h-[18px] text-primary-foreground" strokeWidth={2.2} />
                   </span>
                 ) : (
-                  <>
-                    {isActive && (
-                      <div className="absolute -inset-1.5 rounded-full bg-primary/20 blur-sm" />
+                  <Icon
+                    className={cn(
+                      "w-5 h-5 transition-all duration-200",
+                      isActive && "fill-current",
                     )}
-                    <Icon
-                      className={cn(
-                        "w-5 h-5 relative z-10 transition-all duration-200",
-                        isActive && "text-primary drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]"
-                      )}
-                      strokeWidth={isActive ? 2.5 : 1.8}
-                    />
-                  </>
+                    strokeWidth={isActive ? 2 : 1.8}
+                  />
                 )}
               </div>
               <span
@@ -120,7 +128,7 @@ export default function BottomNav() {
                   ehAcao
                     ? "font-semibold text-white/90"
                     : isActive
-                      ? "font-semibold text-primary"
+                      ? "font-bold"
                       : "font-medium"
                 )}
               >

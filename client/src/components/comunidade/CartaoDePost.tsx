@@ -170,7 +170,7 @@ export default function CartaoDePost({
           ) : (
             <span
               className={`relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br ${
-                membro?.color ?? "from-primary to-orange-600"
+                membro?.color ?? "from-primary to-primary/60"
               } font-display text-sm font-bold`} {...avatarDeLeitor(membro?.slug)}
             >
               {!ehMeu && post.autorSlug && fotoDoMembro(post.autorSlug) ? (
@@ -574,7 +574,7 @@ function CartaoDePessoa({ slug }: { slug: string }) {
               className="h-12 w-12 rounded-full object-cover ring-1 ring-white/15"
             />
           ) : (
-            <span className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-primary to-orange-600 font-display text-lg font-bold">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/60 font-display text-lg font-bold">
               {pessoa.name.charAt(0)}
             </span>
           )}
@@ -795,7 +795,7 @@ function QuemEstaNoClube({ clube, onFechar }: { clube: Clube; onFechar: () => vo
       data-testid="folha-de-membros"
     >
       <div
-        className="max-h-[75vh] w-full overflow-y-auto rounded-t-[28px] border-t border-white/10 bg-[#1a1a1a] p-5 pb-9 animate-in slide-in-from-bottom duration-300"
+        className="max-h-[75vh] w-full overflow-y-auto rounded-t-[28px] border-t border-white/10 bg-card p-5 pb-9 animate-in slide-in-from-bottom duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto -mt-1 mb-4 h-1.5 w-12 rounded-full bg-white/15" />

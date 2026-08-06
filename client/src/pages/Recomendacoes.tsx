@@ -32,7 +32,7 @@ export default function Recomendacoes() {
 
   if (params.slug && !membro) {
     return (
-      <div className="min-h-screen bg-[#141414] pb-24 text-white">
+      <div className="min-h-screen bg-background pb-24 text-white">
         <PageHeader title="Leitor não encontrado" fallback="/community" />
       </div>
     );
@@ -42,7 +42,7 @@ export default function Recomendacoes() {
   const titulo = membro ? `${membro.name.split(" ")[0]} recomenda` : "Eu recomendo";
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="pagina-recomendacoes">
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid="pagina-recomendacoes">
       <PageHeader title={titulo} fallback={membro ? `/user/${membro.slug}` : "/profile"} />
 
       <div className="px-5 pt-4">

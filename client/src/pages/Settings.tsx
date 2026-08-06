@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { ChevronRight } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
+import { cn } from "@/lib/utils";
+import { TEMAS, readTema, setTema, type Tema } from "@/lib/tema";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,10 +23,15 @@ import { clearPlayback } from "@/lib/playback";
  *
  * **Só entra aqui o que o app obedece de verdade.** Ficaram de fora, de
  * propósito, os suspeitos de sempre: chave de notificações (não há aviso que
- * chegue de fora), "baixar só no Wi-Fi" (não há download real), tema claro (o
- * app é escuro por decisão de identidade) e idioma (só existe português). Chave
- * que não muda nada é enfeite — o mesmo defeito que fez a primeira versão do
- * Perfil ser rejeitada.
+ * chegue de fora), "baixar só no Wi-Fi" (não há download real) e idioma (só
+ * existe português). Chave que não muda nada é enfeite — o mesmo defeito que
+ * fez a primeira versão do Perfil ser rejeitada.
+ *
+ * **O tema entrou em 06/08 (§4.112), e era justamente um dos que estavam
+ * proibidos aqui:** o app era escuro por decisão de identidade, então um botão
+ * de tema claro seria enfeite. Deixou de ser quando ele escolheu a direção
+ * "Estúdio" **e** pediu a "Tinta" como alternativa — agora são duas identidades
+ * de verdade, e a escolha muda o app inteiro.
  *
  * ---
  *
@@ -56,10 +63,17 @@ export default function Settings() {
   const { toast } = useToast();
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [confirmando, setConfirmando] = useState(false);
+  const [tema, setTemaAtual] = useState<Tema>(readTema);
 
   useEffect(() => {
     setCounts(readCounts());
   }, []);
+
+  /** Troca o tema na hora — a tela inteira se repinta enquanto o dedo ainda está nela. */
+  function escolherTema(novo: Tema) {
+    setTema(novo);
+    setTemaAtual(novo);
+  }
 
   function readCounts(): Record<string, number> {
     const result: Record<string, number> = {};
@@ -86,8 +100,39 @@ export default function Settings() {
   const storedTotal = DATA_KEYS.reduce((sum, { key }) => sum + (counts[key] || 0), 0);
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="settings-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="settings-page">
       <PageHeader title="Neste aparelho" fallback="/you" />
+
+      {/* A aparência vem primeiro porque é o ajuste que a pessoa vê mudar na
+          hora — e porque é o único aqui que muda o app inteiro. */}
+      <Section title="Aparência">
+        <div className="grid grid-cols-2 gap-3">
+          {TEMAS.map((opcao) => {
+            const escolhido = tema === opcao.id;
+            return (
+              <button
+                key={opcao.id}
+                onClick={() => escolherTema(opcao.id)}
+                data-testid={`settings-tema-${opcao.id}`}
+                aria-pressed={escolhido}
+                className={cn(
+                  "rounded-xl border p-2 text-left transition-colors",
+                  escolhido
+                    ? "border-primary bg-primary/[0.07]"
+                    : "border-white/10 hover:border-white/25",
+                )}
+              >
+                <MiniaturaDoTema tema={opcao.id} />
+                <div className="mt-2 flex items-center gap-1.5">
+                  <span className="text-sm font-semibold">{opcao.nome}</span>
+                  {escolhido && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
+                </div>
+                <p className="mt-0.5 text-xs leading-snug text-white/40">{opcao.descricao}</p>
+              </button>
+            );
+          })}
+        </div>
+      </Section>
 
       <Section title="O que está guardado">
         <p className="text-xs text-white/40 leading-relaxed pb-4">
@@ -144,7 +189,7 @@ export default function Settings() {
       </div>
 
       <AlertDialog open={confirmando} onOpenChange={setConfirmando}>
-        <AlertDialogContent className="bg-[#1c1c1c] border-white/10 text-white">
+        <AlertDialogContent className="bg-card border-white/10 text-white">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display tracking-tight">
               Apagar lista e downloads?
@@ -168,6 +213,63 @@ export default function Settings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+/**
+ * As cores das duas miniaturas, escritas à mão **de propósito**: cada quadradinho
+ * mostra um tema que pode não ser o que está em vigor, então ele não pode usar
+ * os tokens da página — senão os dois sairiam iguais. São os mesmos valores do
+ * `index.css`; mudou lá, muda aqui.
+ */
+const CORES_DA_MINIATURA: Record<Tema, { fundo: string; superficie: string; tinta: string; acento: string }> = {
+  escuro: { fundo: "#121110", superficie: "#1C1A18", tinta: "#F5F1EA", acento: "#FF4438" },
+  claro: { fundo: "#F4EFE6", superficie: "#FFFDF9", tinta: "#1A1712", acento: "#C1362F" },
+};
+
+/** Um retratinho da tela Início em cada tema — ele escolhe vendo, não lendo. */
+function MiniaturaDoTema({ tema }: { tema: Tema }) {
+  const cor = CORES_DA_MINIATURA[tema];
+  return (
+    <div
+      className="overflow-hidden rounded-lg p-2"
+      style={{ background: cor.fundo }}
+      aria-hidden="true"
+    >
+      {/* o topo: hambúrguer e marca */}
+      <div className="flex items-center gap-1">
+        <div className="flex flex-col gap-[1.5px]">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="block h-[1.5px] w-2 rounded-full" style={{ background: cor.tinta, opacity: 0.7 }} />
+          ))}
+        </div>
+        <span className="h-1.5 w-6 rounded-full" style={{ background: cor.tinta, opacity: 0.85 }} />
+      </div>
+
+      {/* a capa em destaque e duas linhas de texto */}
+      <div className="mt-2 flex gap-1.5">
+        <span className="h-9 w-6 rounded" style={{ background: cor.acento, opacity: 0.85 }} />
+        <div className="flex-1 space-y-1 pt-0.5">
+          <span className="block h-1.5 w-full rounded-full" style={{ background: cor.tinta, opacity: 0.8 }} />
+          <span className="block h-1 w-2/3 rounded-full" style={{ background: cor.tinta, opacity: 0.35 }} />
+          <span
+            className="mt-1.5 block h-2.5 w-10 rounded-full"
+            style={{ background: cor.acento }}
+          />
+        </div>
+      </div>
+
+      {/* a fileira de livros */}
+      <div className="mt-2 flex gap-1">
+        {[0, 1, 2, 3].map((i) => (
+          <span
+            key={i}
+            className="h-5 flex-1 rounded-sm"
+            style={{ background: cor.superficie, border: `1px solid ${cor.tinta}1f` }}
+          />
+        ))}
+      </div>
     </div>
   );
 }

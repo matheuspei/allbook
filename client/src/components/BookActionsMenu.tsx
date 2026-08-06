@@ -189,7 +189,7 @@ export default function BookActionsMenu({
         então sem limite ela ocuparia a largura toda da janela. O teto de 480px
         não afeta celular nenhum (o mais largo tem 440px).
       */}
-      <DrawerContent className="mx-auto max-w-[480px] border-white/10 bg-[#1a1a1a]">
+      <DrawerContent className="mx-auto max-w-[480px] border-white/10 bg-card">
         <DrawerHeader className="text-left">
           <DrawerTitle className="font-display tracking-tight text-white">{book.title}</DrawerTitle>
           <DrawerDescription className="text-white/50">{legenda ?? book.author}</DrawerDescription>

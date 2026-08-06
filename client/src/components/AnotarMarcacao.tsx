@@ -54,7 +54,7 @@ export default function AnotarMarcacao({
 
   return (
     <Drawer open={marcacao !== null} onOpenChange={(estado) => !estado && onFechar()}>
-      <DrawerContent className="mx-auto max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
+      <DrawerContent className="mx-auto max-w-[480px] border-white/10 bg-card text-white">
         <DrawerHeader className="text-left">
           <DrawerTitle className="flex items-center gap-2 font-display tracking-tight text-white">
             <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-black">

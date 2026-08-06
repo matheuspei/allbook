@@ -3,7 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <meta name="theme-color" content="#141414" />
+    <meta name="theme-color" content="#121110" />
+
+    <!--
+      O tema escolhido é aplicado ANTES da primeira pintura (ROTEIRO §4.112).
+      Se esperássemos o React montar, quem usa o tema claro veria a tela escura
+      piscar por um instante a cada carregamento — o "flash" clássico. Por isso
+      este script é inline, síncrono e o mais curto possível; a fonte da verdade
+      continua sendo `client/src/lib/tema.ts`, que grava a mesma chave.
+    -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("allbook_tema");
+          // Sem escolha salva, o padrão é o escuro ("Estúdio") — a identidade da casa.
+          document.documentElement.classList.toggle("dark", t !== "claro");
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute("content", t === "claro" ? "#F4EFE6" : "#121110");
+        } catch (e) {
+          /* navegador sem localStorage: fica no escuro, que é o padrão */
+        }
+      })();
+    </script>
 
     <meta property="og:title" content="AllBook" />
     <meta property="og:description" content="Ouça seus audiolivros favoritos no AllBook — descoberta e player no estilo streaming, em português." />
@@ -16,7 +38,9 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Space Grotesk é a fonte dos títulos desde a direção "Estúdio" (§4.112);
+         o Outfit saiu junto com o laranja. Inter continua no texto corrido. -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="root"></div>

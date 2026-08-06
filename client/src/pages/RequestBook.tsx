@@ -122,7 +122,7 @@ export default function RequestBook() {
         />
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-[#141414]"
+          className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-background"
         />
 
         <div className="relative flex flex-col items-center px-5 pb-6 pt-8 text-center">

@@ -28,7 +28,7 @@ import AjustesDoPerfil from "@/components/perfil/AjustesDoPerfil";
  */
 export default function Privacidade() {
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="privacidade-page">
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid="privacidade-page">
       <PageHeader title="Perfil e privacidade" fallback="/you" />
       <main className="px-5 pb-4">
         <AjustesDoPerfil />

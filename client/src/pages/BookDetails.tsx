@@ -437,7 +437,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
   if (!catalog.some((entry) => String(entry.id) === params.id)) {
     return (
       <div
-        className="min-h-screen bg-[#141414] text-white flex flex-col items-center justify-center gap-4 px-6 text-center"
+        className="min-h-screen bg-background text-white flex flex-col items-center justify-center gap-4 px-6 text-center"
         data-testid="book-not-found"
       >
         <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center">
@@ -459,15 +459,15 @@ export default function BookDetails({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="book-details-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="book-details-page">
       <div className="relative w-full h-[65vh] overflow-hidden">
         <img
           src={book.cover}
           alt={book.title}
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#141414]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/60 to-transparent" />
 
         <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-4">
           {/*
@@ -502,13 +502,13 @@ export default function BookDetails({ params }: { params: { id: string } }) {
         </header>
 
         <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
-          <Badge className="bg-amber-500/90 text-black border-none px-3 py-1 text-[10px] uppercase font-bold tracking-wider" data-testid="badge-exclusive">
+          <Badge className="bg-primary/90 text-black border-none px-3 py-1 text-[10px] uppercase font-bold tracking-wider" data-testid="badge-exclusive">
             AllBook Original
           </Badge>
           <h1 className="text-3xl font-bold font-display leading-tight drop-shadow-lg" data-testid="text-book-title">{book.title}</h1>
           <div className="flex items-center gap-3 text-sm text-white/70">
             <div className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+              <Star className="w-3.5 h-3.5 fill-primary text-primary" />
               <span className="font-semibold text-white">{book.rating}</span>
               <span>({book.reviewsCount})</span>
             </div>
@@ -553,7 +553,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             onClick={isAdded ? addToLibrary : addToLibrary}
             className={`h-12 px-5 rounded-lg border font-bold flex items-center justify-center gap-2 ${
               isAdded
-                ? "bg-amber-500/20 border-amber-500/40 text-amber-500 hover:bg-amber-500/30"
+                ? "bg-primary/20 border-primary/40 text-primary hover:bg-primary/30"
                 : "bg-white/10 border-white/20 text-white hover:bg-white/20"
             }`}
             data-testid="button-add-library"
@@ -588,7 +588,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
                 initial={{ width: 0 }}
                 animate={{ width: `${playbackPercent(progresso)}%` }}
                 transition={{ duration: 0.9, ease: "easeOut" }}
-                className="relative h-full overflow-hidden rounded-full bg-gradient-to-r from-primary to-[#f59e0b]"
+                className="relative h-full overflow-hidden rounded-full bg-gradient-to-r from-primary to-primary"
               >
                 <motion.span
                   aria-hidden="true"
@@ -691,7 +691,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
                             initial={{ width: 0 }}
                             animate={{ width: `${pctNoCap}%` }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
-                            className="h-full rounded-full bg-gradient-to-r from-primary to-[#f59e0b]"
+                            className="h-full rounded-full bg-gradient-to-r from-primary to-primary"
                           />
                         </div>
                       )}
@@ -706,7 +706,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             {chapters.length > 5 && (
               <button
                 onClick={() => setShowAllChapters((v) => !v)}
-                className="w-full p-3 text-center text-xs font-bold text-amber-500 hover:bg-white/5 transition-colors"
+                className="w-full p-3 text-center text-xs font-bold text-primary hover:bg-white/5 transition-colors"
                 data-testid="button-show-all-chapters"
               >
                 {showAllChapters ? "Ver menos" : `Ver todos os ${chapters.length} capítulos`}
@@ -727,7 +727,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           <div className="flex items-center gap-6 py-4 px-6 rounded-xl bg-white/5 border border-white/5">
             <div className="flex-1 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
-                <Headphones className="w-4 h-4 text-amber-500" />
+                <Headphones className="w-4 h-4 text-primary" />
                 <span className="font-bold text-xl">{book.performance}</span>
               </div>
               <span className="text-[10px] text-white/40 uppercase tracking-wider">Narração</span>
@@ -735,7 +735,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             <div className="w-px h-10 bg-white/10" />
             <div className="flex-1 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
-                <BookOpen className="w-4 h-4 text-amber-500" />
+                <BookOpen className="w-4 h-4 text-primary" />
                 <span className="font-bold text-xl">{book.story}</span>
               </div>
               <span className="text-[10px] text-white/40 uppercase tracking-wider">História</span>
@@ -801,10 +801,10 @@ export default function BookDetails({ params }: { params: { id: string } }) {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <div className="space-y-0.5">
-                    <h4 className="text-xs font-bold truncate group-hover:text-amber-500 transition-colors">{item.title}</h4>
+                    <h4 className="text-xs font-bold truncate group-hover:text-primary transition-colors">{item.title}</h4>
                     <p className="text-[10px] text-white/40 truncate">{item.author}</p>
                     <div className="flex items-center gap-1 text-[10px] text-white/30">
-                      <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                      <Star className="w-2.5 h-2.5 fill-primary text-primary" />
                       <span>{item.rating}</span>
                     </div>
                   </div>

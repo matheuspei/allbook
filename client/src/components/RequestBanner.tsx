@@ -45,7 +45,7 @@ export default function RequestBanner({
   return (
     <Link
       href="/request"
-      className={`flex items-center gap-3 rounded-xl border border-white/10 bg-[#1e1e1e] transition-colors hover:bg-[#242424] active:bg-[#2a2a2a] ${
+      className={`flex items-center gap-3 rounded-xl border border-white/10 bg-card transition-colors hover:bg-[#242424] active:bg-secondary ${
         ehDestaque ? "p-4" : "p-3"
       } ${className}`}
       data-testid="banner-request"

@@ -91,7 +91,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
 
   if (!sala) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#141414] px-6 text-center text-white">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center text-white">
         <Radio className="h-10 w-10 text-white/25" />
         <div>
           <h1 className="font-display text-xl font-bold">Esta sala não está mais no ar</h1>
@@ -166,7 +166,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
   if (sessaoTerminou(sala) && !encerrada) {
     return (
       <div
-        className="flex h-[100dvh] flex-col items-center justify-center gap-4 bg-[#141414] px-8 text-center text-white"
+        className="flex h-[100dvh] flex-col items-center justify-center gap-4 bg-background px-8 text-center text-white"
         data-testid="sessao-terminada"
       >
         {book && (
@@ -211,7 +211,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
       Aqui quem rola é só a lista de falas, e o campo fica sempre no lugar.
     */
     <div
-      className="flex h-[100dvh] flex-col overflow-hidden bg-[#141414] text-white"
+      className="flex h-[100dvh] flex-col overflow-hidden bg-background text-white"
       data-testid="sala-ao-vivo"
     >
       {/* ---------------------------------------------------------------- */}
@@ -386,7 +386,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
               +15
             </button>
           </div>
-          <p className="mx-6 mt-3 rounded-xl bg-primary/[0.09] px-3.5 py-2.5 text-[11.5px] leading-relaxed text-orange-300 ring-1 ring-inset ring-primary/25">
+          <p className="mx-6 mt-3 rounded-xl bg-primary/[0.09] px-3.5 py-2.5 text-[11.5px] leading-relaxed text-primary ring-1 ring-inset ring-primary/25">
             Você manda na sala. <b className="text-white">Pausar, voltar, adiantar e encerrar</b>{" "}
             {sala.presentes.length === 1
               ? "valem para quem entrar."
@@ -483,8 +483,8 @@ function Presentes({ slugs }: { slugs: string[] }) {
         return (
           <span
             key={slug}
-            className={`flex h-[21px] w-[21px] items-center justify-center rounded-full border-2 border-[#141414] bg-gradient-to-br text-[9px] font-bold text-black ${
-              membro?.color ?? "from-primary to-amber-500"
+            className={`flex h-[21px] w-[21px] items-center justify-center rounded-full border-2 border-background bg-gradient-to-br text-[9px] font-bold text-black ${
+              membro?.color ?? "from-primary to-primary/60"
             } ${i > 0 ? "-ml-1.5" : ""}`}
             {...avatarDeLeitor(slug)}
             title={nome}
@@ -494,7 +494,7 @@ function Presentes({ slugs }: { slugs: string[] }) {
         );
       })}
       {resto > 0 && (
-        <span className="-ml-1.5 flex h-[21px] w-[21px] items-center justify-center rounded-full border-2 border-[#141414] bg-white/15 text-[8.5px] font-bold text-white">
+        <span className="-ml-1.5 flex h-[21px] w-[21px] items-center justify-center rounded-full border-2 border-background bg-white/15 text-[8.5px] font-bold text-white">
           +{resto}
         </span>
       )}
@@ -568,7 +568,7 @@ function ChatDaSala({
             <div key={fala.id} className="flex items-start gap-2" data-testid={`fala-${fala.id}`}>
               <span
                 className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[9px] font-bold text-black ${
-                  membro?.color ?? "from-primary to-amber-500"
+                  membro?.color ?? "from-primary to-primary/60"
                 }`}
                 {...avatarDeLeitor(souEu ? undefined : fala.autor)}
               >
@@ -642,7 +642,7 @@ function AntesDaHora({ sala, onVersao }: { sala: Sala; onVersao: () => void }) {
 
   return (
     <div
-      className="flex h-[100dvh] flex-col overflow-hidden bg-[#141414] text-white"
+      className="flex h-[100dvh] flex-col overflow-hidden bg-background text-white"
       data-testid="sessao-antes-da-hora"
     >
       <div className="flex items-center gap-2 px-4 pb-2 pt-4">
@@ -690,8 +690,8 @@ function AntesDaHora({ sala, onVersao }: { sala: Sala; onVersao: () => void }) {
                 return (
                   <span
                     key={slug}
-                    className={`flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-[#141414] bg-gradient-to-br text-[9px] font-bold text-black ${
-                      membro?.color ?? "from-primary to-amber-500"
+                    className={`flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-background bg-gradient-to-br text-[9px] font-bold text-black ${
+                      membro?.color ?? "from-primary to-primary/60"
                     } ${i > 0 ? "-ml-1.5" : ""}`}
                     {...avatarDeLeitor(slug === EU ? undefined : slug)}
                   >

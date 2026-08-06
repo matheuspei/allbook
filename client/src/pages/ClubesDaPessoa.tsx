@@ -26,7 +26,7 @@ export default function ClubesDaPessoa() {
 
   if (!membro) {
     return (
-      <div className="min-h-screen bg-[#141414] pb-24 text-white">
+      <div className="min-h-screen bg-background pb-24 text-white">
         <PageHeader title="Leitor não encontrado" fallback="/community" />
       </div>
     );
@@ -36,7 +36,7 @@ export default function ClubesDaPessoa() {
   const clubes = clubesDe(membro.slug);
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="pagina-clubes-da-pessoa">
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid="pagina-clubes-da-pessoa">
       <PageHeader title={`Clubes de ${primeiroNome}`} fallback={`/user/${membro.slug}`} />
 
       <div className="px-5 pt-4">

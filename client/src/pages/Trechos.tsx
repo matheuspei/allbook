@@ -53,7 +53,7 @@ export default function Trechos() {
   const emEdicao = trechos.find((item) => item.id === editando);
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="trechos-page">
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid="trechos-page">
       <PageHeader title="Meus trechos" fallback="/you" />
 
       <main className="px-5 pt-4">

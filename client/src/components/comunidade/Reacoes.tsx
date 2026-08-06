@@ -90,7 +90,7 @@ export default function Reacoes({
         <BotaoDeReacao
           Icone={ThumbsUp}
           ativo={minha === "curtiu"}
-          corAtiva={claro ? "text-[#c47f00]" : "text-amber-500"}
+          corAtiva={claro ? "text-[#c47f00]" : "text-primary"}
           corParada={claro ? "text-[#8a8a8a] hover:text-[#333]" : "text-white/40 hover:text-white/75"}
           rotulo={minha === "curtiu" ? "Desfazer" : "Curtir"}
           numero={escala === "fala" ? numero("curtiu") : undefined}
@@ -239,7 +239,7 @@ export function LinhaDeRecepcao({
   /* Você primeiro quando reagiu: é a confirmação do seu toque, no lugar onde ele
      produziu efeito. Depois os outros, na ordem estável da lib. */
   const rostos = [
-    ...(minha === "curtiu" ? [{ slug: "voce", nome: perfil.name, cor: "from-primary to-orange-600" }] : []),
+    ...(minha === "curtiu" ? [{ slug: "voce", nome: perfil.name, cor: "from-primary to-primary/60" }] : []),
     ...curtiram.map((m) => ({ slug: m.slug, nome: m.name, cor: m.color })),
   ].slice(0, 3);
 

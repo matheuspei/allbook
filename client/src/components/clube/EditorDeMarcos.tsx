@@ -144,7 +144,7 @@ export default function EditorDeMarcos({
         que é justamente o que todo mundo quer discutir junto.
       */}
       {marcos.length > 0 && marcos[marcos.length - 1].chapter < totalCapitulos && (
-        <p className="mt-2.5 rounded-lg bg-[#f59e0b]/10 px-3 py-2 text-[11px] leading-relaxed text-[#f59e0b]/90">
+        <p className="mt-2.5 rounded-lg bg-primary/10 px-3 py-2 text-[11px] leading-relaxed text-primary/90">
           A última etapa para no capítulo {marcos[marcos.length - 1].chapter} de {totalCapitulos} —
           a turma chega ao encontro sem ter ouvido o final.
         </p>

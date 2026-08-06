@@ -40,7 +40,7 @@ function Lista({ modo }: { modo: "seguidores" | "seguindo" }) {
 
   if (!membro) {
     return (
-      <div className="min-h-screen bg-[#141414] pb-24 text-white">
+      <div className="min-h-screen bg-background pb-24 text-white">
         <PageHeader title="Leitor não encontrado" fallback="/community" />
       </div>
     );
@@ -54,7 +54,7 @@ function Lista({ modo }: { modo: "seguidores" | "seguindo" }) {
   const voceEstaNaLista = modo === "seguidores" ? isFollowing(membro.slug) : meSegue(membro.slug);
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid={`pagina-${modo}`}>
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid={`pagina-${modo}`}>
       <PageHeader
         title={modo === "seguidores" ? `Seguidores de ${primeiroNome}` : `${primeiroNome} segue`}
         fallback={`/user/${membro.slug}`}
@@ -98,7 +98,7 @@ function VoceNaLista() {
       {perfil.photo ? (
         <img src={perfil.photo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
       ) : (
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-orange-600 font-display text-sm font-bold">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/60 font-display text-sm font-bold">
           {initialOf(perfil.name)}
         </span>
       )}

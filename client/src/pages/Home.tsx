@@ -233,8 +233,8 @@ function HeroBillboard() {
               className="h-full w-auto max-w-[60%] object-contain rounded-xl shadow-2xl shadow-black/60 ring-1 ring-white/10"
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/35 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#141414]/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/35 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/40 to-transparent" />
 
           {/*
             A legenda e os botões vivem DENTRO do slide, para trocarem junto com a
@@ -626,7 +626,7 @@ export default function Home() {
   return (
     // Sem `pb-24` desde §4.104: ele somava com o `pb-20` do App e a tela
     // terminava num vão morto. Quem fecha a rolagem agora é o <FimDaLista />.
-    <div className="min-h-screen bg-[#141414]" data-testid="page-home">
+    <div className="min-h-screen bg-background" data-testid="page-home">
       <HeroBillboard />
 
       {/*

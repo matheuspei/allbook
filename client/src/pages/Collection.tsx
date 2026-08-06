@@ -48,7 +48,7 @@ export default function Collection({ params }: { params: { slug: string } }) {
         <div aria-hidden="true" className="absolute inset-0 bg-black/25" />
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-[#141414]"
+          className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-background"
         />
 
         <div className="relative px-4 pb-8 pt-7">

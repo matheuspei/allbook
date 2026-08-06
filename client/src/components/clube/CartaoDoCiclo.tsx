@@ -50,7 +50,7 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
           className="h-20 w-20 shrink-0 rounded-xl object-cover shadow-lg"
         />
         <div className="min-w-0 flex-1">
-          <p className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-[#f59e0b]">
+          <p className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-primary">
             Livro do ciclo
           </p>
           <h2 className="mt-1 truncate font-display text-lg font-bold leading-tight">
@@ -61,7 +61,7 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
             <Calendar className="h-3 w-3" />
             {comecando ? (
               <>
-                <b className="text-[#f59e0b]">{estreiaEmTexto(clube)}</b> · {dataCurta(clube.ciclo.inicio)}
+                <b className="text-primary">{estreiaEmTexto(clube)}</b> · {dataCurta(clube.ciclo.inicio)}
               </>
             ) : (
               <>
@@ -100,7 +100,7 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
         */}
         {marco && (
           <p className="mt-3 flex items-start gap-2 rounded-lg bg-black/25 px-3 py-2 text-[11px] leading-relaxed text-white/60">
-            <Lock className="mt-0.5 h-3 w-3 shrink-0 text-[#f59e0b]" />
+            <Lock className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
             <span>
               Combinado da roda: <b className="text-white/85">não passar do capítulo {combinado}</b>{" "}
               nas mensagens, prazo {prazoEmTexto(marco.prazo)}.{" "}

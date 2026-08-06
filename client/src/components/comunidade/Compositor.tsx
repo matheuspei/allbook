@@ -253,7 +253,7 @@ function Avatar({ perfil }: { perfil: { name: string; photo?: string } }) {
     );
   }
   return (
-    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-orange-600 font-display text-sm font-bold">
+    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/60 font-display text-sm font-bold">
       {initialOf(perfil.name)}
     </span>
   );
@@ -328,7 +328,7 @@ function AnexoDePessoa({ slug, onTirar }: { slug: string; onTirar: () => void })
         {pessoa.photo ? (
           <img src={pessoa.photo} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
         ) : (
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-orange-600 font-display font-bold">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/60 font-display font-bold">
             {pessoa.name.charAt(0)}
           </span>
         )}
@@ -361,7 +361,7 @@ function BotaoDeTirar({ onClick, rotulo }: { onClick: () => void; rotulo: string
     <button
       type="button"
       onClick={onClick}
-      className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full bg-[#2a2a2a] text-white/60 ring-1 ring-white/15 transition-colors hover:text-white"
+      className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full bg-secondary text-white/60 ring-1 ring-white/15 transition-colors hover:text-white"
       aria-label={rotulo}
       data-testid="tirar-anexo"
     >

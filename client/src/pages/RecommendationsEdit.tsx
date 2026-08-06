@@ -67,7 +67,7 @@ export default function RecommendationsEdit() {
   }, [query, genre, selectedIds]);
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="recommendations-edit-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="recommendations-edit-page">
       <PageHeader
         title="O que você recomenda"
         fallback="/profile"

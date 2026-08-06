@@ -78,7 +78,7 @@ export default function MarcacoesDoLivro({
 
   return (
     <Drawer open={aberto} onOpenChange={(estado) => !estado && onClose()}>
-      <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
+      <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-card text-white">
         <DrawerHeader className="text-left">
           <DrawerTitle className="font-display tracking-tight text-white">
             Minhas notas deste livro

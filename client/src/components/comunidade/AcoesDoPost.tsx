@@ -163,7 +163,7 @@ export default function AcoesDoPost({
         </button>
 
         {menuAberto && (
-          <div className="absolute bottom-full right-0 z-20 mb-1 w-52 overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c] shadow-2xl">
+          <div className="absolute bottom-full right-0 z-20 mb-1 w-52 overflow-hidden rounded-xl border border-white/10 bg-card shadow-2xl">
             {ehMeu ? (
               <>
                 {/*

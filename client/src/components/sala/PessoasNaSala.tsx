@@ -57,7 +57,7 @@ export default function PessoasNaSala({
       data-testid="folha-pessoas-na-sala"
     >
       <div
-        className="max-h-[85vh] w-full overflow-y-auto rounded-t-[28px] border-t border-white/10 bg-[#1a1a1a] p-5 pb-9 animate-in slide-in-from-bottom duration-300"
+        className="max-h-[85vh] w-full overflow-y-auto rounded-t-[28px] border-t border-white/10 bg-card p-5 pb-9 animate-in slide-in-from-bottom duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto -mt-1 mb-4 h-1.5 w-12 rounded-full bg-white/15" />
@@ -93,7 +93,7 @@ export default function PessoasNaSala({
               >
                 <span
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[11px] font-bold text-black ${
-                    membro?.color ?? "from-primary to-amber-500"
+                    membro?.color ?? "from-primary to-primary/60"
                   }`}
                   {...avatarDeLeitor(slug === EU ? undefined : slug)}
                 >
@@ -136,7 +136,7 @@ export default function PessoasNaSala({
               >
                 <span
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[11px] font-bold text-black ${
-                    membro?.color ?? "from-primary to-amber-500"
+                    membro?.color ?? "from-primary to-primary/60"
                   }`}
                   {...avatarDeLeitor(slug)}
                 >

@@ -240,7 +240,7 @@ export default function CampoComMencao({
          * frase faz perder o fio.
          */
         <div
-          className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c] shadow-2xl"
+          className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-white/10 bg-card shadow-2xl"
           data-testid="lista-de-mencoes"
         >
           {candidatos.map((candidato) => (

@@ -34,7 +34,7 @@ export default function Downloads() {
   }
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="downloads-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="downloads-page">
       <PageHeader
         title="Downloads"
         fallback="/profile"

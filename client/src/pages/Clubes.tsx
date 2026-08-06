@@ -92,7 +92,7 @@ export default function Clubes() {
     .slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="clubes-page">
+    <div className="min-h-screen bg-background pb-28 text-white" data-testid="clubes-page">
       <PageHeader title="Clubes" fallback="/community" />
 
       <div className="space-y-7 pt-4">

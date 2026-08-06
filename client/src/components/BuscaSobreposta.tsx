@@ -47,7 +47,7 @@ export default function BuscaSobreposta({ onFechar }: { onFechar: () => void }) 
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex flex-col bg-[#141414] animate-in fade-in duration-150"
+      className="fixed inset-0 z-[60] flex flex-col bg-background animate-in fade-in duration-150"
       data-testid="busca-sobreposta"
     >
       <div className="flex items-center gap-2 px-4 pt-4 pb-2">

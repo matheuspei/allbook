@@ -219,7 +219,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="profile-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="profile-page">
       {/* A faixa da prévia: sem ela, o modo visitante seria uma tela igual com
           coisas faltando — pareceria defeito, não recurso. */}
       {visitante && (
@@ -256,7 +256,7 @@ export default function Profile() {
                 aria-hidden
                 className="h-full w-full scale-125 object-cover opacity-45 blur-2xl"
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-[#141414]/30 via-[#141414]/60 to-[#141414]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/60 to-background" />
             </>
           ) : (
             <div className="h-full w-full bg-gradient-to-b from-primary/25 via-primary/[0.06] to-transparent" />
@@ -298,14 +298,14 @@ export default function Profile() {
               foto={profile.photo || undefined}
               inicial={initialOf(profile.name)}
               legenda={desde ? `Ouvindo desde ${desde}` : "você"}
-              fundoClasse="bg-[#1e1e1e]"
+              fundoClasse="bg-card"
               className="shrink-0 rounded-full border-2 border-white/80"
             >
               <Avatar className="h-16 w-16">
                 {profile.photo && (
                   <AvatarImage src={profile.photo} alt={profile.name} className="object-cover" />
                 )}
-                <AvatarFallback className="bg-[#1e1e1e] font-display text-xl font-semibold text-white">
+                <AvatarFallback className="bg-card font-display text-xl font-semibold text-white">
                   {initialOf(profile.name)}
                 </AvatarFallback>
               </Avatar>

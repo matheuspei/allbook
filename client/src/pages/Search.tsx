@@ -133,7 +133,7 @@ function EmAltaRow({ books }: { books: Book[] }) {
                 */}
                 <span
                   aria-hidden="true"
-                  className="absolute top-1.5 left-1.5 grid place-items-center h-7 min-w-7 px-1.5 rounded-lg bg-gradient-to-br from-primary to-[#f59e0b] text-[#141414] font-display font-extrabold text-sm leading-none tabular-nums shadow-md shadow-black/50"
+                  className="absolute top-1.5 left-1.5 grid place-items-center h-7 min-w-7 px-1.5 rounded-lg bg-gradient-to-br from-primary to-primary text-background font-display font-extrabold text-sm leading-none tabular-nums shadow-md shadow-black/50"
                 >
                   {position}
                 </span>
@@ -149,7 +149,7 @@ function EmAltaRow({ books }: { books: Book[] }) {
               </span>
               <span className="mt-0.5 block truncate text-[11px] text-white/50">{book.author}</span>
               <span className="mt-1 flex items-center gap-1 text-[11px] text-white/70">
-                <Star className="h-3 w-3 shrink-0 fill-[#f59e0b] text-[#f59e0b]" />
+                <Star className="h-3 w-3 shrink-0 fill-primary text-primary" />
                 {book.rating.toFixed(1)}
               </span>
             </button>
@@ -208,7 +208,7 @@ export default function Search() {
   return (
     // Sem `pb-24` desde §4.104 (somava com o `pb-20` do App e virava vão
     // morto); o fecho da rolagem é o <FimDaLista /> das sugestões.
-    <div className="min-h-screen bg-[#141414]" data-testid="page-search">
+    <div className="min-h-screen bg-background" data-testid="page-search">
       <div className="px-4 pt-4 pb-2">
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />

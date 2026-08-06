@@ -419,7 +419,7 @@ function Acoes({
         type="button"
         onClick={() => onReact(id, "like")}
         className={`flex items-center px-2 py-1 -ml-2 rounded-md text-xs transition-colors ${
-          reaction === "like" ? "text-amber-500" : "text-white/40 hover:text-white/70"
+          reaction === "like" ? "text-primary" : "text-white/40 hover:text-white/70"
         }`}
         aria-pressed={reaction === "like"}
         aria-label="Curtir"
@@ -432,7 +432,7 @@ function Acoes({
           type="button"
           onClick={() => setVendoQuem("like")}
           className={`-ml-1 rounded-md px-1.5 py-1 text-xs transition-colors ${
-            reaction === "like" ? "text-amber-500" : "text-white/40 hover:text-white"
+            reaction === "like" ? "text-primary" : "text-white/40 hover:text-white"
           }`}
           aria-label={`Ver quem curtiu (${totais.curtiu})`}
           data-testid={`ver-curtiram-${id}`}
@@ -543,7 +543,7 @@ function BotaoDeDenuncia({
       <button
         type="button"
         onClick={() => onDenunciar("spoiler")}
-        className="rounded-md px-1.5 py-1 font-semibold text-[#f59e0b] transition-colors hover:bg-white/10"
+        className="rounded-md px-1.5 py-1 font-semibold text-primary transition-colors hover:bg-white/10"
         data-testid={`report-spoiler-${id}`}
       >
         spoiler
@@ -597,7 +597,7 @@ export function NotaDoComentario({ nota }: { nota: number }) {
         <Star
           key={valor}
           className={`h-3.5 w-3.5 ${
-            valor <= nota ? "fill-[#f59e0b] text-[#f59e0b]" : "text-white/15"
+            valor <= nota ? "fill-primary text-primary" : "text-white/15"
           }`}
         />
       ))}
@@ -647,9 +647,9 @@ function VeuDeSpoiler({ onRevelar }: { onRevelar: () => void }) {
       className="mt-2 flex w-full items-center gap-2.5 rounded-lg bg-white/[0.06] px-3 py-2.5 text-left transition-colors hover:bg-white/10"
       data-testid="comment-spoiler-veil"
     >
-      <EyeOff className="h-4 w-4 shrink-0 text-[#f59e0b]" />
+      <EyeOff className="h-4 w-4 shrink-0 text-primary" />
       <span className="text-xs text-white/50">
-        <span className="font-semibold text-[#f59e0b]">Contém spoiler</span> — toque para ver
+        <span className="font-semibold text-primary">Contém spoiler</span> — toque para ver
       </span>
     </button>
   );
@@ -667,7 +667,7 @@ function AutorDoComentario({ slug, small }: { slug: string; small?: boolean }) {
       className={`${tamanho} rounded-full flex items-center justify-center shrink-0 font-bold ${
         membro
           ? `bg-gradient-to-br ${membro.color} text-white`
-          : "bg-gradient-to-br from-amber-500/30 to-orange-600/30 text-amber-500"
+          : "bg-gradient-to-br from-primary/30 to-primary/15 text-primary"
       }`}
       {...avatarDeLeitor(membro?.slug)}
     >

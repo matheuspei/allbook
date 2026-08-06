@@ -57,7 +57,7 @@ export default function Bookmarks() {
   }
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="bookmarks-page">
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid="bookmarks-page">
       {/* "Minhas notas" em toda a interface: é a palavra que o Matheus usa, e a
           certa desde que "Marcar" passou a abrir a caixa de escrita. */}
       <PageHeader title="Minhas notas" fallback="/profile" />

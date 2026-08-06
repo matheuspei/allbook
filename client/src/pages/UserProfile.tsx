@@ -63,7 +63,7 @@ export default function UserProfile() {
 
   if (!member) {
     return (
-      <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="user-profile-missing">
+      <div className="min-h-screen pb-24 bg-background text-white" data-testid="user-profile-missing">
         <PageHeader title="Leitor não encontrado" fallback="/community" />
         <div className="px-8 py-20 text-center space-y-4">
           <p className="text-sm text-white/50">Não existe ninguém com esse endereço.</p>
@@ -125,7 +125,7 @@ export default function UserProfile() {
   const capaDoTopo = ouvindo?.cover ?? books[0]?.book.cover;
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="user-profile-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="user-profile-page">
       <PageHeader title={member.name} fallback="/community" />
 
       <header className="relative overflow-hidden" data-testid="user-header">
@@ -138,7 +138,7 @@ export default function UserProfile() {
                 aria-hidden
                 className="h-full w-full scale-125 object-cover opacity-45 blur-2xl"
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-[#141414]/30 via-[#141414]/60 to-[#141414]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/60 to-background" />
             </>
           ) : (
             <div className="h-full w-full bg-gradient-to-b from-primary/25 via-primary/[0.06] to-transparent" />
@@ -412,7 +412,7 @@ function FolhaDeConvite({
       data-testid="folha-de-convite"
     >
       <div
-        className="max-h-[75vh] w-full overflow-y-auto rounded-t-[28px] border-t border-white/10 bg-[#1a1a1a] p-5 pb-9 animate-in slide-in-from-bottom duration-300"
+        className="max-h-[75vh] w-full overflow-y-auto rounded-t-[28px] border-t border-white/10 bg-card p-5 pb-9 animate-in slide-in-from-bottom duration-300"
         onClick={(evento) => evento.stopPropagation()}
       >
         <div className="mx-auto -mt-1 mb-4 h-1.5 w-12 rounded-full bg-white/15" />

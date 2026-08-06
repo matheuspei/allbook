@@ -47,9 +47,9 @@ export default function FolhaDeEditarPerfil({ onFechar }: { onFechar: () => void
         aria-label="Fechar"
       />
 
-      <div className="relative max-h-[88vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-[#1c1c1c] pb-8">
+      <div className="relative max-h-[88vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-card pb-8">
         {/* O puxador, e o X para quem não arrasta. */}
-        <div className="sticky top-0 z-10 bg-[#1c1c1c] px-5 pb-2 pt-2.5">
+        <div className="sticky top-0 z-10 bg-card px-5 pb-2 pt-2.5">
           <span className="mx-auto block h-1 w-9 rounded-full bg-white/20" />
           <div className="mt-2.5 flex items-center justify-between">
             <h2 className="font-display text-[17px] font-extrabold tracking-tight">

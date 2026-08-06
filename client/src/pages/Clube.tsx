@@ -116,7 +116,7 @@ export default function Clube({ params }: { params: { id: string } }) {
 
   if (!clube) {
     return (
-      <div className="min-h-screen bg-[#141414] px-6 pb-24 text-white">
+      <div className="min-h-screen bg-background px-6 pb-24 text-white">
         <PageHeader title="Clube" fallback="/clubes" />
         <div className="flex flex-col items-center justify-center gap-3 pt-24 text-center">
           <div className="grid h-16 w-16 place-items-center rounded-2xl bg-white/5">
@@ -181,7 +181,7 @@ export default function Clube({ params }: { params: { id: string } }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="clube-page">
+    <div className="min-h-screen bg-background pb-28 text-white" data-testid="clube-page">
       <PageHeader title={clube.nome} fallback="/clubes" />
 
       <div className="space-y-6 px-5 pt-4">
@@ -195,7 +195,7 @@ export default function Clube({ params }: { params: { id: string } }) {
                   key={slug}
                   className={`grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br ${corDoMembro(
                     slug,
-                  )} font-display text-[11px] font-bold ring-2 ring-[#141414] ${
+                  )} font-display text-[11px] font-bold ring-2 ring-background ${
                     indice > 0 ? "-ml-2" : ""
                   }`} {...avatarDeLeitor(
                     slug,

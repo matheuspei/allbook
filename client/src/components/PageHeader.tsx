@@ -44,7 +44,7 @@ export default function PageHeader({
        * aparecia ao rolar.
        */
       // Fundo fechado (§4.104): a 95% o conteúdo rolado transparecia por trás.
-      className={`sticky z-30 bg-[#141414] border-b border-white/5 transition-[top] duration-300 ${
+      className={`sticky z-30 bg-background border-b border-white/5 transition-[top] duration-300 ${
         recolhido ? "top-0" : "top-14"
       }`}
       data-testid="page-header"

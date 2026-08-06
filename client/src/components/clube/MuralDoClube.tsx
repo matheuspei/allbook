@@ -248,18 +248,18 @@ function Mensagem({
           className="mt-2.5 flex w-full items-center gap-2.5 rounded-lg bg-white/[0.06] px-3 py-2.5 text-left transition-colors hover:bg-white/10"
           data-testid="mural-coberta"
         >
-          <EyeOff className="h-4 w-4 shrink-0 text-[#f59e0b]" />
+          <EyeOff className="h-4 w-4 shrink-0 text-primary" />
           <span className="text-xs text-white/50">
             {adiante ? (
               <>
-                <span className="font-semibold text-[#f59e0b]">
+                <span className="font-semibold text-primary">
                   Fala do capítulo {mensagem.capitulo}
                 </span>{" "}
                 — você está no {meu || 1}. Toque para ver assim mesmo.
               </>
             ) : (
               <>
-                <span className="font-semibold text-[#f59e0b]">Marcada como spoiler</span> — toque
+                <span className="font-semibold text-primary">Marcada como spoiler</span> — toque
                 para ver.
               </>
             )}
@@ -292,7 +292,7 @@ function Mensagem({
           {!mensagem.spoiler && (
             <button
               onClick={onCobrir}
-              className="rounded-md px-2 py-1 font-semibold text-[#f59e0b] transition-colors hover:bg-white/10"
+              className="rounded-md px-2 py-1 font-semibold text-primary transition-colors hover:bg-white/10"
               data-testid="moderar-cobrir"
             >
               marcar como spoiler

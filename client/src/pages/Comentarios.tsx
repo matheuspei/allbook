@@ -30,7 +30,7 @@ export default function Comentarios() {
 
   if (params.slug && !membro) {
     return (
-      <div className="min-h-screen bg-[#141414] pb-24 text-white">
+      <div className="min-h-screen bg-background pb-24 text-white">
         <PageHeader title="Leitor não encontrado" fallback="/community" />
       </div>
     );
@@ -39,7 +39,7 @@ export default function Comentarios() {
   const titulo = membro ? `O que ${membro.name.split(" ")[0]} disse` : "O que eu disse";
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="pagina-comentarios">
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid="pagina-comentarios">
       <PageHeader title={titulo} fallback={membro ? `/user/${membro.slug}` : "/profile"} />
 
       <div className="px-5 pt-2">

@@ -96,7 +96,7 @@ export default function Achievements() {
   const conquistadas = medalhas.filter((item) => item.unlocked);
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="achievements-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="achievements-page">
       <PageHeader
         title="Conquistas"
         fallback="/you"

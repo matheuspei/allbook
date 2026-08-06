@@ -371,7 +371,7 @@ export default function StatSpotlight({
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
           <motion.div
-            className="relative w-full max-w-md bg-[#1c1c1c] rounded-t-2xl border-t border-white/10 px-6 pt-5 pb-10"
+            className="relative w-full max-w-md bg-card rounded-t-2xl border-t border-white/10 px-6 pt-5 pb-10"
             initial={reduceMotion ? { opacity: 0 } : { y: "100%" }}
             animate={reduceMotion ? { opacity: 1 } : { y: 0 }}
             exit={reduceMotion ? { opacity: 0 } : { y: "100%" }}

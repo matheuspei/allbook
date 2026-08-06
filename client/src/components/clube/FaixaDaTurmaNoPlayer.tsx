@@ -43,7 +43,7 @@ export default function FaixaDaTurmaNoPlayer({ clube }: { clube: Clube }) {
       href={`/clube/${clube.id}`}
       className={`flex w-full shrink-0 items-center gap-2.5 rounded-full py-1.5 pl-2 pr-3 text-left transition-colors ${
         passou
-          ? "bg-[#f59e0b]/12 hover:bg-[#f59e0b]/20"
+          ? "bg-primary/12 hover:bg-primary/20"
           : "bg-white/[0.06] hover:bg-white/10"
       }`}
       data-testid="faixa-turma-player"
@@ -52,7 +52,7 @@ export default function FaixaDaTurmaNoPlayer({ clube }: { clube: Clube }) {
         {mostrados.map((slug, i) => (
           <span
             key={slug}
-            className={`grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br text-[8.5px] font-bold text-black ring-2 ring-[#141414] ${corDoMembro(slug)}`} {...avatarDeLeitor(slug)}
+            className={`grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br text-[8.5px] font-bold text-black ring-2 ring-background ${corDoMembro(slug)}`} {...avatarDeLeitor(slug)}
             style={{ marginLeft: i === 0 ? 0 : -7 }}
             aria-hidden
           >
@@ -66,7 +66,7 @@ export default function FaixaDaTurmaNoPlayer({ clube }: { clube: Clube }) {
         <span className="text-white/45">
           {" · "}
           {passou ? (
-            <span className="text-[#f59e0b]">
+            <span className="text-primary">
               você passou do combinado (cap. {combinado})
             </span>
           ) : meu === 0 ? (
@@ -80,7 +80,7 @@ export default function FaixaDaTurmaNoPlayer({ clube }: { clube: Clube }) {
       </span>
 
       {passou ? (
-        <Users className="h-3.5 w-3.5 shrink-0 text-[#f59e0b]" />
+        <Users className="h-3.5 w-3.5 shrink-0 text-primary" />
       ) : (
         <ChevronRight className="h-3.5 w-3.5 shrink-0 text-white/25" />
       )}

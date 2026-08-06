@@ -50,7 +50,7 @@ export default function Acompanhando() {
   const novidades = minhasNovidades();
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="acompanhando-page">
+    <div className="min-h-screen bg-background pb-28 text-white" data-testid="acompanhando-page">
       <PageHeader title="Seguindo" fallback="/profile" />
 
       <div className="space-y-6 px-5 pt-4">

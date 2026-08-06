@@ -82,7 +82,7 @@ export default function RastroDaSessao({
               <div key={fala.id} className="flex items-start gap-2">
                 <span
                   className={`flex h-[21px] w-[21px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[9px] font-bold text-black ${
-                    membro?.color ?? "from-primary to-amber-500"
+                    membro?.color ?? "from-primary to-primary/60"
                   }`}
                   {...avatarDeLeitor(souEu ? undefined : fala.autor)}
                 >

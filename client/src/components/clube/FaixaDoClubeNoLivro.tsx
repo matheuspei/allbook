@@ -41,10 +41,10 @@ export default function FaixaDoClubeNoLivro({ bookId }: { bookId: number }) {
   return (
     <Link
       href={`/clube/${clube.id}`}
-      className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-[#241a10] to-[#1a1a1a] p-3.5 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.22)] transition-colors hover:from-[#2b1f12]"
+      className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-[#241a10] to-card p-3.5 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.22)] transition-colors hover:from-[#2b1f12]"
       data-testid="faixa-do-clube"
     >
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#f59e0b]/15 text-[#f59e0b]">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
         <Users className="h-5 w-5" />
       </span>
       <span className="min-w-0 flex-1">
@@ -58,7 +58,7 @@ export default function FaixaDoClubeNoLivro({ bookId }: { bookId: number }) {
         <span className="block truncate text-[11px] text-white/45">
           {estaComecando(clube) ? (
             <>
-              <b className="text-[#f59e0b]">{estreiaEmTexto(clube)}</b> ·{" "}
+              <b className="text-primary">{estreiaEmTexto(clube)}</b> ·{" "}
               {dataCurta(clube.ciclo.inicio)} · {clube.membros.length} inscritos, todos do começo
             </>
           ) : (

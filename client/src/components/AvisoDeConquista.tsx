@@ -66,7 +66,7 @@ export default function AvisoDeConquista() {
       <button
         type="button"
         onClick={() => setFila((anterior) => anterior.slice(1))}
-        className="animate-in slide-in-from-top fade-in pointer-events-auto flex w-full max-w-sm items-center gap-3.5 rounded-2xl border border-white/10 bg-[#1c1c1c]/95 px-4 py-3 text-left shadow-2xl shadow-black/60 backdrop-blur-md duration-300"
+        className="animate-in slide-in-from-top fade-in pointer-events-auto flex w-full max-w-sm items-center gap-3.5 rounded-2xl border border-white/10 bg-card/95 px-4 py-3 text-left shadow-2xl shadow-black/60 backdrop-blur-md duration-300"
         data-testid="achievement-toast"
       >
         <div

@@ -84,7 +84,7 @@ const LENTES: { key: Lente; label: string }[] = [
  */
 export default function Community() {
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="community-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="community-page">
       {/* **O cabeçalho morreu em 04/08 (§4.100), por decisão do Matheus:** o
           título "Comunidade" repetia a aba do menu de baixo, e o subtítulo era
           decorativo. A tela abre direto no que acontece: os stories do ao vivo,

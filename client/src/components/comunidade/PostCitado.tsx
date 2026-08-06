@@ -44,7 +44,7 @@ export default function PostCitado({ post }: { post: Post }) {
         ) : (
           <span
             className={`grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gradient-to-br ${
-              membro?.color ?? "from-primary to-orange-600"
+              membro?.color ?? "from-primary to-primary/60"
             } text-[10px] font-bold`} {...avatarDeLeitor(membro?.slug)}
           >
             {ehMeu ? initialOf(meuPerfil.name) : nome.charAt(0)}

@@ -101,7 +101,7 @@ export default function NovoClube() {
   const podeCriar = nome.trim().length >= 3 && bookId !== null && duracaoEmDias > 0;
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="novo-clube-page">
+    <div className="min-h-screen bg-background pb-28 text-white" data-testid="novo-clube-page">
       <PageHeader title="Criar um clube" fallback="/clubes" />
 
       <div className="space-y-6 px-5 pt-4">

@@ -342,7 +342,7 @@ export default function Library() {
   }
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="library-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="library-page">
       {/* Brilho da marca no topo — o mesmo respiro do Perfil e da Descobrir. */}
       <header className="relative overflow-hidden px-5 pt-7 pb-5">
         <div
@@ -364,7 +364,7 @@ export default function Library() {
           e sobe para 0 quando ele se recolhe ao rolar (§4.106). */}
       {/* Fundo fechado (§4.104): a 95% as capas transpareciam atrás dos chips. */}
       <div
-        className={`sticky z-30 border-b border-white/5 bg-[#141414] transition-[top] duration-300 ${
+        className={`sticky z-30 border-b border-white/5 bg-background transition-[top] duration-300 ${
           recolhido ? "top-0" : "top-14"
         }`}
       >
@@ -470,7 +470,7 @@ export default function Library() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="border-white/10 bg-[#1f1f1f] text-white"
+                  className="border-white/10 bg-card text-white"
                 >
                   {ORDENS.map((o) => (
                     <DropdownMenuItem

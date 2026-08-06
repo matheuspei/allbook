@@ -71,7 +71,7 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen bg-[#141414] text-white flex flex-col justify-center px-6 py-12"
+      className="min-h-screen bg-background text-white flex flex-col justify-center px-6 py-12"
       data-testid="login-page"
     >
       <div className="w-full max-w-sm mx-auto">

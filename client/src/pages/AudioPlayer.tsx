@@ -52,7 +52,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   if (params.id !== "current" && !catalog.some((item) => item.id === Number(params.id))) {
     return (
       <div
-        className="min-h-screen bg-[#141414] text-white flex flex-col items-center justify-center gap-4 px-6 text-center"
+        className="min-h-screen bg-background text-white flex flex-col items-center justify-center gap-4 px-6 text-center"
         data-testid="player-not-found"
       >
         <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center">
@@ -443,12 +443,12 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const speedPresets = [0.7, 1.0, 1.2, 1.5, 1.7, 2.0];
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-[#141414] text-white">
+    <div className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-background text-white">
       {/* Fundo: a capa desfocada dá cor ao player sem fugir do tema escuro do
           app — no espírito dos players de streaming. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <img src={book.cover} alt="" className="h-full w-full scale-125 object-cover opacity-40 blur-3xl" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#141414]/70 via-[#141414]/90 to-[#141414]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/90 to-background" />
       </div>
 
       {/* Top Bar */}
@@ -495,7 +495,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
           {/* O selo saiu de CIMA da arte (§4.104): a fita diagonal cobria a
               capa. Fora da imagem, como a ficha do livro já faz. */}
-          <span className="-my-1 rounded-md bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-500">
+          <span className="-my-1 rounded-md bg-primary/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
             AllBook Original
           </span>
 
@@ -770,7 +770,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             <div className="flex items-center gap-6">
               <button 
                 onClick={() => setCurrentTime(prev => Math.max(0, prev - 30))}
-                className="relative p-2 text-white hover:text-amber-500 transition-colors group"
+                className="relative p-2 text-white hover:text-primary transition-colors group"
               >
                 <RotateCcw className="w-8 h-8" />
                 <span className="absolute inset-0 flex items-center justify-center text-[8px] font-black mt-1">30</span>
@@ -790,7 +790,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
 
               <button 
                 onClick={() => setCurrentTime(prev => Math.min(durationSeconds, prev + 30))}
-                className="relative p-2 text-white hover:text-amber-500 transition-colors group"
+                className="relative p-2 text-white hover:text-primary transition-colors group"
               >
                 <RotateCw className="w-8 h-8" />
                 <span className="absolute inset-0 flex items-center justify-center text-[8px] font-black mt-1">30</span>
@@ -904,7 +904,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {/* Gaveta das vozes — mesma casca da lista de capítulos, para o player não
           ter dois jeitos diferentes de mostrar uma escolha. */}
       <Drawer open={showNarracoes} onOpenChange={setShowNarracoes}>
-        <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
+        <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-card text-white">
           <DrawerHeader className="text-left">
             <DrawerTitle className="font-display tracking-tight text-white">Quem narra</DrawerTitle>
             <DrawerDescription className="text-white/50">
@@ -918,7 +918,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       </Drawer>
 
       <Drawer open={showChapters} onOpenChange={setShowChapters}>
-        <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-[#1a1a1a] text-white">
+        <DrawerContent className="mx-auto max-h-[80vh] max-w-[480px] border-white/10 bg-card text-white">
           <DrawerHeader className="text-left">
             <DrawerTitle className="font-display tracking-tight text-white">Capítulos</DrawerTitle>
             <DrawerDescription className="text-white/50">
@@ -980,7 +980,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                             initial={{ width: 0 }}
                             animate={{ width: `${pct}%` }}
                             transition={{ duration: 0.7, ease: "easeOut" }}
-                            className="h-full rounded-full bg-gradient-to-r from-primary to-[#f59e0b]"
+                            className="h-full rounded-full bg-gradient-to-r from-primary to-primary"
                           />
                         </div>
                       )}
@@ -1000,7 +1000,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showSpeedMenu && (
         <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-xs flex items-end animate-in fade-in duration-200" onClick={() => setShowSpeedMenu(false)}>
           <div 
-            className="w-full bg-[#1a1a1a] rounded-t-[32px] p-8 space-y-10 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
+            className="w-full bg-card rounded-t-[32px] p-8 space-y-10 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
             onClick={e => e.stopPropagation()}
           >
             {/* Handle bar */}
@@ -1008,7 +1008,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold font-display">Velocidade</h3>
-              <span className="text-xl font-bold text-amber-500">{speed.toFixed(2).replace('.', ',')}</span>
+              <span className="text-xl font-bold text-primary">{speed.toFixed(2).replace('.', ',')}</span>
             </div>
 
             {/* Main Slider Control */}
@@ -1027,7 +1027,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   min={0.5}
                   max={3.0} 
                   step={0.05}
-                  className="[&_[role=slider]]:h-7 [&_[role=slider]]:w-7 [&_[role=slider]]:bg-amber-500 [&_[role=slider]]:border-none [&_.relative]:h-1.5 [&_.bg-primary]:bg-white/15"
+                  className="[&_[role=slider]]:h-7 [&_[role=slider]]:w-7 [&_[role=slider]]:bg-primary [&_[role=slider]]:border-none [&_.relative]:h-1.5 [&_.bg-primary]:bg-white/15"
                 />
               </div>
 
@@ -1047,7 +1047,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                   onClick={() => setSpeed(preset)}
                   className={`py-3 rounded-xl border transition-all flex flex-col items-center justify-center gap-0.5 ${
                     speed === preset 
-                      ? "bg-amber-500/10 border-amber-500 text-amber-500" 
+                      ? "bg-primary/10 border-primary text-primary" 
                       : "border-white/10 text-white/70 hover:border-white/30"
                   }`}
                 >
@@ -1069,7 +1069,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             /* O fundo era `#1c2a3d`, um azul-marinho da versão antiga: o menu
                era a única superfície azul do app inteiro. Agora é o mesmo
                `#1c1c1c` das folhas de baixo e dos cartões. */
-            className="absolute top-16 right-4 w-72 bg-[#1c1c1c] rounded-2xl shadow-2xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200 origin-top-right"
+            className="absolute top-16 right-4 w-72 bg-card rounded-2xl shadow-2xl border border-white/10 overflow-hidden animate-in zoom-in-95 duration-200 origin-top-right"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex flex-col py-2">
@@ -1156,7 +1156,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       {showTimerMenu && (
         <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-xs flex items-end animate-in fade-in duration-200" onClick={() => setShowTimerMenu(false)}>
           <div 
-            className="w-full bg-[#1a1a1a] rounded-t-[32px] p-6 pb-10 space-y-6 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
+            className="w-full bg-card rounded-t-[32px] p-6 pb-10 space-y-6 animate-in slide-in-from-bottom duration-300 border-t border-white/10"
             onClick={e => e.stopPropagation()}
           >
             {/* Handle bar */}
@@ -1217,7 +1217,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             <div className="pt-4 border-t border-white/10">
               <button 
                 onClick={() => setShowTimerMenu(false)}
-                className="w-full py-2 text-center text-base font-bold text-white hover:text-amber-500 transition-colors"
+                className="w-full py-2 text-center text-base font-bold text-white hover:text-primary transition-colors"
               >
                 Fechar
               </button>
@@ -1232,7 +1232,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           {/* `#3d3d3d` e canto pequeno: era um cinza claro fora da escala do
               app, com a cara do diálogo padrão do Android. Passou para a mesma
               superfície e o mesmo raio dos outros quadros do player. */}
-          <div className="w-full max-w-sm bg-[#1a1a1a] rounded-[24px] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm bg-card rounded-[24px] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 space-y-8">
               <h3 className="text-xl font-medium text-white">Outra duração</h3>
               

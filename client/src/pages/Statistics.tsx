@@ -480,7 +480,7 @@ export default function Statistics() {
   // Primeiro quadro: o diário ainda não foi lido (só existe no navegador).
   if (!resumo) {
     return (
-      <div className="min-h-screen bg-[#141414] text-white" data-testid="statistics-page">
+      <div className="min-h-screen bg-background text-white" data-testid="statistics-page">
         <PageHeader title="Estatísticas" fallback="/profile" />
       </div>
     );
@@ -539,7 +539,7 @@ export default function Statistics() {
    */
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="statistics-page">
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid="statistics-page">
       <PageHeader title="Estatísticas" fallback="/profile" />
 
       <StatSpotlight stat={openStat} onClose={() => setOpenStat(null)} resumo={resumo} />
@@ -681,7 +681,7 @@ export default function Statistics() {
                     {rotuloDaMeta(meta)} ▾
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="border-white/10 bg-[#1f1f1f] text-white">
+                <DropdownMenuContent align="end" className="border-white/10 bg-card text-white">
                   {METAS_DISPONIVEIS.map((opcao) => (
                     <DropdownMenuItem
                       key={opcao}
@@ -746,7 +746,7 @@ export default function Statistics() {
                     <span
                       className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-transform ${
                         ouviu ? "bg-primary text-black" : "bg-white/[0.07] text-white/35"
-                      } ${dia.hoje ? "ring-1 ring-white/60 ring-offset-2 ring-offset-[#1a1a1a]" : ""} ${
+                      } ${dia.hoje ? "ring-1 ring-white/60 ring-offset-2 ring-offset-card" : ""} ${
                         dia.chave === diaTocado ? "scale-110" : ""
                       }`}
                     >

@@ -69,7 +69,7 @@ export default function Seguidores() {
   const lista = aba === "pedidos" ? pedidos : seguidores;
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="seguidores-page">
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid="seguidores-page">
       <PageHeader title="Quem te segue" fallback="/you" />
 
       <main className="px-5 pt-4">

@@ -144,7 +144,7 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
         {perfil.photo ? (
           <img src={perfil.photo} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
         ) : (
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-orange-600 text-[10px] font-bold">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-[10px] font-bold">
             {initialOf(perfil.name)}
           </span>
         )}
@@ -256,7 +256,7 @@ function UmComentario({
         <Link
           href={ehMeu ? "/profile" : `/user/${comentario.autorSlug}`}
           className={`relative grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br ${
-            membro?.color ?? "from-primary to-orange-600"
+            membro?.color ?? "from-primary to-primary/60"
           } text-[10px] font-bold`} {...avatarDeLeitor(membro?.slug)}
         >
           {comentario.autorSlug && fotoDoMembro(comentario.autorSlug) ? (

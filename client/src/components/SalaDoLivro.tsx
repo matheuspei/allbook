@@ -186,7 +186,7 @@ export default function SalaDoLivro({
       {mostrarAdiante &&
         adianteItens.map((comment) => (
           <div key={comment.id} className="relative" data-testid={`adiante-aberto-${comment.id}`}>
-            <p className="mb-1 flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-[#f59e0b]">
+            <p className="mb-1 flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-primary">
               <EyeOff className="h-3 w-3" />
               à frente de onde você está
             </p>

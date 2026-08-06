@@ -39,7 +39,7 @@ export default function Conversa() {
 
   if (!book) {
     return (
-      <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="conversa-missing">
+      <div className="min-h-screen pb-24 bg-background text-white" data-testid="conversa-missing">
         <PageHeader title="Conversa" fallback="/community" />
         <div className="px-8 py-20 text-center space-y-4">
           <p className="text-sm text-white/50">Não existe livro com esse endereço.</p>
@@ -52,7 +52,7 @@ export default function Conversa() {
   }
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="conversa-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="conversa-page">
       <PageHeader title="Conversa" fallback="/community" />
 
       {/* De qual livro é esta sala — e a porta para a ficha, que agora é o

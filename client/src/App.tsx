@@ -86,13 +86,15 @@ class ErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
+      // Cores pelas variáveis do tema (§4.112): esta tela também acompanha o
+      // claro e o escuro, mesmo desenhada fora do sistema de classes.
       return (
-        <div style={{ padding: 40, textAlign: "center", color: "#fff", background: "#141414", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ padding: 40, textAlign: "center", color: "hsl(var(--foreground))", background: "hsl(var(--background))", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
           <h2 style={{ marginBottom: 16 }}>Algo deu errado</h2>
           <p style={{ marginBottom: 24, opacity: 0.7 }}>{this.state.error?.message}</p>
           <button
             onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
-            style={{ padding: "12px 24px", background: "#f59e0b", color: "#000", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer" }}
+            style={{ padding: "12px 24px", background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer" }}
           >
             Tentar novamente
           </button>
@@ -169,7 +171,7 @@ function Router() {
   const isHomePage = location === '/';
 
   return (
-    <div className={`min-h-screen bg-[#141414] ${isBare ? "" : "pb-20"}`}>
+    <div className={`min-h-screen bg-background ${isBare ? "" : "pb-20"}`}>
       {!isBare && !isBookPage && <TopNav />}
       <div className={!isBare && !isHomePage && !isBookPage ? "pt-14" : ""}>
         {/* Transição suave entre telas: a tela nova entra com um fade-in curto.

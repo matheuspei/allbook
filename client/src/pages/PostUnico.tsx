@@ -37,7 +37,7 @@ export default function PostUnico() {
   }, [id]);
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-24 text-white" data-testid="post-unico-page">
+    <div className="min-h-screen bg-background pb-24 text-white" data-testid="post-unico-page">
       <header className="px-5 pb-3 pt-7">
         <Link
           href="/community"

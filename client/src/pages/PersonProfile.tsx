@@ -101,7 +101,7 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
         />
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#141414]"
+          className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background"
         />
 
         <div className="relative flex flex-col items-center px-4 pb-6 pt-8 text-center">

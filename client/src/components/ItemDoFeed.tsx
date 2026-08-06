@@ -64,7 +64,7 @@ function verboDoItem(item: ItemDoMural): {
         cor: "text-[#c084fc]",
       };
     case "avaliou":
-      return { icone: <Star className="h-3 w-3" />, verbo: "avaliou", cor: "text-[#f59e0b]" };
+      return { icone: <Star className="h-3 w-3" />, verbo: "avaliou", cor: "text-primary" };
     case "ouvindo":
       return {
         icone: <Headphones className="h-3 w-3" />,
@@ -99,7 +99,7 @@ export function ItemDoFeed({ item }: { item: ItemDoMural }) {
         {item.autor.souEu ? (
           <Avatar className="h-9 w-9">
             {perfil.photo && <AvatarImage src={perfil.photo} alt={nome} className="object-cover" />}
-            <AvatarFallback className="bg-[#1e1e1e] text-xs font-bold text-white">
+            <AvatarFallback className="bg-card text-xs font-bold text-white">
               {initialOf(perfil.name)}
             </AvatarFallback>
           </Avatar>
@@ -140,8 +140,8 @@ export function ItemDoFeed({ item }: { item: ItemDoMural }) {
             <span className="text-white/35"> · cap. {item.chapter}</span>
           )}
           {item.tipo === "avaliou" && (
-            <span className="ml-1 inline-flex items-center gap-0.5 align-[-1px] text-[#f59e0b]">
-              {item.nota.toFixed(1)} <Star className="h-3 w-3 fill-[#f59e0b]" />
+            <span className="ml-1 inline-flex items-center gap-0.5 align-[-1px] text-primary">
+              {item.nota.toFixed(1)} <Star className="h-3 w-3 fill-primary" />
             </span>
           )}
         </p>

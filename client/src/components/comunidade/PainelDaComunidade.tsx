@@ -108,7 +108,7 @@ export default function PainelDaComunidade({ onFechar }: { onFechar: () => void 
         data-testid="painel-veu"
       />
 
-      <aside className="absolute inset-y-0 left-0 flex w-[80%] max-w-[340px] flex-col border-r border-white/[0.07] bg-[#141414] shadow-2xl animate-in slide-in-from-left duration-200">
+      <aside className="absolute inset-y-0 left-0 flex w-[80%] max-w-[340px] flex-col border-r border-white/[0.07] bg-background shadow-2xl animate-in slide-in-from-left duration-200">
         <header className="flex items-center justify-between border-b border-white/[0.07] px-4 py-3.5">
           <h2 className="font-display text-lg font-bold tracking-tight">Menu</h2>
           <button

@@ -54,8 +54,8 @@ export default function FaixaDaSalaNoPlayer({ bookId }: { bookId: number }) {
           return (
             <span
               key={slug}
-              className={`flex h-[19px] w-[19px] items-center justify-center rounded-full border-2 border-[#141414] bg-gradient-to-br text-[8px] font-bold text-black ${
-                membro?.color ?? "from-primary to-amber-500"
+              className={`flex h-[19px] w-[19px] items-center justify-center rounded-full border-2 border-background bg-gradient-to-br text-[8px] font-bold text-black ${
+                membro?.color ?? "from-primary to-primary/60"
               } ${i > 0 ? "-ml-1.5" : ""}`}
               {...avatarDeLeitor(slug)}
             >

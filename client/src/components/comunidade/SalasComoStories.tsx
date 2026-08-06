@@ -53,10 +53,12 @@ export default function SalasComoStories() {
               <div className="relative mx-auto h-[68px] w-[68px]">
                 {/* O anel do story: gradiente de AO VIVO, girando devagar para
                     dizer "agora" sem precisar de texto piscando. */}
-                <span className="absolute inset-0 animate-[spin_6s_linear_infinite] rounded-full bg-[conic-gradient(from_0deg,#ef4444,#FF6A00,#f59e0b,#ef4444)]" />
-                <span className="absolute inset-[3px] rounded-full bg-[#141414]" />
+                {/* O anel era laranja→âmbar; com a direção "Estúdio" (§4.112)
+                    ele passou a girar nos tons do vermelho de gravação. */}
+                <span className="absolute inset-0 animate-[spin_6s_linear_infinite] rounded-full bg-[conic-gradient(from_0deg,#FF4438,#ff8a80,#e11d48,#FF4438)]" />
+                <span className="absolute inset-[3px] rounded-full bg-background" />
                 <span
-                  className={`absolute inset-[6px] flex items-center justify-center rounded-full bg-gradient-to-br font-display text-xl font-bold ${anfitriao?.color ?? "from-primary to-amber-500"}`}
+                  className={`absolute inset-[6px] flex items-center justify-center rounded-full bg-gradient-to-br font-display text-xl font-bold ${anfitriao?.color ?? "from-primary to-primary/60"}`}
                   {...avatarDeLeitor(sala.anfitriao)}
                 >
                   {(anfitriao?.name ?? "V").charAt(0)}
@@ -65,7 +67,7 @@ export default function SalasComoStories() {
                   <img
                     src={book.cover}
                     alt=""
-                    className="absolute -bottom-0.5 -right-1 h-[30px] w-[21px] rounded-[3px] border-2 border-[#141414] object-cover"
+                    className="absolute -bottom-0.5 -right-1 h-[30px] w-[21px] rounded-[3px] border-2 border-background object-cover"
                   />
                 )}
                 <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 rounded-[4px] bg-red-500 px-1.5 py-px text-[7.5px] font-extrabold tracking-wide text-white">

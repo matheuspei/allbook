@@ -168,7 +168,7 @@ export default function TopNav() {
             <Bell className="w-5 h-5" />
             {unread > 0 && (
               <span
-                className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white leading-none"
+                className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground leading-none"
                 data-testid="notifications-badge"
                 aria-label={`${unread} não lidas`}
               >
@@ -180,7 +180,7 @@ export default function TopNav() {
             href="/profile"
             data-testid="button-profile"
             aria-label="Sua página"
-            className="w-8 h-8 rounded-full overflow-hidden border border-primary/40 flex items-center justify-center bg-[#1e1e1e] hover:border-primary transition-colors"
+            className="w-8 h-8 rounded-full overflow-hidden border border-primary/40 flex items-center justify-center bg-card hover:border-primary transition-colors"
           >
             {perfil.photo ? (
               <img src={perfil.photo} alt={perfil.name} className="w-full h-full object-cover" />

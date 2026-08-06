@@ -108,12 +108,30 @@ estão em `client/src/App.tsx` — é lá que se olha, não numa tabela aqui.
 - Atalhos: `@/` → `client/src`, `@shared` → `shared`, `@assets` → `attached_assets`
 
 ## Identidade visual (seguir à risca)
-Tema escuro, fundo `#141414`. Marca em **laranja** `hsl(24 100% 50%)` (~`#FF6A00`),
-com toques de âmbar `#f59e0b` no estilo Audible — botões principais, destaques e
-selos. Títulos em **Outfit** (`font-display`, `tracking-tight`), texto em **Inter**.
-Cantos `--radius: 0.75rem`, visual mobile-first. Antes de criar tela nova, olhar
-`Home.tsx` e `BookDetails.tsx` para manter a mesma cara — e não acrescentar
-biblioteca de UI nova.
+
+**Direção "Estúdio"** (06/08, §4.112): o app parece a cabine onde o livro é
+gravado. Fundo grafite quente `#121110`, texto branco-osso `#F5F1EA`, e um
+**vermelho de gravação** `#FF4438` que só aparece onde há gravação ou ação —
+o botão Pedir, selos, o play. Títulos em **Space Grotesk** (`font-display`),
+texto em **Inter**. Cantos `--radius: 0.75rem`, mobile-first. *(O laranja do
+Audible e o `#141414` do Netflix saíram justamente por serem dos outros.)*
+
+**São dois temas, e a pessoa escolhe em `/settings`:** "Estúdio" (escuro, o
+padrão) e "Tinta" (claro — papel creme `#F4EFE6` e carmim `#C1362F`). Quem
+aplica é a classe `.dark` no `<html>`; a lógica está em `lib/tema.ts` e um
+script inline no `client/index.html` evita o piscar na abertura.
+
+**A regra de ouro para escrever tela nova: nunca escreva cor literal.**
+`bg-[#141414]`, `text-orange-500`, `#f59e0b` — nada disso. Use os tokens
+(`bg-background`, `bg-card`, `text-primary`, `border-border`) e, para as cores
+neutras, pode usar `text-white`, `bg-white/10`, `border-white/10` à vontade:
+no `index.css`, **`white` e `black` foram redefinidos como "a cor do texto" e
+"a cor do papel" do tema em vigor**, então eles se viram sozinhos nos dois.
+A exceção é **texto sobre imagem**, que precisa continuar branco nos dois
+temas: aí o bloco leva a classe `.sobre-midia`.
+
+Antes de criar tela nova, olhar `Home.tsx` e `BookDetails.tsx` para manter a
+mesma cara — e não acrescentar biblioteca de UI nova.
 
 ## Duas janelas do Claude ao mesmo tempo
 O Matheus costuma abrir duas janelas na mesma pasta. **Na primeira tarefa de cada

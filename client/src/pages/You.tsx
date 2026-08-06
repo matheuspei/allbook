@@ -28,6 +28,7 @@ import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile } from "@/lib/profile";
 import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
 import { readSettings } from "@/lib/settings";
+import { TEMAS, TEMA_EVENT, readTema } from "@/lib/tema";
 
 /**
  * "Configurações" (`/you`) — os ajustes da sua conta.
@@ -122,6 +123,20 @@ export default function You() {
     return () => window.removeEventListener(SEGUIDORES_EVENT, atualizar);
   }, []);
 
+  /* O tema em vigor aparece como etiqueta da linha "Neste aparelho" (§4.112).
+     É o rastro que ensina onde ele mora: sem isso, "tema" é a coisa que todo
+     mundo procura e ninguém acha, porque o nome da porta fala de aparelho. */
+  const [tema, setTemaAtual] = useState(readTema);
+  useEffect(() => {
+    const atualizar = () => setTemaAtual(readTema());
+    window.addEventListener(TEMA_EVENT, atualizar);
+    window.addEventListener("storage", atualizar);
+    return () => {
+      window.removeEventListener(TEMA_EVENT, atualizar);
+      window.removeEventListener("storage", atualizar);
+    };
+  }, []);
+
   /**
    * Convidar alguém para o AllBook — funciona de verdade, sem servidor: quem
    * compartilha é o próprio aparelho (folha nativa; sem ela, copia o texto).
@@ -183,13 +198,18 @@ export default function You() {
     /* Era "Reprodução e download" e prometia o que a tela não entregava: lá
        dentro havia conta, editar perfil e entrar (§4.85). A tela ficou só com o
        que está guardado no aparelho, e o nome passou a dizer isso. */
-    { icon: Settings, label: "Neste aparelho", href: "/settings" },
+    {
+      icon: Settings,
+      label: "Neste aparelho",
+      hint: TEMAS.find((t) => t.id === tema)?.nome,
+      href: "/settings",
+    },
     { icon: Share2, label: "Convidar amigos", onSelect: convidarAmigos },
     { icon: HelpCircle, label: "Ajuda e suporte", href: "/help" },
   ];
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="you-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="you-page">
       <PageHeader title="Configurações" fallback="/profile" />
 
       {/* Quem você é — e a porta para editar. O e-mail mora aqui, não na página
@@ -199,7 +219,7 @@ export default function You() {
           {profile.photo && (
             <AvatarImage src={profile.photo} alt={profile.name} className="object-cover" />
           )}
-          <AvatarFallback className="bg-[#1e1e1e] text-white font-display font-semibold">
+          <AvatarFallback className="bg-card text-white font-display font-semibold">
             {initialOf(profile.name)}
           </AvatarFallback>
         </Avatar>
@@ -253,7 +273,7 @@ export default function You() {
       </div>
 
       <AlertDialog open={confirmSignOut} onOpenChange={setConfirmSignOut}>
-        <AlertDialogContent className="max-w-sm bg-[#1c1c1c] border-white/10">
+        <AlertDialogContent className="max-w-sm bg-card border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle>Sair da conta?</AlertDialogTitle>
             <AlertDialogDescription>

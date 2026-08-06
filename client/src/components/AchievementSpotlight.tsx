@@ -86,7 +86,7 @@ export default function AchievementSpotlight({
     >
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="animate-in slide-in-from-bottom fade-in relative w-full max-w-md rounded-t-2xl border-t border-white/10 bg-[#1c1c1c] px-6 pb-10 pt-5 duration-300">
+      <div className="animate-in slide-in-from-bottom fade-in relative w-full max-w-md rounded-t-2xl border-t border-white/10 bg-card px-6 pb-10 pt-5 duration-300">
         <div className="mb-7 flex items-center justify-between">
           <span className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${tier.texto}`}>
             {tier.label}

@@ -73,7 +73,7 @@ export function LinhaDeAgenda({ clube }: { clube: Clube }) {
   const estreia = estaComecando(clube);
   const data = estreia ? clube.ciclo.inicio : clube.ciclo.encontro;
   const cor = estreia
-    ? "text-[#f59e0b]"
+    ? "text-primary"
     : diasAte(data) <= 7
       ? "text-primary"
       : "text-white/55";
@@ -145,7 +145,7 @@ export function CartaoDoSeuClube({ clube }: { clube: Clube }) {
 
           {estreia ? (
             <p className="mt-2.5">
-              <span className="rounded-md bg-[#f59e0b]/15 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#f59e0b]">
+              <span className="rounded-md bg-primary/15 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-primary">
                 {estreiaEmTexto(clube)}
               </span>
               <span className="ml-2 text-[11px] text-white/45">
@@ -160,7 +160,7 @@ export function CartaoDoSeuClube({ clube }: { clube: Clube }) {
                   style={{ width: pct(seu) }}
                 />
                 <span
-                  className="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 rounded-full bg-[#f59e0b]"
+                  className="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 rounded-full bg-primary"
                   style={{ left: pct(roda) }}
                 />
               </div>
@@ -211,7 +211,7 @@ export function CartaoDeEstreia({ clube }: { clube: Clube }) {
         <img src={livro.cover} alt={livro.title} className="h-full w-full object-cover" />
         {/* Forma curta ("amanhã", "em 4 dias"): o título da página já diz que é
             estreia, e "começa em…" quebrava em duas linhas na capa estreita. */}
-        <span className="absolute left-1.5 top-1.5 rounded-md bg-black/75 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#f59e0b] backdrop-blur-sm">
+        <span className="absolute left-1.5 top-1.5 rounded-md bg-black/75 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-primary backdrop-blur-sm">
           {prazoEmTexto(clube.ciclo.inicio)}
         </span>
       </div>
@@ -243,7 +243,7 @@ export function CartaoParaDescobrir({ clube }: { clube: Clube }) {
           className="absolute inset-0 h-full w-full scale-110 object-cover opacity-25 blur-xl"
         />
       )}
-      <div className="absolute inset-0 bg-[#141414]/75" />
+      <div className="absolute inset-0 bg-background/75" />
 
       <div className="relative flex gap-3.5 p-4">
         {livro && (

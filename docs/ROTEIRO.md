@@ -4233,3 +4233,52 @@ escolher fonte e digitar, e é onde esses modelos mais erram (dois L virando um)
 **A folha:** `client/public/_ferramentas-de-logo-C.html`, com os links, o passo a
 passo, o alerta da cor e os três prompts com botão de copiar — para ele não
 precisar abrir duas folhas enquanto testa.
+
+## 4.112 A identidade nova: direção "Estúdio", com o tema claro "Tinta" ao lado (06/08)
+
+**Ele decidiu na folha `_design-do-zero-B.html`, e mudou de ideia no caminho:**
+*"Eu gosto muito da opção B… mas, com base no que você falou, cor sem cor
+própria… essa coisa de cor vermelha para o player de áudio é uma cor muito mais
+viva. Faz muito sentido. Então a gente vai escolher a direção C."* Ou seja: o
+preto absoluto o atraiu, e o argumento que o virou foi o **contra** dele — app
+sem cor de marca fica anônimo.
+
+**O que passou a valer:**
+
+- **Direção C, "Estúdio"** — fundo grafite **quente** `#121110` (não o cinza do
+  Netflix), texto branco-osso `#F5F1EA`, e **vermelho de gravação** `#FF4438`
+  usado só onde há gravação ou ação. Títulos em **Space Grotesk**; o Outfit saiu
+  junto com o laranja.
+- **Tema claro "Tinta" como alternativa, acréscimo dele:** *"que nas
+  configurações do aplicativo a gente possa mudar o tema… o padrão seria a
+  direção C, porém ele poderia oscilar entre a direção A"*. Papel creme
+  `#F4EFE6` e carmim `#C1362F`, escolhido em `/settings` → Aparência, com as
+  duas telas desenhadas em miniatura. O escuro segue sendo o padrão de fábrica.
+- **Menu de baixo B** — aba ativa com **ícone preenchido** e rótulo em negrito;
+  saíram o borrão colorido atrás do ícone e a sombra sob a pastilha do Pedir,
+  que a folha classificou como sotaque de 2019. Ele hesitou com a C (sem
+  rótulos): *"tô entre o B e a C, mas vamos por B"*.
+
+**A decisão técnica que fez o tema claro caber num dia, e não numa semana.** A
+folha media 1.740 usos de `white/NN` e `black/NN` espalhados por 95 arquivos —
+todos só funcionam sobre fundo escuro, e era isso que encarecia. Em vez de
+reescrevê-los, **`--color-white` e `--color-black` passaram a apontar para o
+tema**: viraram "a cor do texto" e "a cor do papel". Uma linha no `index.css`, e
+`text-white/40`, `bg-white/10` e `border-white/10` se invertem sozinhos, com
+opacidade e tudo. **O que se ganha:** tela nova pode continuar escrevendo
+`text-white/60` sem pensar. **O que se paga:** a classe passa a mentir sobre a
+cor final — está avisado em letras garrafais no `index.css` e no CLAUDE.md.
+Para texto sobre imagem, que precisa ser branco nos dois temas, existe a classe
+`.sobre-midia`, que devolve branco puro ao bloco inteiro.
+
+**Conferido no navegador, nos dois temas:** Início, ficha do livro, player, Feed
+e Configurações. O player e a ficha saem particularmente bem no claro — a capa
+vira cenário lavado, como página de revista. **Um susto que não era bug:** o
+Feed apareceu fantasma numa captura; era a animação `fade-in` **congelada por
+falta de foco na janela** do Chrome (a armadilha já conhecida da automação), e
+a cor do texto estava correta o tempo todo.
+
+**Ainda em aberto da mesma folha** (ele disse "fico devendo"): o **símbolo da
+logo**, a grafia do nome, o cartão de livro e o topo da Início. Enquanto isso a
+marca segue sendo a palavra com o "All" colorido — agora em vermelho — e o
+favicon continua sendo o do Replit.

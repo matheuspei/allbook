@@ -305,7 +305,7 @@ export default function CommentComposer({
                 </span>
               )}
               {c.spoiler && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f59e0b]/10 px-2.5 py-1 text-[11px] font-semibold text-[#f59e0b]">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
                   <EyeOff className="h-3 w-3" />
                   Marcado como spoiler
                 </span>
@@ -344,7 +344,7 @@ function Interruptor({
 }) {
   const aceso =
     cor === "ambar"
-      ? "bg-[#f59e0b]/15 text-[#f59e0b] ring-[#f59e0b]/40"
+      ? "bg-primary/15 text-primary ring-primary/40"
       : "bg-primary/15 text-primary ring-primary/40";
 
   return (
@@ -392,7 +392,7 @@ function MinhasEstrelas({ nota }: { nota: MinhaAvaliacao | null }) {
             <Star
               key={valor}
               className={`h-3.5 w-3.5 ${
-                valor <= linha.valor ? "fill-[#f59e0b] text-[#f59e0b]" : "text-white/15"
+                valor <= linha.valor ? "fill-primary text-primary" : "text-white/15"
               }`}
             />
           ))}

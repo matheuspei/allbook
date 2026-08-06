@@ -142,7 +142,7 @@ function avisosDoSistema(): Aviso[] {
       id: "s1",
       tipo: "sistema",
       icone: Sparkles,
-      cor: "from-primary to-orange-600",
+      cor: "from-primary to-primary/60",
       titulo: "Novo na AllBook",
       corpo: `${duna?.title ?? "Duna"} chegou ao catálogo, narrado na íntegra.`,
       data: diasAtras(0),
@@ -153,7 +153,7 @@ function avisosDoSistema(): Aviso[] {
       id: "s2",
       tipo: "sistema",
       icone: Flame,
-      cor: "from-orange-500 to-red-600",
+      cor: "from-primary to-primary/60",
       titulo: "Sua sequência continua",
       corpo: "3 semanas seguidas ouvindo. Faltam 15 minutos para manter a de hoje.",
       data: diasAtras(0),
@@ -228,7 +228,7 @@ function deCurtida(aviso: ReturnType<typeof avisosDeCurtida>[number]): Aviso {
     titulo: textoDoAviso(aviso),
     corpo: aviso.trecho,
     data: aviso.date,
-    cor: "from-primary to-amber-500",
+    cor: "from-primary to-primary/60",
     postId: aviso.postId,
     lida: aviso.lido,
   };
@@ -266,7 +266,7 @@ function deResposta(item: ReplyNotification): Aviso {
     // A cor do avatar da própria pessoa: é assim que ela aparece nas outras
     // telas, e reconhecer a cor é reconhecer quem falou.
     slug: item.fromSlug,
-    cor: membro?.color ?? "from-primary to-orange-600",
+    cor: membro?.color ?? "from-primary to-primary/60",
     inicial: membro?.name.charAt(0) ?? "?",
     bookId: item.bookId,
     clubeId: item.clubeId,
@@ -329,7 +329,7 @@ function avisosDeConvite(convites: Convite[]): Aviso[] {
         titulo: `${quem?.name ?? "Alguém"} te convidou`,
         corpo: `${clube.nome} · ${estreiaEmTexto(clube)}`,
         data: convite.date,
-        cor: quem?.color ?? "from-primary to-orange-600",
+        cor: quem?.color ?? "from-primary to-primary/60",
         inicial: (quem?.name ?? "?").charAt(0),
         lida: false,
       },
@@ -395,7 +395,7 @@ function avisosDeAcompanhados(): Aviso[] {
     id: `acomp-${item.id}`,
     tipo: "sistema" as const,
     icone: item.tipo === "narracao" ? Mic : Sparkles,
-    cor: "from-primary to-orange-600",
+    cor: "from-primary to-primary/60",
     titulo: `Novidade de ${nomeDoAlvo(item.alvo)}`,
     corpo: item.texto,
     data: `${item.data}T12:00:00.000Z`,
@@ -514,7 +514,7 @@ export default function Notifications() {
   }
 
   return (
-    <div className="min-h-screen pb-24 bg-[#141414] text-white" data-testid="notifications-page">
+    <div className="min-h-screen pb-24 bg-background text-white" data-testid="notifications-page">
       <PageHeader
         title="Notificações"
         fallback="/profile"
@@ -535,7 +535,7 @@ export default function Notifications() {
           não informa nada e só ocupa espaço. */}
       {naoLidas > 0 && (
         <div className="px-5 pb-3 flex items-center gap-2" data-testid="notifications-summary">
-          <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center">
+          <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center">
             {naoLidas}
           </span>
           <span className="text-xs text-white/50">
@@ -555,7 +555,7 @@ export default function Notifications() {
 
       {avisos.length === 0 ? (
         <div className="px-8 py-24 text-center space-y-4" data-testid="notifications-empty">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/25 to-orange-600/10 ring-1 ring-primary/20 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/25 to-primary/10 ring-1 ring-primary/20 flex items-center justify-center">
             <Bell className="w-7 h-7 text-primary" />
           </div>
           <h2 className="text-lg font-bold font-display">Nada por aqui</h2>
@@ -763,7 +763,7 @@ function Cartao({
           {(aviso.quem ?? []).slice(0, 3).map((pessoa, i) => (
             <span
               key={pessoa.slug}
-              className={`grid h-10 w-10 place-items-center rounded-full border-2 border-[#141414] bg-gradient-to-br ${pessoa.color} text-sm font-bold shadow-md ${
+              className={`grid h-10 w-10 place-items-center rounded-full border-2 border-background bg-gradient-to-br ${pessoa.color} text-sm font-bold shadow-md ${
                 i > 0 ? "-ml-4" : ""
               }`}
               {...avatarDeLeitor(pessoa.slug)}

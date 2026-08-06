@@ -143,11 +143,11 @@ export default function VotacaoDoClube({ clube }: { clube: Clube }) {
               vencedor saído do nada. */}
           {empatados.length > 1 && (
             <div
-              className="rounded-xl border border-[#f59e0b]/25 bg-[#f59e0b]/[0.07] p-3"
+              className="rounded-xl border border-primary/25 bg-primary/[0.07] p-3"
               data-testid="empate-na-votacao"
             >
               <p className="text-[11.5px] leading-relaxed text-white/70">
-                <b className="text-[#f59e0b]">Empate.</b> Você desempata — toque no que vai valer.
+                <b className="text-primary">Empate.</b> Você desempata — toque no que vai valer.
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {empatados.map((bookId) => {

@@ -47,7 +47,7 @@ export function LinhaDoCiclo({ clube }: { clube: Clube }) {
           pontas; a de cima abre espaço para a etiqueta "você". */}
       <div className="relative mx-1 mb-7 mt-7 h-1.5 rounded-full bg-white/10">
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#f59e0b] to-primary"
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-primary"
           style={{ width: `${pctMeu}%` }}
         />
 

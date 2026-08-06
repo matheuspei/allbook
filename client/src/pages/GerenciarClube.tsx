@@ -118,7 +118,7 @@ export default function GerenciarClube({ params }: { params: { id: string } }) {
    */
   if (!clube || !souDono(clube)) {
     return (
-      <div className="min-h-screen bg-[#141414] px-6 pb-24 text-white">
+      <div className="min-h-screen bg-background px-6 pb-24 text-white">
         <PageHeader title="Gerenciar" fallback="/clubes" />
         <div className="flex flex-col items-center justify-center gap-3 pt-24 text-center">
           <div className="grid h-16 w-16 place-items-center rounded-2xl bg-white/5">
@@ -136,7 +136,7 @@ export default function GerenciarClube({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#141414] pb-28 text-white" data-testid="gerenciar-clube-page">
+    <div className="min-h-screen bg-background pb-28 text-white" data-testid="gerenciar-clube-page">
       <PageHeader title="Gerenciar" fallback={`/clube/${clube.id}`} />
 
       <div className="space-y-7 px-5 pt-4">
@@ -1291,7 +1291,7 @@ function ApagarOClube({ clube, onApagar }: { clube: ClubeTipo; onApagar: () => v
       </button>
 
       <AlertDialog open={confirmando} onOpenChange={setConfirmando}>
-        <AlertDialogContent className="border-white/10 bg-[#1c1c1c] text-white">
+        <AlertDialogContent className="border-white/10 bg-card text-white">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display tracking-tight">
               Apagar {clube.nome}?

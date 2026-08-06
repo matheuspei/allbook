@@ -102,7 +102,7 @@ export default function ConversasDeAgora() {
                     <span
                       key={member.slug}
                       title={member.name}
-                      className={`-ml-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#141414] bg-gradient-to-br ${member.color} text-[9px] font-bold first:ml-0`} {...avatarDeLeitor(member.slug)}
+                      className={`-ml-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br ${member.color} text-[9px] font-bold first:ml-0`} {...avatarDeLeitor(member.slug)}
                     >
                       {member.name.charAt(0)}
                     </span>

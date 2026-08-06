@@ -42,7 +42,7 @@ export default function BookGrid({
           )}
 
           <span className="mt-0.5 flex items-center gap-1 text-[11px] text-white/60">
-            <Star className="h-3 w-3 shrink-0 fill-[#f59e0b] text-[#f59e0b]" />
+            <Star className="h-3 w-3 shrink-0 fill-primary text-primary" />
             {livro.rating.toFixed(1)}
           </span>
         </button>
