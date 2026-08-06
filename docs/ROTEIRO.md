@@ -4354,9 +4354,18 @@ Escrevi esse terceiro prompt na folha e rebaixei os dois coloridos para "depois
 que a paleta parar de mexer". **O letreiro não precisa de IA** — nome escrito é
 escolher fonte e digitar, e é onde esses modelos mais erram (dois L virando um).
 
-**A folha:** `client/public/_ferramentas-de-logo-C.html`, com os links, o passo a
-passo, o alerta da cor e os três prompts com botão de copiar — para ele não
-precisar abrir duas folhas enquanto testa.
+**Houve uma folha `_ferramentas-de-logo-C.html`, e ela foi apagada no mesmo dia
+— o recado vale mais que ela.** Ele: *"você criou uma folha gigantesca para
+falar uma coisa que era simples de ser falada… você poderia ter falado aqui tudo
+que você falou na folha. Você cria quando precisa **ilustrar alguma coisa
+específica**. Quando pode falar aqui, você fala aqui."* **Folha é instrumento de
+escolha visual** — maquete desenhada para ele bater o olho e clicar. Instrução,
+passo a passo, comparação de ferramenta e prompt para copiar **vão no chat**.
+(Recuperável pelo git; tudo o que valia está nesta seção.)
+
+**O que resolveu "onde fica o botão" foi imagem anotada, não texto:** recortei a
+tela que ele mandou e circulei o ícone de ajustes. Vale como padrão para
+"não acho o botão".
 
 ### A terceira rejeição de desenho à mão — e a decisão que sai dela
 
@@ -4422,3 +4431,25 @@ vírgula é fatiada em pedaços soltos (`--no modern clothing` vira "no modern" 
 **O que rende o plano de US$ 10:** ~3,5 h de geração rápida por mês, e cada
 rodada de 4 imagens leva menos de um minuto — são centenas de rodadas. Não há
 motivo para economizar clique.
+
+### O erro que eu repeti duas vezes: prompt fechado demais
+
+**Ele, sobre o meu prompt:** *"não gosto dessa ideia de você já partir de um
+princípio de determinar qual é a cor… quem tem que determinar essas coisas é a
+ferramenta que está criando. Você está limitando a plataforma."* **Ele está
+certo, e o defeito é meu, não do Midjourney.** Meus dois prompts descreviam a
+forma inteira (página esquerda sólida, quatro barras que encurtam, margens,
+simetria) e ainda travavam a cor — sobrava à ferramenta executar, não inventar.
+Resultado: 8 imagens praticamente iguais, exatamente a queixa que ele já tinha
+feito das 60 logos desenhadas à mão.
+
+**A regra que fica:** prompt **descritivo** serve para *reproduzir* uma ideia já
+escolhida; prompt **aberto** serve para *descobrir*. Estávamos na fase de
+descobrir e eu escrevi um prompt de reproduzir. **Na fase de garimpo: uma linha,
+sem cor, sem forma ditada, `--stylize` alto** — e o `--no` só contra o que
+estraga o enquadramento (mockup, cartão de visita, grade de variações).
+
+**Isso reabre o conceito da §4.111.** "A página que vira som" foi escolhido entre
+6 desenhos meus, não contra o que uma ferramenta de verdade produz. Se o garimpo
+aberto trouxer coisa melhor, **o conceito escolhido não é compromisso** — o que
+vale é o que ele reconhecer batendo o olho.
