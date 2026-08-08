@@ -6,3 +6,8 @@ dist/
 *.log
 .DS_Store
 *.dump
+
+# Áudio: se AUDIO_RAIZ vier relativo por engano, os arquivos caem aqui.
+# É cinto de segurança — o lugar certo é FORA do repositório (~/AllBook-audio).
+/mestres/
+/entrega/

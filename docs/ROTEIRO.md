@@ -5805,3 +5805,92 @@ que não depende de compra nem de contrato:
 
 **O pré-requisito continua sendo o mesmo da §4.127:** o app lendo o catálogo do
 **banco**, não de `lib/books.ts`.
+
+---
+
+## 4.129 A ingestão do áudio existe — e a quebra silenciosa foi provada (08/08)
+
+Armadilha **2.5** resolvida na metade que não depende de decisão nenhuma. O
+Matheus deu sinal verde com dois discos externos em mãos, e o caminho da §4.128
+era justamente este: construir contra uma **pasta local**, de graça, e escolher
+provedor só quando houver livro tocando.
+
+`npm run audio <id> <arquivo|pasta>` — guarda o mestre, cola a vinheta, fatia em
+HLS (AAC 64k mono, segmentos de 6s) e grava duração e capítulos **medidos**.
+Também `refazer <id>`, `remover <id>`, e sem argumento a situação do acervo.
+
+### A decisão que dá a portabilidade: `server/armazenamento.ts`
+
+Uma interface de seis operações, com **uma** implementação hoje (pasta local).
+Nada no projeto fala com fornecedor — nem com o disco. Trocar por R2, Backblaze
+ou Wasabi é acrescentar uma classe e mexer no `.env`. Foi escrito assim por causa
+do medo que ele levantou na §4.128, e é a resposta de engenharia para ele:
+**portabilidade em vez de fortaleza**.
+
+### A quebra silenciosa, reproduzida de propósito
+
+O `BANCO-DE-DADOS.md` avisava que a vinheta desloca todo o livro e que isso não
+dá erro nenhum. Testei fazendo acontecer:
+
+| | antes da vinheta | depois de uma vinheta de 8s |
+|---|---|---|
+| Capítulo 1 | começa em 0s | **8s** |
+| Capítulo 2 | 20s | **28s** |
+| Capítulo 3 | 55s | **63s** |
+| Alguém que parou em | 42s | **50s** ← corrigido sozinho |
+
+Sem a última linha, essa pessoa retomaria 8 segundos antes do lugar **para
+sempre**, e nada em tela nenhuma acusaria. O ajuste roda na mesma transação que
+grava os capítulos.
+
+⚠️ **Só vale para reprocessamento.** Na *primeira* ingestão a posição salva veio
+da duração **estimada** (a conta por páginas), e não existe equivalência de onde
+tirar — o script conta quantas pessoas estão nessa situação e **não converte**.
+Chutar seria pior que deixar.
+
+### Três decisões técnicas que valem registro
+
+**1. Filtro `concat`, não o demuxer.** O demuxer emenda os arquivos já
+codificados e arrasta junto o silêncio de padding que todo MP3 tem nas pontas;
+em 30 faixas isso vira quase um segundo de deriva — e é dessa soma que saem os
+marcadores de capítulo. O filtro decodifica antes de emendar. Além disso, o
+script **mede a duração final** e a compara com a soma esperada, avisando se
+divergir mais de 1s: a conferência que impede o erro de passar em silêncio.
+
+**2. AAC 64k mono, e não MP3.** O mestre continua sendo o MP3 do estúdio; a cópia
+de trabalho é AAC porque o formato de entrega é HLS e AAC é o que todo player
+toca, inclusive o Safari — obrigatório no iPhone. 64 kbps mono é a régua da
+indústria para fala: um livro de 10h dá ~290 MB.
+
+**3. Capítulos, em ordem de preferência:** embutidos no arquivo (um `.m4b` de
+audiolivro traz título e tempo prontos, e é a fonte mais confiável porque veio de
+quem produziu) → um arquivo por capítulo numa pasta → um bloco só, com aviso.
+⚠️ A ordem dos arquivos usa `numeric: true`: a ordem alfabética crua põe o
+capítulo **10 antes do 2**, e o livro sairia embaralhado sem erro nenhum.
+*(Testado com arquivos chamados `1`, `2` e `10`.)*
+
+### Três defeitos achados testando — dois deles graves
+
+1. **`AUDIO_RAIZ=` vazio virava caminho relativo** e a primeira ingestão gravou
+   os mestres **dentro do repositório**, que é literalmente o que o comentário
+   acima dela mandava evitar. `??` não pega string vazia. Agora a raiz é
+   conferida (tem de ser absoluta) e `/mestres/` e `/entrega/` estão no
+   `.gitignore` como cinto de segurança.
+2. **`script/` nunca esteve no `tsconfig.json`** — ou seja, `npm run check`
+   **jamais** conferiu `estudio.ts`, `ingestao-catalogo.ts` nem
+   `importar-catalogo.ts`, todos escritos hoje. Incluída a pasta; apareceu um
+   erro real de iteração, resolvido acrescentando `"target": "ES2022"` (o
+   projeto não tinha `target`, e o padrão do TypeScript é ES5).
+3. `progresso` tem chave composta e **não tem coluna `id`** — o `returning` que
+   eu havia escrito quebraria em execução, e só não quebrou antes porque o item 2
+   escondia o erro.
+
+### O que falta, nomeado
+
+- **Servir o áudio**: URL assinada por sessão com expiração de minutos, e limite
+  de taxa por conta (a defesa barata contra raspagem, §4.34). Hoje **nada serve
+  os segmentos**, então nada está exposto.
+- **O player tocar HLS** e o app ler capítulos e duração do **banco** — e isso
+  esbarra no mesmo pré-requisito de sempre: o catálogo vem do código.
+- **A vinheta não existe** (§4.35, é trabalho de marca). O mecanismo está pronto:
+  ponha os arquivos em `<AUDIO_RAIZ>/vinhetas/` e rode `refazer`.

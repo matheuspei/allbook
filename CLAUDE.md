@@ -133,6 +133,29 @@ com `--confirmo`). **Antes de apagar qualquer coisa, olhe o que está lá.**
 guardando as 14 últimas em `~/AllBook-backups` — **fora do repositório**, porque
 dado de pessoa não entra no git.
 
+### O áudio: a ingestão existe (08/08), a entrega não
+
+`npm run audio <id do livro> <arquivo ou pasta>` leva o que o estúdio entregou
+até o banco (`refazer <id>`, `remover <id>`, sem argumento = a situação). Ele
+guarda o mestre, cola a vinheta, fatia em HLS e grava duração e capítulos
+**medidos**. Os arquivos moram em `AUDIO_RAIZ` (padrão `~/AllBook-audio`),
+**fora do repositório** — áudio-mestre é o ativo mais caro do projeto.
+
+- **Três regras que o script existe para cumprir:** o mestre é copiado **antes**
+  de qualquer processamento (falha do `ffmpeg` no meio não leva o original); o
+  mestre **nunca é servido**, só os segmentos; e os capítulos são calculados
+  **depois** da vinheta.
+- ⚠️ **A vinheta desloca o livro inteiro.** Mudou o tamanho dela, o script soma a
+  diferença em **toda posição salva** daquele livro, na mesma transação. Sem
+  isso, todo mundo retomaria N segundos fora do lugar **sem erro nenhum**.
+- **Nada fala com fornecedor.** `server/armazenamento.ts` é uma interface com
+  uma implementação (pasta local); trocar por R2/B2/Wasabi é acrescentar uma
+  classe e mexer no `.env`, porque todos falam o protocolo S3 (§4.128).
+- **Capítulos, em ordem de preferência:** embutidos no arquivo (`.m4b`) → um
+  arquivo por capítulo numa pasta → um bloco só (e ele avisa).
+- ⚠️ **`AUDIO_RAIZ` tem de ser caminho absoluto** — vazio ou relativo gravava
+  dentro do repositório, e isso já aconteceu.
+
 ### Ordem das rotas no `Switch` (wouter)
 A rota **mais específica vem antes da mais curta**, senão a curta captura a longa
 (`/profile/edit` antes de `/profile`, `/forum/minhas` antes de `/forum/:id`). Há

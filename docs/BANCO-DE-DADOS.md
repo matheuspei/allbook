@@ -329,13 +329,24 @@ Não é dado do usuário — é **código**, e alguém precisa decidir o que aco
 - [ ] `lib/reactions.ts` — sua curtida soma sobre um **número base fixo no
       código**. Com banco o número base some, e todas as contagens mudam de valor.
 
-### 2.5 ⚠️ Áudio não existe — e três coisas dependem dele
+### 2.5 🔸 Áudio: a INGESTÃO existe (08/08) — falta a entrega
 
-- [ ] `lib/chapters.ts` — a lista de capítulos é **gerada**, não real.
-- [ ] `duracaoEstimada` em `books.ts` — a duração vem de uma conta sobre o número
-      de páginas (≈1h a cada 33 páginas), não de medição.
-- [ ] `allbook_playback` guarda a posição **em segundos**. Quando o áudio real
-      entrar, as durações mudam e toda posição salva fica deslocada.
+`npm run audio <id> <arquivo|pasta>` faz o caminho inteiro do estúdio até o
+banco: guarda o mestre, cola a vinheta, fatia em HLS e grava duração e capítulos
+**medidos**. Ver §4.129. O que ainda **não** existe é servir isso ao app.
+
+- [ ] `lib/chapters.ts` — a lista de capítulos continua **gerada** no navegador.
+      A tabela `capitulos` já recebe os reais na ingestão; o app só passa a
+      lê-los quando ler o catálogo do **banco** (2.7).
+- [ ] `duracaoEstimada` em `books.ts` — a conta por páginas (≈1h a cada 33)
+      segue valendo no app. `livros.duracaoSegundos` já guarda a **medida**.
+- [x] `allbook_playback` guarda a posição **em segundos** e a vinheta a
+      desloca — **resolvido na ingestão**: mudou o tamanho da vinheta, o script
+      soma a diferença em toda posição salva do livro, na mesma transação.
+      ⚠️ **Só vale para reprocessamento.** Na *primeira* ingestão a posição
+      antiga veio da duração estimada, e não há equivalência de onde tirar — o
+      script conta quantas pessoas estão nessa situação e **não** converte, que é
+      melhor do que chutar.
 
 **⚠️ O áudio nasce em MP3 (confirmado pelo Matheus, 26/07) — e isso está certo,
 desde que o mestre seja guardado.** A proteção contra cópia (ver ROTEIRO 4.34)
@@ -343,26 +354,30 @@ não muda o que o estúdio entrega: o MP3 é o **arquivo-mestre**, fica guardado
 **nunca é servido**; na ingestão, o `ffmpeg` corta o mesmo áudio nos segmentos
 que o app toca.
 
-- [ ] **Guardar sempre o MP3 mestre.** É a única regra irreversível daqui: com o
-      original em mãos, o corte pode ser refeito a qualquer momento. O caro é
-      perder o mestre, ou construir o player para tocar o MP3 direto — aí o
-      formato de entrega vira o de produção.
-- [ ] Áudio segmentado (HLS/DASH) gerado na ingestão, nunca um arquivo inteiro
-      exposto.
-- [ ] URL assinada por sessão, com expiração de minutos.
+- [x] **Guardar sempre o MP3 mestre.** Feito, e é a **primeira** coisa que a
+      ingestão faz — antes de processar qualquer coisa, para que uma falha do
+      `ffmpeg` no meio não leve o original junto. `npm run audio refazer <id>`
+      reconstrói tudo só a partir dele, sem o arquivo do estúdio em mãos
+      (testado: apagada a entrega, refeita a partir do mestre).
+- [x] Áudio segmentado (HLS) gerado na ingestão, nunca um arquivo inteiro
+      exposto. AAC 64k mono, segmentos de 6s, lista `vod`.
+- [ ] URL assinada por sessão, com expiração de minutos. **É a próxima etapa** —
+      hoje nada serve os segmentos, então nada está exposto.
 - [ ] **Limite de taxa por conta** — é a defesa contra raspagem em escala (o
       concorrente baixando o acervo), e é a mais barata das três. Precisa de
       conta de verdade, então nasce junto com o login no servidor.
-- [ ] **Vinheta do AllBook** no começo e no fim de cada livro (decisão do
-      Matheus, 26/07) — barata, e contra o concorrente ela vale mais do que
-      parece: ou ele corta 10 mil arquivos, ou distribui o acervo carimbado com o
-      nome do AllBook. Reforço opcional: vinhetas curtas também no meio, em
-      posições variáveis.
-      - **Colar a vinheta é o MESMO passo que fatiar** — uma chamada de `ffmpeg`
-        na ingestão faz as duas coisas: concatena abertura + livro + fecho e já
-        corta o resultado em segmentos. Não é um segundo sistema, e ninguém toca
-        em arquivo à mão. Com o mestre limpo guardado, trocar a vinheta é rodar o
-        script de novo. (`ffmpeg` já está instalado na máquina do Matheus.)
+- [x] **Vinheta do AllBook** no começo e no fim de cada livro (decisão do
+      Matheus, 26/07) — o **mecanismo está pronto**; falta só o arquivo de som,
+      que é trabalho de marca (§4.35). Ponha `abertura.mp3` e `fecho.mp3` em
+      `<AUDIO_RAIZ>/vinhetas/` e rode `npm run audio refazer <id>`: a ingestão
+      cola, recalcula os capítulos e corrige as posições salvas. Sem os arquivos
+      ela roda igual, grava `vinhetaSegundos = 0` e avisa.
+      - **Colar a vinheta é o MESMO passo que fatiar** — confirmado na prática:
+        uma chamada de `ffmpeg` concatena abertura + livro + fecho e já corta em
+        segmentos. ⚠️ Usa o **filtro** `concat`, não o *demuxer*: o demuxer emenda
+        os arquivos já codificados e arrasta junto o silêncio de padding que todo
+        MP3 tem nas pontas — em 30 faixas isso vira quase um segundo de deriva,
+        e é dele que saem os marcadores de capítulo.
       - **Misturar no áudio, e não deixar como faixa separada na playlist.** Como
         item separado seria fácil de trocar, mas também trivial de descartar por
         quem raspa — e o propósito dela é justamente ser difícil de remover.

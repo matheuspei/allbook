@@ -15,7 +15,8 @@
     "db:push": "drizzle-kit push",
     "db:catalogo": "tsx script/ingestao-catalogo.ts",
     "db:psql": "/opt/homebrew/opt/postgresql@17/bin/psql -d allbook",
-    "estudio": "tsx script/estudio.ts"
+    "estudio": "tsx script/estudio.ts",
+    "audio": "tsx script/ingerir-audio.ts"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
