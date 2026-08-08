@@ -65,8 +65,27 @@ export interface ResumoDeAudicao {
   temExemplo: boolean;
 }
 
-export function lerResumo(): ResumoDeAudicao {
-  const diario = garantirDiario();
+/**
+ * O resumo da audição.
+ *
+ * `soReal` deixa de fora os dias de **demonstração** (§4.123). Ele existe por um
+ * defeito concreto: o app semeia 42 dias de audição falsa para as Estatísticas
+ * não nascerem com gráficos vazios, e as **medalhas eram carimbadas em cima
+ * deles** — a pessoa ganhava "Constante" e "Eclético" sem ter ouvido nada. Isso
+ * era vitrine enquanto vivia só no navegador; desde que as conquistas passaram a
+ * subir para a conta (§4.122), virava troféu falso **permanente**, atravessando
+ * aparelhos e indistinguível do real.
+ *
+ * ⚠️ **Quem MOSTRA continua usando o resumo completo, e quem GRAVA usa este.**
+ * São dois cálculos de propósito: a tela de Estatísticas segue bonita com o
+ * histórico de exemplo (que é o que ele existe para fazer), e a medalha só é
+ * registrada quando houve audição de verdade.
+ */
+export function lerResumo(opcoes?: { soReal?: boolean }): ResumoDeAudicao {
+  const completo = garantirDiario();
+  const diario = opcoes?.soReal
+    ? Object.fromEntries(Object.entries(completo).filter(([, dia]) => !dia.exemplo))
+    : completo;
   const progresso = readPlaybackList();
   const hoje = new Date();
 

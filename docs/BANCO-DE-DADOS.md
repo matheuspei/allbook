@@ -104,9 +104,13 @@ trocar de celular**. A coluna "cuidado" é o que morde na migração.
       falsos**. ⚠️ **Semeadura tem de morrer em produção**, senão o usuário novo
       recebe um histórico que não é dele. **Contido em parte (08/08, §4.122):** o
       servidor **recusa** dias marcados como `exemplo`, então os 42 dias falsos
-      ficam no navegador e não ocupam a conta. ⚠️ **MAS os troféus calculados em
-      cima deles ainda sobem** — `achievements.ts` não distingue medalha ganha de
-      medalha derivada de exemplo. O conserto é a semeadura morrer.
+      ficam no navegador e não ocupam a conta. **E os troféus também foram
+      resolvidos (§4.123):** quem *mostra* medalha usa o resumo completo (a
+      demonstração continua na tela), quem *grava* usa `lerResumo({soReal:true})`.
+      ⚠️ **Junto veio um vazamento maior:** um dia semeado que recebia audição
+      real **mantinha os segundos falsos** e passava a contá-los como verdadeiros
+      (1h53 viraram "reais" com 5 min de uso). Agora o dia de exemplo é **zerado**
+      antes de receber audição real.
 
 ### Opinião
 
@@ -301,6 +305,16 @@ guardava senha. Com o servidor de contas ele deixou de ser mentira.
       precisa de conta para existir.
 
 ### 2.4 ⚠️ Metade da comunidade é ficção que precisa de destino
+
+> 🔸 **Decisão do Matheus em 08/08 (§4.124): a ficção FICA por enquanto**, e a
+> camada social não migra agora — ela serve para testar que nada quebrou e para
+> simular conversa enquanto o resto do banco assenta. Os itens abaixo continuam
+> **em aberto** e seguem sendo pré-requisito para abrir o app a gente de verdade.
+>
+> ⚠️ Quando forem decididos, lembrar da **§4.123**: dado semeado que sobe para a
+> conta **muda de natureza** — no navegador é vitrine, no servidor é história da
+> pessoa. Votos de enquete, presenças e o número-base de curtidas são do mesmo
+> tipo do troféu falso que precisou ser consertado.
 
 Não é dado do usuário — é **código**, e alguém precisa decidir o que acontece:
 

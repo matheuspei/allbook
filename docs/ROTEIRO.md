@@ -5461,3 +5461,89 @@ depois: 42 dias de demonstração no navegador, **zero na conta**.
 desse histórico ainda sobem, porque o front não distingue medalha ganha de
 medalha calculada sobre exemplo. O conserto de verdade é a semeadura morrer — que
 é decisão de produto, já prevista no checklist, e não código.
+
+---
+
+## 4.123 O troféu falso: a demonstração vazava para dentro da conta (08/08)
+
+O Matheus perguntou por que os troféus derivados do histórico de exemplo não
+tinham sido consertados na §4.122. **A resposta honesta é que a minha
+justificativa era preguiçosa** — eu escrevi que "o front não distingue medalha
+ganha de medalha calculada sobre exemplo", e o sinal estava lá o tempo todo:
+cada dia do diário carrega `exemplo: true`, e `ResumoDeAudicao` **já expunha**
+um `temExemplo`.
+
+### O problema, em três elos
+
+1. O app semeia **42 dias de audição falsa** para as Estatísticas não nascerem
+   com gráficos vazios (`allbook_listening_seeded`).
+2. `stats.ts` soma o diário **inteiro** — daí saem "39,7h ouvidas" e as
+   sequências.
+3. `achievements.ts` acende as medalhas com esses números, **carimba a data e
+   grava**. Desde a §4.122 essa chave sobe para a conta: o troféu falso virava
+   **permanente e sincronizado entre aparelhos**.
+
+### O conserto: dois cálculos, um para mostrar e outro para gravar
+
+`lerResumo({ soReal: true })` deixa de fora os dias de demonstração. Quem
+**mostra** medalha (Conquistas, Perfil, Estatísticas) continua usando o resumo
+completo — a demonstração é justamente o que se quer ver ali. Só o
+`AvisoDeConquista`, que é **o único lugar que grava**, usa o resumo real.
+
+Medido numa conta nova: a tela segue mostrando 39,7h e **4 medalhas acesas**; a
+conta recebe **zero**. Depois de ouvir de verdade, "primeira-escuta" é ganha e
+sobe — e as três que dependiam do histórico falso continuam de fora.
+
+### E o vazamento maior, que só apareceu por um número não fechar
+
+Ao conferir, registrei 5 minutos de audição e o resumo "real" respondeu **118
+minutos**. O número não fechava, e ali estava o defeito de verdade:
+
+`registrarAudicao` fazia `delete dia.exemplo` — *"o dia deixou de ser
+demonstração no instante em que entrou audição real"*. A intenção era boa, o
+efeito não: **os segundos semeados daquele dia continuavam lá e passavam a
+contar como reais**. Um dia semeado com 6.780s (1h53) recebeu 300s de verdade e
+devolveu 7.080s "reais".
+
+**Agora o dia de exemplo é ZERADO antes de receber audição real**, não apenas
+desmarcado. A marca vale para o dia inteiro e não há como separar o que é
+semente do que é real **dentro** do mesmo dia — zerar é o único caminho honesto.
+O custo é perder um dia de gráfico entre 42; o outro caminho creditava horas
+inventadas a uma pessoa.
+
+**Medido depois:** 6.780s de demonstração + 60s reais = **60s**.
+
+### A lição, que vale para o resto da migração
+
+**Todo dado semeado que passa a subir para a conta muda de natureza:** no
+navegador ele é vitrine, no servidor ele é história da pessoa. A pergunta "isto
+é demonstração?" precisa ser feita **na porta do banco** — foi assim com o
+diário (§4.122) e com as medalhas (aqui), e vai valer igual para votos de
+enquete, presenças e curtidas quando a camada social entrar.
+
+---
+
+## 4.124 A camada social fica como está, de propósito (08/08)
+
+**Decisão do Matheus**, ao ser perguntado sobre o destino da ficção (armadilha
+2.4): *"a camada da rede social vai ficar por enquanto até pra gente poder ver se
+não é quebrada alguma coisa nesse processo, até pra gente poder simular a questão
+dos comentários e tal"*.
+
+Ou seja: **os leitores fictícios e os ~90 comentários fixos continuam**, e a
+migração deles **não** acontece agora. O motivo é bom e vale registrar porque
+inverte a ordem sugerida do checklist: enquanto o resto do banco assenta, a
+comunidade fingida serve para **testar que nada quebrou** e para simular conversa
+— coisa que uma comunidade real vazia não faria.
+
+⚠️ **O que isso implica, para ninguém tropeçar depois:**
+
+- `allbook_my_comments`, `allbook_replies`, `allbook_reactions`,
+  `allbook_curtidas`, `allbook_posts`, `allbook_following`, `allbook_seguidores`
+  e as chaves de clube e fórum **continuam só no navegador**. As tabelas delas
+  existem e estão **vazias** de propósito.
+- A armadilha **2.4 segue em aberto**, e continua sendo pré-requisito para abrir
+  o app a gente de verdade — não para continuar desenvolvendo.
+- Quando ela for decidida, lembrar da §4.123: **dado semeado que sobe para a
+  conta muda de natureza**. Votos de enquete, presenças em evento e o número-base
+  de curtidas são exatamente do mesmo tipo do troféu falso.

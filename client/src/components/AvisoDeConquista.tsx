@@ -34,7 +34,19 @@ export default function AvisoDeConquista() {
 
   useEffect(() => {
     const verificar = () => {
-      const novas = sincronizarConquistas(lerDadosDeConquista(lerResumo()));
+      /*
+       * ⚠️ **`soReal` aqui é o que impede troféu falso** (§4.123).
+       *
+       * Este é o único lugar que **grava** a conquista — e desde §4.122 ela sobe
+       * para a conta. Sem o `soReal`, as medalhas eram carimbadas em cima dos 42
+       * dias de audição de **demonstração** que o app semeia, e a pessoa ganhava
+       * "Constante" e "Eclético" sem ter ouvido um minuto.
+       *
+       * As telas que só **mostram** medalha (Conquistas, Perfil, Estatísticas)
+       * continuam usando `lerResumo()` completo de propósito: lá a demonstração
+       * é justamente o que se quer ver.
+       */
+      const novas = sincronizarConquistas(lerDadosDeConquista(lerResumo({ soReal: true })));
       if (novas.length > 0) setFila((anterior) => [...anterior, ...novas]);
     };
 

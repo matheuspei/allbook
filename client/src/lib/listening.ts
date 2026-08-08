@@ -116,12 +116,30 @@ export function registrarAudicao(bookId: number, segundos: number, quando = new 
   const diario = garantirDiario();
   const chave = diaISO(quando);
   const hora = quando.getHours();
-  const dia: DiaDeAudicao = diario[chave] ?? { sec: 0, horas: {}, livros: {} };
+  const guardado = diario[chave];
+
+  /*
+   * ⚠️ **Dia de demonstração que recebe audição real é ZERADO antes de somar**
+   * (§4.123), e não apenas desmarcado.
+   *
+   * Antes daqui saía um `delete dia.exemplo` — o dia "deixava de ser
+   * demonstração" mas **guardava os segundos falsos**, que passavam a contar
+   * como audição de verdade. Medido: um dia semeado com 6.780s (1h53) recebeu
+   * 300s reais e devolveu 7.080s "reais" — quase duas horas que ninguém ouviu,
+   * alimentando as medalhas e, desde §4.122, **subindo para a conta**.
+   *
+   * Zerar é o único caminho honesto: a marca de exemplo vale para o dia
+   * inteiro, e não há como separar o que é real do que é semente **dentro** do
+   * mesmo dia. O custo é perder um dia de gráfico bonito entre 42 — barato
+   * perto de creditar horas inventadas a alguém.
+   */
+  const dia: DiaDeAudicao = guardado?.exemplo
+    ? { sec: 0, horas: {}, livros: {} }
+    : (guardado ?? { sec: 0, horas: {}, livros: {} });
 
   dia.sec += segundos;
   dia.horas[hora] = (dia.horas[hora] ?? 0) + segundos;
   dia.livros[bookId] = (dia.livros[bookId] ?? 0) + segundos;
-  // O dia deixou de ser só demonstração no instante em que entrou audição real.
   delete dia.exemplo;
 
   diario[chave] = dia;
