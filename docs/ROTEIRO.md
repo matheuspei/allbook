@@ -4732,6 +4732,35 @@ de `sugestoes()`. O carrossel "Recomendado para você" é feito de duas fontes
 (`sugestoes` + `emAlta`) e as duas escrevem motivo — limpar só uma deixaria a
 repetição atravessar a emenda.
 
+### A seção de 2 cartões empilhava — pergunta dele, no mesmo dia
+
+*"Quando você vai lá em semelhantes a suspense e mistério, só tem dois. Não
+seria interessante ele ficar um do lado do outro?"*
+
+**Ele tem razão, e não era escolha de desenho — era a grade.** O carrossel é
+`grid-flow-col grid-rows-2`, que enche **por coluna**: com seis cartões dá três
+colunas de dois (o molde que ele mesmo pediu na §4.102 — *"tem uma fileira
+apenas de carrossel aqui"*); com **dois**, dá uma coluna só, um cartão embaixo
+do outro, e metade da largura vazia.
+
+**Por que o empilhado está errado ali, e são três coisas:**
+
+1. **O gesto morre.** Carrossel promete "arrasta que tem mais" — e não tem. Não
+   existe coluna seguinte espiando, que é o que faz o molde funcionar.
+2. **A seção se disfarça de lista** no meio de uma tela onde tudo mais rola de
+   lado. Mesmo título, mesmo cartão, comportamento diferente: o olho lê como se
+   fosse outro componente.
+3. **O vazio à direita não é neutro** — numa tela de carrosséis, meia largura
+   ocupada parece conteúdo que não carregou.
+
+**O que ficou:** 3 cartões ou menos → **uma** fileira; 4 ou mais → duas.
+
+**O que eu NÃO fiz, e é a decisão que importa:** *não* encolhi os dois cartões
+para caberem inteiros na largura da tela. É a saída óbvia e ela custa caro — o
+cartão desta seção passaria a ter um tamanho que nenhuma outra tem, e **tamanho
+de cartão é hierarquia**: menor lê como menos importante. Melhor manter os
+300px e deixar o segundo espiando na borda, que já é o convite a arrastar.
+
 ### As folhas foram fechadas — decisão dele
 
 *"Você pode fechar todas essas folhas, menos a folha pedir sem crédito, porque

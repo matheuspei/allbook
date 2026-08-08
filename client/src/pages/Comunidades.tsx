@@ -596,8 +596,22 @@ function SecaoDeCartoes({
       )}
       {/* Duas fileiras empilhadas que rolam juntas de lado — a correção dele:
           "tem uma fileira apenas de carrossel aqui". No Reddit cada coluna do
-          carrossel tem DOIS cartões, e a coluna seguinte fica espiando. */}
-      <div className="mt-3 grid auto-cols-max grid-flow-col grid-rows-2 gap-3 overflow-x-auto px-5 pb-1 scrollbar-hide">
+          carrossel tem DOIS cartões, e a coluna seguinte fica espiando.
+
+          ⚠️ **Com 3 ou menos, a fileira é UMA** (08/08, §4.117). A grade enche
+          por coluna: com dois cartões eles ocupavam a primeira coluna inteira,
+          um embaixo do outro, e o resto da largura ficava vazio — a seção
+          deixava de parecer carrossel e virava lista, no meio de uma tela onde
+          tudo mais rola de lado. Com uma fileira os dois ficam lado a lado e o
+          segundo espia na borda, que é exatamente o gesto que a decisão dele
+          descreve. **A largura do cartão não muda** (300px): encolher os dois
+          para caber inteiros faria o cartão desta seção mentir sobre o tamanho
+          dos outros. */}
+      <div
+        className={`mt-3 grid auto-cols-max grid-flow-col gap-3 overflow-x-auto px-5 pb-1 scrollbar-hide ${
+          itens.length <= 3 ? "grid-rows-1" : "grid-rows-2"
+        }`}
+      >
         {itens.map(({ grupo, nota }) => (
           <CartaoDeComunidade key={grupo.id} grupo={grupo} nota={nota} />
         ))}
