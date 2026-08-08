@@ -18,18 +18,34 @@ depois*. Cada item abaixo diz **como está hoje** e **o que precisa acontecer**.
 
 ---
 
-## 0. Onde o projeto está hoje (medido em 25/07, não de memória)
+## 0. Onde o projeto está hoje (atualizado em 08/08, medido — não de memória)
 
 | Camada | Estado real |
 |---|---|
-| Tabelas no banco | **1** (`users`, em `shared/schema.ts`) |
-| Métodos de armazenamento | **3** (`getUser`, `getUserByUsername`, `createUser`) |
-| Rotas de API | **zero** — `server/routes.ts` está vazio |
-| Armazenamento em uso | `MemStorage` — uma lista na memória que **some quando o servidor desliga** |
-| Onde o app guarda tudo | **61 chaves `allbook_*` no navegador** (lista abaixo; recontado em 04/08 — eram 21 quando este arquivo nasceu, e a comunidade multiplicou) |
+| Banco | **Postgres 17 rodando na máquina**, banco `allbook` (LaunchAgent do Homebrew) |
+| Tabelas | **62**, em `shared/schema/` (um arquivo por assunto) |
+| Armazenamento em uso | `PgStorage` — Drizzle sobre o Postgres. O `MemStorage`, que sumia com o servidor, **morreu em 08/08** |
+| Catálogo no banco | **cheio**: 59 livros, 48 pessoas, 10 editoras, 8 gêneros, 13 coleções |
+| Rotas de API | **2** — a das folhas de proposta e `GET /api/banco/saude` |
+| Onde o app guarda tudo | ainda **as 61 chaves `allbook_*` no navegador**: nenhuma tela lê do banco |
 | Áudio | **não existe** — nenhum arquivo, nenhum player real |
 
-Ou seja: o backend está montado mas **vazio**. Todo o app funciona no navegador.
+Ou seja: o banco está de pé e o catálogo dentro dele, **mas o app ainda não o
+usa**. A migração das telas é a etapa seguinte, e é a que morde (ver seção 2).
+
+> **Como era em 25/07, para dar a medida do que mudou:** 1 tabela (`users`, com
+> 3 colunas), zero rotas, `MemStorage` na memória, e nem o `drizzle.config.ts`
+> existia — o `npm run db:push` estava quebrado desde sempre.
+
+### Os comandos
+
+| Comando | O que faz |
+|---|---|
+| `npm run db:push` | cria/atualiza as tabelas a partir de `shared/schema/` |
+| `npm run db:catalogo` | copia o catálogo do código para o banco (idempotente) |
+| `npm run db:psql` | abre o banco no terminal para olhar as tabelas |
+| `brew services list \| grep postgres` | o Postgres está no ar? |
+| `curl localhost:3000/api/banco/saude` | o **servidor** enxerga o banco? |
 
 ---
 
@@ -335,10 +351,12 @@ pública é de **24 horas**.
       tabelas — e o script vira ingestão em vez de gravar arquivo no repositório.
 - [ ] As capas hoje são arquivos no repositório (`assets/images/covers/<id>.jpg`).
 
-### 2.8 ⚠️ `MemStorage` some quando o servidor desliga
+### 2.8 ✅ `MemStorage` some quando o servidor desliga — RESOLVIDO (08/08)
 
-- [ ] Trocar por armazenamento real ligado ao Drizzle antes de qualquer dado de
-      usuário passar pelo servidor.
+- [x] Trocar por armazenamento real ligado ao Drizzle antes de qualquer dado de
+      usuário passar pelo servidor. **Feito em 08/08 (§4.119):**
+      `server/storage.ts` virou `PgStorage`, sobre o Postgres, e nenhum dado de
+      usuário chegou a passar pela versão em memória.
 
 ### 2.9 ⚠️ O endereço do perfil deriva do nome — com contas, ele precisa congelar
 
@@ -357,6 +375,68 @@ mudou o endereço, e todo link já compartilhado morre em silêncio.
 - [ ] O `@` visível e a busca por pessoas ficaram **de fora desta etapa por
       decisão do Matheus** (§4.97); quando entrarem, o username desta coluna é o
       que a busca indexa.
+
+### 2.10 ⚠️ O seu dado é um REMENDO por cima de ficção que vive no código
+
+> **Esta seção e a 2.11 foram escritas em 08/08 (§4.119).** As duas eram citadas
+> **seis vezes** neste arquivo e não existiam: a recontagem de 04/08 prometeu
+> escrevê-las e a seção 2 terminava na 2.9. Foram reconstruídas a partir das
+> menções e do código.
+
+Quase nada do que a pessoa fez nas telas novas é um objeto completo. É uma
+**lista de diferenças** aplicada por cima de conteúdo fixo que mora no código:
+
+| A chave guarda | O alvo dela mora | Exemplo de id |
+|---|---|---|
+| `allbook_clubes` — entradas, renomeados, removidos, fila | `lib/clubes.ts` | `misterio`, `exorcista` |
+| `allbook_grupos_*` — participo, meus tópicos, respostas | `lib/grupos.ts` | `suspense-misterio` |
+| `allbook_forum_governanca` — moderadores, banidos, fila | ids semeados de fórum | idem |
+| `allbook_comentarios_post` — `postId` | pode ser post do código **ou** seu | os dois convivem |
+| `allbook_mural` — mensagens de clube | clubes do código | idem |
+
+**Por que quebra em silêncio:** migrar o remendo antes de o alvo existir no banco
+não dá erro nenhum — a linha entra apontando para um clube que não está lá, e a
+pessoa simplesmente **não vê mais o clube na lista dela**. Nenhuma tela reclama.
+
+- [ ] **Semear primeiro, remendar depois.** Cada clube, fórum e tópico fictício
+      vira linha **antes** de qualquer chave do navegador ser convertida.
+- [ ] **Traduzir os ids de texto para os ids do banco**, com uma tabela de-para
+      guardada — `misterio` → um `uuid`. Sem ela, a conversão não é repetível: se
+      der errado no meio, não há como rodar de novo.
+- [ ] **Ids locais `meu-g-<timestamp>`** (fórum criado pela pessoa) precisam
+      virar id de servidor pelo mesmo de-para.
+- [ ] **Decidir o destino da ficção ANTES** (armadilha 2.4). Se os clubes
+      fictícios não vão existir, o remendo que aponta para eles não deve ser
+      migrado — e não descobrir isso agora significa migrar lixo.
+
+### 2.11 ⚠️ O dono implícito: "ausente" quer dizer "eu"
+
+Em toda a camada social, **a falta do autor É o autor**:
+
+| Onde | Como está | Significado |
+|---|---|---|
+| `lib/posts.ts` | `autorSlug?: string` | *"Ausente = você"* |
+| `lib/mural.ts` | `MeuPost` não tem autor nenhum | é seu por definição |
+| `lib/comentariosDePost.ts` | `autorSlug?` | *"Ausente = você"* |
+| `lib/clubes.ts`, `lib/convites.ts` | `donoSlug: EU` | `EU` é uma **constante**, não uma pessoa |
+| `lib/forum.ts` | `donoSlug?` | *"Ausente = o dono é quem o esqueleto diz (ou você)"* |
+
+Faz todo o sentido sem contas — só existe uma pessoa neste navegador. Com banco,
+`conta_id` é **coluna obrigatória**, e `EU` não é ninguém.
+
+**Por que quebra em silêncio:** uma migração que só copia os campos existentes
+grava `NULL` onde deveria ir o seu id. Se a coluna aceitar nulo, os seus posts
+viram posts **de ninguém** e somem do seu perfil; se não aceitar, a migração
+falha no meio e deixa metade convertida.
+
+- [ ] **Toda leitura de migração precisa receber o id da conta como parâmetro** e
+      preencher `autor ?? contaId`. Não é opcional em lugar nenhum.
+- [ ] **`EU` vira o id da conta** em clubes, convites e governança de fórum.
+- [ ] **Os DOIS formatos de post** (`allbook_posts` e `allbook_mural_posts`)
+      passam pela mesma tradução — converter só o novo deixa metade para trás.
+- [ ] **Conferir depois de migrar:** nenhum post, comentário, mensagem de clube
+      ou resposta de fórum com autor nulo. É uma consulta de uma linha por
+      tabela, e é a única prova de que a tradução pegou tudo.
 
 ---
 
@@ -457,8 +537,11 @@ O app já promete estas coisas na tela. Nenhuma funciona sem servidor:
 
 ## 4. Ordem sugerida
 
-1. **Esquema e ingestão do catálogo** (livros, editoras, pessoas, coleções) — é a
-   base de tudo e não envolve dado de usuário, então erra barato.
+1. ✅ **Esquema e ingestão do catálogo** (livros, editoras, pessoas, coleções) —
+   é a base de tudo e não envolve dado de usuário, então erra barato.
+   **Feito em 08/08 (§4.119).** O esquema das *outras* camadas também já está
+   desenhado (`shared/schema/`), mas as tabelas delas estão **vazias** e nenhuma
+   tela as usa — o que vem abaixo continua todo em aberto.
 2. **Contas de verdade** — Passport + senha, e a migração de primeira entrada
    (2.2) junto, não depois. Recolocar "Esqueci minha senha" (2.3).
 3. **Dados do usuário**, na ordem em que doem se sumirem: biblioteca →

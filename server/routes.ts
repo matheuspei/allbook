@@ -2,16 +2,40 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { sql } from "drizzle-orm";
+
+import { db } from "./db";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  // As rotas do app vão aqui, todas com o prefixo /api.
+  // Quem fala com o banco usa `storage` (server/storage.ts) ou `db` (server/db.ts).
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.createUser(user) or storage.getUserByUsername(username)
+  /**
+   * O banco está de pé? (08/08, §4.119)
+   *
+   * Existe por um motivo concreto: nenhuma tela lê do banco ainda, então sem
+   * esta rota não haveria **nenhuma** forma de descobrir que o Postgres caiu —
+   * o app continuaria funcionando pelo `localStorage` e o erro só apareceria
+   * meses depois, na primeira tela que dependesse dele.
+   *
+   * Abra `http://localhost:3000/api/banco/saude`. Se não responder, o serviço
+   * caiu: `brew services start postgresql@17`.
+   */
+  app.get("/api/banco/saude", async (_req, res) => {
+    try {
+      const [contagem] = await db
+        .select({ livros: sql<number>`count(*)::int` })
+        .from(sql`livros`);
+      return res.json({ ok: true, livros: contagem.livros });
+    } catch (erro) {
+      return res
+        .status(503)
+        .json({ ok: false, erro: erro instanceof Error ? erro.message : String(erro) });
+    }
+  });
 
   /**
    * Respostas das folhas de proposta.

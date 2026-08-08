@@ -79,10 +79,22 @@ palavra a palavra com distância de edição. O Fuse.js foi **removido** porque 
 "carro" com "Carrie" e assim escondia a oferta de produzir a narração — que é o
 coração do produto (ROTEIRO 4.18). Não traga de volta.
 
-### O "banco de dados" de hoje é o navegador
-Biblioteca, perfil, comunidade, curtidas: tudo em `localStorage`, um arquivo por
-assunto em `client/src/lib/`. O backend existe mas é embrionário — `MemStorage` é
-uma lista na memória que **some quando o servidor desliga**.
+### O banco existe (08/08), mas o app ainda lê o navegador
+Desde 08/08 há **Postgres 17 de verdade** rodando na máquina (banco `allbook`),
+com **62 tabelas** em `shared/schema/` — um arquivo por assunto — e o **catálogo
+já dentro dele**. O `MemStorage` morreu; `server/storage.ts` é Drizzle sobre
+Postgres.
+
+⚠️ **Nenhuma tela usa o banco ainda.** Biblioteca, perfil, comunidade, curtidas:
+tudo continua em `localStorage`, um arquivo por assunto em `client/src/lib/`. Ao
+escrever tela nova, **continue lendo das libs** — a troca para API é uma etapa
+própria, e fazer meia migração é o que quebra em silêncio.
+
+Comandos: `npm run db:push` (aplica o esquema), `npm run db:catalogo` (recarrega
+o catálogo, idempotente), `npm run db:psql` (abre o banco no terminal),
+`curl localhost:3000/api/banco/saude` (o servidor enxerga o banco?). Postgres
+fora do ar: `brew services start postgresql@17`. O endereço mora no `.env`, que
+não vai para o git — em cópia nova, `cp .env.example .env`.
 
 ### Ordem das rotas no `Switch` (wouter)
 A rota **mais específica vem antes da mais curta**, senão a curta captura a longa
@@ -101,7 +113,7 @@ estão em `client/src/App.tsx` — é lá que se olha, não numa tabela aqui.
 - `client/src/assets/images/` — 8 capas genéricas por gênero (reserva);
   `covers/<id>.jpg` (do script) e `people/<slug>.jpg` (basta soltar o arquivo; sem
   foto, o avatar é gerado do nome)
-- `server/` — Express na porta 3000 · `shared/schema.ts` — Drizzle + Zod
+- `server/` — Express na porta 3000 · `shared/schema/` — Drizzle + Zod
 - `client/public/_*.html` — **folhas de proposta**, o instrumento com que o Matheus
   decide desenho clicando (elas respondem em `/api/folha/respostas`). Não são código
   do app e não estão no git — não apague achando que é sobra.

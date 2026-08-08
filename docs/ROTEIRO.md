@@ -264,7 +264,7 @@ Começar um segundo fazia o primeiro sumir sem deixar rastro.
   testando: remover um livro com o X o fazia reaparecer ali mesmo, como exemplo.
 
 ## 4. DEPOIS do frontend — o motor (resumo)
-1. Modelo de dados real (shared/schema.ts). 2. Backend/API (Drizzle + PostgreSQL; banco grátis: Neon/Supabase). 3. Áudio real em object storage (Cloudflare R2 / Supabase Storage / S3) + streaming. 4. Ligar telas à API + login (Passport). 5. Virar app: PWA → Capacitor.
+1. Modelo de dados real (shared/schema/). 2. Backend/API (Drizzle + PostgreSQL; banco grátis: Neon/Supabase). 3. Áudio real em object storage (Cloudflare R2 / Supabase Storage / S3) + streaming. 4. Ligar telas à API + login (Passport). 5. Virar app: PWA → Capacitor.
 
 ---
 
@@ -313,7 +313,7 @@ o que foi **decidido, rejeitado ou adiado** — e o porquê.
   `components/SearchResults.tsx` único; ver "Busca ganhou endereço próprio".
 - **"Minha lista" da Home é curada, não a biblioteca real**: alimentar do
   localStorage muda o conceito da fileira; decisão de produto para o Matheus.
-- **Senha em texto puro no `shared/schema.ts` / `MemStorage`**: sem uso real
+- **Senha em texto puro no `shared/schema/` / `MemStorage`**: sem uso real
   hoje (zero rotas). Regra registrada para quando o backend nascer: renomear
   para `passwordHash`, hashear (bcrypt/argon2), nunca retornar o campo.
 
@@ -4580,6 +4580,27 @@ o resultado **contrariou a minha própria previsão** — vale guardar como rég
 prova leva 5 minutos e desmentiu uma opinião minha que eu já tinha dito em voz
 alta duas vezes.
 
+### As 80 do gerador de logo — avaliadas e recusadas (08/08)
+
+Ele trouxe uma grade de **80 marcas** de gerador automático. Recusei todas, com
+um motivo só e verificável: **nenhuma diz áudio**. São livro aberto (~25 das 80),
+pilha de livros, marcador e monograma "A"/"a" — todas anunciam *livros*, que é o
+que todo concorrente tem. **Gerador desenha o substantivo do nome, nunca o verbo
+do produto**: leu "book", desenhou book; não tem como saber que o produto é
+*narrar o que ainda não existe em áudio*. Some a isso o azul/roxo com degradê
+(briga com o vermelho de gravação) e a colisão de território — livro branco em
+quadrado colorido é quase o ícone do Apple Books.
+
+**O que se salva como ideia, não como logo:** o monograma **"ab" em traço
+contínuo formando dois laços** (Q1-9, Q2-10, Q3-20 e o melhor, Q4-5, que quase
+fecha num ∞) — a única das 80 aparentada com o infinito, e a única que carrega
+as **iniciais**. Continua sem áudio.
+
+**E um dado a favor da coruja:** entre as 80, livro aberto aparece a cada três, e
+coruja **nenhuma**. Não prova originalidade (gerador não desenha bicho), mas o
+clichê saturado neste território é o livro aberto — a marca dele não colide com
+nada dessa grade.
+
 ## 4.116 O tema claro "Tinta" consertado — e o erro de projeto que o quebrava (08/08)
 
 **A reclamação dele, na abertura da sessão:** *"o preto até que corrigiu, ficou
@@ -4947,3 +4968,126 @@ clique chegou. Perdi três rodadas achando que `navegar("/plans")` estava
 quebrado; o código estava certo desde o começo. `osascript -e 'tell application
 "Google Chrome" to activate'` antes de clicar resolve, e `elemento.click()` pelo
 console é o caminho seguro para conferir efeito de botão.
+
+---
+
+## 4.119 O banco de dados nasce: Postgres, o esquema inteiro e o catálogo dentro dele (08/08)
+
+Pedido dele: *"vamos iniciar a criação de todo o banco de dados do aplicativo"*.
+
+### A ressalva que eu fiz antes de começar — e o caminho escolhido
+
+Migrar as 61 chaves do navegador de uma vez é exatamente o cenário de **quebra
+silenciosa** que o `docs/BANCO-DE-DADOS.md` existe para evitar: o dado muda de
+lugar, a tela continua compilando, ninguém vê erro, e a pessoa perde a
+biblioteca. Então o alvo continua sendo *todo* o banco, mas em camadas, na ordem
+que o próprio checklist manda (§4): **catálogo primeiro, porque não tem dado de
+usuário e errar ali é barato.**
+
+Nesta rodada: banco de pé, **esquema inteiro desenhado** (62 tabelas) e o
+catálogo dentro dele — **sem trocar uma linha de tela**. O app continua lendo o
+`localStorage`, idêntico; o banco enche por baixo.
+
+### Postgres na máquina, não na nuvem — e por quê
+
+Instalado com `brew install postgresql@17`, rodando como serviço
+(`brew services`). Não pede conta, não custa nada, não depende de internet, e o
+código não sabe onde o banco mora: **trocar por Neon/Supabase é mudar a linha
+`DATABASE_URL` do `.env`**. A versão 17 (e não a 18) porque é a que os serviços
+gerenciados rodam hoje — publicar depois não vira migração de versão.
+
+**O que faltava e ninguém tinha notado:** não existia `drizzle.config.ts`. O
+`npm run db:push` do `package.json` estava **quebrado desde sempre**.
+
+### O esquema virou uma PASTA, não um arquivo
+
+`shared/schema.ts` (3 colunas, uma tabela) virou `shared/schema/`, um arquivo
+por assunto: `catalogo`, `contas`, `biblioteca`, `opiniao`, `social`, `clubes`,
+`forum`, `salas`, `pedidos`. Com 61 chaves para modelar, um arquivo único
+passaria de duas mil linhas. `@shared/schema` continua valendo (o `index.ts`
+reexporta tudo).
+
+**Cada armadilha do checklist virou comentário na coluna que ela ameaça** — não
+adianta o aviso morar num `.md` que ninguém abre na hora de escrever a consulta.
+
+### Decisões de modelagem que valem registro
+
+- **O `id` do livro é `integer` escrito à mão, nunca `serial`** (armadilha 2.1).
+  Duna é o 7 no banco como é no `books.ts`.
+- **A chave primária de pessoa é o slug**, não um número: o slug já é a
+  identidade dela (URL do perfil, nome do arquivo de foto).
+- **Papel (autor/narrador) não é coluna** — deduz-se da relação com os livros,
+  pelo mesmo motivo que `people.ts` deriva a lista: assim ela não pode discordar
+  do catálogo. Média de nota também não é coluna: média guardada envelhece calada.
+- **A estante do clube não é uma tabela** — é `clube_ciclos` com `terminadoEm`
+  preenchido. Duas tabelas obrigariam a copiar o ciclo ao terminar, e cópia é
+  onde o dado racha.
+- **Curtir virou UMA tabela para o app inteiro** (ordem da seção 3.1), com o tipo
+  do alvo. Hoje são duas chaves quase iguais, e uma **já trocou de formato uma
+  vez**; unificar agora evita a terceira.
+- **Denúncia nasce `aberta`, com data** — vira fila de revisão, não um "escondido
+  para mim" que ninguém lê.
+- **`vinhetaSegundos` é coluna do livro.** A vinheta do AllBook desloca o áudio
+  inteiro: se a abertura tem 8s, cada marcador de capítulo anda 8s e **toda
+  posição salva aponta 8 segundos fora do lugar**. Guardar o número é o que
+  permite recalcular em vez de descobrir pelo ouvido.
+- **`creditos_de_movimento` (extrato de crédito) foi acrescentada** — não existe
+  no front. É a tabela mais barata de criar agora e a mais cara de reconstruir
+  depois: sem extrato, "sumiu um crédito meu" é palavra contra palavra.
+- **A tabela `session` está declarada de propósito**, embora quem a crie seja o
+  `connect-pg-simple`: sem declarar, o `drizzle-kit push` a trataria como tabela
+  desconhecida e candidata a apagar — o que derrubaria o login de todo mundo.
+
+### `MemStorage` morreu (armadilha 2.8)
+
+`server/storage.ts` era uma lista na memória que sumia quando o servidor
+desligava. Virou `PgStorage`, ligado ao Drizzle — **antes** de qualquer dado de
+usuário passar por ali, que era o que o checklist mandava.
+
+Nasceu também `GET /api/banco/saude`, e ela tem motivo: como nenhuma tela lê do
+banco ainda, sem essa rota **não haveria nenhuma forma de perceber que o
+Postgres caiu** — o app seguiria funcionando pelo `localStorage` e o erro
+apareceria meses depois.
+
+### A ingestão, e o obstáculo real que ela teve de contornar
+
+`npm run db:catalogo` copia o catálogo do código para o banco (idempotente:
+rodar duas vezes atualiza, não duplica).
+
+O obstáculo: `client/src/lib/books.ts` é um arquivo **do navegador** — importa
+PNGs e usa `import.meta.glob`, que é invenção do Vite. `tsx` quebraria na
+primeira linha. A saída foi empacotar o catálogo com o **esbuild**, que já é
+dependência do projeto, trocando as imagens por texto vazio e o glob por um
+objeto vazio; as capas e as fotos são lidas **direto do disco**, o que é mais
+confiável do que reproduzir o glob.
+
+**Conferido contra o código, não de olho:** 59 livros no banco = 59 em
+`books.ts`; 58 capas em disco + 1 livro sem capa (o "Organize-se", que já usava
+a capa tipográfica); 11 vozes do Studio + 37 pessoas que só escrevem = 48;
+nenhum livro órfão de editora; `Duna` continua sendo o id 7. `npm run check`
+limpo.
+
+### Um buraco achado NO PRÓPRIO CHECKLIST
+
+As armadilhas **2.10 e 2.11** são citadas **seis vezes** no
+`docs/BANCO-DE-DADOS.md` e **não existiam** — a seção 2 terminava na 2.9. São as
+duas "transversais" que a recontagem de 04/08 prometeu escrever e ninguém
+escreveu. Reconstruí as duas a partir das menções e do código, e elas agora
+estão no documento:
+
+- **2.10 — o dado do usuário é um REMENDO por cima de ficção que vive no
+  código.** `allbook_clubes` não guarda clubes: guarda diferenças ("entrei
+  neste", "removi fulano") aplicadas sobre clubes fixos do código, com ids como
+  `misterio`. Migrar o remendo antes de o alvo existir faz o clube sumir da
+  lista da pessoa sem erro nenhum.
+- **2.11 — o dono implícito: ausente quer dizer "eu".** `autorSlug` vazio num
+  post significa que o post é seu; `donoSlug` vale a constante `EU`. No banco o
+  autor é coluna obrigatória, e `EU` não é ninguém — sem traduzir para o id da
+  conta, os posts ficam órfãos.
+
+### O que fica para as próximas etapas
+
+Contas de verdade (Passport + senha + a migração de primeira entrada, e
+recolocar o "Esqueci minha senha" que foi removido em 25/07), o destino da
+ficção (armadilha 2.4), e só então as telas trocando `localStorage` por API.
+**Nada disso foi feito aqui, e o app não mudou.**

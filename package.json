@@ -12,7 +12,9 @@
     "docs:check": "node scripts/confere-docs.mjs",
     "caras": "node scripts/caras.mjs",
     "catalogo": "tsx script/importar-catalogo.ts",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "db:catalogo": "tsx script/ingestao-catalogo.ts",
+    "db:psql": "/opt/homebrew/opt/postgresql@17/bin/psql -d allbook"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
