@@ -105,7 +105,7 @@ export default function SessoesDoClube({
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-70" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
               </span>
-              <span className="text-[10px] font-extrabold tracking-[0.12em] text-red-300">
+              <span className="text-[10px] font-extrabold tracking-[0.12em] text-primary">
                 ACONTECENDO AGORA
               </span>
             </div>
@@ -215,7 +215,7 @@ function PortasDaSessao({ clube }: { clube: Clube }) {
             });
             navigate(`/sala/${sala.id}`);
           }}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500/[0.12] py-2.5 text-[12.5px] font-bold text-red-200 ring-1 ring-inset ring-red-500/30 transition-colors hover:bg-red-500/20"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500/[0.12] py-2.5 text-[12.5px] font-bold text-primary ring-1 ring-inset ring-red-500/30 transition-colors hover:bg-red-500/20"
           data-testid="button-abrir-sala-clube"
         >
           <Radio className="h-4 w-4" />

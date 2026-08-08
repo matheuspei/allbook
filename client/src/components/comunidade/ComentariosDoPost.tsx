@@ -367,7 +367,7 @@ function UmComentario({
                 apagarComentario(comentario.id);
                 onApagado();
               }}
-              className="-my-3 px-2 py-3 text-white/20 transition-colors hover:text-red-300"
+              className="-my-3 px-2 py-3 text-white/20 transition-colors hover:text-destructive"
               aria-label="Apagar comentário"
               data-testid={`apagar-comentario-${comentario.id}`}
             >

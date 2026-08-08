@@ -252,7 +252,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
           )}
           <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
         </span>
-        <span className="text-[10.5px] font-extrabold tracking-[0.12em] text-red-300">
+        <span className="text-[10.5px] font-extrabold tracking-[0.12em] text-primary">
           {encerrada ? "ENCERRADA" : "AO VIVO"}
         </span>
         <span className="min-w-0 flex-1 truncate text-[11.5px] text-white/55">
@@ -450,7 +450,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
         (euMando ? (
           <button
             onClick={encerrar}
-            className="mx-4 mb-5 rounded-xl bg-red-500/[0.14] py-3 text-[13px] font-bold text-red-300 ring-1 ring-inset ring-red-500/30"
+            className="mx-4 mb-5 rounded-xl bg-red-500/[0.14] py-3 text-[13px] font-bold text-primary ring-1 ring-inset ring-red-500/30"
             data-testid="button-encerrar-sala"
           >
             Encerrar a sala

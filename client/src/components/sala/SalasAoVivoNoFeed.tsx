@@ -54,7 +54,7 @@ export default function SalasAoVivoNoFeed() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-70" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
               </span>
-              <span className="text-[10px] font-extrabold tracking-[0.12em] text-red-300">
+              <span className="text-[10px] font-extrabold tracking-[0.12em] text-primary">
                 AO VIVO AGORA
               </span>
               <span className="ml-auto text-[10.5px] text-white/30">

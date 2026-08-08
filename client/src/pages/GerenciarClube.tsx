@@ -861,7 +861,7 @@ function Membros({ clube }: { clube: ClubeTipo }) {
                         description: "Dá para devolver logo abaixo, se foi sem querer.",
                       });
                     }}
-                    className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/40 transition-colors hover:bg-red-500/12 hover:text-red-300"
+                    className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/40 transition-colors hover:bg-red-500/12 hover:text-destructive"
                     data-testid={`remover-${slug}`}
                   >
                     Remover
@@ -881,7 +881,7 @@ function Membros({ clube }: { clube: ClubeTipo }) {
                         description: "Não entra mais por caminho nenhum. Dá para desfazer abaixo.",
                       });
                     }}
-                    className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/25 transition-colors hover:bg-red-500/20 hover:text-red-300"
+                    className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/25 transition-colors hover:bg-red-500/20 hover:text-destructive"
                     data-testid={`banir-${slug}`}
                   >
                     Banir
@@ -925,7 +925,7 @@ function Membros({ clube }: { clube: ClubeTipo }) {
 
       {banidos.length > 0 && (
         <div className="mt-4">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-red-300/60">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/60">
             Banidos — não entram por caminho nenhum
           </p>
           <div className="space-y-1.5">
@@ -1283,7 +1283,7 @@ function ApagarOClube({ clube, onApagar }: { clube: ClubeTipo; onApagar: () => v
     <section className="border-t border-white/8 pt-6">
       <button
         onClick={() => setConfirmando(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/25 py-3 text-xs font-bold text-red-300/80 transition-colors hover:bg-red-500/10 hover:text-red-200"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/25 py-3 text-xs font-bold text-primary/80 transition-colors hover:bg-red-500/10 hover:text-primary"
         data-testid="button-apagar-clube"
       >
         <Trash2 className="h-3.5 w-3.5" />

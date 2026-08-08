@@ -226,7 +226,7 @@ export default function Topico() {
                               apagarMinhaResposta(resposta.id);
                               toast({ title: "Mensagem apagada" });
                             }}
-                            className="text-[10.5px] text-white/30 hover:text-red-300"
+                            className="text-[10.5px] text-white/30 hover:text-destructive"
                             testid={`resposta-delete-${resposta.id}`}
                           >
                             apagar
@@ -252,7 +252,7 @@ export default function Topico() {
                                   description: "Sai do fórum para todo mundo.",
                                 });
                               }}
-                              className="text-[10.5px] text-white/30 hover:text-red-300"
+                              className="text-[10.5px] text-white/30 hover:text-destructive"
                               testid={`esconder-resposta-${resposta.id}`}
                             >
                               remover

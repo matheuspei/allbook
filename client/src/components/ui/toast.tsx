@@ -106,7 +106,7 @@ const ToastClose = React.forwardRef<
        * dava 24px de lado, pequeno demais para o dedo. O `pr-12` do cartão
        * (acima) existe para abrir espaço para ele.
        */
-      "absolute right-1.5 top-1.5 grid h-9 w-9 place-items-center rounded-md text-foreground/50 transition-colors hover:text-foreground focus:outline-none focus:ring-2 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
+      "absolute right-1.5 top-1.5 grid h-9 w-9 place-items-center rounded-md text-foreground/50 transition-colors hover:text-foreground focus:outline-none focus:ring-2 group-[.destructive]:text-primary group-[.destructive]:hover:text-primary-foreground group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
       className
     )}
     aria-label="Fechar aviso"

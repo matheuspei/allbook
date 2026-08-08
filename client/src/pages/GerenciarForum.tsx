@@ -523,7 +523,7 @@ function Pessoas({ id }: { id: string }) {
                           description: "Não consegue mais entrar nesta comunidade.",
                         });
                       }}
-                      className="text-[11px] text-white/40 hover:text-red-300"
+                      className="text-[11px] text-white/40 hover:text-destructive"
                       testid={`banir-${slug}`}
                     >
                       <Ban className="mr-0.5 inline h-3 w-3 align-[-1px]" />
@@ -639,7 +639,7 @@ function ZonaDePerigo({ id, onExcluir }: { id: string; onExcluir: () => void }) 
           </p>
           <button
             onClick={() => setConfirmando(true)}
-            className="mt-2.5 flex items-center gap-1.5 text-[12px] font-semibold text-red-300/70 transition-colors hover:text-red-300"
+            className="mt-2.5 flex items-center gap-1.5 text-[12px] font-semibold text-primary/70 transition-colors hover:text-destructive"
             data-testid="quero-excluir"
           >
             <Trash2 className="h-3.5 w-3.5" />

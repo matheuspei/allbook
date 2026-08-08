@@ -218,7 +218,7 @@ export default function Grupo() {
               </p>
             )}
             {bloqueado && (
-              <p className="text-[11.5px] font-semibold text-red-300/80" data-testid="grupo-bloqueado">
+              <p className="text-[11.5px] font-semibold text-primary/80" data-testid="grupo-bloqueado">
                 {rotuloDeEntrada[situacao]}
               </p>
             )}

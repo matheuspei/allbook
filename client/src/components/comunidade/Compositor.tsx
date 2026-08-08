@@ -212,7 +212,7 @@ export default function Compositor({ aoPublicar }: { aoPublicar?: () => void }) 
           {texto.length > MAX_POST * 0.8 && (
             <span
               className={`font-mono text-[11px] ${
-                texto.length >= MAX_POST ? "text-red-400" : "text-white/35"
+                texto.length >= MAX_POST ? "text-destructive" : "text-white/35"
               }`}
               data-testid="compositor-contador"
             >

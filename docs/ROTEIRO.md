@@ -5237,3 +5237,49 @@ Perdi tempo achando que a mensagem de erro não aparecia: **o clique não estava
 chegando**, porque a janela do Chrome tinha perdido o foco (§4.118). Pelo
 `elemento.click()` do console, o erro apareceu na hora. O registro da B está
 certo e vale para as três janelas.
+
+### A varredura final do tema claro, e a conferência do escuro (08/08)
+
+Ele pediu duas coisas: procurar o que ainda estava errado no Tinta e **provar que
+o Estúdio não regrediu**. A varredura por código achou o que o olho não acha.
+
+**O que ainda quebrava no claro — sempre a mesma família: cor FIXA.**
+
+- **Vermelhos claros da paleta** (`text-red-300`, `text-red-200`, `text-red-400`)
+  em **23 arquivos**: o "AO VIVO" das salas, o "Sair da sala", os botões de
+  apagar. Sobre grafite eles brilham; sobre papel creme dão ~1,8:1 e somem.
+  Viraram `text-primary` (o vermelho do tema) e `text-destructive` (perigo).
+- **Dois fundos escuros escritos à mão:** a barra flutuante da sala
+  (`bg-[#1c1414]`) e o hover do banner de pedido (`bg-[#242424]`). A barra é peça
+  de estúdio e ficou **escura nos dois temas**, agora com `sobre-midia`; o hover
+  virou `bg-secondary`.
+- **Um anel e uma borda que eram "a cor do fundo escuro"** (`ring-[#181818]` nos
+  avatares empilhados, `border-[#1d1712]` na bolinha da linha do ciclo): viraram
+  `ring-background` / `border-background`, que é o que elas sempre quiseram dizer.
+- **Duas cores de tipo no feed** (`#5b9dff` azul-claro, `#c084fc` roxo-claro):
+  2,2 a 3,0:1 sobre papel. Foram para `blue-500` e `purple-500`, que passam nos
+  **dois** fundos.
+
+**O que sobrou de cor literal, e de propósito:** as três metálicas das medalhas
+(`#b6bcc6` prata, `#e3c169` dourado) — o selo já é ilha escura — e as cores do
+`Reacoes` quando ele recebe a prop `claro`, que é um fundo claro **local**, não o
+tema.
+
+**A conferência do escuro, dita com todas as letras: o Estúdio mudou, sim.** Não
+regrediu, mas não ficou idêntico, e as diferenças são estas:
+
+1. véu, sombra e degradê ficaram **um pouco mais escuros** (preto de verdade em
+   vez do grafite);
+2. os **selos "AO VIVO"** passaram de rosa-claro para o vermelho de gravação —
+   mais forte, e mais coerente com a identidade;
+3. as **pastilhas de ícone** viraram cor cheia;
+4. o **anel dos avatares** deixou de ser um halo claro e virou recorte da cor do
+   fundo;
+5. a **faixa do player** do cartão de trecho ficou mais escura;
+6. o **cartão do clube** trocou o marrom âmbar pelo vermelho da marca.
+
+Conferido tela a tela no Estúdio (Início, ficha, player, Feed, Perfil, Clube,
+Comunidades): nada ilegível, nada quebrado. As telas que ainda aparecem na
+medição de contraste do Tinta são os **textos terciários** — e elas aparecem com
+o mesmo número no Estúdio: 3,1 contra 3,05; 2,54 contra 2,56. **É paridade, que
+era o alvo**, e não conformidade AA — isso segue em aberto, como já registrado.

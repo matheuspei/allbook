@@ -223,7 +223,7 @@ export default function Clube({ params }: { params: { id: string } }) {
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {clube.aoVivo && (
                   <span
-                    className="flex items-center gap-1 rounded-full bg-red-500/12 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-red-300 ring-1 ring-inset ring-red-500/25"
+                    className="flex items-center gap-1 rounded-full bg-red-500/12 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary ring-1 ring-inset ring-red-500/25"
                     data-testid="selo-clube-ao-vivo"
                   >
                     <Radio className="h-3 w-3" />
@@ -645,7 +645,7 @@ function EncontrosDoClube({ clube }: { clube: ClubeTipo }) {
                   {/* O selo diz de que tipo é o encontro sem precisar de outra
                       seção — foi o que permitiu juntar as duas listas. */}
                   {item.aoVivo && (
-                    <span className="ml-1.5 align-middle text-[9px] font-extrabold tracking-[0.1em] text-red-300">
+                    <span className="ml-1.5 align-middle text-[9px] font-extrabold tracking-[0.1em] text-primary">
                       AO VIVO
                     </span>
                   )}

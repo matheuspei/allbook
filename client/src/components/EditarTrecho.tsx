@@ -124,7 +124,7 @@ export default function EditarTrecho({
             toast({ title: "Trecho apagado" });
             onFechar();
           }}
-          className="mt-2 w-full py-2 text-xs font-semibold text-white/35 transition-colors hover:text-red-300"
+          className="mt-2 w-full py-2 text-xs font-semibold text-white/35 transition-colors hover:text-destructive"
           data-testid="esquecer-daqui"
         >
           Apagar o trecho

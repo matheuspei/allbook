@@ -126,7 +126,7 @@ function Bolinha({
       style={{ left: `${pct}%` }}
     >
       <span
-        className={`block h-3 w-3 rounded-full border-[3px] border-[#1d1712] ${
+        className={`block h-3 w-3 rounded-full border-[3px] border-background ${
           acesa ? "bg-primary" : "bg-white/25"
         }`}
       />

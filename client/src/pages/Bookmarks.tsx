@@ -175,7 +175,7 @@ export default function Bookmarks() {
                               </button>
                               <button
                                 onClick={() => removeBookmark(marcacao.id)}
-                                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/40 transition-colors hover:bg-white/10 hover:text-red-400"
+                                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/40 transition-colors hover:bg-white/10 hover:text-destructive"
                                 aria-label="Apagar a nota"
                               >
                                 <Trash2 className="h-4 w-4" />

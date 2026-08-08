@@ -86,7 +86,7 @@ export default function EscolherCapa({
               </span>
               <LinkDoForum
                 onClick={() => onMudar({})}
-                className="shrink-0 text-[10.5px] text-white/35 hover:text-red-300"
+                className="shrink-0 text-[10.5px] text-white/35 hover:text-destructive"
                 testid="tirar-capa"
               >
                 tirar

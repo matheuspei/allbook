@@ -49,7 +49,7 @@ function verboDoItem(item: ItemDoMural): {
       return {
         icone: <MessageCircle className="h-3 w-3" />,
         verbo: item.clube ? "disse, no clube" : "disse, sobre",
-        cor: "text-[#5b9dff]",
+        cor: "text-blue-500",
       };
     case "recomendou":
       return {
@@ -61,7 +61,7 @@ function verboDoItem(item: ItemDoMural): {
       return {
         icone: <MessageCircle className="h-3 w-3" />,
         verbo: "comentou em",
-        cor: "text-[#c084fc]",
+        cor: "text-purple-500",
       };
     case "avaliou":
       return { icone: <Star className="h-3 w-3" />, verbo: "avaliou", cor: "text-primary" };

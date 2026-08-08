@@ -61,7 +61,7 @@ export default function BarraDaSala() {
       className="fixed bottom-[72px] left-0 right-0 z-40 px-3"
       data-testid="barra-da-sala"
     >
-      <div className="flex items-center gap-2.5 rounded-2xl border border-red-500/30 bg-[#1c1414]/95 p-2 pr-1 shadow-2xl backdrop-blur-sm">
+      <div className="sobre-midia flex items-center gap-2.5 rounded-2xl border border-primary/40 bg-black/90 p-2 pr-1 shadow-2xl backdrop-blur-sm">
         <button
           onClick={() => navigate(`/sala/${sala.id}`)}
           className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
@@ -76,7 +76,7 @@ export default function BarraDaSala() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-70" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-500" />
               </span>
-              <span className="text-[9.5px] font-extrabold tracking-[0.12em] text-red-300">
+              <span className="text-[9.5px] font-extrabold tracking-[0.12em] text-primary">
                 AO VIVO
               </span>
               <span className="truncate text-[10.5px] text-white/35">

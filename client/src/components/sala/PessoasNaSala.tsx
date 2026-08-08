@@ -117,7 +117,7 @@ export default function PessoasNaSala({
                         description: "Não volta enquanto esta sala durar.",
                       });
                     }}
-                    className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/35 transition-colors hover:bg-red-500/15 hover:text-red-300"
+                    className="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white/35 transition-colors hover:bg-red-500/15 hover:text-destructive"
                     data-testid={`tirar-${slug}`}
                   >
                     Remover da sala

@@ -126,7 +126,7 @@ export default function ProfileEdit() {
             {form.photo && (
               <button
                 onClick={() => update("photo", "")}
-                className="flex items-center gap-2 text-sm font-medium text-white/40 hover:text-red-400 transition-colors"
+                className="flex items-center gap-2 text-sm font-medium text-white/40 hover:text-destructive transition-colors"
                 data-testid="button-remove-photo"
               >
                 <Trash2 className="w-4 h-4" />
@@ -159,7 +159,7 @@ export default function ProfileEdit() {
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary/50 transition-colors"
               data-testid="input-name"
             />
-            {nameError && <p className="text-xs text-red-400">O nome não pode ficar vazio.</p>}
+            {nameError && <p className="text-xs text-destructive">O nome não pode ficar vazio.</p>}
           </div>
 
           <div className="space-y-2">

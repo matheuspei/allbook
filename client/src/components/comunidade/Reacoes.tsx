@@ -260,7 +260,7 @@ export function LinhaDeRecepcao({
               {rostos.map((rosto) => (
                 <span
                   key={rosto.slug}
-                  className={`grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br ${rosto.cor} text-[9px] font-bold ring-2 ring-[#181818]`}
+                  className={`grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br ${rosto.cor} text-[9px] font-bold ring-2 ring-background`}
                 >
                   {rosto.slug === "voce" ? initialOf(rosto.nome) : rosto.nome.charAt(0)}
                 </span>

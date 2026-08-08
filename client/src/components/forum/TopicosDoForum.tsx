@@ -215,7 +215,7 @@ export function LinhaDeTopico({
                     toast({ title: "Tópico removido do fórum" });
                     onMudar?.();
                   }}
-                  className="text-[10.5px] text-white/30 hover:text-red-300"
+                  className="text-[10.5px] text-white/30 hover:text-destructive"
                   testid={`esconder-${topico.id}`}
                 >
                   remover
@@ -229,7 +229,7 @@ export function LinhaDeTopico({
                   toast({ title: "Tópico apagado" });
                   onMudar?.();
                 }}
-                className="text-[10.5px] text-white/30 hover:text-red-300"
+                className="text-[10.5px] text-white/30 hover:text-destructive"
                 testid={`topico-delete-${topico.id}`}
               >
                 apagar

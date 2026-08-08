@@ -360,7 +360,7 @@ function UmaEnquete({ enquete, grupoId }: { enquete: Enquete; grupoId: string })
                 apagarEnquete(enquete.id);
                 toast({ title: "Enquete apagada" });
               }}
-              className="text-[10.5px] text-white/35 hover:text-red-300"
+              className="text-[10.5px] text-white/35 hover:text-destructive"
               testid={`apagar-enquete-${enquete.id}`}
             >
               apagar
@@ -654,7 +654,7 @@ function UmEvento({ evento, grupoId }: { evento: Evento; grupoId: string }) {
                   apagarEvento(evento.id);
                   toast({ title: "Evento cancelado" });
                 }}
-                className="text-[10.5px] text-white/35 hover:text-red-300"
+                className="text-[10.5px] text-white/35 hover:text-destructive"
                 testid={`apagar-evento-${evento.id}`}
               >
                 cancelar evento

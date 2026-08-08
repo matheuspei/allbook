@@ -182,7 +182,7 @@ function FolhaDeTrechos({
                     esquecerTrecho(trecho.id);
                     toast({ title: "Trecho apagado" });
                   }}
-                  className="absolute right-1.5 top-1.5 rounded-full p-1.5 text-white/20 transition-colors hover:bg-white/10 hover:text-red-300"
+                  className="absolute right-1.5 top-1.5 rounded-full p-1.5 text-white/20 transition-colors hover:bg-white/10 hover:text-destructive"
                   aria-label="Apagar o trecho"
                   data-testid={`esquecer-trecho-${trecho.id}`}
                 >

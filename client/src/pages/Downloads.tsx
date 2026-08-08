@@ -103,7 +103,7 @@ export default function Downloads() {
 
                 <button
                   onClick={() => remove(book)}
-                  className="p-2 text-white/30 hover:text-red-400 transition-colors"
+                  className="p-2 text-white/30 hover:text-destructive transition-colors"
                   aria-label={`Remover download de ${book.title}`}
                   data-testid={`button-remove-download-${book.id}`}
                 >
