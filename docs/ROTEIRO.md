@@ -5547,3 +5547,47 @@ comunidade fingida serve para **testar que nada quebrou** e para simular convers
 - Quando ela for decidida, lembrar da §4.123: **dado semeado que sobe para a
   conta muda de natureza**. Votos de enquete, presenças em evento e o número-base
   de curtidas são exatamente do mesmo tipo do troféu falso.
+
+---
+
+## 4.125 Os textos do app que a migração deixou mentindo (08/08)
+
+Ao ser perguntado qual era o próximo passo do banco, fui olhar o estado real — e
+o próximo passo não era uma etapa nova, era **dívida do que a gente acabou de
+construir**. Cinco textos de tela continuavam dizendo que os dados vivem só no
+aparelho, e isso deixou de ser verdade nas §4.121 e §4.122.
+
+É literalmente o item da seção 5 do `docs/BANCO-DE-DADOS.md`: *"reler a seção 3 e
+atualizar os textos do app que hoje dizem 'só neste aparelho'"* — e é o mesmo
+princípio que fez o "Esqueci minha senha" ser **removido** em 25/07: o app não
+mente sobre como funciona.
+
+### O grave: o texto do botão "Sair"
+
+`pages/You.tsx` promete, **no diálogo de confirmação**, que *"sua lista, seus
+downloads e suas recomendações continuam salvos neste aparelho"*. Desde a §4.121
+o `signOut` **apaga** a lista, o progresso, as notas e as recomendações do
+navegador — de propósito, porque agora são da conta e voltam na entrada
+seguinte.
+
+Ou seja: a pessoa lê que fica, clica, e some. **A quebra silenciosa do checklist
+acontecendo ao contrário** — o código mudou e o texto ficou para trás, sem nada
+falhar.
+
+⚠️ `You.tsx` e `RequestBook.tsx` são da **janela B**; deixei o recado no quadro
+com o texto pronto para colar, em vez de editar arquivo alheio.
+
+### Os que corrigi
+
+- **`Login.tsx`** — dizia que a biblioteca subiria "na próxima etapa". Fui **eu**
+  que escrevi isso na §4.120, e envelheceu na §4.121, uma etapa depois. Ficou um
+  comentário no código avisando que este texto já mentiu uma vez.
+- **`ProfileEdit.tsx`** — dizia *"ainda não existe conta nem servidor"*. Agora o
+  texto **muda conforme haja conta ou não**: dizer a mesma frase para os dois
+  casos enganaria metade das pessoas.
+
+### A regra que fica
+
+**Toda camada que sobe para a conta deixa um texto para trás.** A migração não
+termina no código: termina quando a tela volta a dizer a verdade. Vale para
+comentários, clubes e fóruns quando eles forem.

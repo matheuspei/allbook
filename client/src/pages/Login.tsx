@@ -334,9 +334,15 @@ export default function Login() {
           Explorar sem conta
         </Link>
 
+        {/*
+          Este texto já mentiu uma vez: escrito na §4.120, ele prometia que a
+          biblioteca subiria "na próxima etapa" — e ela subiu na §4.121, sem
+          ninguém voltar aqui. Ficar de olho nele a cada mudança de camada.
+        */}
         <p className="text-[11px] text-white/25 leading-relaxed text-center mt-8">
-          Sua senha é guardada cifrada e nunca sai daqui em texto. A biblioteca e o
-          progresso ainda ficam neste navegador — eles sobem para a conta na próxima etapa.
+          Sua senha é guardada cifrada e nunca sai daqui em texto. Com conta, sua
+          biblioteca, seu progresso, suas notas e seus trechos ficam guardados e voltam
+          em qualquer aparelho.
         </p>
       </div>
     </div>

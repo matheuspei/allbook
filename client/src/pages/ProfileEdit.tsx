@@ -13,6 +13,7 @@ import {
   saveProfile,
   type Profile,
 } from "@/lib/profile";
+import { readSession } from "@/lib/auth";
 
 /**
  * Editar perfil (`/profile/edit`).
@@ -27,11 +28,16 @@ export default function ProfileEdit() {
 
   const [form, setForm] = useState<Profile>(readProfile);
   const [saved, setSaved] = useState<Profile>(readProfile);
+  /** Muda só o rodapé explicativo — ver o comentário lá embaixo. */
+  const [temConta, setTemConta] = useState(() => readSession() !== null);
 
   useEffect(() => {
     const current = readProfile();
     setForm(current);
     setSaved(current);
+    // A sessão é conferida com o servidor logo depois de o app abrir, então
+    // reler aqui evita o rodapé ficar com a resposta do primeiro instante.
+    setTemConta(readSession() !== null);
   }, []);
 
   const dirty = JSON.stringify(form) !== JSON.stringify(saved);
@@ -190,8 +196,17 @@ export default function ProfileEdit() {
 
         </section>
 
+        {/*
+          ⚠️ **O texto muda conforme haja conta ou não, e isso não é enfeite.**
+          Ele dizia "ainda não existe conta nem servidor", o que virou mentira em
+          08/08 (§4.120–§4.122): com conta, o perfil sobe e volta em qualquer
+          aparelho. Dizer a mesma frase para os dois casos enganaria metade das
+          pessoas — e é o tipo de texto que ninguém lembra de revisitar.
+        */}
         <p className="text-[11px] text-white/25 leading-relaxed">
-          Por enquanto o perfil fica salvo só neste navegador — ainda não existe conta nem servidor.
+          {temConta
+            ? "Seu perfil fica guardado na sua conta e aparece em qualquer aparelho onde você entrar."
+            : "Sem conta, o perfil fica salvo só neste navegador. Ao criar uma, ele sobe junto."}
         </p>
       </main>
     </div>
