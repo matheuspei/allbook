@@ -5188,7 +5188,7 @@ recuperação.
 
 ### Como isso entrou sem mexer nas telas dos outros
 
-Só **duas telas** usam `lib/auth`: `Login.tsx` e `You.tsx` — e `You.tsx` é da
+Só **duas telas** usam `client/src/lib/auth.ts`: `Login.tsx` e `You.tsx` — e `You.tsx` é da
 janela B. Deu para não encostar nela porque:
 
 - **`readSession()` continua SÍNCRONO.** O `localStorage` deixou de ser a verdade
