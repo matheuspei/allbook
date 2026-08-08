@@ -8,6 +8,7 @@ import {
   smallint,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -118,6 +119,18 @@ export const progresso = pgTable(
       .notNull()
       .references(() => livros.id, { onDelete: "cascade" }),
     posicaoSegundos: integer("posicao_segundos").default(0).notNull(),
+    /** Capítulo em que a pessoa está, começando em 1. */
+    capitulo: integer("capitulo").default(1).notNull(),
+    /**
+     * A duração que o player usou para calcular a porcentagem.
+     *
+     * ⚠️ **Não é a mesma coisa que `livros.duracaoSegundos`, e por isso mora
+     * aqui.** Hoje a duração é *estimada* pelo número de páginas; quando o áudio
+     * real entrar, a do livro passa a ser medida — e guardar a que valia na hora
+     * é o que permite saber que uma porcentagem antiga foi calculada sobre outra
+     * régua, em vez de a barra de progresso simplesmente pular de lugar.
+     */
+    duracaoSegundos: integer("duracao_segundos").default(0).notNull(),
     atualizadoEm: timestamp("atualizado_em", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
@@ -135,43 +148,73 @@ export const progresso = pgTable(
 /* -------------------------------------------------------------------------- */
 
 /**
- * Quanto tempo a pessoa ouviu, **por dia, por hora e por livro**
- * (`allbook_listening`) — a base das Estatísticas.
+ * Quanto tempo a pessoa ouviu (`allbook_listening`) — a base das Estatísticas.
  *
- * Hoje é um JSON aninhado (`dia → { sec, horas{}, livros{} }`). Aqui vira uma
- * linha por (dia, hora, livro): o total do dia, o horário preferido e o ranking
- * de livros passam a ser **somas** em vez de três números guardados que podem
- * discordar entre si.
+ * ⚠️ **São TRÊS tabelas, e não uma, por um motivo apurado ao ligar de verdade
+ * (08/08, §4.121).** A primeira versão tinha uma tabela só, com chave
+ * `(dia, hora, livro)` — o que parece mais normalizado e é **errado**: o app
+ * nunca soube qual livro foi ouvido em qual hora. O diário guarda
+ * `{ sec, horas: {hora→seg}, livros: {id→seg} }`, ou seja, **dois recortes
+ * independentes do mesmo total**. Uma tabela cruzada obrigaria a inventar o
+ * cruzamento na migração, e inventar dado é exatamente o que este projeto não
+ * faz — números plantados que ninguém depois sabe que foram plantados.
  *
- * ⚠️ **`exemplo` marca o histórico semeado**, e essa coluna é a razão de a
- * chave `allbook_listening_seeded` existir hoje. **Semeadura tem de morrer em
- * produção**: usuário novo que recebe um histórico que não é dele vê números
- * bonitos e falsos, e ninguém depois sabe que foram plantados. Em produção esta
- * coluna é sempre `false`.
+ * `audicaoDia` é o total (a régua da meta semanal), `audicaoPorHora` dá o
+ * "horário preferido" e `audicaoPorLivro` dá o ranking de livros.
+ *
+ * ⚠️ **`exemplo` marca o histórico semeado**, e é a razão de a chave
+ * `allbook_listening_seeded` existir. **Semeadura tem de morrer em produção**:
+ * usuário novo que recebe um histórico que não é dele vê números bonitos e
+ * falsos. Em produção esta coluna é sempre `false`.
  *
  * (O teto de 120s por avanço, que impede um arraste na barra de creditar horas
  * que ninguém ouviu, continua sendo regra de quem **escreve** aqui.)
  */
-export const audicao = pgTable(
-  "audicao",
+export const audicaoDia = pgTable(
+  "audicao_dia",
   {
     contaId: uuid("conta_id")
       .notNull()
       .references(() => contas.id, { onDelete: "cascade" }),
     /** Dia local da pessoa, em ISO curto ("2026-08-08"). */
     dia: text("dia").notNull(),
-    /** Hora do dia, 0–23 — daqui sai o "horário preferido". */
-    hora: smallint("hora").notNull(),
-    livroId: integer("livro_id")
-      .notNull()
-      .references(() => livros.id, { onDelete: "cascade" }),
     segundos: integer("segundos").default(0).notNull(),
     /** Veio do histórico de demonstração? Ver o aviso acima. */
     exemplo: boolean("exemplo").default(false).notNull(),
   },
+  (t) => [primaryKey({ columns: [t.contaId, t.dia] })],
+);
+
+/** Segundos por hora do dia (0–23) — daqui sai o "horário preferido". */
+export const audicaoPorHora = pgTable(
+  "audicao_por_hora",
+  {
+    contaId: uuid("conta_id")
+      .notNull()
+      .references(() => contas.id, { onDelete: "cascade" }),
+    dia: text("dia").notNull(),
+    hora: smallint("hora").notNull(),
+    segundos: integer("segundos").default(0).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.contaId, t.dia, t.hora] })],
+);
+
+/** Segundos por livro naquele dia — daqui sai o ranking de mais ouvidos. */
+export const audicaoPorLivro = pgTable(
+  "audicao_por_livro",
+  {
+    contaId: uuid("conta_id")
+      .notNull()
+      .references(() => contas.id, { onDelete: "cascade" }),
+    dia: text("dia").notNull(),
+    livroId: integer("livro_id")
+      .notNull()
+      .references(() => livros.id, { onDelete: "cascade" }),
+    segundos: integer("segundos").default(0).notNull(),
+  },
   (t) => [
-    primaryKey({ columns: [t.contaId, t.dia, t.hora, t.livroId] }),
-    index("audicao_conta_dia_idx").on(t.contaId, t.dia),
+    primaryKey({ columns: [t.contaId, t.dia, t.livroId] }),
+    index("audicao_livro_idx").on(t.contaId, t.livroId),
   ],
 );
 
@@ -204,11 +247,24 @@ export const marcacoes = pgTable(
     capitulo: integer("capitulo").default(1).notNull(),
     /** Vazia é o normal: marcar é um toque só. */
     nota: text("nota").default("").notNull(),
+    /**
+     * O id que a marcação tem **no navegador** (`"7-1200"`, ou um sorteado).
+     *
+     * ⚠️ **Sem esta coluna a sincronização DUPLICA cada marcação.** O navegador
+     * guarda o seu id; o banco gera outro. Na volta, o front veria um item com
+     * id diferente, não reconheceria que é o mesmo, e ficaria com dois — e a
+     * cada nova sincronização, mais um. Guardar o id de lá é o que mantém a
+     * identidade dos dois lados. Vale igual para `trechos_guardados`.
+     */
+    idLocal: text("id_local"),
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
   },
-  (t) => [index("marcacoes_conta_livro_idx").on(t.contaId, t.livroId)],
+  (t) => [
+    index("marcacoes_conta_livro_idx").on(t.contaId, t.livroId),
+    unique("marcacoes_id_local").on(t.contaId, t.idLocal),
+  ],
 );
 
 /* -------------------------------------------------------------------------- */
@@ -243,11 +299,16 @@ export const trechosGuardados = pgTable(
     duracaoSegundos: integer("duracao_segundos").notNull(),
     /** Até 140 caracteres. **Nunca sai numa resposta pública.** */
     nota: text("nota"),
+    /** O id do trecho no navegador. Ver o aviso em `marcacoes.idLocal`. */
+    idLocal: text("id_local"),
     guardadoEm: timestamp("guardado_em", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
   },
-  (t) => [index("trechos_conta_idx").on(t.contaId, t.guardadoEm)],
+  (t) => [
+    index("trechos_conta_idx").on(t.contaId, t.guardadoEm),
+    unique("trechos_id_local").on(t.contaId, t.idLocal),
+  ],
 );
 
 /* -------------------------------------------------------------------------- */

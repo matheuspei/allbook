@@ -28,6 +28,11 @@
  */
 
 import { defaultProfile, readProfile, saveProfile } from "@/lib/profile";
+import {
+  ligarSincronizacao,
+  limparDadosDaConta,
+  sincronizarDados,
+} from "@/lib/sincronizacao";
 
 const STORAGE_KEY = "allbook_auth";
 
@@ -188,6 +193,11 @@ export async function signIn(email: string, senha: string): Promise<Session> {
   // perde o que escreveu ao entrar de novo (era assim antes, e continua).
   const perfil = readProfile();
   saveProfile({ ...perfil, name: conta.nome || perfil.name, email: conta.email });
+
+  // ⚠️ **A migração de primeira entrada acontece aqui** (armadilha 2.2): o que
+  // estava neste navegador sobe para a conta em vez de sumir, e o que já estava
+  // na conta desce. Ver `mesclar()` em `lib/sincronizacao.ts`.
+  await sincronizarDados();
   return sessao;
 }
 
@@ -207,6 +217,10 @@ export async function signUp(name: string, email: string, senha: string): Promis
 
   const perfil = readProfile();
   saveProfile({ ...perfil, name: conta.nome, email: conta.email });
+
+  // Conta recém-criada: é o caso clássico da armadilha 2.2 — quem usou o app por
+  // semanas sem conta não pode ver a biblioteca sumir ao se cadastrar.
+  await sincronizarDados();
   return sessao;
 }
 
@@ -218,15 +232,21 @@ export async function signUp(name: string, email: string, senha: string): Promis
  * para só então limpar deixaria o botão "Sair" parado por um instante, e o pior
  * caso do jeito atual é uma sessão órfã no banco, que expira sozinha.
  *
- * ⚠️ **Só a sessão sai. Biblioteca, downloads e recomendações ficam** — hoje
- * eles são deste navegador, não da conta, e apagá-los faria a pessoa perder o
- * que montou por ter clicado em "Sair". **Isso se inverte** quando os dados
- * subirem para a conta (armadilha 2.2): aí a biblioteca passa a ser da conta, e
- * este comentário tem de mudar junto com o código.
+ * ⚠️ **A inversão da armadilha 2.2 ACONTECEU (§4.121), e este comentário mudou
+ * junto com o código.** Até 08/08, sair não apagava a biblioteca de propósito:
+ * ela era *do navegador*, e apagá-la faria a pessoa perder tudo por ter clicado
+ * em "Sair". Agora a biblioteca, o progresso, o diário, as notas, as marcações e
+ * os trechos são **da conta** — estão no servidor e voltam na próxima entrada —,
+ * então **deixá-los aqui é que seria o erro**: o próximo a pegar este celular
+ * veria os dados de quem saiu.
+ *
+ * **`allbook_downloads` continua ficando**: baixado é do aparelho, e o arquivo
+ * está neste celular.
  */
 export function signOut(): void {
   gravarEspelho(null);
   saveProfile({ ...defaultProfile });
+  limparDadosDaConta();
   void chamar("/api/contas/sair", {}).catch(() => {
     /* sem rede o cookie continua no navegador até expirar; o espelho já saiu */
   });
@@ -272,5 +292,15 @@ export function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
-/* Corrige o espelho assim que uma tela de sessão abre. Ver `sincronizarSessao`. */
-void sincronizarSessao();
+/*
+ * Corrige o espelho assim que uma tela de sessão abre (ver `sincronizarSessao`)
+ * e, se houver alguém logado, traz os dados da conta e passa a mandar cada
+ * mudança para lá.
+ *
+ * `ligarSincronizacao` só instala os ouvintes de evento — é barato e não fala
+ * com a rede enquanto ninguém mexer em nada.
+ */
+ligarSincronizacao();
+void sincronizarSessao().then((sessao) => {
+  if (sessao) void sincronizarDados();
+});

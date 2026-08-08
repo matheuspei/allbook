@@ -26,13 +26,20 @@ depois*. Cada item abaixo diz **como está hoje** e **o que precisa acontecer**.
 | Tabelas | **62**, em `shared/schema/` (um arquivo por assunto) |
 | Armazenamento em uso | `PgStorage` — Drizzle sobre o Postgres. O `MemStorage`, que sumia com o servidor, **morreu em 08/08** |
 | Catálogo no banco | **cheio**: 59 livros, 48 pessoas, 10 editoras, 8 gêneros, 13 coleções |
-| Rotas de API | **8** — folhas de proposta, saúde do banco, e as 6 de conta |
+| Rotas de API | **10** — folhas, saúde do banco, 6 de conta e 2 de dados |
 | Contas | **de verdade desde 08/08**: senha cifrada (scrypt), sessão em cookie guardada no banco, "Esqueci minha senha" funcionando |
-| Onde o app guarda tudo | ainda **as 61 chaves `allbook_*` no navegador**: fora o login, nenhuma tela lê do banco |
+| Dados da pessoa | **7 chaves já sobem para a conta** (biblioteca, progresso, concluídos, diário, notas, marcações, trechos) — §4.121 |
+| Onde o app guarda tudo | ainda as chaves `allbook_*`, **mas agora como espelho**: as 7 acima voltam do servidor ao entrar; as outras 54 continuam só no navegador |
 | Áudio | **não existe** — nenhum arquivo, nenhum player real |
 
-Ou seja: o banco está de pé e o catálogo dentro dele, **mas o app ainda não o
-usa**. A migração das telas é a etapa seguinte, e é a que morde (ver seção 2).
+Ou seja: o banco está de pé, o catálogo dentro dele, as contas são de verdade e
+**a biblioteca já atravessa aparelhos**. O que falta é a camada social — e ela
+depende de decidir o destino da ficção (2.4) antes, porque hoje conversa com
+gente que não existe.
+
+⚠️ **Nenhuma tela mudou para isso acontecer.** As libs do `localStorage` estão
+intactas; `lib/sincronizacao.ts` escuta os eventos que elas já disparavam. Ao
+escrever tela nova, **continue lendo das libs** — quem sincroniza é a ponte.
 
 > **Como era em 25/07, para dar a medida do que mudou:** 1 tabela (`users`, com
 > 3 colunas), zero rotas, `MemStorage` na memória, e nem o `drizzle.config.ts`
@@ -74,27 +81,32 @@ trocar de celular**. A coluna "cuidado" é o que morde na migração.
 
 ### Biblioteca e audição
 
-- [ ] `allbook_library` — Minha lista (`lib/library.ts`).
+- [x] `allbook_library` — Minha lista (`lib/library.ts`). **Sobe para a conta desde 08/08 (§4.121).**
 - [ ] `allbook_downloads` — baixados (`lib/library.ts`). ⚠️ **É do aparelho, não
       da conta** — o arquivo está naquele celular. Não sincronize cegamente.
-- [ ] `allbook_playback` — onde parou, em segundos (`lib/playback.ts`).
+- [x] `allbook_playback` — onde parou, em segundos (`lib/playback.ts`). **Sobe para a conta (§4.121)** — o aviso dos segundos e da vinheta continua valendo (2.5).
 - [ ] `allbook_miniplayer` — se o mini player está visível (`lib/playback.ts`).
       Provavelmente **não** vai para o banco: é estado de tela.
-- [ ] `allbook_finished` — concluídos (`lib/playback.ts`).
+- [x] `allbook_finished` — concluídos (`lib/playback.ts`). **Sobe para a conta (§4.121).** ⚠️ Divide a tabela `progresso` com o `playback`: gravar um não pode apagar o outro.
 - [ ] `allbook_bookmarks` — marcações e notas do tocador (`lib/bookmarks.ts`,
       criada em 26/07). ⚠️ **É a única chave com texto escrito pela pessoa** —
       perder uma nota é perder trabalho dela, não uma preferência que se refaz em
       um toque. Deve ser das **primeiras** a sincronizar, e a que mais merece
-      exportação antes da migração.
+      exportação antes da migração. **Sobe para a conta desde 08/08 (§4.121)**,
+      e o id do navegador é preservado na coluna `idLocal` — sem ele, cada
+      sincronização duplicaria a marcação.
 - [ ] `allbook_listening` — diário de audição, base das Estatísticas
-      (`lib/listening.ts`).
+      (`lib/listening.ts`). **Sobe para a conta (§4.121)** — em TRÊS tabelas
+      (`audicao_dia`, `audicao_por_hora`, `audicao_por_livro`), porque o diário
+      nunca soube qual livro foi ouvido em qual hora; uma tabela cruzada
+      obrigaria a inventar o cruzamento.
 - [ ] `allbook_listening_seeded` — marca que o diário já foi **semeado com dados
       falsos**. ⚠️ **Semeadura tem de morrer em produção**, senão o usuário novo
       recebe um histórico que não é dele.
 
 ### Opinião
 
-- [ ] `allbook_ratings` — suas notas (`lib/ratings.ts`).
+- [x] `allbook_ratings` — suas notas (`lib/ratings.ts`). **Sobe para a conta (§4.121).**
 - [ ] `allbook_my_comments` — seus comentários de livro, pessoa e editora
       (`lib/myComments.ts`).
 - [ ] `allbook_replies` — suas respostas (`lib/replies.ts`).
@@ -249,15 +261,22 @@ editoras em `publishers.ts`.
 - [ ] **Preservar os ids atuais na primeira carga do banco.** É de longe o mais
       barato. Se remapear, escreva uma migração que traduza as chaves antigas.
 
-### 2.2 ⚠️ Sair não apaga a biblioteca — e isso inverte com contas
+### 2.2 ✅ Sair não apagava a biblioteca — a inversão ACONTECEU (08/08)
 
 Hoje `signOut` apaga só a sessão, de propósito: os dados são **do navegador**,
 não da conta, e apagá-los faria a pessoa perder tudo por ter clicado em "Sair".
 Com contas de verdade a lógica se inverte — a biblioteca passa a ser **da
 conta**.
 
-- [ ] Decidir e implementar a **migração de primeira entrada**: o que estava no
-      aparelho sobe para a conta recém-criada, em vez de sumir.
+- [x] Decidir e implementar a **migração de primeira entrada**: o que estava no
+      aparelho sobe para a conta recém-criada, em vez de sumir. **Feito em 08/08
+      (§4.121):** `mesclar()` em `lib/sincronizacao.ts`, e ela roda em **toda**
+      entrada, não só na primeira — o mesmo problema existe quando alguém usa o
+      app deslogado num aparelho e depois entra nele.
+- [x] **`signOut` inverteu junto**, como esta seção previa: agora ele apaga do
+      navegador o que virou da conta. Deixar seria pior — o próximo a pegar o
+      celular veria a biblioteca, as notas e os trechos de quem saiu.
+      **`allbook_downloads` continua ficando**: é do aparelho.
 
 ### 2.3 ✅ "Esqueci minha senha" foi removido e precisava voltar — RESOLVIDO (08/08)
 
@@ -565,8 +584,12 @@ O app já promete estas coisas na tela. Nenhuma funciona sem servidor:
    biblioteca ao banco. ⚠️ **É lá que o `signOut` inverte de sentido** (2.2):
    hoje ele não apaga a biblioteca porque ela é *do navegador*; quando for *da
    conta*, apagar passa a ser o certo.
-3. **Dados do usuário**, na ordem em que doem se sumirem: biblioteca →
+3. 🔸 **Dados do usuário**, na ordem em que doem se sumirem: biblioteca →
    progresso/diário → avaliações → comentários e reações → social.
+   **Feito em 08/08 (§4.121) até "avaliações"**, mais as duas chaves de texto da
+   pessoa (marcações e trechos), que o inventário marcou como prioridade máxima.
+   **Falta:** comentários, reações e a camada social — e elas dependem do item 4
+   abaixo, porque hoje conversam com gente que não existe.
 4. **Decidir o destino da ficção** (2.4) antes de abrir para gente real, não
    depois.
 5. **Áudio** (2.5) e **pipeline do pedido** (2.6) — os dois maiores, e os únicos

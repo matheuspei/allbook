@@ -5283,3 +5283,114 @@ Comunidades): nada ilegível, nada quebrado. As telas que ainda aparecem na
 medição de contraste do Tinta são os **textos terciários** — e elas aparecem com
 o mesmo número no Estúdio: 3,1 contra 3,05; 2,54 contra 2,56. **É paridade, que
 era o alvo**, e não conformidade AA — isso segue em aberto, como já registrado.
+
+---
+
+## 4.121 A biblioteca sobe para a conta — e "Sair" inverte de sentido (08/08)
+
+Etapa 3 do banco: a camada que o checklist chama de **"a que mais dói se
+sumir"**. Sete chaves passaram a viver na conta: `allbook_library`,
+`allbook_playback`, `allbook_finished`, `allbook_listening`, `allbook_ratings`,
+`allbook_bookmarks` e `allbook_trechos_guardados`.
+
+### A decisão que segurou tudo: NENHUMA lib de dados foi aberta
+
+`library.ts`, `playback.ts`, `listening.ts`, `ratings.ts`, `bookmarks.ts` e
+`trechosGuardados.ts` estão **byte a byte como estavam**. **22 telas** leem
+`playback.ts` e 10 leem `library.ts` — mexer na assinatura de qualquer uma viraria
+uma reescrita do app, e ainda esbarraria no trabalho das outras janelas.
+
+O gancho já existia: **cada uma delas dispara um evento de `window` em toda
+escrita** (`allbook:library`, `allbook:playback`…), porque as telas precisavam se
+redesenhar. `lib/sincronizacao.ts` escuta esses eventos e manda a mudança para a
+conta. Nasceu **de graça**, de uma peça construída para outra coisa.
+
+E o servidor conversa **no formato do navegador** (`[{id, addedAt}]`,
+`{dia: {sec, horas, livros}}`…): a tradução para as tabelas mora em
+`server/dados.ts`. O front continua um espelho burro.
+
+### A migração de primeira entrada (armadilha 2.2), enfim
+
+`mesclar()` junta o que está no navegador com o que está na conta, **sem perder
+de nenhum lado**, e roda em toda entrada — não só na primeira. A regra de
+desempate muda por assunto, e cada uma tem motivo:
+
+| Assunto | Ganha | Por quê |
+|---|---|---|
+| biblioteca, concluídos | a data **mais antiga** | é quando aquilo aconteceu de fato |
+| progresso, notas | o **mais recente** | é a última vez que a pessoa mexeu |
+| diário | o **maior** de cada dia | somar duplicaria o histórico a cada entrada |
+| marcações, trechos | **união por id** | é texto da pessoa: diante da dúvida, não apagar |
+
+### E "Sair" inverteu, como o checklist previu
+
+Até hoje `signOut` **não** apagava a biblioteca, de propósito: ela era *do
+navegador*, e apagá-la faria a pessoa perder tudo por ter clicado em "Sair".
+Agora ela é *da conta* — está no servidor e volta na próxima entrada —, então
+**deixá-la seria o erro**: o próximo a pegar o celular veria a biblioteca, as
+notas e os trechos de quem saiu. O comentário dentro do `signOut` mudou junto
+com o código, que era a condição escrita no `.md`.
+
+⚠️ **`allbook_downloads` continua ficando, e a ausência dele na lista é a
+decisão**: baixado é **do aparelho** — o arquivo está *naquele* celular.
+
+### Três defeitos achados testando, e todos consertados
+
+1. **O progresso não gravava.** `sql\`... <> all(${array})\`` não expande array em
+   lista de parâmetros; virou `notInArray` do Drizzle.
+2. **Livro concluído aparecia em "Continuar ouvindo" com 0%.** `playback` e
+   `finished` dividem a tabela `progresso`, então marcar como concluído cria a
+   linha mesmo sem o player ter tocado. O GET passou a devolver só quem tem
+   progresso de verdade.
+3. **O servidor trocava o id das marcações — e isso DUPLICARIA cada nota a cada
+   sincronização.** O navegador guarda o id dele (`"7-1200"`), o banco gerava
+   outro; na volta, o front não reconhecia que era a mesma e ficava com duas.
+   Nasceu a coluna `idLocal` (em `marcacoes` e `trechos_guardados`), e o id do
+   navegador vence na leitura.
+
+### E uma CORRIDA, que é o achado mais importante
+
+A sincronização de abertura leva um ou dois segundos. Se a pessoa mexesse no app
+**durante** ela — adicionar um livro logo ao abrir —, o envio carregava o valor
+calculado *antes* e **desfazia o que ela tinha acabado de fazer**, sem erro
+nenhum na tela. Peguei porque o primeiro teste de sincronização automática falhou
+e o segundo passou; a diferença era só o tempo desde o carregamento.
+
+O conserto: **`enviar()` relê o `localStorage` no instante do envio**, em vez de
+receber o valor de fora. E os sete envios saem em paralelo, encurtando a janela.
+Reproduzi a corrida de propósito depois — mexendo na biblioteca logo após o
+carregamento — e navegador e conta batem.
+
+### Um erro de modelagem que só apareceu ao ligar de verdade
+
+A tabela `audicao` tinha chave `(dia, hora, livro)`. Parece mais normalizado e é
+**errado**: o app **nunca soube qual livro foi ouvido em qual hora**. O diário
+guarda `{ sec, horas: {}, livros: {} }` — dois recortes independentes do mesmo
+total. Uma tabela cruzada obrigaria a **inventar** o cruzamento na migração.
+Viraram três: `audicao_dia`, `audicao_por_hora` e `audicao_por_livro`.
+
+### Conferido de ponta a ponta
+
+Simulei alguém que usou o app por semanas sem conta (3 livros, progresso,
+marcação com nota, avaliação), criei a conta e **tudo subiu**; saí e **os dados
+locais sumiram, menos os downloads**; entrei de novo e **tudo voltou**. Depois
+zerei o navegador inteiro — simulando **outro aparelho** — entrei, e a Biblioteca
+apareceu na tela com os 3 títulos e "Duna, capítulo 4" em *Continue de onde
+parou*. É o item 1 da seção 5 do checklist. Sem conta, o app funciona como sempre
+e o servidor responde 401 — nada vaza.
+
+### Limite conhecido, dito aqui para ninguém descobrir na marra
+
+**Quem escreve por último ganha.** Cada assunto é gravado inteiro, não item a
+item; com dois aparelhos abertos ao mesmo tempo, o segundo a salvar pode desfazer
+o que o primeiro fez. Baixar antes de subir fecha quase toda a janela, mas ela
+existe. O conserto (gravar por item, com carimbo) fica para quando houver gente
+usando em dois aparelhos ao mesmo tempo — hoje não há.
+
+### Armadilha nova: `npm run db:push` fica INTERATIVO
+
+Quando a mudança pode perder dado — renomear tabela, ou criar restrição única
+numa tabela que já tem linhas —, o `drizzle-kit` **para e espera um "sim"
+digitado**, e a sessão do Claude não tem terminal interativo (o erro fala em
+TTY). A saída é preparar o terreno antes: apagar a tabela vazia, ou limpar as
+linhas de teste, e rodar de novo. Aconteceu duas vezes hoje.

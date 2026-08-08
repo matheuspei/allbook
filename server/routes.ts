@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm";
 
 import { db } from "./db";
 import { registrarContas } from "./contas";
+import { registrarDados } from "./dados";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -18,6 +19,10 @@ export async function registerRoutes(
   // Vem primeiro porque instala a sessão e o Passport, que as rotas seguintes
   // podem querer usar para saber quem está pedindo.
   registrarContas(app);
+
+  // Os dados da pessoa: biblioteca, progresso, diário, notas, marcações e
+  // trechos (§4.121). Depende da sessão instalada logo acima.
+  registrarDados(app);
 
   /**
    * O banco está de pé? (08/08, §4.119)

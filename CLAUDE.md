@@ -91,10 +91,22 @@ guardada no banco, "Esqueci minha senha" funcionando. `lib/auth.ts` fala com
 virou *espelho* da sessão, não a verdade. Tela que precise saber quem está
 logado segue usando `readSession()` como sempre.
 
-⚠️ **Fora o login, nenhuma tela usa o banco.** Biblioteca, perfil, comunidade,
-curtidas: tudo continua em `localStorage`, um arquivo por assunto em
-`client/src/lib/`. Ao escrever tela nova, **continue lendo das libs** — a troca
-para API é uma etapa própria, e fazer meia migração é o que quebra em silêncio.
+Desde 08/08 **sete chaves sobem para a conta** (§4.121): `allbook_library`,
+`allbook_playback`, `allbook_finished`, `allbook_listening`, `allbook_ratings`,
+`allbook_bookmarks` e `allbook_trechos_guardados`. Entre num aparelho novo e a
+biblioteca aparece. **`allbook_downloads` NÃO sobe** — baixado é do aparelho.
+
+⚠️ **Mesmo assim, tela nenhuma mudou, e tela nova continua lendo das libs.** O
+`localStorage` virou *espelho*: `lib/sincronizacao.ts` escuta os eventos que as
+libs já disparavam (`allbook:library`, `allbook:playback`…) e leva a mudança
+para a conta. **Não chame a API direto de uma tela** — quem sincroniza é a
+ponte, e meia migração é o que quebra em silêncio.
+
+⚠️ **"Sair" agora apaga do navegador o que virou da conta.** Antes ele
+preservava a biblioteca de propósito; hoje deixá-la mostraria os dados de quem
+saiu para o próximo que pegar o celular.
+
+Comunidade, clubes, fóruns e perfil **continuam só no navegador**.
 
 Comandos: `npm run db:push` (aplica o esquema), `npm run db:catalogo` (recarrega
 o catálogo, idempotente), `npm run db:psql` (abre o banco no terminal),
