@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import {
   Bell,
   ChevronRight,
+  CreditCard,
   HelpCircle,
   LogIn,
   Lock,
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import PageHeader from "@/components/PageHeader";
 import { useToast } from "@/hooks/use-toast";
+import { ASSINATURA_EVENT, faixaDe, readAssinatura, type Assinatura } from "@/lib/assinatura";
 import { readSession, signOut, type Session } from "@/lib/auth";
 import { initialOf, readProfile, type Profile } from "@/lib/profile";
 import { SEGUIDORES_EVENT, pedidosPendentes } from "@/lib/seguidores";
@@ -107,6 +109,15 @@ export default function You() {
   const [session, setSession] = useState<Session | null>(readSession);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [pedidos, setPedidos] = useState(0);
+  const [assinatura, setAssinatura] = useState<Assinatura>(readAssinatura);
+
+  /* O plano vira etiqueta da linha, e muda em outra tela — daí o ouvinte. */
+  useEffect(() => {
+    const atualizar = () => setAssinatura(readAssinatura());
+    atualizar();
+    window.addEventListener(ASSINATURA_EVENT, atualizar);
+    return () => window.removeEventListener(ASSINATURA_EVENT, atualizar);
+  }, []);
 
   useEffect(() => {
     // Relê ao voltar da edição do perfil, que muda nome, foto e e-mail.
@@ -181,6 +192,17 @@ export default function You() {
   }
 
   const conta: LinhaDoPainel[] = [
+    /* Assinatura em primeiro lugar (§4.118). Sem esta linha, a tela de planos
+       só teria uma porta — a de Pedir —, e quem já assina não teria onde ver o
+       que tem nem como trocar. A etiqueta mostra o plano em vigor pelo mesmo
+       motivo que "Neste aparelho" mostra o tema: é o rastro que ensina onde a
+       coisa mora. */
+    {
+      icon: CreditCard,
+      label: "Assinatura",
+      hint: faixaDe(assinatura.plano)?.nome ?? "sem plano",
+      href: "/plans",
+    },
     /* ⚠️ Aponta para os AJUSTES (`/avisos`), não para a caixa do sino
        (`/notifications`) — conserto de 08/08, §4.117. Ele pegou a contradição:
        *"em configurações, ela só valeria a pena se fosse configuração de

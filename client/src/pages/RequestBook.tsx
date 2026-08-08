@@ -1,10 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "wouter";
-import { AudioLines, Check, Clock, Headphones, Mic, Trash2 } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { AudioLines, Check, Clock, CreditCard, Gift, Headphones, Mic, Trash2 } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import PersonAvatar from "@/components/PersonAvatar";
 import { useToast } from "@/hooks/use-toast";
+import {
+  ASSINATURA_EVENT,
+  PRECO_AVULSO,
+  comprarAvulso,
+  consumirPedido,
+  emReais,
+  readAssinatura,
+  type Assinatura,
+} from "@/lib/assinatura";
 import { findVoice, studioVoices } from "@/lib/studio";
 import { findPerson } from "@/lib/people";
 import {
@@ -53,6 +62,115 @@ import {
  * frase: trazer uma narração pronta é mais barato para o AllBook do que gravar, e
  * o botão oferecia o caminho caro para quem se contentaria com o barato.
  */
+/**
+ * O estado do seu saldo, no alto da tela — **quatro casos, quatro frases**.
+ *
+ * Cada um diz *o que dá para fazer agora*, nunca só *o que falta*. É a
+ * diferença entre um relógio ("o próximo chega") e uma venda ("seu plano não
+ * inclui"), e foi assim que a folha separou as decisões 1 e 2.
+ */
+function EstadoDoPedido({
+  disponiveis,
+  boasVindas,
+  podeComprarAvulso,
+  aoIrParaPlanos,
+}: {
+  disponiveis: number;
+  boasVindas: boolean;
+  podeComprarAvulso: boolean;
+  aoIrParaPlanos: () => void;
+}) {
+  /* Tem saldo: o aviso é um lembrete curto, não um alarme — quem pode pedir
+     quer o formulário, não uma caixa grande explicando que pode. */
+  if (disponiveis > 0) {
+    const presente = boasVindas && disponiveis === 1;
+    return (
+      <div className="px-5 pb-3" data-testid="estado-do-pedido">
+        <div
+          className={`flex items-start gap-3 rounded-xl px-4 py-3 ${
+            presente ? "bg-primary/[0.09] ring-1 ring-inset ring-primary/25" : "bg-white/[0.05]"
+          }`}
+        >
+          {presente ? (
+            <Gift className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          ) : (
+            <Mic className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          )}
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold leading-snug">
+              {presente
+                ? "Seu pedido de boas-vindas está aqui."
+                : `Você tem ${disponiveis} ${disponiveis === 1 ? "pedido" : "pedidos"}.`}
+            </p>
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-white/50">
+              {presente
+                ? "Um por conta, para você ver como funciona."
+                : disponiveis >= 3
+                  ? "É o máximo que dá para guardar — use antes que o próximo chegue."
+                  : "Guardados enquanto a sua assinatura estiver ativa."}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* Sem saldo, mas assina: o avulso (decisão D). Nunca existe um "não" — há
+     sempre um caminho para pedir agora. */
+  if (podeComprarAvulso) {
+    return (
+      <div className="px-5 pb-3" data-testid="estado-do-pedido">
+        <div className="flex items-start gap-3 rounded-xl bg-white/[0.05] px-4 py-3">
+          <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold leading-snug">
+              Seus pedidos deste mês acabaram.
+            </p>
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-white/50">
+              Dá para comprar só este, por {emReais(PRECO_AVULSO)}, sem mudar de assinatura.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* Não assina nada. Aqui a frase é de venda porque não há como fugir dela —
+     mas o formulário continua aberto embaixo, e o que for escrito volta. */
+  return (
+    <div className="px-5 pb-3" data-testid="estado-do-pedido">
+      <div className="flex items-start gap-3 rounded-xl bg-white/[0.05] px-4 py-3">
+        <Headphones className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold leading-snug">Pedir é para quem assina.</p>
+          <p className="mt-0.5 text-[11.5px] leading-relaxed text-white/50">
+            Dá para escrever agora —{" "}
+            <b className="font-semibold text-white/70">guardo o que você digitar</b>. A partir de{" "}
+            {emReais(19.9)} por mês, com um pedido de boas-vindas incluído.{" "}
+            <Link
+              href="/plans"
+              onClick={aoIrParaPlanos}
+              className="font-semibold text-primary hover:underline"
+            >
+              Ver os planos
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Onde o rascunho do formulário espera a volta da tela de planos. */
+const RASCUNHO_KEY = "allbook_rascunho_pedido";
+
+interface Rascunho {
+  titulo?: string;
+  autor?: string;
+  observacao?: string;
+  vozEscolhida?: string;
+}
+
 export default function RequestBook() {
   const { toast } = useToast();
 
@@ -71,6 +189,43 @@ export default function RequestBook() {
   /** `undefined` = deixar o estúdio escolher. É o padrão, não um vazio. */
   const [vozEscolhida, setVozEscolhida] = useState<string | undefined>(undefined);
   const [pedidos, setPedidos] = useState<BookRequest[]>([]);
+  const [assinatura, setAssinatura] = useState<Assinatura>(readAssinatura);
+  const [, navegar] = useLocation();
+
+  const disponiveis = assinatura.creditos + (assinatura.boasVindas ? 1 : 0);
+  const temPedido = disponiveis > 0;
+  /* O avulso exige assinatura ativa — a regra está explicada em
+     `lib/assinatura.ts`: solto, ele ficaria mais barato que o plano do meio e
+     furaria a escada inteira. */
+  const podeComprarAvulso = !temPedido && assinatura.plano !== "nenhum";
+
+  /**
+   * O rascunho — a segunda metade do conserto (§4.118).
+   *
+   * A queixa dele não era só a recusa: era **o trabalho jogado fora**. Quem sai
+   * daqui para ver os planos volta com os campos como deixou. Guarda no
+   * `sessionStorage`, e não no `localStorage`, de propósito: é rascunho de
+   * agora, não conteúdo salvo — fechar o app e voltar semana que vem com um
+   * formulário pela metade seria assombração, não gentileza.
+   */
+  function guardarRascunho() {
+    try {
+      sessionStorage.setItem(
+        RASCUNHO_KEY,
+        JSON.stringify({ titulo, autor, observacao, vozEscolhida }),
+      );
+    } catch {
+      /* Modo privado: perde o rascunho, e é só isso. */
+    }
+  }
+
+  function limparRascunho() {
+    try {
+      sessionStorage.removeItem(RASCUNHO_KEY);
+    } catch {
+      /* idem */
+    }
+  }
 
   /**
    * O livro já está no AllBook? É a única das três respostas possíveis que o app
@@ -84,13 +239,66 @@ export default function RequestBook() {
   useEffect(() => {
     setPedidos(myRequests());
     window.scrollTo(0, 0);
+
+    /* Voltou dos planos? Devolve o que estava escrito. O título vindo da busca
+       (`?titulo=`) ganha do rascunho: quem chegou aqui procurando um livro
+       específico quer aquele, não o da sessão passada. */
+    try {
+      const cru = sessionStorage.getItem(RASCUNHO_KEY);
+      if (!cru) return;
+      const rascunho = JSON.parse(cru) as Rascunho;
+      setTitulo((atual) => atual || rascunho.titulo || "");
+      setAutor(rascunho.autor || "");
+      setObservacao(rascunho.observacao || "");
+      setVozEscolhida(rascunho.vozEscolhida);
+    } catch {
+      /* Rascunho corrompido não é motivo para a tela não abrir. */
+    }
   }, []);
+
+  /* O saldo muda em outra tela (assinar, cancelar) — e esta precisa saber ao
+     voltar, senão o botão continua dizendo "Assinar e pedir" para quem acabou
+     de assinar. */
+  useEffect(() => {
+    const atualizar = () => setAssinatura(readAssinatura());
+    atualizar();
+    window.addEventListener(ASSINATURA_EVENT, atualizar);
+    return () => window.removeEventListener(ASSINATURA_EVENT, atualizar);
+  }, []);
+
+  /**
+   * O que o botão faz depende do saldo — e é o que conserta a queixa.
+   *
+   * Três caminhos, e nenhum deles é uma recusa no fim do formulário: tem
+   * pedido → envia; não tem mas assina → compra o avulso e envia na sequência;
+   * não assina nada → vai para os planos **com o rascunho guardado**, e volta
+   * com os campos preenchidos.
+   */
+  function aoTocarNoBotao() {
+    if (temPedido) return enviar();
+
+    if (podeComprarAvulso) {
+      if (!comprarAvulso()) return;
+      toast({
+        title: "Pedido avulso comprado",
+        description: `${emReais(PRECO_AVULSO)} — um pedido, sem mudar a sua assinatura.`,
+      });
+      return enviar();
+    }
+
+    guardarRascunho();
+    navegar("/plans");
+  }
 
   function enviar() {
     const limpo = titulo.trim();
     if (!limpo) return;
+    /* Guarda-costas: a tela não deveria chegar aqui sem saldo, mas dois toques
+       no mesmo instante chegam. Sem isso, o segundo pedido sairia de graça. */
+    if (!consumirPedido()) return;
 
     addRequest({ title: limpo, author: autor, note: observacao, voiceSlug: vozEscolhida });
+    limparRascunho();
     setPedidos(myRequests());
     setTitulo("");
     setAutor("");
@@ -166,6 +374,24 @@ export default function RequestBook() {
           </p>
         </div>
       </header>
+
+      {/*
+        ⚠️ **A verdade vem ANTES do formulário** — é o conserto inteiro da
+        §4.118, e a ordem é o que importa. A queixa dele: *"a pessoa vai ter o
+        trabalho de digitar tudo isso… e no final de tudo só então vai aparecer
+        uma mensagem dizendo que você não tem crédito"*. Aqui o estado está no
+        alto desde o primeiro segundo, e o botão lá embaixo diz a mesma coisa.
+
+        **Ninguém é barrado em nenhum dos casos** — os campos ficam escritos e o
+        que for digitado volta. A porta laranja do menu continua sendo porta, e
+        não catraca: quem só queria entender como funciona vê a tela inteira.
+      */}
+      <EstadoDoPedido
+        disponiveis={disponiveis}
+        boasVindas={assinatura.boasVindas}
+        podeComprarAvulso={podeComprarAvulso}
+        aoIrParaPlanos={guardarRascunho}
+      />
 
       <section className="px-5" data-testid="request-form">
         <div className="space-y-4 rounded-xl border border-white/5 bg-white/5 p-4">
@@ -294,25 +520,55 @@ export default function RequestBook() {
             </p>
           </div>
 
+          {/*
+            ⚠️ **O botão nunca promete o que não pode cumprir** (§4.118). Era
+            sempre "Pedir esta narração", e a recusa vinha depois de tudo
+            digitado — a queixa que abriu a folha. Agora ele diz o que vai
+            acontecer **quando a tela abre**: pede, compra avulso, ou assina.
+          */}
           <button
             type="button"
-            onClick={enviar}
+            onClick={aoTocarNoBotao}
             disabled={titulo.trim().length === 0}
             className="h-12 w-full rounded-lg bg-primary text-base font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:bg-white/10 disabled:text-white/25"
             data-testid="button-send-request"
           >
-            Pedir esta narração
+            {temPedido
+              ? "Pedir esta narração"
+              : podeComprarAvulso
+                ? `Pedir por ${emReais(PRECO_AVULSO)}`
+                : "Assinar e pedir"}
           </button>
+
+          {/* O que sobra depois deste — decisão 3A. Só aparece quando há saldo
+              guardado: dizer "sobram 0" seria contar uma má notícia sem
+              necessidade, e o estado sem crédito já é dito no alto. */}
+          {temPedido && disponiveis > 1 && (
+            <p className="text-center text-[11.5px] text-white/40">
+              Sobram {disponiveis - 1} depois deste.
+            </p>
+          )}
+
+          {podeComprarAvulso && !temPedido && (
+            <Link
+              href="/plans"
+              onClick={guardarRascunho}
+              className="block text-center text-[11.5px] text-primary hover:underline"
+              data-testid="link-sai-mais-barato"
+            >
+              Sai por R$ 30 no plano mensal →
+            </Link>
+          )}
         </div>
 
         {/*
           O aviso é curto e verdadeiro. Sem servidor, o pedido não sai do
           aparelho — dizer o contrário faria a pessoa esperar por algo que não
-          está a caminho. Sobre plano e preço, nada: está em aberto no ROTEIRO.
+          está a caminho.
         */}
         <p className="mt-3 px-1 text-[12px] leading-relaxed text-white/35">
-          Enquanto o AllBook está em fase aberta, pedir não custa nada. Por ora o pedido fica
-          guardado neste aparelho: o estúdio ainda não está ligado do outro lado.
+          Por ora o pedido fica guardado neste aparelho: o estúdio ainda não está ligado do outro
+          lado, e nada aqui cobra de verdade.
         </p>
       </section>
 

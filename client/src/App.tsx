@@ -42,6 +42,7 @@ import Trechos from "@/pages/Trechos";
 import Seguidores from "@/pages/Seguidores";
 import Acompanhando from "@/pages/Acompanhando";
 import Avisos from "@/pages/Avisos";
+import Planos from "@/pages/Planos";
 import Privacidade from "@/pages/Privacidade";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
@@ -275,6 +276,10 @@ function Router() {
             <Route path="/publisher/:slug" component={PublisherProfile} />
             <Route path="/studio" component={Studio} />
             <Route path="/request" component={RequestBook} />
+            {/* A escada de planos — refeita do zero em 08/08 (§4.118). A `/plans`
+                do andaime saiu em 26/07 (§4.31) por mostrar plano inventado;
+                esta só existe porque agora há crédito de verdade para vender. */}
+            <Route path="/plans" component={Planos} />
             <Route path="/help" component={Help} />
             <Route path="/category/:slug" component={CategoryBooks} />
             <Route path="/collection/:slug" component={Collection} />

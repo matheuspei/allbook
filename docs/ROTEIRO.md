@@ -4865,3 +4865,85 @@ simétricas, porque o papel tem pouco espaço acima dele (6 pontos de L\*) e o
 grafite tem muito. Toda vez que uma peça do escuro "some" no claro, a pergunta
 certa não é *quanto* de opacidade falta — é **em que direção** aquela peça
 deveria se afastar do fundo.
+
+---
+
+## 4.118 Pedir sem crédito: a assinatura, a escada e a tela de Planos (08/08)
+
+As quatro decisões da folha `_pedir-sem-credito-A.html`, respondidas por ele, e
+**construídas na mesma sessão**. A folha era a última em aberto (§4.117).
+
+**A queixa que abriu tudo:** *"se a pessoa não tiver crédito, ela vai ter o
+trabalho de digitar tudo isso — título do livro, autor, observações — e no final
+de tudo só então vai aparecer uma mensagem dizendo 'olha, você não tem crédito,
+você não vai pedir'."*
+
+### As quatro respostas dele
+
+| # | Escolha | O que significa |
+|---|---|---|
+| 1 | **1B** | O plano de acesso não dá crédito mensal, mas todo assinante ganha **um pedido de boas-vindas, uma vez na vida da conta** |
+| 2 | **D** | Faltando crédito, a saída é **comprar um pedido avulso na hora** (R$ 39,90), sem trocar de assinatura |
+| 3 | **3A** | Crédito não usado **acumula, com teto de 3** |
+| 4 | **4B** | A escada tem **três faixas**, com a do meio marcada |
+
+### O que resolve a queixa não é a mensagem — é a ordem
+
+O conserto inteiro cabe numa frase: **a verdade vem antes do formulário, e o
+botão diz a mesma coisa que o topo.** O estado aparece no alto desde o primeiro
+segundo, em quatro versões — tem boas-vindas · tem N pedidos · acabaram, dá para
+comprar avulso · não assina —, e o botão lá embaixo nunca promete "Pedir" para
+quem não pode: ele diz "Pedir por R$ 39,90" ou "Assinar e pedir".
+
+**Ninguém é barrado em nenhum caso.** Os campos ficam abertos, e quem sai para
+ver os planos **volta com o que escreveu** (rascunho em `sessionStorage` —
+`sessionStorage` e não `localStorage` de propósito: rascunho é de agora; voltar
+semana que vem com um formulário pela metade seria assombração). A porta laranja
+do menu continua sendo porta, e não catraca.
+
+### Três decisões minhas, declaradas — nenhuma estava na folha
+
+1. **O avulso exige assinatura ativa.** A folha não tratou quem não assina nada,
+   e o avulso solto **fura a escada**: R$ 39,90 sem assinatura sai mais barato
+   que o plano do meio (R$ 49,90, que já inclui o acesso), e o degrau de cima
+   perde a razão de existir. Com assinatura a conta fecha: 19,90 + 39,90 = 59,90
+   contra 49,90 — o plano continua ganhando, que é o que a folha queria do
+   avulso ("o mais caro empurra para o plano").
+2. **Os nomes das faixas não são os da maquete.** A folha chamava a de cima de
+   **"Sem limite de fila"**, e isso mente — ela dá três livros por mês, que é um
+   limite. Ficaram **Ouvir · Ouvir e pedir · Ouvir e pedir mais**: três degraus
+   que se leem em ordem, e a régua dos nomes (§4.94) manda o óbvio ganhar do
+   charmoso.
+3. **"Assinatura" virou linha das Configurações.** Sem ela, a tela de planos
+   teria uma porta só (a de Pedir) e quem já assina não teria onde ver o que tem
+   nem como trocar. A etiqueta mostra o plano em vigor, como "Neste aparelho"
+   mostra o tema.
+
+### O risco que ele aceitou, e fica registrado
+
+A própria folha nomeou o contra do **D**: *"quem paga avulso pode nunca assinar
+o plano — e o plano é a receita que se repete"*. Ele escolheu sabendo. O que
+segura isso é o preço: o avulso é caro o bastante para o plano ganhar em duas
+compras. **Se um dia a maioria virar avulso, o lugar de mexer é
+`PRECO_AVULSO`.**
+
+### O que é verdade e o que é esqueleto
+
+**Nada cobra.** "Assinar" grava o plano no `localStorage` — o mesmo grau de
+verdade do login (`auth.ts`). O fluxo inteiro funciona; o gateway é que não
+existe. Quando o pagamento entrar, **quem troca de fonte é
+`lib/assinatura.ts`**, e nenhuma tela fica sabendo.
+
+⚠️ **A recarga mensal é contada pelo relógio do aparelho** (`ultimaRecarga`, no
+formato `AAAA-MM`): ao ler o estado, se o mês virou, o crédito entra respeitando
+o teto. Adiantar o relógio do Mac adianta o mês. Aceitável num protótipo; num
+servidor, não.
+
+### Apurado no caminho, e é armadilha de teste
+
+**Clique de automação em janela do Chrome sem foco não dispara `onClick` nem
+`Link` do wouter** — mas *digitar num campo funciona*, o que faz parecer que o
+clique chegou. Perdi três rodadas achando que `navegar("/plans")` estava
+quebrado; o código estava certo desde o começo. `osascript -e 'tell application
+"Google Chrome" to activate'` antes de clicar resolve, e `elemento.click()` pelo
+console é o caminho seguro para conferir efeito de botão.
