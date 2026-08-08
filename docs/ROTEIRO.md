@@ -5001,7 +5001,8 @@ gerenciados rodam hoje — publicar depois não vira migração de versão.
 
 ### O esquema virou uma PASTA, não um arquivo
 
-`shared/schema.ts` (3 colunas, uma tabela) virou `shared/schema/`, um arquivo
+O esquema inteiro cabia num arquivo só, com **uma tabela de 3 colunas**. Virou a
+pasta `shared/schema/`, um arquivo
 por assunto: `catalogo`, `contas`, `biblioteca`, `opiniao`, `social`, `clubes`,
 `forum`, `salas`, `pedidos`. Com 61 chaves para modelar, um arquivo único
 passaria de duas mil linhas. `@shared/schema` continua valendo (o `index.ts`
