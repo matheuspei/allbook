@@ -273,7 +273,16 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
         </div>
       </div>
 
-      <div className="flex items-center gap-3 border-t border-white/[0.07] bg-background/60 px-3 py-2.5">
+      {/*
+        A faixa do player é ESCURA nos dois temas (`sobre-midia` + preto), e isso
+        é decisão dele em 08/08: sobre o papel creme, o vermelho do play e da
+        onda pareciam lavados — *"o símbolo vermelho se confunde com a cor creme,
+        deveria ser mais vivo, como quando está no tema escuro"*. Não era cor
+        errada (medimos: o botão estava no vermelho certo), era **contraste
+        simultâneo** — a mesma cor sobre fundo claro perde brilho. Com o fundo
+        escuro, `sobre-midia` ainda devolve o `#FF4438` do Estúdio aqui dentro.
+      */}
+      <div className="sobre-midia flex items-center gap-3 border-t border-white/10 bg-black/85 px-3 py-2.5">
         <button
           onClick={alternar}
           className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-transform active:scale-95"

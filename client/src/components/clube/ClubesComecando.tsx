@@ -72,7 +72,7 @@ export default function ClubesComecando({
             <Link
               key={clube.id}
               href={`/clube/${clube.id}`}
-              className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-[#241a10] to-card p-3 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.22)] transition-colors hover:from-[#2b1f12]"
+              className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-primary/15 to-card p-3 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.25)] transition-colors hover:from-primary/25"
               data-testid={`clube-estreia-${clube.id}`}
             >
               {livro && (

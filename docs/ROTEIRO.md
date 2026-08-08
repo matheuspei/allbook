@@ -5092,3 +5092,39 @@ Contas de verdade (Passport + senha + a migração de primeira entrada, e
 recolocar o "Esqueci minha senha" que foi removido em 25/07), o destino da
 ficção (armadilha 2.4), e só então as telas trocando `localStorage` por API.
 **Nada disso foi feito aqui, e o app não mudou.**
+
+### A terceira rodada: o que "não se destaca" e o que "parece mais claro" (08/08)
+
+**1. Cartão branco que não descolava do papel.** Ele comparou com o que funciona
+na própria tela: *"o botão Minha lista é branco, mas ele se destaca porque a cor
+de fundo é creme"*. Estava certo — a superfície tinha ido para 40% de branco e a
+borda, para 7% de tinta. **Duas linhas finas mudam tudo:** a superfície subiu
+para ~80% (praticamente branco) e a **borda ganhou 70% a mais de peso** abaixo de
+15%, porque linha fina sobre branco some mais do que sobre grafite.
+
+**Ele também perguntou se os cartões não deviam ser escuros, como o botão
+Continuar. Eu recomendei que não, e ele aceitou:** o "Continuar" é preto
+justamente por ser a ação principal; se os cartões de informação também
+escurecerem, o botão deixa de saltar e a tela perde a hierarquia.
+
+**2. O vermelho do player "que se confunde com o creme".** Aqui a primeira
+suspeita estava errada e a medição salvou: o botão **já estava** no vermelho
+certo (`#DA281B`, medido no elemento). O que ele viu é real, mas é
+**perceptual** — a mesma cor saturada perde brilho sobre fundo claro (contraste
+simultâneo, o mesmo efeito que já tinha derrubado o carmim). *(Teste que fecha a
+questão: um círculo com a cor pura desenhado ao lado do botão sai idêntico a ele
+na captura — não havia transparência nenhuma.)*
+
+A saída foi a que ele mesmo apontou ao dizer *"deveria ser mais vivo, como é no
+tema escuro"*: **a faixa do player virou escura nos dois temas** (`sobre-midia` +
+`bg-black/85`). Com fundo escuro, `.sobre-midia` devolve o `#FF4438` do Estúdio,
+e o cartão de trecho passa a ser uma peça coesa — capa escurecida em cima, faixa
+de player embaixo, como um cartão de música.
+
+**3. E um bug de verdade, que ele fotografou:** a faixa "Este é o livro do
+Terror de Madrugada" tinha `from-[#241a10]` — **marrom escrito à mão**, resto da
+identidade laranja anterior — com o texto do tema por cima. No claro dava tinta
+escura sobre marrom escuro, ilegível na metade esquerda. Os três pontos com esse
+marrom (`FaixaDoClubeNoLivro`, `ClubesComecando`, `CartaoDoCiclo`) e o âmbar
+`#f59e0b` do avatar em `lib/clubes.ts` passaram a usar o vermelho da marca. Era o
+resto de âmbar velho que a janela B tinha apontado como pendência.

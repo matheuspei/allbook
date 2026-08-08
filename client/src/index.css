@@ -118,7 +118,7 @@
   --destructive-foreground: 40 100% 99%;
   --border: 39 25% 82%;            /* #DDD5C6 */
   --input: 39 25% 82%;
-  --ring: 3 61% 47%;
+  --ring: 4 78% 48%;
   --radius: 0.75rem;
 }
 
@@ -252,37 +252,37 @@
 }
 @layer utilities {
   /* ---- superfície: papel elevado é papel mais BRANCO ---- */
-  :where(html:not(.dark)) .bg-white\/\[0\.015\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.12); }   /* era 1.5% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.02\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.16); }   /* era 2% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.025\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.20); }   /* era 2.5% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.03\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.24); }   /* era 3% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/\[0\.03\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.24); }   /* era 3% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.035\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.28); }   /* era 3.5% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.04\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.32); }   /* era 4% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/\[0\.04\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.32); }   /* era 4% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.045\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.36); }   /* era 4.5% de tinta */
-  :where(html:not(.dark)) .bg-white\/5:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.40); }   /* era 5% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.05\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.40); }   /* era 5% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/\[0\.05\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.40); }   /* era 5% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/5:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.40); }   /* era 5% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.055\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.44); }   /* era 5.5% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.06\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.48); }   /* era 6% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/\[0\.06\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.48); }   /* era 6% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.07\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.56); }   /* era 7% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/\[0\.07\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.56); }   /* era 7% de tinta */
-  :where(html:not(.dark)) .bg-white\/\[0\.08\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.64); }   /* era 8% de tinta */
-  :where(html:not(.dark)) .group:hover .group-hover\:bg-white\/\[0\.08\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.64); }   /* era 8% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/\[0\.08\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.64); }   /* era 8% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/8:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.64); }   /* era 8% de tinta */
-  :where(html:not(.dark)) .bg-white\/10:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
-  :where(html:not(.dark)) .active\:bg-white\/10:active:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
-  :where(html:not(.dark)) .disabled\:bg-white\/10:disabled:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
-  :where(html:not(.dark)) .focus\:bg-white\/10:focus:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
-  :where(html:not(.dark)) .group:hover .group-hover\:bg-white\/10:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/10:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
-  :where(html:not(.dark)) .bg-white\/12:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.96); }   /* era 12% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/12:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.96); }   /* era 12% de tinta */
-  :where(html:not(.dark)) .hover\:bg-white\/\[0\.12\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.96); }   /* era 12% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.015\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.24); }   /* era 1.5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.02\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.32); }   /* era 2% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.025\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.40); }   /* era 2.5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.03\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.48); }   /* era 3% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.03\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.48); }   /* era 3% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.035\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.56); }   /* era 3.5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.04\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.64); }   /* era 4% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.04\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.64); }   /* era 4% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.045\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.72); }   /* era 4.5% de tinta */
+  :where(html:not(.dark)) .bg-white\/5:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.05\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 5% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.05\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 5% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/5:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.055\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.88); }   /* era 5.5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.06\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.96); }   /* era 6% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.06\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.96); }   /* era 6% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.07\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 7% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.07\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 7% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.08\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 8% de tinta */
+  :where(html:not(.dark)) .group:hover .group-hover\:bg-white\/\[0\.08\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 8% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.08\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 8% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/8:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 8% de tinta */
+  :where(html:not(.dark)) .bg-white\/10:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .active\:bg-white\/10:active:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .disabled\:bg-white\/10:disabled:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .focus\:bg-white\/10:focus:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .group:hover .group-hover\:bg-white\/10:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/10:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .bg-white\/12:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 12% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/12:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 12% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.12\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 12% de tinta */
   :where(html:not(.dark)) .bg-white\/\[0\.13\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 13% de tinta */
   :where(html:not(.dark)) .bg-white\/15:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 15% de tinta */
   :where(html:not(.dark)) .active\:bg-white\/15:active:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 15% de tinta */
@@ -299,16 +299,16 @@
   :where(html:not(.dark)) .group:hover .group-hover\:bg-white\/50 { background-color: hsl(var(--foreground) / 64%); }   /* de 50% */
   :where(html:not(.dark)) .hover\:bg-white\/60:hover { background-color: hsl(var(--foreground) / 72%); }   /* de 60% */
   :where(html:not(.dark)) .hover\:bg-white\/90:hover { background-color: hsl(var(--foreground) / 95%); }   /* de 90% */
-  :where(html:not(.dark)) .border-white\/5 { border-color: hsl(var(--foreground) / 7%); }   /* de 5% */
-  :where(html:not(.dark)) .border-white\/\[0\.05\] { border-color: hsl(var(--foreground) / 7%); }   /* de 5% */
-  :where(html:not(.dark)) .border-white\/\[0\.06\] { border-color: hsl(var(--foreground) / 8%); }   /* de 6% */
-  :where(html:not(.dark)) .border-white\/\[0\.07\] { border-color: hsl(var(--foreground) / 10%); }   /* de 7% */
-  :where(html:not(.dark)) .border-white\/8 { border-color: hsl(var(--foreground) / 11%); }   /* de 8% */
-  :where(html:not(.dark)) .border-white\/\[0\.08\] { border-color: hsl(var(--foreground) / 11%); }   /* de 8% */
-  :where(html:not(.dark)) .border-white\/10 { border-color: hsl(var(--foreground) / 14%); }   /* de 10% */
-  :where(html:not(.dark)) .border-white\/\[0\.12\] { border-color: hsl(var(--foreground) / 16%); }   /* de 12% */
-  :where(html:not(.dark)) .border-white\/12 { border-color: hsl(var(--foreground) / 16%); }   /* de 12% */
-  :where(html:not(.dark)) .border-white\/15 { border-color: hsl(var(--foreground) / 20%); }   /* de 15% */
+  :where(html:not(.dark)) .border-white\/5 { border-color: hsl(var(--foreground) / 12%); }   /* de 5% */
+  :where(html:not(.dark)) .border-white\/\[0\.05\] { border-color: hsl(var(--foreground) / 12%); }   /* de 5% */
+  :where(html:not(.dark)) .border-white\/\[0\.06\] { border-color: hsl(var(--foreground) / 14%); }   /* de 6% */
+  :where(html:not(.dark)) .border-white\/\[0\.07\] { border-color: hsl(var(--foreground) / 17%); }   /* de 7% */
+  :where(html:not(.dark)) .border-white\/8 { border-color: hsl(var(--foreground) / 19%); }   /* de 8% */
+  :where(html:not(.dark)) .border-white\/\[0\.08\] { border-color: hsl(var(--foreground) / 19%); }   /* de 8% */
+  :where(html:not(.dark)) .border-white\/10 { border-color: hsl(var(--foreground) / 24%); }   /* de 10% */
+  :where(html:not(.dark)) .border-white\/\[0\.12\] { border-color: hsl(var(--foreground) / 27%); }   /* de 12% */
+  :where(html:not(.dark)) .border-white\/12 { border-color: hsl(var(--foreground) / 27%); }   /* de 12% */
+  :where(html:not(.dark)) .border-white\/15 { border-color: hsl(var(--foreground) / 34%); }   /* de 15% */
   :where(html:not(.dark)) .border-white\/20 { border-color: hsl(var(--foreground) / 27%); }   /* de 20% */
   :where(html:not(.dark)) .border-white\/25 { border-color: hsl(var(--foreground) / 34%); }   /* de 25% */
   :where(html:not(.dark)) .focus\:border-white\/25:focus { border-color: hsl(var(--foreground) / 34%); }   /* de 25% */
@@ -317,12 +317,12 @@
   :where(html:not(.dark)) .hover\:border-white\/30:hover { border-color: hsl(var(--foreground) / 41%); }   /* de 30% */
   :where(html:not(.dark)) .border-white\/40 { border-color: hsl(var(--foreground) / 53%); }   /* de 40% */
   :where(html:not(.dark)) .border-white\/80 { border-color: hsl(var(--foreground) / 88%); }   /* de 80% */
-  :where(html:not(.dark)) .divide-white\/5 > :not(:last-child) { border-color: hsl(var(--foreground) / 7%); }   /* de 5% */
-  :where(html:not(.dark)) .ring-white\/5 { --tw-ring-color: hsl(var(--foreground) / 7%); }   /* de 5% */
-  :where(html:not(.dark)) .ring-white\/8 { --tw-ring-color: hsl(var(--foreground) / 11%); }   /* de 8% */
-  :where(html:not(.dark)) .ring-white\/10 { --tw-ring-color: hsl(var(--foreground) / 14%); }   /* de 10% */
-  :where(html:not(.dark)) .ring-white\/12 { --tw-ring-color: hsl(var(--foreground) / 16%); }   /* de 12% */
-  :where(html:not(.dark)) .ring-white\/15 { --tw-ring-color: hsl(var(--foreground) / 20%); }   /* de 15% */
+  :where(html:not(.dark)) .divide-white\/5 > :not(:last-child) { border-color: hsl(var(--foreground) / 12%); }   /* de 5% */
+  :where(html:not(.dark)) .ring-white\/5 { --tw-ring-color: hsl(var(--foreground) / 12%); }   /* de 5% */
+  :where(html:not(.dark)) .ring-white\/8 { --tw-ring-color: hsl(var(--foreground) / 19%); }   /* de 8% */
+  :where(html:not(.dark)) .ring-white\/10 { --tw-ring-color: hsl(var(--foreground) / 24%); }   /* de 10% */
+  :where(html:not(.dark)) .ring-white\/12 { --tw-ring-color: hsl(var(--foreground) / 27%); }   /* de 12% */
+  :where(html:not(.dark)) .ring-white\/15 { --tw-ring-color: hsl(var(--foreground) / 34%); }   /* de 15% */
   :where(html:not(.dark)) .ring-white\/60 { --tw-ring-color: hsl(var(--foreground) / 72%); }   /* de 60% */
   :where(html:not(.dark)) .ring-white\/70 { --tw-ring-color: hsl(var(--foreground) / 80%); }   /* de 70% */
   :where(html:not(.dark)) .text-white\/15 { color: hsl(var(--foreground) / 20%); }   /* de 15% */
@@ -338,6 +338,7 @@
   :where(html:not(.dark)) .text-white\/35 { color: hsl(var(--foreground) / 48%); }   /* de 35% */
   :where(html:not(.dark)) .text-white\/40 { color: hsl(var(--foreground) / 53%); }   /* de 40% */
   :where(html:not(.dark)) .disabled\:text-white\/40:disabled { color: hsl(var(--foreground) / 53%); }   /* de 40% */
+  :where(html:not(.dark)) .hover\:text-white\/40:hover { color: hsl(var(--foreground) / 53%); }   /* de 40% */
   :where(html:not(.dark)) .placeholder\:text-white\/40::placeholder { color: hsl(var(--foreground) / 53%); }   /* de 40% */
   :where(html:not(.dark)) .text-white\/45 { color: hsl(var(--foreground) / 59%); }   /* de 45% */
   :where(html:not(.dark)) .text-white\/50 { color: hsl(var(--foreground) / 64%); }   /* de 50% */
@@ -357,3 +358,5 @@
   :where(html:not(.dark)) .hover\:text-white\/85:hover { color: hsl(var(--foreground) / 91%); }   /* de 85% */
   :where(html:not(.dark)) .text-white\/90 { color: hsl(var(--foreground) / 95%); }   /* de 90% */
 }
+
+/* SEM TABELA: 9 */

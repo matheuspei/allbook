@@ -40,7 +40,7 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
 
   return (
     <section
-      className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#241a10] to-[#181818] shadow-[inset_0_0_0_1px_rgba(245,158,11,0.28)]"
+      className="overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 to-card shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.28)]"
       data-testid="cartao-do-ciclo"
     >
       <div className="flex gap-4 p-4">

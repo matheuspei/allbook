@@ -1601,6 +1601,6 @@ export function nomeDoMembro(slug: string): string {
 
 /** A cor do avatar de um membro (a mesma de `community.ts`). */
 export function corDoMembro(slug: string): string {
-  if (slug === EU) return "from-primary to-[#f59e0b]";
+  if (slug === EU) return "from-primary to-primary/60";
   return community.find((membro) => membro.slug === slug)?.color ?? "from-white/20 to-white/10";
 }

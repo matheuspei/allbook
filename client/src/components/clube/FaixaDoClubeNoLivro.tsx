@@ -41,7 +41,7 @@ export default function FaixaDoClubeNoLivro({ bookId }: { bookId: number }) {
   return (
     <Link
       href={`/clube/${clube.id}`}
-      className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-[#241a10] to-card p-3.5 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.22)] transition-colors hover:from-[#2b1f12]"
+      className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-primary/15 to-card p-3.5 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.25)] transition-colors hover:from-primary/25"
       data-testid="faixa-do-clube"
     >
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
