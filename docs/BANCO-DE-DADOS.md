@@ -26,8 +26,9 @@ depois*. Cada item abaixo diz **como está hoje** e **o que precisa acontecer**.
 | Tabelas | **62**, em `shared/schema/` (um arquivo por assunto) |
 | Armazenamento em uso | `PgStorage` — Drizzle sobre o Postgres. O `MemStorage`, que sumia com o servidor, **morreu em 08/08** |
 | Catálogo no banco | **cheio**: 59 livros, 48 pessoas, 10 editoras, 8 gêneros, 13 coleções |
-| Rotas de API | **2** — a das folhas de proposta e `GET /api/banco/saude` |
-| Onde o app guarda tudo | ainda **as 61 chaves `allbook_*` no navegador**: nenhuma tela lê do banco |
+| Rotas de API | **8** — folhas de proposta, saúde do banco, e as 6 de conta |
+| Contas | **de verdade desde 08/08**: senha cifrada (scrypt), sessão em cookie guardada no banco, "Esqueci minha senha" funcionando |
+| Onde o app guarda tudo | ainda **as 61 chaves `allbook_*` no navegador**: fora o login, nenhuma tela lê do banco |
 | Áudio | **não existe** — nenhum arquivo, nenhum player real |
 
 Ou seja: o banco está de pé e o catálogo dentro dele, **mas o app ainda não o
@@ -258,15 +259,23 @@ conta**.
 - [ ] Decidir e implementar a **migração de primeira entrada**: o que estava no
       aparelho sobe para a conta recém-criada, em vez de sumir.
 
-### 2.3 ⚠️ "Esqueci minha senha" foi removido e **precisa voltar**
+### 2.3 ✅ "Esqueci minha senha" foi removido e precisava voltar — RESOLVIDO (08/08)
 
 Este é literalmente o caso que o Matheus temia. O link saiu do Login em 25/07
-(ROTEIRO 4.23) porque **não existe senha para recuperar** — `auth.ts` não guarda
-senha. Quando houver contas, ele deixa de ser mentira e passa a ser
-obrigatório.
+(ROTEIRO 4.23) porque **não existia senha para recuperar** — `auth.ts` não
+guardava senha. Com o servidor de contas ele deixou de ser mentira.
 
-- [ ] Recolocar "Esqueci minha senha" no `pages/Login.tsx` junto com o servidor
-      de contas.
+- [x] Recolocar "Esqueci minha senha" no `pages/Login.tsx` junto com o servidor
+      de contas. **Feito em 08/08 (§4.120).** Token de uso único, 1 hora de
+      prazo, só o resumo do token no banco, e redefinir mata os outros pedidos em
+      aberto da conta.
+- [ ] ⚠️ **Falta o envio de e-mail.** Hoje o link volta na própria resposta, em
+      desenvolvimento, e a tela explica isso. Quando houver serviço de e-mail, é
+      só parar de devolver o campo `link` em `/api/contas/esqueci` — o resto já
+      está pronto.
+- [ ] ⚠️ **Falta limitar tentativas.** Nada impede hoje um robô chutar senha ou
+      pedir mil links. Entra junto com o limite de taxa da seção 2.5, que também
+      precisa de conta para existir.
 
 ### 2.4 ⚠️ Metade da comunidade é ficção que precisa de destino
 
@@ -365,13 +374,19 @@ Desde 04/08 a sua página tem endereço público (`/user/<slug>`, função
 link (ROTEIRO §4.97). O slug é **derivado do nome na hora** — mudou o nome,
 mudou o endereço, e todo link já compartilhado morre em silêncio.
 
-- [ ] Com contas, o endereço vira coluna própria (username), **escolhido uma vez
+- [x] Com contas, o endereço vira coluna própria (username), **escolhido uma vez
       e congelado** — não recalculado do nome. A migração deve gerar o inicial a
-      partir do nome com a mesma regra do `meuSlug()` de hoje.
-- [ ] O servidor passa a garantir unicidade (duas pessoas chamadas Matheus não
-      podem dividir `/user/matheus`). Hoje, num empate com um leitor fictício, o
-      seu endereço simplesmente ganha (`UserProfile.tsx` checa você antes de
-      `findMember`) — regra que só se sustenta sem contas.
+      partir do nome com a mesma regra do `meuSlug()` de hoje. **Feito em 08/08
+      (§4.120):** `contas.username`, gerado no cadastro pela mesma regra.
+- [x] O servidor passa a garantir unicidade (duas pessoas chamadas Matheus não
+      podem dividir `/user/matheus`). **Feito:** a coluna é `unique` e o cadastro
+      resolve o empate com número (`matheus-2`). Hoje, num empate com um leitor
+      fictício, o seu endereço ainda ganha (`UserProfile.tsx` checa você antes de
+      `findMember`) — regra que só se sustenta enquanto os fictícios existirem.
+- [ ] ⚠️ **`meuSlug()` de `lib/profile.ts` ainda deriva do nome**, e continua
+      sendo o que as telas usam — o username do banco só vale para quem tem
+      conta. As telas passam a ler o do servidor na etapa 3; até lá, **quem não
+      entrou continua com o endereço que muda junto com o nome**.
 - [ ] O `@` visível e a busca por pessoas ficaram **de fora desta etapa por
       decisão do Matheus** (§4.97); quando entrarem, o username desta coluna é o
       que a busca indexa.
@@ -542,8 +557,14 @@ O app já promete estas coisas na tela. Nenhuma funciona sem servidor:
    **Feito em 08/08 (§4.119).** O esquema das *outras* camadas também já está
    desenhado (`shared/schema/`), mas as tabelas delas estão **vazias** e nenhuma
    tela as usa — o que vem abaixo continua todo em aberto.
-2. **Contas de verdade** — Passport + senha, e a migração de primeira entrada
+2. 🔸 **Contas de verdade** — Passport + senha, e a migração de primeira entrada
    (2.2) junto, não depois. Recolocar "Esqueci minha senha" (2.3).
+   **Feito em 08/08 (§4.120), MENOS a migração de primeira entrada** — e o desvio
+   é consciente: os dados do usuário ainda não têm tabela em uso, então não há
+   para onde migrar. Ela entra na etapa 3, **na mesma mudança** que ligar a
+   biblioteca ao banco. ⚠️ **É lá que o `signOut` inverte de sentido** (2.2):
+   hoje ele não apaga a biblioteca porque ela é *do navegador*; quando for *da
+   conta*, apagar passa a ser o certo.
 3. **Dados do usuário**, na ordem em que doem se sumirem: biblioteca →
    progresso/diário → avaliações → comentários e reações → social.
 4. **Decidir o destino da ficção** (2.4) antes de abrir para gente real, não

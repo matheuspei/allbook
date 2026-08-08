@@ -5,6 +5,7 @@ import path from "path";
 import { sql } from "drizzle-orm";
 
 import { db } from "./db";
+import { registrarContas } from "./contas";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -12,6 +13,11 @@ export async function registerRoutes(
 ): Promise<Server> {
   // As rotas do app vão aqui, todas com o prefixo /api.
   // Quem fala com o banco usa `storage` (server/storage.ts) ou `db` (server/db.ts).
+
+  // Contas: cadastrar, entrar, sair, "esqueci minha senha" (§4.120).
+  // Vem primeiro porque instala a sessão e o Passport, que as rotas seguintes
+  // podem querer usar para saber quem está pedindo.
+  registrarContas(app);
 
   /**
    * O banco está de pé? (08/08, §4.119)

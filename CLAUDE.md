@@ -85,10 +85,16 @@ com **62 tabelas** em `shared/schema/` — um arquivo por assunto — e o **cat�
 já dentro dele**. O `MemStorage` morreu; `server/storage.ts` é Drizzle sobre
 Postgres.
 
-⚠️ **Nenhuma tela usa o banco ainda.** Biblioteca, perfil, comunidade, curtidas:
-tudo continua em `localStorage`, um arquivo por assunto em `client/src/lib/`. Ao
-escrever tela nova, **continue lendo das libs** — a troca para API é uma etapa
-própria, e fazer meia migração é o que quebra em silêncio.
+Desde 08/08 o **login é de verdade** (§4.120): senha cifrada, sessão em cookie
+guardada no banco, "Esqueci minha senha" funcionando. `lib/auth.ts` fala com
+`/api/contas/*`, mas **`readSession()` continua síncrono** — o `localStorage`
+virou *espelho* da sessão, não a verdade. Tela que precise saber quem está
+logado segue usando `readSession()` como sempre.
+
+⚠️ **Fora o login, nenhuma tela usa o banco.** Biblioteca, perfil, comunidade,
+curtidas: tudo continua em `localStorage`, um arquivo por assunto em
+`client/src/lib/`. Ao escrever tela nova, **continue lendo das libs** — a troca
+para API é uma etapa própria, e fazer meia migração é o que quebra em silêncio.
 
 Comandos: `npm run db:push` (aplica o esquema), `npm run db:catalogo` (recarrega
 o catálogo, idempotente), `npm run db:psql` (abre o banco no terminal),

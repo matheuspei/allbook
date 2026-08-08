@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
-import { MIN_PASSWORD, isValidEmail, signIn, signUp } from "@/lib/auth";
+import {
+  MIN_PASSWORD,
+  isValidEmail,
+  pedirRedefinicao,
+  redefinirSenha,
+  signIn,
+  signUp,
+} from "@/lib/auth";
 
 /**
  * Entrar / Criar conta (`/login`).
@@ -12,62 +19,133 @@ import { MIN_PASSWORD, isValidEmail, signIn, signUp } from "@/lib/auth";
  *
  * **O app não é trancado atrás desta tela.** Dá para explorar o catálogo inteiro
  * sem conta — o botão "Explorar sem conta" existe para isso. Um muro de login na
- * porta de entrada é o que mais afasta gente num app de catálogo, e como ainda
- * não há nada de verdade para proteger (sem servidor, sem áudio, sem cobrança),
- * ele só atrapalharia. Quando houver assinatura, o muro passa a ser no player,
- * não na entrada.
+ * porta de entrada é o que mais afasta gente num app de catálogo. Quando houver
+ * áudio e cobrança, o muro passa a ser no player, não na entrada.
  *
- * Visual sóbrio de propósito, na linha do Perfil: sem cartão colorido, sem
- * ícone com gradiente, laranja só no botão principal.
+ * **Mudou em 08/08 (§4.120): a senha passou a valer.** Antes, qualquer e-mail
+ * entrava; agora o servidor confere de verdade, e por isso apareceram coisas que
+ * a tela não tinha: espera enquanto a rede responde, erro vindo do servidor, e o
+ * **"Esqueci minha senha"** — que tinha sido *removido* em 25/07 (§4.23) porque
+ * não havia senha para recuperar. Ele volta agora que há.
+ *
+ * **A redefinição mora nesta mesma tela**, em `/login?token=…`, e não numa rota
+ * nova: uma rota exigiria mexer no `App.tsx`, que é de outra janela do Claude —
+ * e a tela de "escolher senha nova" é este mesmo formulário com um campo só.
  */
 
-type Mode = "entrar" | "criar";
+type Modo = "entrar" | "criar" | "esqueci" | "redefinir";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const [mode, setMode] = useState<Mode>("entrar");
+  /** O token do link de redefinição, quando a pessoa chega por ele. */
+  const [token] = useState(() => new URLSearchParams(window.location.search).get("token") ?? "");
+
+  const [modo, setModo] = useState<Modo>(token ? "redefinir" : "entrar");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   /** Só mostra erro depois da primeira tentativa: não repreende quem ainda está digitando. */
   const [tried, setTried] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  /** O erro que veio do servidor ("E-mail ou senha não conferem"). */
+  const [erroDoServidor, setErroDoServidor] = useState("");
+  /** Enquanto não há envio de e-mail, o link de redefinição aparece aqui. */
+  const [linkDeTeste, setLinkDeTeste] = useState("");
 
-  const creating = mode === "criar";
+  const criando = modo === "criar";
+  const esquecendo = modo === "esqueci";
+  const redefinindo = modo === "redefinir";
 
-  const nameError = creating && name.trim().length === 0 ? "Diga como quer ser chamado." : "";
-  const emailError = !isValidEmail(email) ? "Esse e-mail não parece completo." : "";
+  /* Cada modo pede campos diferentes — daí os erros serem condicionais. */
+  const pedeNome = criando;
+  const pedeEmail = !redefinindo;
+  const pedeSenha = !esquecendo;
+
+  const nameError = pedeNome && name.trim().length === 0 ? "Diga como quer ser chamado." : "";
+  const emailError = pedeEmail && !isValidEmail(email) ? "Esse e-mail não parece completo." : "";
   const passwordError =
-    password.length < MIN_PASSWORD ? `A senha precisa de pelo menos ${MIN_PASSWORD} caracteres.` : "";
+    pedeSenha && password.length < MIN_PASSWORD
+      ? `A senha precisa de pelo menos ${MIN_PASSWORD} caracteres.`
+      : "";
   const hasError = Boolean(nameError || emailError || passwordError);
 
-  function switchMode(next: Mode) {
-    setMode(next);
+  function trocarModo(proximo: Modo) {
+    setModo(proximo);
     setTried(false);
     setPassword("");
+    setErroDoServidor("");
+    setLinkDeTeste("");
   }
 
-  function onSubmit(event: React.FormEvent) {
+  async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     setTried(true);
-    if (hasError) return;
+    setErroDoServidor("");
+    if (hasError || enviando) return;
 
-    if (creating) {
-      signUp(name, email);
-      toast({ title: "Conta criada", description: "Bem-vindo ao AllBook." });
-    } else {
-      signIn(email);
-      toast({ title: "Você entrou" });
+    setEnviando(true);
+    try {
+      if (criando) {
+        await signUp(name, email, password);
+        toast({ title: "Conta criada", description: "Bem-vindo ao AllBook." });
+        setLocation("/");
+      } else if (esquecendo) {
+        const { link } = await pedirRedefinicao(email);
+        // A resposta é a mesma exista ou não a conta — de propósito, para esta
+        // tela não virar um jeito de descobrir quem tem cadastro aqui.
+        toast({
+          title: "Pedido registrado",
+          description: "Se existir uma conta com esse e-mail, o link de troca vale por 1 hora.",
+        });
+        if (link) setLinkDeTeste(link);
+      } else if (redefinindo) {
+        await redefinirSenha(token, password);
+        toast({ title: "Senha trocada", description: "Agora é só entrar com ela." });
+        trocarModo("entrar");
+        // Tira o token da barra de endereço: ele já foi usado e não vale mais.
+        window.history.replaceState(null, "", "/login");
+      } else {
+        await signIn(email, password);
+        toast({ title: "Você entrou" });
+        setLocation("/");
+      }
+    } catch (erro) {
+      setErroDoServidor(erro instanceof Error ? erro.message : "Não consegui falar com o servidor.");
+    } finally {
+      setEnviando(false);
     }
-
-    setLocation("/");
   }
 
   const fieldClass =
     "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary/50 transition-colors placeholder:text-white/25";
   const labelClass = "block text-xs font-semibold text-white/40 uppercase tracking-wider";
+
+  const titulo = criando
+    ? "Criar sua conta"
+    : esquecendo
+      ? "Esqueci minha senha"
+      : redefinindo
+        ? "Escolher uma senha nova"
+        : "Entrar";
+
+  const subtitulo = criando
+    ? "Sua biblioteca e seu progresso ficam guardados."
+    : esquecendo
+      ? "Diga o e-mail da conta e mandamos o link de troca."
+      : redefinindo
+        ? "Digite a senha que você vai usar daqui para frente."
+        : "Continue de onde você parou.";
+
+  const rotuloDoBotao = criando
+    ? "Criar conta"
+    : esquecendo
+      ? "Enviar link"
+      : redefinindo
+        ? "Trocar a senha"
+        : "Entrar";
 
   return (
     <div
@@ -79,18 +157,12 @@ export default function Login() {
           <span className="font-display text-2xl font-bold tracking-tight">
             <span className="text-primary">All</span>Book
           </span>
-          <h1 className="text-2xl font-bold font-display tracking-tight mt-6">
-            {creating ? "Criar sua conta" : "Entrar"}
-          </h1>
-          <p className="text-sm text-white/40 mt-1.5">
-            {creating
-              ? "Sua biblioteca e seu progresso ficam guardados."
-              : "Continue de onde você parou."}
-          </p>
+          <h1 className="text-2xl font-bold font-display tracking-tight mt-6">{titulo}</h1>
+          <p className="text-sm text-white/40 mt-1.5">{subtitulo}</p>
         </header>
 
         <form onSubmit={onSubmit} className="space-y-5" noValidate>
-          {creating && (
+          {pedeNome && (
             <div className="space-y-2">
               <label htmlFor="name" className={labelClass}>
                 Nome
@@ -106,84 +178,147 @@ export default function Login() {
                 className={fieldClass}
                 data-testid="input-login-name"
               />
-              {tried && nameError && <p className="text-xs text-red-400">{nameError}</p>}
+              {tried && nameError && <p className="text-xs text-destructive">{nameError}</p>}
             </div>
           )}
 
-          <div className="space-y-2">
-            <label htmlFor="email" className={labelClass}>
-              E-mail
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              placeholder="voce@exemplo.com"
-              className={fieldClass}
-              data-testid="input-login-email"
-            />
-            {tried && emailError && <p className="text-xs text-red-400">{emailError}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="password" className={labelClass}>
-              Senha
-            </label>
-            <div className="relative">
+          {pedeEmail && (
+            <div className="space-y-2">
+              <label htmlFor="email" className={labelClass}>
+                E-mail
+              </label>
               <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={creating ? "new-password" : "current-password"}
-                placeholder={creating ? `Pelo menos ${MIN_PASSWORD} caracteres` : "Sua senha"}
-                className={`${fieldClass} pr-12`}
-                data-testid="input-login-password"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                placeholder="voce@exemplo.com"
+                className={fieldClass}
+                data-testid="input-login-email"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/30 hover:text-white/70 transition-colors"
-                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                data-testid="button-toggle-password"
-              >
-                {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-              </button>
+              {tried && emailError && <p className="text-xs text-destructive">{emailError}</p>}
             </div>
-            {tried && passwordError && <p className="text-xs text-red-400">{passwordError}</p>}
-          </div>
+          )}
+
+          {pedeSenha && (
+            <div className="space-y-2">
+              <label htmlFor="password" className={labelClass}>
+                {redefinindo ? "Senha nova" : "Senha"}
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={criando || redefinindo ? "new-password" : "current-password"}
+                  placeholder={
+                    criando || redefinindo ? `Pelo menos ${MIN_PASSWORD} caracteres` : "Sua senha"
+                  }
+                  className={`${fieldClass} pr-12`}
+                  data-testid="input-login-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/30 hover:text-white/70 transition-colors"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  data-testid="button-toggle-password"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-[18px] h-[18px]" />
+                  ) : (
+                    <Eye className="w-[18px] h-[18px]" />
+                  )}
+                </button>
+              </div>
+              {tried && passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
+            </div>
+          )}
 
           {/*
-            "Esqueci minha senha" saiu daqui (ROTEIRO 4.23), e não é um item de
-            lista de espera: **não há senha para recuperar**. `auth.ts` decidiu
-            deliberadamente não guardar senha nenhuma no navegador, então
-            qualquer senha válida entra. Um link de recuperação neste modelo não
-            estaria "por construir" — estaria mentindo sobre como o login
-            funciona. Ele volta junto com o servidor de contas, que é quem
-            passará a ter uma senha de verdade para redefinir.
+            "Esqueci minha senha" VOLTOU (08/08, §4.120). Ele tinha sido removido
+            em 25/07 porque não existia senha para recuperar — não estava "por
+            construir", estaria mentindo sobre como o login funcionava. Agora há
+            servidor de contas, e ele deixa de ser mentira.
           */}
+          {modo === "entrar" && (
+            <button
+              type="button"
+              onClick={() => trocarModo("esqueci")}
+              className="text-xs text-white/40 hover:text-white/70 transition-colors"
+              data-testid="button-forgot-password"
+            >
+              Esqueci minha senha
+            </button>
+          )}
+
+          {erroDoServidor && (
+            <p className="text-xs text-destructive" data-testid="text-login-error" role="alert">
+              {erroDoServidor}
+            </p>
+          )}
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 active:scale-[0.99] transition-all"
+            disabled={enviando}
+            className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 active:scale-[0.99] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
             data-testid="button-login-submit"
           >
-            {creating ? "Criar conta" : "Entrar"}
+            {enviando && <Loader2 className="w-4 h-4 animate-spin" />}
+            {rotuloDoBotao}
           </button>
         </form>
 
-        <p className="text-sm text-white/40 text-center mt-6">
-          {creating ? "Já tem conta?" : "Ainda não tem conta?"}{" "}
-          <button
-            onClick={() => switchMode(creating ? "entrar" : "criar")}
-            className="font-semibold text-primary hover:underline"
-            data-testid="button-switch-mode"
+        {/*
+          O link aparece na tela porque **ainda não há envio de e-mail**. Dizer
+          isso é melhor do que um "enviamos um e-mail" que nunca chega — o mesmo
+          princípio que tirou este link da tela em 25/07.
+        */}
+        {linkDeTeste && (
+          <div
+            className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4"
+            data-testid="box-reset-link"
           >
-            {creating ? "Entrar" : "Criar agora"}
-          </button>
-        </p>
+            <p className="text-xs text-white/40 leading-relaxed">
+              Ainda não existe envio de e-mail, então o link de troca vem aqui. Ele vale por 1 hora
+              e só pode ser usado uma vez.
+            </p>
+            <Link
+              href={linkDeTeste}
+              className="mt-2 block text-xs font-semibold text-primary break-all hover:underline"
+              data-testid="link-reset-password"
+            >
+              {linkDeTeste}
+            </Link>
+          </div>
+        )}
+
+        {(modo === "entrar" || criando) && (
+          <p className="text-sm text-white/40 text-center mt-6">
+            {criando ? "Já tem conta?" : "Ainda não tem conta?"}{" "}
+            <button
+              onClick={() => trocarModo(criando ? "entrar" : "criar")}
+              className="font-semibold text-primary hover:underline"
+              data-testid="button-switch-mode"
+            >
+              {criando ? "Entrar" : "Criar agora"}
+            </button>
+          </p>
+        )}
+
+        {(esquecendo || redefinindo) && (
+          <p className="text-sm text-white/40 text-center mt-6">
+            <button
+              onClick={() => trocarModo("entrar")}
+              className="font-semibold text-primary hover:underline"
+              data-testid="button-back-to-login"
+            >
+              Voltar para entrar
+            </button>
+          </p>
+        )}
 
         <div className="flex items-center gap-4 my-7">
           <span className="h-px flex-1 bg-white/10" />
@@ -200,8 +335,8 @@ export default function Login() {
         </Link>
 
         <p className="text-[11px] text-white/25 leading-relaxed text-center mt-8">
-          Ainda não existe servidor de contas: qualquer e-mail entra, e nada é
-          enviado para fora deste navegador. A senha não é guardada.
+          Sua senha é guardada cifrada e nunca sai daqui em texto. A biblioteca e o
+          progresso ainda ficam neste navegador — eles sobem para a conta na próxima etapa.
         </p>
       </div>
     </div>

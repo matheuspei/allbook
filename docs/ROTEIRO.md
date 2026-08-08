@@ -5128,3 +5128,112 @@ escura sobre marrom escuro, ilegível na metade esquerda. Os três pontos com es
 marrom (`FaixaDoClubeNoLivro`, `ClubesComecando`, `CartaoDoCiclo`) e o âmbar
 `#f59e0b` do avatar em `lib/clubes.ts` passaram a usar o vermelho da marca. Era o
 resto de âmbar velho que a janela B tinha apontado como pendência.
+
+---
+
+## 4.120 Contas de verdade: a senha passa a valer, e o "Esqueci minha senha" volta (08/08)
+
+Etapa 2 do banco, na ordem do `docs/BANCO-DE-DADOS.md` (§4, item 2).
+
+### O que mudou de fato
+
+Até aqui `lib/auth.ts` deixava **qualquer e-mail entrar** e nunca guardava senha
+— e isso não era descuido, era coerência: não havia com o que conferir. Agora há
+servidor, e a senha passa a valer.
+
+- `POST /api/contas/cadastrar · entrar · sair`, `GET /api/contas/eu`,
+  `POST /api/contas/esqueci · redefinir`.
+- Senha cifrada com **scrypt** (`node:crypto`, sem dependência nova), com sal
+  próprio por senha e comparação `timingSafeEqual`.
+- **Sessão em cookie assinado, guardada no banco** (`connect-pg-simple`).
+- Criar conta cria, **na mesma transação**, a linha de `ajustes` e a de
+  `assinaturas`. Sem transação, uma pessoa poderia existir sem preferências — e
+  cada tela leria vazio e escolheria o padrão errado, sem erro nenhum.
+
+### O `@username` congela (armadilha 2.9 resolvida)
+
+O endereço público nasce do nome com a mesma regra do `meuSlug()` — quem já tinha
+um link compartilhado continua com ele — e **daí em diante não muda sozinho**.
+Antes ele era recalculado do nome a cada leitura: trocar o nome matava todo link
+já enviado, em silêncio. Empate resolve com número (`matheus-2`), coisa que sem
+contas simplesmente não existia.
+
+### "Esqueci minha senha" volta (armadilha 2.3 resolvida)
+
+Ele foi **removido** em 25/07 (§4.23) porque não havia senha para recuperar —
+não era item de lista de espera, era o app não mentir. Voltou agora que há.
+
+⚠️ **Ainda não existe envio de e-mail, e a tela diz isso na cara:** em
+desenvolvimento o link vem na própria resposta, dentro de uma caixa que explica o
+porquê. É o mesmo princípio que tirou o link em julho — melhor um aviso explícito
+do que um "enviamos um e-mail" que nunca chega. Quando o envio existir, o servidor
+para de devolver o campo e nada mais muda.
+
+Token de **uso único**, com **1 hora** de prazo, e o que fica no banco é só o
+**resumo** dele: quem ler o banco não redefine a senha de ninguém. Redefinir
+**mata todos os outros pedidos em aberto** da conta — senão um link antigo, na
+caixa de entrada de quem invadiu o e-mail, continuaria valendo depois da
+recuperação.
+
+### As três decisões de privacidade que ficam no código
+
+1. **A mesma mensagem para e-mail que não existe e para senha errada.** Separar
+   as duas transformaria a tela de login numa forma de descobrir quem tem conta
+   no AllBook.
+2. **O "esqueci" responde igual exista ou não a conta**, pelo mesmo motivo — e
+   ele nem pede senha para ser chamado.
+3. **No cadastro, dizer a verdade é o certo** ("já existe uma conta com esse
+   e-mail"): o vazamento é o mesmo, mas quem está criando conta precisa saber que
+   já tem uma, senão fica preso tentando.
+
+### Como isso entrou sem mexer nas telas dos outros
+
+Só **duas telas** usam `lib/auth`: `Login.tsx` e `You.tsx` — e `You.tsx` é da
+janela B. Deu para não encostar nela porque:
+
+- **`readSession()` continua SÍNCRONO.** O `localStorage` deixou de ser a verdade
+  e virou **espelho** dela: `readSession()` lê o espelho (instantâneo, como
+  antes) e `sincronizarSessao()` corrige quando o servidor responde. Sem isso,
+  cada tela que lê a sessão de dentro de um `useState(readSession)` teria de
+  virar assíncrona.
+- **`signOut()` continua `void`** — apaga o espelho na hora e avisa o servidor
+  depois. O pior caso é uma sessão órfã no banco, que expira sozinha; esperar a
+  rede deixaria o botão "Sair" parado.
+- **A tela de trocar senha mora em `/login?token=…`**, não numa rota nova: rota
+  nova exigiria mexer no `App.tsx`, que também é da B.
+
+⚠️ **Servidor fora do ar não desloga ninguém**: em falha de rede o espelho fica
+como está. Deslogar por Wi-Fi ruim seria pior do que mostrar um nome
+desatualizado por alguns segundos.
+
+### O que NÃO foi feito, e por quê
+
+O checklist manda fazer a **migração de primeira entrada** (armadilha 2.2) *junto
+com as contas, não depois*. **Ela não foi feita, de propósito:** os dados do
+usuário ainda não têm tabela em uso — não há para onde migrar. Fazer agora seria
+escrever uma migração que copia nada.
+
+Ela entra na etapa 3, **na mesma mudança** que ligar a biblioteca ao banco, e é
+lá que o `signOut` inverte de sentido: hoje ele não apaga a biblioteca porque ela
+é *do navegador*; quando for *da conta*, apagar passa a ser o certo. O comentário
+que diz isso está no próprio `signOut`, para não depender de alguém abrir o `.md`.
+
+### Conferido, não suposto
+
+Pela API: cadastro, e-mail repetido (409), senha errada e e-mail inexistente com
+**a mesma mensagem**, senha certa, "esqueci" com e sem conta dando **a mesma
+resposta**, redefinição, **token recusado na segunda vez**, senha antiga deixando
+de valer, `matheus` → `matheus-2` na colisão. No banco: senha guardada como hash
+de 161 caracteres, a senha em texto **não aparece em lugar nenhum**, `ajustes` e
+`assinaturas` nascidos com os padrões certos (conta privada desligada, capítulo
+desligado, `boasVindas: nao`). **A sessão sobrevive ao reinício do servidor** —
+que era exatamente o motivo de guardá-la no banco. E na tela: criar conta, senha
+errada mostrando o erro, o link de troca, a tela de senha nova, e a senha antiga
+deixando de entrar.
+
+### Armadilha de teste, confirmando o que a janela B registrou
+
+Perdi tempo achando que a mensagem de erro não aparecia: **o clique não estava
+chegando**, porque a janela do Chrome tinha perdido o foco (§4.118). Pelo
+`elemento.click()` do console, o erro apareceu na hora. O registro da B está
+certo e vale para as três janelas.
