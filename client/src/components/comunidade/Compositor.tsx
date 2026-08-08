@@ -229,7 +229,7 @@ export default function Compositor({ aoPublicar }: { aoPublicar?: () => void }) 
           <button
             onClick={publicar}
             disabled={!podePublicar}
-            className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-[12px] font-bold text-black transition-opacity disabled:opacity-30"
+            className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-[12px] font-bold text-primary-foreground transition-opacity disabled:opacity-30"
             data-testid="compositor-publicar"
           >
             <Send className="h-3 w-3" />

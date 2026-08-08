@@ -136,7 +136,8 @@ function OuvindoAgora({ seguindo }: { seguindo: string[] }) {
             className="w-[80px] shrink-0 group"
             data-testid={`listening-${member.slug}`}
           >
-            <div className="relative h-[106px] w-[80px] overflow-hidden rounded-xl border-2 border-primary/55">
+            {/* `sobre-midia`: a inicial e o "cap. X" ficam por cima da capa. */}
+            <div className="sobre-midia relative h-[106px] w-[80px] overflow-hidden rounded-xl border-2 border-primary/55">
               <img src={book.cover} alt={book.title} className="h-full w-full object-cover" />
               <span
                 className={`absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-black bg-gradient-to-br ${member.color} text-[8px] font-bold`} {...avatarDeLeitor(member.slug)}

@@ -123,7 +123,7 @@ export default function EscolherCapa({
       </div>
 
       {buscando && !temCapa && (
-        <div className="mt-2.5 rounded-lg border border-white/[0.08] bg-black/20 p-2.5">
+        <div className="mt-2.5 rounded-lg border border-white/[0.08] bg-background/60 p-2.5">
           <div className="flex items-center gap-2">
             <input
               value={busca}

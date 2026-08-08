@@ -136,7 +136,7 @@ function LinhaDeLeitor({ pessoa }: { pessoa: CommunityMember }) {
         className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-[11.5px] font-semibold transition-colors ${
           seguindo
             ? "bg-white/[0.06] text-white/50 hover:bg-white/12 hover:text-white"
-            : "bg-primary text-black hover:bg-primary/90"
+            : "bg-primary text-primary-foreground hover:bg-primary/90"
         }`}
         data-testid={`seguir-${pessoa.slug}`}
       >

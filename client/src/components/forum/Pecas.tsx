@@ -137,7 +137,7 @@ export function BotaoDoForum({
       disabled={disabled}
       className={`rounded-full px-3.5 py-2 text-[12px] font-bold transition-colors disabled:opacity-30 ${
         primario
-          ? "bg-primary text-black hover:opacity-90"
+          ? "bg-primary text-primary-foreground hover:opacity-90"
           : "border border-white/15 text-white/70 hover:bg-white/5"
       }`}
       data-testid={testid}
@@ -391,7 +391,9 @@ export function CartazDoTopico({
   const src = imagem ?? capaDoLivro;
 
   return (
-    <div className="relative overflow-hidden" data-testid={testid}>
+    /* `sobre-midia`: capa borrada (ou degradê de cor) sob um véu preto — o fundo
+       é escuro nos dois temas, então o texto daqui para dentro é branco. */
+    <div className="sobre-midia relative overflow-hidden" data-testid={testid}>
       {src ? (
         <img
           src={src}

@@ -205,7 +205,7 @@ export default function Settings() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleClearData}
-              className="bg-primary text-black hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
               data-testid="button-confirm-settings"
             >
               Apagar

@@ -192,7 +192,7 @@ export default function PessoasNaSala({
             {escolhidos.length > 0 && (
               <button
                 onClick={chamar}
-                className="mt-4 w-full rounded-xl bg-primary py-3 font-display text-[13.5px] font-bold text-black"
+                className="mt-4 w-full rounded-xl bg-primary py-3 font-display text-[13.5px] font-bold text-primary-foreground"
                 data-testid="button-chamar-para-sala"
               >
                 Chamar {escolhidos.length}{" "}

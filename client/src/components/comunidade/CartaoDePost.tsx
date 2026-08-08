@@ -380,7 +380,7 @@ function CaixaDeCompartilhar({ post, onPronto }: { post: Post; onPronto: () => v
                   : "Está no seu perfil e no feed, com o seu nome em cima.",
             });
           }}
-          className="rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-black"
+          className="rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-primary-foreground"
           data-testid="confirmar-compartilhamento"
         >
           {meu ? "Salvar" : "Compartilhar"}
@@ -435,7 +435,7 @@ function EditarOTexto({ post, onPronto }: { post: Post; onPronto: () => void }) 
             onPronto();
           }}
           disabled={texto.trim().length === 0 && post.objeto === undefined}
-          className="rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-black disabled:opacity-30"
+          className="rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-primary-foreground disabled:opacity-30"
           data-testid="salvar-edicao"
         >
           Salvar
@@ -468,10 +468,11 @@ function CapaDoLivro({ bookId }: { bookId: number }) {
 
   return (
     <div
-      className="relative mt-3 flex items-center gap-3.5 overflow-hidden rounded-xl p-3.5"
+      className="sobre-midia relative mt-3 flex items-center gap-3.5 overflow-hidden rounded-xl p-3.5"
       data-testid="post-livro"
     >
-      {/* A própria capa, desfocada e escurecida, é o fundo. Nada de cor nova. */}
+      {/* A própria capa, desfocada e escurecida, é o fundo. Nada de cor nova.
+          Fundo escuro nos dois temas ⇒ o bloco leva `sobre-midia`. */}
       <div aria-hidden className="absolute inset-0">
         <img src={livro.cover} alt="" className="h-full w-full scale-125 object-cover blur-2xl" />
         <div className="absolute inset-0 bg-black/55" />
@@ -661,7 +662,8 @@ export function CartaoDoClube({ clubeId }: { clubeId: string }) {
         que o Matheus cobrou nos outros: se cortar a arte é ruim num, é ruim nos
         três. Três cartões, uma gramática.
       */}
-      <div className="relative flex items-start gap-3.5 p-3.5">
+      {/* Fundo escuro nos dois temas (capa borrada + véu) ⇒ `sobre-midia`. */}
+      <div className="sobre-midia relative flex items-start gap-3.5 p-3.5">
         <div aria-hidden className="absolute inset-0">
           {livro && (
             <img src={livro.cover} alt="" className="h-full w-full scale-125 object-cover blur-2xl" />
@@ -681,7 +683,7 @@ export function CartaoDoClube({ clubeId }: { clubeId: string }) {
 
         <div className="relative min-w-0 flex-1">
           {/* Diz o que é antes de qualquer outra coisa — era o que faltava. */}
-          <span className="inline-block rounded-full bg-primary px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-black">
+          <span className="inline-block rounded-full bg-primary px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.1em] text-primary-foreground">
             Clube de leitura
           </span>
 
@@ -737,7 +739,7 @@ export function CartaoDoClube({ clubeId }: { clubeId: string }) {
         </div>
       </div>
 
-      <div className="relative flex items-center justify-between border-t border-white/[0.07] bg-black/25 px-3 py-2.5">
+      <div className="relative flex items-center justify-between border-t border-white/[0.07] bg-background/60 px-3 py-2.5">
         <span className="min-w-0 flex-1 truncate text-[11.5px] text-white/50">
           {meu ? (
             "seu clube"

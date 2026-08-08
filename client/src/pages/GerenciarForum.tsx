@@ -159,7 +159,7 @@ function Informacoes({ id }: { id: string }) {
                 {grupo?.emoji}
               </span>
             )}
-            <span className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full bg-primary text-black ring-4 ring-background">
+            <span className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground ring-4 ring-background">
               <Camera className="h-3.5 w-3.5" />
             </span>
           </button>

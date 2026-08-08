@@ -94,7 +94,7 @@ export default function CartaoDeSugestoes({ sugestoes }: { sugestoes: Suggestion
                 className={`mt-2 flex w-full items-center justify-center gap-1 rounded-full py-1.5 text-[10.5px] font-bold transition-colors ${
                   ja
                     ? "border border-white/15 text-white/50"
-                    : "bg-primary text-black hover:bg-primary/90"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
                 }`}
                 data-testid={`sugestao-seguir-${member.slug}`}
               >

@@ -4534,3 +4534,126 @@ decisão é dele, e está registrada como pendente.
 **O que também apareceu no caminho, e vale guardar:** os ajustes fixos da conta
 dele estavam com **Estranheza 157** e **modo Cru ligado**, sujando toda geração —
 e **voltam sozinhos** depois de mexer. Só `--weird 0` no fim do prompt segura.
+
+### O infinito com dois players — reprovado (08/08)
+
+Ele trouxe uma **imagem de fora** (infinito de traço grosso com um play vermelho
+dentro do laço esquerdo, "Allbook" em Poppins Light com os dois **o** encostados)
+e pediu para recriar em vetor **duplicando o play no laço direito**. Fiz a folha
+`_logo-infinito-A.html` — o original mais as quatro direções possíveis, com troca
+de paleta e de tamanho do play. **Ele reprovou de saída** e foi terminar a marca
+com o ChatGPT. **Não apurei o motivo** — ficou em aberto; se o assunto voltar,
+perguntar antes de redesenhar.
+
+**O que sobrou de apurado, e poupa trabalho na próxima:**
+
+- **A geometria do infinito está resolvida.** Dois círculos de raio R com centros
+  em ±`R/cos α` (usei α=28°); os arcos viram reta nos pontos a `±R·sin²α/cos α`
+  de x e `±R·sin α` de y. Esse `c = R/cos α` é o que faz a reta sair **tangente**
+  ao arco — com qualquer outro valor o cruzamento do meio ganha uma quina visível.
+  O path está no arquivo da folha.
+- **Duplicar o play custa a legibilidade do símbolo.** Os dois vazios do laço são
+  o que faz o ∞ ler como ∞; preenchidos, em tamanho de ícone vira duas manchas
+  coladas. Isso vale para **qualquer** marca que ponha algo dentro dos dois laços,
+  inclusive as que nascerem do ChatGPT.
+
+## 4.116 O tema claro "Tinta" consertado — e o erro de projeto que o quebrava (08/08)
+
+**A reclamação dele, na abertura da sessão:** *"o preto até que corrigiu, ficou
+muito bom. O problema é que, quando a gente vai para o tema claro, as letras não
+ficam visíveis e tem um problema pior ainda: as capas dos livros. Quando você
+clica na capa do livro, simplesmente a cor toma conta da parte de trás."*
+
+Ele estava certo nas duas contagens, e a causa das duas é a mesma decisão da
+§4.112 levada longe demais.
+
+### O erro: `black` também virou "a cor do papel"
+
+Apontar `--color-white` para a cor do texto do tema foi acerto — é o que fez
+1.700 classes se inverterem sozinhas. **Apontar `--color-black` para a cor do
+papel foi erro**, e é reversível numa linha: no app, `black` quase nunca quer
+dizer "o fundo". Ele quer dizer **escurecer**, e escurecer é escurecer nos dois
+temas:
+
+| Onde aparece | Quantos | O que fazia no tema claro |
+|---|---|---|
+| véu por trás das folhas e menus | ~40 | clareava — a folha branca flutuava sem véu |
+| sombra (`shadow-black/40`) | 13 | sombra cor de papel: sumia |
+| degradê sobre a capa (`from-black/90`) | 4 | pintava creme por cima da arte |
+
+O último é exatamente o *"a cor toma conta da parte de trás"*: na ficha do livro
+a capa ocupa 65% da tela e o degradê que a apagava virou papel creme por cima da
+arte — a capa continuava lá, gritando, e o título por cima dela era tinta escura
+sobre foto escura.
+
+**O que passou a valer:** `black` é preto literal outra vez. O preço são os 85
+pontos onde `text-black` significava "texto sobre botão claro" — todos trocados
+por **`text-primary-foreground`** (sobre o vermelho) e **`text-background`**
+(sobre botão branco), que é o par certo e se inverte sozinho. No escuro,
+`--primary-foreground` deixou de ser branco e virou o grafite: branco sobre
+`#FF4438` dá 3,3:1 e o grafite dá 6,3:1 — os botões já faziam isso à mão.
+
+### A classe que existia e nunca foi usada
+
+`.sobre-midia` nasceu na §4.112 para o texto que fica por cima de imagem. Estava
+escrita no `index.css`, documentada no CLAUDE.md e avisada às outras janelas — e
+com **zero usos em todo o app**, dois dias depois. Foi por isso que "as letras
+não ficam visíveis": nome de categoria, título da ficha, cartão de trecho, faixa
+do gênero, tudo caía em tinta escura sobre foto escura.
+
+Agora ela está aplicada nos onze lugares que têm texto sobre imagem ou sobre cor
+viva, e ganhou uma irmã: **`.veu-de-midia`**, o degradê preto de baixo para cima
+que garante a leitura mesmo quando a capa é clara.
+
+**Lição de método, e é a que interessa:** a §4.112 diz "conferido no navegador,
+nos dois temas" — e estava conferido *de olho*. Olho não pega texto que continua
+legível na captura pequena, nem mede contraste. **Conferência de tema agora se
+faz medindo:** `scripts/auditoria-contraste.js`, colado no console, percorre todo
+texto visível, compõe as camadas translúcidas até o fundo real e calcula o
+contraste. Foi ele que mostrou o número que fechou o caso. *(Duas armadilhas
+ficaram anotadas dentro do arquivo: o Chrome serializa as cores do `color-mix` do
+Tailwind em `oklab()` e nem o canvas converte — a conversão está escrita à mão
+lá; e elementos escondidos fora da tela entram na conta como falso positivo.)*
+
+### A terceira causa, que o olho não pegaria
+
+`text-white/40` quer dizer "texto secundário". Sobre o grafite, branco a 40%
+rende **3,6:1**; sobre o papel creme, tinta a 40% rende **2,4:1** — e o app tem
+1.677 usos dessas opacidades. A conta não é simétrica porque o papel é muito
+mais claro (93%) do que o grafite é escuro (7%).
+
+Como reescrever 1.677 classes está fora de cogitação, o `index.css` ganhou uma
+**tabela de reforço que só vale no tema claro**: cada opacidade é remapeada para
+a que dá o mesmo contraste (40% → 53%, 25% → 34%, 70% → 80%). Medido depois:
+3,58:1 no claro contra 3,60:1 no escuro — paridade.
+
+As regras ficam dentro de `@layer utilities` e com `:where()` de propósito: assim
+empatam em especificidade com a classe original e ganham só por virem depois, e
+um `hover:text-primary` na mesma tela continua ganhando delas. **Opacidade nova
+(`text-white/33`) precisa de linha nova na tabela** — está avisado no arquivo.
+
+### O que ficou sabido e não virou decisão
+
+O app inteiro vive **abaixo do padrão de acessibilidade AA** nos textos
+secundários — 3,6:1 contra os 4,5:1 exigidos —, e isso vale nos **dois** temas
+desde muito antes deste conserto. Igualei os temas, que era o pedido; subir a
+régua mudaria a aparência do Estúdio também, então fica registrado como escolha
+em aberto, não como pendência.
+
+### Outros consertos da mesma varredura
+
+- **As medalhas** (`SeloDeMedalha`): as cores de `TIERS` são metálicas — prata,
+  carmim, dourado — e metal só brilha sobre escuro. No claro o dourado dava
+  1,9:1. O selo virou ilha escura nos dois temas.
+- **Doze escurecimentos internos** (campo de texto, rodapé de cartão, bloco
+  citado) usavam `bg-black/25`: no escuro isso é imperceptível, no claro virava
+  um cinza pesado. Passaram a `bg-background/60`, que escurece no Estúdio e dá
+  papel no Tinta.
+- **O cabeçalho transparente** sobre o billboard usava `from-black/80`. Como o
+  nome e os ícones dele são da cor do texto do tema, o véu preto os apagaria no
+  claro: virou `from-background`.
+- **Ícones `fill-black`** dentro de botão branco viraram `fill-current`.
+- **`.sobre-midia` não redefine `--background`** — parece detalhe e não é: o
+  degradê que funde a imagem com o fundo do app (`from-background`) mora dentro
+  da mesma caixa que o texto, e apontá-lo para preto pintava uma tarja preta no
+  pé de toda imagem.

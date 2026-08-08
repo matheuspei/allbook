@@ -449,7 +449,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
         </p>
         <Button
           onClick={() => setLocation("/search")}
-          className="mt-2 bg-white text-black hover:bg-white/90 font-bold"
+          className="mt-2 bg-white text-background hover:bg-white/90 font-bold"
           data-testid="button-back-to-search"
         >
           Explorar o catálogo
@@ -460,14 +460,23 @@ export default function BookDetails({ params }: { params: { id: string } }) {
 
   return (
     <div className="min-h-screen pb-24 bg-background text-white" data-testid="book-details-page">
-      <div className="relative w-full h-[65vh] overflow-hidden">
+      {/*
+        O topo é a capa sangrando na tela inteira — e é ele que precisa da dupla
+        `sobre-midia` + `veu-de-midia` (ver `index.css`). Antes daqui o degradê
+        era `from-background`: no tema claro isso pintava papel creme por cima da
+        capa em vez de escurecê-la, a capa tomava conta do fundo e o título virava
+        tinta escura sobre foto escura. Agora o véu escurece nos dois temas, o
+        texto é branco nos dois, e só os últimos 10% fundem com o fundo do app
+        para não haver um corte reto entre a foto e o conteúdo.
+      */}
+      <div className="sobre-midia relative w-full h-[65vh] overflow-hidden">
         <img
           src={book.cover}
           alt={book.title}
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/60 to-transparent" />
+        <div className="veu-de-midia absolute inset-0" />
+        <div className="absolute inset-x-0 bottom-0 h-[10%] bg-gradient-to-t from-background to-transparent" />
 
         <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-4">
           {/*
@@ -502,7 +511,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
         </header>
 
         <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
-          <Badge className="bg-primary/90 text-black border-none px-3 py-1 text-[10px] uppercase font-bold tracking-wider" data-testid="badge-exclusive">
+          <Badge className="bg-primary/90 text-primary-foreground border-none px-3 py-1 text-[10px] uppercase font-bold tracking-wider" data-testid="badge-exclusive">
             AllBook Original
           </Badge>
           <h1 className="text-3xl font-bold font-display leading-tight drop-shadow-lg" data-testid="text-book-title">{book.title}</h1>
@@ -542,7 +551,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             /* Quem aperta "Reproduzir" está mandando tocar — mesmo que tenha
                pausado a barrinha antes. O player lê esta bandeira ao abrir. */
             onClick={() => { savePlaying(true); setLocation(`/player/${book.id}`); }}
-            className="flex-1 h-12 bg-white text-black hover:bg-white/90 border-none rounded-lg text-base font-bold flex items-center justify-center gap-2"
+            className="flex-1 h-12 bg-white text-background hover:bg-white/90 border-none rounded-lg text-base font-bold flex items-center justify-center gap-2"
             data-testid="button-play"
           >
             <Play className="w-5 h-5 fill-current" />
@@ -663,7 +672,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <div
                       className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
-                        isCurrent ? "bg-primary text-black" : "bg-white/5 text-white/40 group-hover:bg-white/10"
+                        isCurrent ? "bg-primary text-primary-foreground" : "bg-white/5 text-white/40 group-hover:bg-white/10"
                       }`}
                     >
                       {isCurrent ? (

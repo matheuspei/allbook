@@ -596,7 +596,7 @@ export default function Statistics() {
                 onClick={() => setJanela(item.key)}
                 className={`shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
                   janela === item.key
-                    ? "bg-white text-black"
+                    ? "bg-white text-background"
                     : "bg-white/[0.07] text-white/70 hover:bg-white/[0.12]"
                 }`}
                 data-testid={`filter-${item.key}`}
@@ -745,7 +745,7 @@ export default function Statistics() {
                   >
                     <span
                       className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-transform ${
-                        ouviu ? "bg-primary text-black" : "bg-white/[0.07] text-white/35"
+                        ouviu ? "bg-primary text-primary-foreground" : "bg-white/[0.07] text-white/35"
                       } ${dia.hoje ? "ring-1 ring-white/60 ring-offset-2 ring-offset-card" : ""} ${
                         dia.chave === diaTocado ? "scale-110" : ""
                       }`}
@@ -1013,7 +1013,7 @@ export default function Statistics() {
 
         <Button
           onClick={() => setCartaoAberto(true)}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-bold text-black hover:bg-white/90"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-bold text-background hover:bg-white/90"
           data-testid="button-share-stats"
         >
           <Share2 className="h-4 w-4" />

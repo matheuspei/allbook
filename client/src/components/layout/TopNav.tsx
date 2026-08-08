@@ -118,7 +118,10 @@ export default function TopNav() {
         // laranja rolando por baixo ainda transparecia de fantasma.
         opaque
           ? "bg-background shadow-lg"
-          : "bg-gradient-to-b from-black/80 to-transparent"
+          // Transparente sobre o billboard: o degradê é do FUNDO do tema, não
+          // preto. O nome e os ícones daqui usam a cor do texto do tema (tinta no
+          // claro), então um véu preto os deixaria ilegíveis no Tinta.
+          : "bg-gradient-to-b from-background via-background/70 to-transparent"
       )}
     >
       <div className="flex items-center justify-between px-4 h-14">

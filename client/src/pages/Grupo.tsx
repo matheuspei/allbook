@@ -240,7 +240,7 @@ export default function Grupo() {
                 <LinkDoForum href={`/forum/${id}/gerenciar`} testid="grupo-gerenciar">
                   » gerenciar comunidade
                   {fila.length > 0 && (
-                    <span className="ml-1.5 rounded-full bg-primary px-1.5 py-px text-[9.5px] font-bold text-black">
+                    <span className="ml-1.5 rounded-full bg-primary px-1.5 py-px text-[9.5px] font-bold text-primary-foreground">
                       {fila.length}
                     </span>
                   )}

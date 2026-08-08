@@ -98,7 +98,7 @@ export default function EditarTrecho({
             onChange={(evento) => setNota(evento.target.value.slice(0, MAX_NOTA_TRECHO))}
             placeholder="Por que você guardou este pedaço?"
             rows={2}
-            className="mt-1.5 w-full resize-none rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
+            className="mt-1.5 w-full resize-none rounded-lg border border-white/10 bg-background/60 px-3 py-2.5 text-sm placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
             data-testid="nota-do-trecho"
           />
           <div className="mt-1 flex items-center justify-between text-[10.5px] text-white/25">
@@ -112,7 +112,7 @@ export default function EditarTrecho({
 
         <button
           onClick={salvar}
-          className="mt-4 w-full rounded-xl bg-primary py-3 text-sm font-bold text-black transition-colors hover:bg-primary/90"
+          className="mt-4 w-full rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
           data-testid="salvar-trecho"
         >
           Salvar

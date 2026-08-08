@@ -83,7 +83,7 @@ export default function ObjetoMencionado({
       {resumo.tocar && (
         <Link
           href={resumo.tocar}
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-black transition-transform hover:scale-105"
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105"
           aria-label={`Ouvir ${resumo.titulo}`}
           data-testid="ouvir-objeto-mencionado"
         >

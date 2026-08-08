@@ -326,7 +326,7 @@ export function ConviteParaCriar({ temClube }: { temClube: boolean }) {
       className="flex items-center gap-4 rounded-2xl border border-primary/25 bg-primary/[0.07] p-4 transition-colors hover:bg-primary/[0.12]"
       data-testid="button-novo-clube"
     >
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-black">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
         <Plus className="h-5 w-5" />
       </span>
       <span className="min-w-0 flex-1">

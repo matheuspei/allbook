@@ -51,7 +51,9 @@ export default function Collection({ params }: { params: { slug: string } }) {
           className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-background"
         />
 
-        <div className="relative px-4 pb-8 pt-7">
+        {/* `sobre-midia`: cor viva e fixa nos dois temas — o texto segue branco.
+            Só no bloco do texto: o degradê da base usa `to-background`. */}
+        <div className="sobre-midia relative px-4 pb-8 pt-7">
           <h1 className="font-display text-3xl font-bold tracking-tight text-white drop-shadow">
             {colecao.label}
           </h1>

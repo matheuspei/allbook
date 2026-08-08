@@ -167,7 +167,7 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-black hover:bg-primary/90 active:scale-[0.99] transition-all"
+            className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 active:scale-[0.99] transition-all"
             data-testid="button-login-submit"
           >
             {creating ? "Criar conta" : "Entrar"}

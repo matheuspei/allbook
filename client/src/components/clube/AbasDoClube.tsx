@@ -62,7 +62,7 @@ export default function AbasDoClube({
             onClick={() => onTrocar(aba.chave)}
             className={`relative shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${
               ligada
-                ? "bg-white text-black"
+                ? "bg-white text-background"
                 : "bg-white/[0.06] text-white/60 hover:bg-white/10 hover:text-white"
             }`}
             data-testid={`aba-clube-${aba.chave}`}

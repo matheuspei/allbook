@@ -133,7 +133,7 @@ export default function CitacaoDeAudio({
       <button
         onClick={relogio.alternar}
         aria-label={relogio.tocando ? "Pausar o trecho" : "Ouvir o trecho"}
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-black transition-transform active:scale-95"
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-transform active:scale-95"
         data-testid="tocar-trecho-compacto"
       >
         {relogio.tocando ? (
@@ -227,7 +227,9 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
         era um link só, e o nome do narrador — que neste app é motivo de escolha
         de livro — ficava sendo texto morto.
       */}
-      <div className="relative flex items-center gap-3.5 p-3.5">
+      {/* `sobre-midia`: o fundo é a capa borrada sob um véu preto — escuro nos
+          dois temas, então o texto daqui para dentro é branco nos dois. */}
+      <div className="sobre-midia relative flex items-center gap-3.5 p-3.5">
         <div aria-hidden className="absolute inset-0">
           <img src={livro.cover} alt="" className="h-full w-full scale-125 object-cover blur-2xl" />
           <div className="absolute inset-0 bg-black/55" />
@@ -271,10 +273,10 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
         </div>
       </div>
 
-      <div className="flex items-center gap-3 border-t border-white/[0.07] bg-black/25 px-3 py-2.5">
+      <div className="flex items-center gap-3 border-t border-white/[0.07] bg-background/60 px-3 py-2.5">
         <button
           onClick={alternar}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-black transition-transform active:scale-95"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-transform active:scale-95"
           aria-label={tocando ? "Pausar o trecho" : "Ouvir o trecho"}
           data-testid="tocar-trecho-aqui"
         >

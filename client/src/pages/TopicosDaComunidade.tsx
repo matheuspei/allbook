@@ -259,7 +259,7 @@ export default function TopicosDaComunidade() {
                 onClick={() => setOrdem(item.chave)}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition-colors ${
                   ordem === item.chave
-                    ? "bg-white text-black"
+                    ? "bg-white text-background"
                     : "bg-white/[0.06] text-white/55 hover:bg-white/10 hover:text-white"
                 }`}
                 data-testid={`ordem-${item.chave}`}
@@ -380,7 +380,7 @@ function CartaoDeDestaque({ topico, emoji }: { topico: TopicoNaTela; emoji?: str
         semente={topico.id}
       >
         {topico.fixado && (
-          <span className="mb-1 inline-block rounded-full bg-primary px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-black">
+          <span className="mb-1 inline-block rounded-full bg-primary px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-primary-foreground">
             📌 fixado
           </span>
         )}

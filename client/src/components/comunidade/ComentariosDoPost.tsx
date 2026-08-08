@@ -169,7 +169,7 @@ export default function ComentariosDoPost({ post }: { post: Post }) {
         <button
           onClick={enviar}
           disabled={texto.trim().length === 0}
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-black transition-opacity disabled:opacity-25"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:opacity-25"
           aria-label="Enviar comentário"
           data-testid={`enviar-comentario-${post.id}`}
         >

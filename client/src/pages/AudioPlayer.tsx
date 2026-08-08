@@ -64,7 +64,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
         </p>
         <Link
           href="/search"
-          className="mt-2 px-6 py-2.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-white/90 transition-colors"
+          className="mt-2 px-6 py-2.5 bg-white text-background rounded-lg font-bold text-sm hover:bg-white/90 transition-colors"
           data-testid="link-back-to-search"
         >
           Explorar o catálogo
@@ -632,7 +632,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                      conversa, e cobrir os alvos de toque por 8 segundos seria
                      trocar um estorvo por outro — ainda mais para quem acabou
                      de pular e talvez queira justamente tocar numa marca. */
-                  className="absolute bottom-full left-1/2 z-20 mb-1 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[11px] font-bold text-black shadow-lg animate-in fade-in slide-in-from-bottom-1 duration-200"
+                  className="absolute bottom-full left-1/2 z-20 mb-1 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[11px] font-bold text-background shadow-lg animate-in fade-in slide-in-from-bottom-1 duration-200"
                   data-testid="voltar-para-onde-eu-estava"
                 >
                   <Undo2 className="h-3 w-3" />
@@ -778,7 +778,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="w-16 h-16 bg-primary text-black rounded-full flex items-center justify-center shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                 aria-label={isPlaying ? "Pausar" : "Reproduzir"}
               >
                 {isPlaying ? (
@@ -952,7 +952,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
                     <div
                       className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
                         isCurrent
-                          ? "bg-primary text-black"
+                          ? "bg-primary text-primary-foreground"
                           : concluido
                             ? "bg-primary/20 text-primary"
                             : "bg-white/10 text-white/50"

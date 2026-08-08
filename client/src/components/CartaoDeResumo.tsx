@@ -649,7 +649,7 @@ export default function CartaoDeResumo({
         <div className="mt-4 flex gap-2">
           <button
             onClick={compartilhar}
-            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-white text-sm font-bold text-black transition-colors hover:bg-white/90"
+            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-white text-sm font-bold text-background transition-colors hover:bg-white/90"
             data-testid="button-share-card"
           >
             <Share2 className="h-4 w-4" />

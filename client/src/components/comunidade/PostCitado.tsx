@@ -35,7 +35,7 @@ export default function PostCitado({ post }: { post: Post }) {
   return (
     <Link
       href={`/post/${post.id}`}
-      className="mt-3 block rounded-xl border border-white/10 bg-black/25 p-3 transition-colors hover:bg-black/40"
+      className="mt-3 block rounded-xl border border-white/10 bg-background/60 p-3 transition-colors hover:bg-background/80"
       data-testid={`post-citado-${post.id}`}
     >
       <div className="flex items-center gap-2">

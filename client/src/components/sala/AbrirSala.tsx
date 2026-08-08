@@ -217,7 +217,7 @@ export default function AbrirSala({
 
         <button
           onClick={criar}
-          className="mt-6 w-full rounded-xl bg-primary py-3.5 font-display text-[14px] font-bold text-black"
+          className="mt-6 w-full rounded-xl bg-primary py-3.5 font-display text-[14px] font-bold text-primary-foreground"
           data-testid="button-criar-sala"
         >
           {porta === "marcada" ? "Marcar a sessão" : "Abrir a sala"}

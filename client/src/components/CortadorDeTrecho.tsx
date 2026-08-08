@@ -144,7 +144,7 @@ export default function CortadorDeTrecho({
       {/* ---- a faixa ---- */}
       <div
         ref={trilhoRef}
-        className="relative h-16 touch-none select-none overflow-hidden rounded-lg bg-black/30"
+        className="relative h-16 touch-none select-none overflow-hidden rounded-lg bg-background/60"
       >
         {/*
           As barrinhas são desenhadas, não medidas — não existe forma de onda
@@ -201,7 +201,7 @@ export default function CortadorDeTrecho({
             aria-label={qual === "inicio" ? "Arrastar o início" : "Arrastar o fim"}
             data-testid={`alca-${qual}`}
           >
-            <span className="h-full w-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(255,106,0,.8)]" />
+            <span className="h-full w-1.5 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.8)]" />
           </button>
         ))}
       </div>

@@ -25,7 +25,7 @@ export default function CategoryCard({ label, covers, onClick, testId }: Categor
       type="button"
       onClick={onClick}
       data-testid={testId}
-      className="group relative h-28 w-full overflow-hidden rounded-xl bg-white/5 text-left ring-1 ring-white/10 transition-transform active:scale-[0.98]"
+      className="sobre-midia group relative h-28 w-full overflow-hidden rounded-xl bg-white/5 text-left ring-1 ring-white/10 transition-transform active:scale-[0.98]"
     >
       <div className="absolute inset-0 flex">
         {tiles.map((cover, i) => (
@@ -40,8 +40,9 @@ export default function CategoryCard({ label, covers, onClick, testId }: Categor
         ))}
       </div>
 
-      {/* Degradê para o nome ler bem por cima de qualquer capa. */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10" />
+      {/* Degradê para o nome ler bem por cima de qualquer capa — escuro nos dois
+          temas (`veu-de-midia`), porque o nome é branco nos dois. */}
+      <div className="veu-de-midia absolute inset-0" />
 
       <span className="absolute inset-x-0 bottom-0 p-3 font-display text-sm font-bold leading-tight text-white drop-shadow-md">
         {label}

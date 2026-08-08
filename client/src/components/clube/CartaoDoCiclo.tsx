@@ -75,7 +75,7 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
       {/* A linha do ciclo: os marcos, você e a faixa da turma (§4.101). */}
       <div className="px-4 pb-4">
         {comecando && (
-          <p className="mb-3 rounded-lg bg-black/25 px-3 py-2 text-[11px] leading-relaxed text-white/60">
+          <p className="mb-3 rounded-lg bg-background/60 px-3 py-2 text-[11px] leading-relaxed text-white/60">
             Este clube ainda não começou — <b className="text-white/85">todo mundo entra no mesmo
             ponto</b>. Dá para ouvir antes, mas a conversa e os prazos começam em{" "}
             {dataCurta(clube.ciclo.inicio)}.
@@ -99,7 +99,7 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
           está no 3 levaria spoiler do 6 com o app dizendo que está tudo certo.
         */}
         {marco && (
-          <p className="mt-3 flex items-start gap-2 rounded-lg bg-black/25 px-3 py-2 text-[11px] leading-relaxed text-white/60">
+          <p className="mt-3 flex items-start gap-2 rounded-lg bg-background/60 px-3 py-2 text-[11px] leading-relaxed text-white/60">
             <Lock className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
             <span>
               Combinado da roda: <b className="text-white/85">não passar do capítulo {combinado}</b>{" "}
@@ -119,7 +119,7 @@ export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
         <Link
           href={`/player/${livro.id}`}
           onClick={() => savePlaying(true)}
-          className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-sm font-bold text-black transition-colors hover:bg-white/90"
+          className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-sm font-bold text-background transition-colors hover:bg-white/90"
           data-testid="button-ouvir-ciclo"
         >
           <Headphones className="h-4 w-4" />

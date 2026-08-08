@@ -71,7 +71,7 @@ export function LinhaDoCiclo({ clube }: { clube: Clube }) {
             de barra zerada apontaria para lugar nenhum. */}
         {meu > 0 && (
           <span
-            className="absolute -top-[22px] -translate-x-1/2 whitespace-nowrap rounded-md bg-primary px-1.5 py-px text-[8.5px] font-bold text-black"
+            className="absolute -top-[22px] -translate-x-1/2 whitespace-nowrap rounded-md bg-primary px-1.5 py-px text-[8.5px] font-bold text-primary-foreground"
             style={{ left: `${Math.min(92, Math.max(8, pctMeu))}%` }}
             data-testid="linha-do-ciclo-voce"
           >

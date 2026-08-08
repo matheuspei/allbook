@@ -93,7 +93,7 @@ export default function PresencaNoLivro({ bookId }: { bookId: number }) {
                 description: "Só o capítulo, e só para quem se segue com você. Dá para desligar em Privacidade.",
               });
             }}
-            className="mt-2.5 rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-black"
+            className="mt-2.5 rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-primary-foreground"
             data-testid="ligar-presenca"
           >
             Mostrar o meu capítulo

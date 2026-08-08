@@ -53,7 +53,11 @@ export default function CategoryBooks({ params }: { params: { slug: string } }) 
           className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-background"
         />
 
-        <div className="relative px-4 pb-8 pt-7">
+        {/* `sobre-midia`: o gradiente do gênero é cor viva e fixa nos dois temas,
+            então o texto em cima dele tem de continuar branco no tema claro. Vai
+            só no bloco do texto, e não no `header`, porque o degradê da base usa
+            `to-background` — dentro de `sobre-midia` isso viraria preto. */}
+        <div className="sobre-midia relative px-4 pb-8 pt-7">
           <h1 className="font-display text-3xl font-bold tracking-tight text-white drop-shadow">
             {genero}
           </h1>

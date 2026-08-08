@@ -298,7 +298,7 @@ export default function RequestBook() {
             type="button"
             onClick={enviar}
             disabled={titulo.trim().length === 0}
-            className="h-12 w-full rounded-lg bg-primary text-base font-bold text-black transition-colors hover:bg-primary/90 disabled:bg-white/10 disabled:text-white/25"
+            className="h-12 w-full rounded-lg bg-primary text-base font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:bg-white/10 disabled:text-white/25"
             data-testid="button-send-request"
           >
             Pedir esta narração

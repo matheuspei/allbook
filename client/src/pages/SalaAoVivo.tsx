@@ -101,7 +101,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
         </div>
         <Link
           href="/community"
-          className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-black"
+          className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
           data-testid="link-voltar-comunidade"
         >
           Ir para o Feed
@@ -185,7 +185,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
           {book && (
             <Link
               href={`/book/${book.id}`}
-              className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-black"
+              className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
               data-testid="link-livro-da-sessao-terminada"
             >
               Ver o livro
@@ -373,7 +373,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
             </button>
             <button
               onClick={() => mandarNoAudio(sala.id, { tocando: !sala.tocando })}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-black"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground"
               data-testid="button-tocar-pausar-sala"
             >
               {sala.tocando ? <Pause className="h-6 w-6" /> : <Play className="ml-0.5 h-6 w-6" />}
@@ -433,7 +433,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
             </span>
           </span>
           {novasNoRecolhido > 0 && (
-            <span className="rounded-full bg-primary px-2 py-0.5 text-[10.5px] font-extrabold text-black">
+            <span className="rounded-full bg-primary px-2 py-0.5 text-[10.5px] font-extrabold text-primary-foreground">
               {novasNoRecolhido}
             </span>
           )}
@@ -720,7 +720,7 @@ function AntesDaHora({ sala, onVersao }: { sala: Sala; onVersao: () => void }) {
         className={`mx-4 mb-5 rounded-xl py-3.5 font-display text-[14px] font-bold transition-colors ${
           euVou
             ? "bg-white/[0.06] text-white/55 ring-1 ring-inset ring-white/12"
-            : "bg-primary text-black"
+            : "bg-primary text-primary-foreground"
         }`}
         data-testid="button-confirmar-presenca"
       >

@@ -205,7 +205,7 @@ export default function SearchResults({
             <Link
               href={`/request?titulo=${encodeURIComponent(query.trim())}`}
               onClick={onEscolher}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 h-11 font-bold text-black transition-colors hover:bg-primary/90"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 h-11 font-bold text-primary-foreground transition-colors hover:bg-primary/90"
               data-testid="button-request-narration"
             >
               <Headphones className="w-4 h-4" />

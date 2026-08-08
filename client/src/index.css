@@ -51,23 +51,36 @@
   /**
    * ⚠️ A PEÇA MAIS IMPORTANTE DESTE ARQUIVO — leia antes de estranhar uma tela.
    *
-   * `white` e `black` **deixaram de ser branco e preto fixos**: passaram a ser
-   * "a cor do texto" e "a cor do papel" do tema em vigor. No Estúdio, `white` é
-   * o branco-osso `#F5F1EA` e `black` é o grafite; no Tinta, eles trocam de lado.
+   * `white` **deixou de ser branco fixo**: passou a ser "a cor do texto" do tema
+   * em vigor. No Estúdio é o branco-osso `#F5F1EA`; no Tinta é a tinta `#1A1712`.
    *
-   * **Por quê:** o app tinha ~2.500 classes escritas à mão (`text-white`,
+   * **Por quê:** o app tinha ~1.700 classes escritas à mão (`text-white`,
    * `bg-white/10`, `border-white/10`, `text-white/40`) espalhadas por 95
    * arquivos, e todas só funcionavam sobre fundo escuro — era isso que fazia um
-   * tema claro custar uma reescrita do app inteiro. Apontando as duas cores para
-   * o tema, elas **se viram sozinhas**, com a opacidade e tudo, e cada tela nova
-   * pode continuar usando `text-white/60` sem pensar.
+   * tema claro custar uma reescrita do app inteiro. Apontando `white` para o
+   * tema, elas **se viram sozinhas**, e cada tela nova pode continuar usando
+   * `text-white/60` sem pensar.
    *
-   * **A exceção é texto sobre imagem** (capa, billboard, player): ali o branco
-   * tem de continuar branco nos dois temas, senão vira texto escuro sobre foto
-   * escura. Para esses casos existe a classe `.sobre-midia`, lá embaixo.
+   * **`black`, porém, continua preto de verdade** — e isso foi apurado na marra
+   * (08/08): quando ele também virou "a cor do papel", tudo que existe para
+   * ESCURECER passou a clarear no tema claro. O véu por trás das janelas
+   * (`bg-black/55`, 40 usos), as sombras (`shadow-black/40`) e o degradê que
+   * apaga a capa do livro (`from-black/90`) sumiram — era o motivo de a capa
+   * "tomar conta do fundo" na ficha do livro. Véu, sombra e degradê sobre foto
+   * escurecem nos DOIS temas, como em qualquer app.
+   *
+   * Em compensação, `text-black` sozinho deixou de servir como "texto sobre
+   * botão claro": esses 85 pontos viraram `text-primary-foreground` (sobre o
+   * vermelho) e `text-background` (sobre botão branco). **Ao escrever tela nova,
+   * use esses dois** — `text-black` agora é preto literal, e só cabe sobre cor
+   * viva (as iniciais dos avatares coloridos).
+   *
+   * **A outra exceção é texto sobre imagem** (capa, billboard, player): ali o
+   * branco tem de continuar branco nos dois temas, senão vira texto escuro sobre
+   * foto escura. Para esses casos existe a classe `.sobre-midia`, lá embaixo.
    */
   --color-white: hsl(var(--foreground));
-  --color-black: hsl(var(--background));
+  --color-black: #000;
 }
 
 /* ---------------------------------------------------------------------------
@@ -112,13 +125,15 @@
   --popover: 30 8% 10%;
   --popover-foreground: 38 35% 94%;
   --primary: 4 100% 61%;           /* #FF4438 vermelho de gravação */
-  --primary-foreground: 0 0% 100%;
+  /* Grafite sobre o vermelho, não branco: branco em cima de #FF4438 dá 3,3:1 e
+     o grafite dá 6,3:1. É o que os botões já faziam à mão com `text-black`. */
+  --primary-foreground: 30 6% 7%;
   --secondary: 30 9% 14%;          /* #262320 */
   --secondary-foreground: 38 35% 94%;
   --muted: 30 9% 14%;
   --muted-foreground: 34 7% 57%;   /* #9A938A */
   --accent: 4 100% 61%;
-  --accent-foreground: 0 0% 100%;
+  --accent-foreground: 30 6% 7%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 38 35% 94%;
   --border: 30 10% 16%;            /* #2E2A26 */
@@ -143,19 +158,65 @@
  *
  * Ponha esta classe em qualquer bloco de texto/botões que fique **por cima de
  * uma imagem** (a capa do billboard, o topo da ficha do livro, o player). Ela
- * volta a apontar `--foreground`/`--background` para branco e preto puros, e
- * como as variáveis são herdadas, TODAS as classes lá dentro se corrigem de uma
- * vez: `text-white/70`, `bg-white/10`, `border-white/15`.
+ * volta a apontar `--foreground` para branco puro, e como as variáveis são
+ * herdadas, TODAS as classes lá dentro se corrigem de uma vez: `text-white/70`,
+ * `bg-white/10`, `border-white/15`.
  *
  * Sem ela, no tema claro o texto do billboard viraria tinta escura sobre uma
- * foto escura — ilegível.
+ * foto escura — ilegível. (Foi o que aconteceu: a classe nasceu em 06/08 e
+ * ficou 2 dias sem ser aplicada em nenhuma tela.)
  */
 .sobre-midia {
   --foreground: 0 0% 100%;
-  --background: 0 0% 0%;
+  --muted-foreground: 0 0% 100%;
   --border: 0 0% 100%;
+  /* ⚠️ `--background` de propósito NÃO entra aqui: um degradê de fusão
+     (`from-background`, `to-background`) costuma ficar dentro da mesma caixa que
+     o texto, e apontá-lo para preto pintava uma tarja preta no pé da imagem no
+     tema claro. Precisa de preto de verdade lá dentro? Use `black`, que voltou a
+     ser preto literal. */
+  /* Sobre foto vale sempre o vermelho de gravação, mesmo no tema claro: o carmim
+     de editora (#C1362F) é escuro demais para brilhar em cima de uma capa. */
+  --primary: 4 100% 61%;
+  --primary-foreground: 30 6% 7%;
   color: hsl(var(--foreground));
 }
+
+/**
+ * `.veu-de-midia` — o degradê que apaga a foto por baixo do texto.
+ *
+ * Anda junto com `.sobre-midia`: a foto atrás pode ser clara (uma capa branca),
+ * e aí nem o branco puro lê. Este véu escurece de baixo para cima, forte onde o
+ * texto fica e transparente no alto — a receita do Netflix e do Spotify. Vale
+ * nos dois temas, porque no claro o texto continua branco.
+ */
+.veu-de-midia {
+  background-image: linear-gradient(
+    to top,
+    rgb(0 0 0 / 0.88) 0%,
+    rgb(0 0 0 / 0.62) 32%,
+    rgb(0 0 0 / 0.22) 62%,
+    rgb(0 0 0 / 0) 100%
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * O REFORÇO DAS OPACIDADES NO TEMA CLARO — bloco gerado, mas fácil de manter.
+ *
+ * `text-white/40` quer dizer "texto secundário". Sobre o grafite, branco a 40%
+ * rende 3,6:1 de contraste e se lê bem; sobre o papel creme, tinta a 40% rende
+ * só 2,4:1 e **some** — foi a segunda reclamação dele em 08/08. A conta não é
+ * simétrica porque o papel é muito mais claro do que o grafite é escuro.
+ *
+ * Cada linha abaixo é a mesma classe com o alpha corrigido para dar o MESMO
+ * contraste no claro (40% → 53%, 25% → 34%, 70% → 80%…). Ficam dentro de
+ * `@layer utilities` e com `:where()` de propósito: assim empatam em
+ * especificidade com a classe original e ganham só por virem depois — um
+ * `hover:text-primary` na mesma tela continua ganhando delas.
+ *
+ * ⚠️ **Usou uma opacidade que não está aqui** (`text-white/33`)? Ela vai ficar
+ * fraca no claro. Acrescente a linha — a régua é a tabela do comentário acima.
+ * ------------------------------------------------------------------------- */
 
 /* Hide scrollbar for horizontal scrolling lists */
 .scrollbar-hide::-webkit-scrollbar {
@@ -164,4 +225,82 @@
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+@layer utilities {
+  :where(html:not(.dark)) .bg-white\/5 { background-color: hsl(var(--foreground) / 7%); }   /* de 5% */
+  :where(html:not(.dark)) .hover\:bg-white\/5:hover { background-color: hsl(var(--foreground) / 7%); }   /* de 5% */
+  :where(html:not(.dark)) .hover\:bg-white\/8:hover { background-color: hsl(var(--foreground) / 11%); }   /* de 8% */
+  :where(html:not(.dark)) .bg-white\/10 { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
+  :where(html:not(.dark)) .active\:bg-white\/10:active { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
+  :where(html:not(.dark)) .disabled\:bg-white\/10:disabled { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
+  :where(html:not(.dark)) .focus\:bg-white\/10:focus { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
+  :where(html:not(.dark)) .group:hover .group-hover\:bg-white\/10 { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
+  :where(html:not(.dark)) .hover\:bg-white\/10:hover { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
+  :where(html:not(.dark)) .bg-white\/12 { background-color: hsl(var(--foreground) / 16%); }   /* de 12% */
+  :where(html:not(.dark)) .hover\:bg-white\/12:hover { background-color: hsl(var(--foreground) / 16%); }   /* de 12% */
+  :where(html:not(.dark)) .bg-white\/15 { background-color: hsl(var(--foreground) / 20%); }   /* de 15% */
+  :where(html:not(.dark)) .active\:bg-white\/15:active { background-color: hsl(var(--foreground) / 20%); }   /* de 15% */
+  :where(html:not(.dark)) .disabled\:bg-white\/15:disabled { background-color: hsl(var(--foreground) / 20%); }   /* de 15% */
+  :where(html:not(.dark)) .hover\:bg-white\/15:hover { background-color: hsl(var(--foreground) / 20%); }   /* de 15% */
+  :where(html:not(.dark)) .bg-white\/20 { background-color: hsl(var(--foreground) / 27%); }   /* de 20% */
+  :where(html:not(.dark)) .hover\:bg-white\/20:hover { background-color: hsl(var(--foreground) / 27%); }   /* de 20% */
+  :where(html:not(.dark)) .bg-white\/25 { background-color: hsl(var(--foreground) / 34%); }   /* de 25% */
+  :where(html:not(.dark)) .bg-white\/30 { background-color: hsl(var(--foreground) / 41%); }   /* de 30% */
+  :where(html:not(.dark)) .hover\:bg-white\/30:hover { background-color: hsl(var(--foreground) / 41%); }   /* de 30% */
+  :where(html:not(.dark)) .bg-white\/40 { background-color: hsl(var(--foreground) / 53%); }   /* de 40% */
+  :where(html:not(.dark)) .group:hover .group-hover\:bg-white\/50 { background-color: hsl(var(--foreground) / 64%); }   /* de 50% */
+  :where(html:not(.dark)) .hover\:bg-white\/60:hover { background-color: hsl(var(--foreground) / 72%); }   /* de 60% */
+  :where(html:not(.dark)) .hover\:bg-white\/90:hover { background-color: hsl(var(--foreground) / 95%); }   /* de 90% */
+  :where(html:not(.dark)) .border-white\/5 { border-color: hsl(var(--foreground) / 7%); }   /* de 5% */
+  :where(html:not(.dark)) .border-white\/8 { border-color: hsl(var(--foreground) / 11%); }   /* de 8% */
+  :where(html:not(.dark)) .border-white\/10 { border-color: hsl(var(--foreground) / 14%); }   /* de 10% */
+  :where(html:not(.dark)) .border-white\/12 { border-color: hsl(var(--foreground) / 16%); }   /* de 12% */
+  :where(html:not(.dark)) .border-white\/15 { border-color: hsl(var(--foreground) / 20%); }   /* de 15% */
+  :where(html:not(.dark)) .border-white\/20 { border-color: hsl(var(--foreground) / 27%); }   /* de 20% */
+  :where(html:not(.dark)) .border-white\/25 { border-color: hsl(var(--foreground) / 34%); }   /* de 25% */
+  :where(html:not(.dark)) .focus\:border-white\/25:focus { border-color: hsl(var(--foreground) / 34%); }   /* de 25% */
+  :where(html:not(.dark)) .hover\:border-white\/25:hover { border-color: hsl(var(--foreground) / 34%); }   /* de 25% */
+  :where(html:not(.dark)) .border-white\/30 { border-color: hsl(var(--foreground) / 41%); }   /* de 30% */
+  :where(html:not(.dark)) .hover\:border-white\/30:hover { border-color: hsl(var(--foreground) / 41%); }   /* de 30% */
+  :where(html:not(.dark)) .border-white\/40 { border-color: hsl(var(--foreground) / 53%); }   /* de 40% */
+  :where(html:not(.dark)) .border-white\/80 { border-color: hsl(var(--foreground) / 88%); }   /* de 80% */
+  :where(html:not(.dark)) .divide-white\/5 > :not(:last-child) { border-color: hsl(var(--foreground) / 7%); }   /* de 5% */
+  :where(html:not(.dark)) .ring-white\/5 { --tw-ring-color: hsl(var(--foreground) / 7%); }   /* de 5% */
+  :where(html:not(.dark)) .ring-white\/8 { --tw-ring-color: hsl(var(--foreground) / 11%); }   /* de 8% */
+  :where(html:not(.dark)) .ring-white\/10 { --tw-ring-color: hsl(var(--foreground) / 14%); }   /* de 10% */
+  :where(html:not(.dark)) .ring-white\/12 { --tw-ring-color: hsl(var(--foreground) / 16%); }   /* de 12% */
+  :where(html:not(.dark)) .ring-white\/15 { --tw-ring-color: hsl(var(--foreground) / 20%); }   /* de 15% */
+  :where(html:not(.dark)) .ring-white\/60 { --tw-ring-color: hsl(var(--foreground) / 72%); }   /* de 60% */
+  :where(html:not(.dark)) .ring-white\/70 { --tw-ring-color: hsl(var(--foreground) / 80%); }   /* de 70% */
+  :where(html:not(.dark)) .text-white\/15 { color: hsl(var(--foreground) / 20%); }   /* de 15% */
+  :where(html:not(.dark)) .text-white\/20 { color: hsl(var(--foreground) / 27%); }   /* de 20% */
+  :where(html:not(.dark)) .disabled\:text-white\/20:disabled { color: hsl(var(--foreground) / 27%); }   /* de 20% */
+  :where(html:not(.dark)) .hover\:text-white\/20:hover { color: hsl(var(--foreground) / 27%); }   /* de 20% */
+  :where(html:not(.dark)) .placeholder\:text-white\/20::placeholder { color: hsl(var(--foreground) / 27%); }   /* de 20% */
+  :where(html:not(.dark)) .text-white\/25 { color: hsl(var(--foreground) / 34%); }   /* de 25% */
+  :where(html:not(.dark)) .disabled\:text-white\/25:disabled { color: hsl(var(--foreground) / 34%); }   /* de 25% */
+  :where(html:not(.dark)) .placeholder\:text-white\/25::placeholder { color: hsl(var(--foreground) / 34%); }   /* de 25% */
+  :where(html:not(.dark)) .text-white\/30 { color: hsl(var(--foreground) / 41%); }   /* de 30% */
+  :where(html:not(.dark)) .placeholder\:text-white\/30::placeholder { color: hsl(var(--foreground) / 41%); }   /* de 30% */
+  :where(html:not(.dark)) .text-white\/35 { color: hsl(var(--foreground) / 48%); }   /* de 35% */
+  :where(html:not(.dark)) .text-white\/40 { color: hsl(var(--foreground) / 53%); }   /* de 40% */
+  :where(html:not(.dark)) .disabled\:text-white\/40:disabled { color: hsl(var(--foreground) / 53%); }   /* de 40% */
+  :where(html:not(.dark)) .placeholder\:text-white\/40::placeholder { color: hsl(var(--foreground) / 53%); }   /* de 40% */
+  :where(html:not(.dark)) .text-white\/45 { color: hsl(var(--foreground) / 59%); }   /* de 45% */
+  :where(html:not(.dark)) .text-white\/50 { color: hsl(var(--foreground) / 64%); }   /* de 50% */
+  :where(html:not(.dark)) .text-white\/55 { color: hsl(var(--foreground) / 68%); }   /* de 55% */
+  :where(html:not(.dark)) .text-white\/60 { color: hsl(var(--foreground) / 72%); }   /* de 60% */
+  :where(html:not(.dark)) .hover\:text-white\/60:hover { color: hsl(var(--foreground) / 72%); }   /* de 60% */
+  :where(html:not(.dark)) .text-white\/65 { color: hsl(var(--foreground) / 76%); }   /* de 65% */
+  :where(html:not(.dark)) .text-white\/70 { color: hsl(var(--foreground) / 80%); }   /* de 70% */
+  :where(html:not(.dark)) .group:hover .group-hover\:text-white\/70 { color: hsl(var(--foreground) / 80%); }   /* de 70% */
+  :where(html:not(.dark)) .hover\:text-white\/70:hover { color: hsl(var(--foreground) / 80%); }   /* de 70% */
+  :where(html:not(.dark)) .text-white\/75 { color: hsl(var(--foreground) / 84%); }   /* de 75% */
+  :where(html:not(.dark)) .hover\:text-white\/75:hover { color: hsl(var(--foreground) / 84%); }   /* de 75% */
+  :where(html:not(.dark)) .text-white\/80 { color: hsl(var(--foreground) / 88%); }   /* de 80% */
+  :where(html:not(.dark)) .group:hover .group-hover\:text-white\/80 { color: hsl(var(--foreground) / 88%); }   /* de 80% */
+  :where(html:not(.dark)) .hover\:text-white\/80:hover { color: hsl(var(--foreground) / 88%); }   /* de 80% */
+  :where(html:not(.dark)) .text-white\/85 { color: hsl(var(--foreground) / 91%); }   /* de 85% */
+  :where(html:not(.dark)) .hover\:text-white\/85:hover { color: hsl(var(--foreground) / 91%); }   /* de 85% */
+  :where(html:not(.dark)) .text-white\/90 { color: hsl(var(--foreground) / 95%); }   /* de 90% */
 }

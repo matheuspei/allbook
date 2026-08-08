@@ -363,7 +363,7 @@ export default function Clube({ params }: { params: { id: string } }) {
                       : "O combinado da roda passa a valer para você.",
                   });
                 }}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-black transition-colors hover:bg-primary/90"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                 data-testid="button-entrar-clube"
               >
                 <UserPlus className="h-4 w-4" />

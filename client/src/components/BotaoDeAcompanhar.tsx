@@ -70,7 +70,7 @@ export default function BotaoDeAcompanhar({
         className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-colors ${
           segue
             ? "bg-white/[0.08] text-white hover:bg-white/15"
-            : "bg-primary text-black hover:bg-primary/90"
+            : "bg-primary text-primary-foreground hover:bg-primary/90"
         }`}
         data-testid={`button-seguir-${slug}`}
       >

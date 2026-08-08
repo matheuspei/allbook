@@ -214,7 +214,7 @@ export default function MarcasDaConversa({
         >
           {grupo.quantas > 1 ? (
             <span
-              className={`flex h-4 items-center gap-0.5 rounded-full bg-primary px-1.5 text-[9px] font-bold leading-none text-black shadow-[0_0_8px_rgba(255,106,0,0.55)] transition-transform group-hover:scale-110 ${
+              className={`flex h-4 items-center gap-0.5 rounded-full bg-primary px-1.5 text-[9px] font-bold leading-none text-primary-foreground shadow-[0_0_8px_hsl(var(--primary)/0.55)] transition-transform group-hover:scale-110 ${
                 grupo.turma ? "ring-2 ring-white/70" : ""
               }`}
             >
@@ -223,7 +223,7 @@ export default function MarcasDaConversa({
             </span>
           ) : (
             <span
-              className={`h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(255,106,0,0.7)] transition-transform group-hover:scale-125 ${
+              className={`h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.7)] transition-transform group-hover:scale-125 ${
                 grupo.turma ? "ring-2 ring-white/70" : ""
               }`}
             />

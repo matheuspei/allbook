@@ -123,15 +123,39 @@ script inline no `client/index.html` evita o piscar na abertura.
 
 **A regra de ouro para escrever tela nova: nunca escreva cor literal.**
 `bg-[#141414]`, `text-orange-500`, `#f59e0b` — nada disso. Use os tokens
-(`bg-background`, `bg-card`, `text-primary`, `border-border`) e, para as cores
-neutras, pode usar `text-white`, `bg-white/10`, `border-white/10` à vontade:
-no `index.css`, **`white` e `black` foram redefinidos como "a cor do texto" e
-"a cor do papel" do tema em vigor**, então eles se viram sozinhos nos dois.
-A exceção é **texto sobre imagem**, que precisa continuar branco nos dois
-temas: aí o bloco leva a classe `.sobre-midia`.
+(`bg-background`, `bg-card`, `text-primary`, `border-border`).
+
+**`white` é a cor do texto do tema** (branco-osso no Estúdio, tinta no Tinta),
+então `text-white`, `bg-white/10` e `border-white/10` podem ser usados à vontade
+— eles se viram sozinhos nos dois temas.
+
+**`black` é preto de verdade**, e serve para uma coisa só: **escurecer**. Véu de
+folha (`bg-black/55`), sombra (`shadow-black/40`), degradê sobre capa — tudo isso
+escurece nos dois temas, como em qualquer app. *(Ele já foi "a cor do papel", e
+o tema claro ficou sem véu, sem sombra e com a capa tomando o fundo — §4.116.)*
+Para "texto sobre botão claro" **não** use `text-black`: é
+`text-primary-foreground` sobre o vermelho e `text-background` sobre botão
+branco.
+
+**Texto por cima de imagem ou de cor viva leva `.sobre-midia` no bloco** — ela
+devolve branco puro a tudo que estiver dentro. Se a foto puder ser clara, some
+um `<div className="veu-de-midia absolute inset-0" />` entre a imagem e o texto.
+⚠️ Dentro de `.sobre-midia` o `--background` **não** muda, de propósito: é o que
+deixa o degradê de fusão (`from-background`) continuar valendo lá dentro.
+
+**As opacidades no tema claro têm uma tabela de reforço no fim do `index.css`**
+(`text-white/40` vira 53% no claro, para dar o mesmo contraste que 40% dá sobre
+o grafite). Usou uma opacidade que não está na tabela? Acrescente a linha, senão
+o texto sai fraco no claro.
 
 Antes de criar tela nova, olhar `Home.tsx` e `BookDetails.tsx` para manter a
 mesma cara — e não acrescentar biblioteca de UI nova.
+
+**Conferir tema se faz medindo, não de olho.** Uma captura pequena esconde texto
+fraco. Cole `scripts/auditoria-contraste.js` no console do navegador e rode
+`auditarContraste()`: ele percorre todo texto visível, compõe as camadas
+translúcidas até o fundo real e lista o que está abaixo da régua. O porquê está
+na §4.116 do ROTEIRO.
 
 ## Duas janelas do Claude ao mesmo tempo
 O Matheus costuma abrir duas janelas na mesma pasta. **Na primeira tarefa de cada

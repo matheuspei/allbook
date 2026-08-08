@@ -158,7 +158,7 @@ export default function VotacaoDoClube({ clube }: { clube: Clube }) {
                       onClick={() => setDesempate(bookId)}
                       className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
                         desempate === bookId
-                          ? "bg-primary text-black"
+                          ? "bg-primary text-primary-foreground"
                           : "border border-white/15 text-white/60 hover:text-white"
                       }`}
                       data-testid={`desempate-${bookId}`}

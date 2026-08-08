@@ -385,12 +385,12 @@ export default function Library() {
                   });
                 }}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors ${
-                  ativo ? "bg-white text-black" : "bg-white/[0.07] text-white/70 hover:bg-white/[0.12]"
+                  ativo ? "bg-white text-background" : "bg-white/[0.07] text-white/70 hover:bg-white/[0.12]"
                 }`}
                 data-testid={`tab-${f.key}`}
               >
                 {f.label}
-                <span className={ativo ? "text-black/45" : "text-white/35"}>{contagens[f.key]}</span>
+                <span className={ativo ? "text-background/45" : "text-white/35"}>{contagens[f.key]}</span>
               </button>
             );
           })}
@@ -439,11 +439,11 @@ export default function Library() {
               </div>
               <button
                 onClick={() => setLocation(`/player/${destaque.book.id}`)}
-                className="flex h-11 w-11 shrink-0 items-center justify-center self-center rounded-full bg-white text-black shadow-lg shadow-black/30 transition-transform hover:scale-105"
+                className="flex h-11 w-11 shrink-0 items-center justify-center self-center rounded-full bg-white text-background shadow-lg shadow-black/30 transition-transform hover:scale-105"
                 aria-label={`Continuar ${destaque.book.title}`}
                 data-testid={`button-resume-${destaque.book.id}`}
               >
-                <Play className="ml-0.5 h-5 w-5 fill-black" />
+                <Play className="ml-0.5 h-5 w-5 fill-current" />
               </button>
             </div>
           </section>
@@ -526,7 +526,7 @@ export default function Library() {
                   </p>
                   <Link href="/search">
                     <button
-                      className="mt-5 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-white/90"
+                      className="mt-5 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-background transition-colors hover:bg-white/90"
                       data-testid="button-explore"
                     >
                       Explorar o catálogo

@@ -89,7 +89,7 @@ export default function Perguntas() {
           </p>
           <Link
             href="/community"
-            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-[12px] font-bold text-black"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-[12px] font-bold text-primary-foreground"
             data-testid="ir-perguntar"
           >
             Perguntar no Feed

@@ -632,7 +632,7 @@ function CartaoDePedido({ aviso }: { aviso: Aviso }) {
               description: "Agora essa pessoa vê o que você ouve, comenta e avalia.",
             });
           }}
-          className="grid h-9 w-9 place-items-center rounded-full bg-primary text-black transition-transform active:scale-95"
+          className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground transition-transform active:scale-95"
           aria-label="Aceitar"
           data-testid={`aviso-aceitar-${slug}`}
         >
@@ -699,7 +699,7 @@ function CartaoDeConvite({ aviso }: { aviso: Aviso }) {
               description: "O clube aparece em Meus clubes, com o prazo de cada etapa.",
             });
           }}
-          className="grid h-9 w-9 place-items-center rounded-full bg-primary text-black transition-transform active:scale-95"
+          className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground transition-transform active:scale-95"
           aria-label="Aceitar convite"
           data-testid={`convite-aceitar-${id}`}
         >

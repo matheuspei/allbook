@@ -100,14 +100,14 @@ export default function QuemReagiu({
               onClick={() => setAba(key)}
               className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] font-semibold transition-colors ${
                 aba === key
-                  ? "bg-white text-black"
+                  ? "bg-white text-background"
                   : "border border-white/15 text-white/50 hover:text-white/80"
               }`}
               data-testid={`aba-${key}`}
             >
               <Icone className="h-3.5 w-3.5" />
               {label}
-              <span className={aba === key ? "text-black/55" : "text-white/30"}>
+              <span className={aba === key ? "text-background/55" : "text-white/30"}>
                 {total(key) + semNome(key)}
               </span>
             </button>

@@ -231,7 +231,7 @@ function NomeDoClube({ clube }: { clube: ClubeTipo }) {
             });
           }}
           disabled={!mudou || nome.trim().length === 0}
-          className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-black disabled:opacity-30"
+          className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-30"
           data-testid="button-salvar-nome"
         >
           Salvar
@@ -309,7 +309,7 @@ function ListaDeEspera({ clube }: { clube: ClubeTipo }) {
                   });
               }}
               disabled={!temVaga || indice > 0}
-              className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-black disabled:opacity-25"
+              className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-25"
               title={indice > 0 ? "A fila anda pela ordem" : undefined}
               data-testid={`admitir-${slug}`}
             >
@@ -445,7 +445,7 @@ function VotacaoDoModerador({ clube }: { clube: ClubeTipo }) {
             });
           }}
           disabled={escolhidos.length < MIN_OPCOES_VOTACAO}
-          className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-black disabled:opacity-30"
+          className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-30"
           data-testid="button-abrir-votacao"
         >
           Abrir votação
@@ -515,7 +515,7 @@ function Vagas({ clube }: { clube: ClubeTipo }) {
               }}
               className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
                 ligada
-                  ? "bg-white text-black"
+                  ? "bg-white text-background"
                   : cabe
                     ? "bg-white/[0.06] text-white/70 hover:bg-white/12"
                     : "cursor-not-allowed bg-white/[0.03] text-white/20"
@@ -659,7 +659,7 @@ function RitmoDoCiclo({ clube }: { clube: ClubeTipo }) {
                 description: "A turma vê o combinado novo na tela do clube.",
               });
             }}
-            className="flex-1 rounded-xl bg-primary py-2.5 text-xs font-bold text-black transition-colors hover:bg-primary/90"
+            className="flex-1 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
             data-testid="button-salvar-ciclo"
           >
             Salvar o novo combinado
@@ -1136,7 +1136,7 @@ function PautaDoModerador({ clube }: { clube: ClubeTipo }) {
           }}
           className={`mt-3 w-full rounded-xl py-3 text-sm font-bold transition-colors ${
             podeAbrir
-              ? "bg-primary text-black hover:bg-primary/90"
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
               : "cursor-not-allowed bg-white/[0.05] text-white/25"
           }`}
           data-testid="button-abrir-pauta"
@@ -1220,7 +1220,7 @@ function RodadaDoModerador({ clube }: { clube: ClubeTipo }) {
             }}
             className={`mt-3 w-full rounded-xl py-3 text-sm font-bold transition-colors ${
               pergunta.trim().length > 0
-                ? "bg-primary text-black hover:bg-primary/90"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "cursor-not-allowed bg-white/[0.05] text-white/25"
             }`}
             data-testid="button-abrir-rodada"

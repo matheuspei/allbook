@@ -151,7 +151,7 @@ export default function RecommendationsEdit() {
           <button
             onClick={() => setGenre(null)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-              genre === null ? "bg-white text-black" : "bg-white/10 text-white/70 hover:bg-white/15"
+              genre === null ? "bg-white text-background" : "bg-white/10 text-white/70 hover:bg-white/15"
             }`}
             data-testid="filter-genre-todos"
           >
@@ -162,7 +162,7 @@ export default function RecommendationsEdit() {
               key={item.label}
               onClick={() => setGenre(genre === item.label ? null : item.label)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                genre === item.label ? "bg-white text-black" : "bg-white/10 text-white/70 hover:bg-white/15"
+                genre === item.label ? "bg-white text-background" : "bg-white/10 text-white/70 hover:bg-white/15"
               }`}
             >
               {item.label}
@@ -199,7 +199,7 @@ export default function RecommendationsEdit() {
                       <>
                         <div className="absolute inset-0 bg-black/40" />
                         <span className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-3.5 h-3.5 text-black" strokeWidth={3} />
+                          <Check className="w-3.5 h-3.5 text-primary-foreground" strokeWidth={3} />
                         </span>
                       </>
                     )}

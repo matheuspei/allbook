@@ -83,7 +83,7 @@ export default function Bookmarks() {
             </p>
             <Link
               href="/library"
-              className="mt-6 inline-block rounded-xl bg-white px-6 py-2.5 text-sm font-bold text-black transition-colors hover:bg-white/90"
+              className="mt-6 inline-block rounded-xl bg-white px-6 py-2.5 text-sm font-bold text-background transition-colors hover:bg-white/90"
               data-testid="link-to-library"
             >
               Ir para a Biblioteca
@@ -190,7 +190,7 @@ export default function Bookmarks() {
                                   placeholder="O que você quer lembrar deste trecho?"
                                   rows={3}
                                   autoFocus
-                                  className="w-full resize-none rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
+                                  className="w-full resize-none rounded-lg border border-white/10 bg-background/60 px-3 py-2.5 text-sm placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
                                 />
                                 <div className="mt-2 flex justify-end gap-2">
                                   <button
@@ -201,7 +201,7 @@ export default function Bookmarks() {
                                   </button>
                                   <button
                                     onClick={() => salvarNota(marcacao.id)}
-                                    className="rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-black transition-colors hover:bg-primary/90"
+                                    className="rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                                   >
                                     Salvar nota
                                   </button>

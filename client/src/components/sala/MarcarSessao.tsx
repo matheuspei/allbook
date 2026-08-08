@@ -147,7 +147,7 @@ export default function MarcarSessao({
 
         <button
           onClick={marcar}
-          className="mt-6 w-full rounded-xl bg-primary py-3.5 font-display text-[14px] font-bold text-black"
+          className="mt-6 w-full rounded-xl bg-primary py-3.5 font-display text-[14px] font-bold text-primary-foreground"
           data-testid="button-marcar-sessao"
         >
           Marcar para {dataCurta(data)} às {hora}

@@ -241,7 +241,7 @@ export default function UserProfile() {
           className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
             following
               ? "border border-white/15 text-white/70 hover:bg-white/5"
-              : "bg-primary text-black hover:bg-primary/90"
+              : "bg-primary text-primary-foreground hover:bg-primary/90"
           }`}
           data-testid="button-follow"
         >
@@ -459,7 +459,7 @@ function FolhaDeConvite({
                 ) : pode ? (
                   <button
                     onClick={() => enviar(clube)}
-                    className="shrink-0 rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-black"
+                    className="shrink-0 rounded-full bg-primary px-3.5 py-1.5 text-[11.5px] font-bold text-primary-foreground"
                     data-testid={`enviar-convite-${clube.id}`}
                   >
                     Convidar

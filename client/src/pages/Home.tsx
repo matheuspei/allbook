@@ -280,9 +280,9 @@ function HeroBillboard() {
               <button
                 data-testid="button-hero-play"
                 onClick={() => setLocation(`/player/${book.id}`)}
-                className="flex items-center gap-2 bg-white text-black font-bold px-6 py-2.5 rounded-md text-sm hover:bg-white/90 transition-colors"
+                className="flex items-center gap-2 bg-white text-background font-bold px-6 py-2.5 rounded-md text-sm hover:bg-white/90 transition-colors"
               >
-                <Play className="w-4 h-4 fill-black" />
+                <Play className="w-4 h-4 fill-current" />
                 Ouvir
               </button>
               <button
@@ -500,7 +500,7 @@ function ContinueListeningSection() {
                 alt={book.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="sobre-midia absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center">
                   <Play className="w-5 h-5 text-white fill-white ml-0.5" />
                 </div>

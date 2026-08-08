@@ -159,7 +159,7 @@ export default function MarcacoesDoLivro({
                       placeholder="O que você quer lembrar deste ponto?"
                       rows={3}
                       autoFocus
-                      className="w-full resize-none rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
+                      className="w-full resize-none rounded-lg border border-white/10 bg-background/60 px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
                     />
                     <div className="mt-2 flex justify-end gap-2">
                       <button
@@ -170,7 +170,7 @@ export default function MarcacoesDoLivro({
                       </button>
                       <button
                         onClick={() => salvarNota(marcacao.id)}
-                        className="rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-black transition-colors hover:bg-primary/90"
+                        className="rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                         data-testid="bookmark-save-note"
                       >
                         Salvar nota

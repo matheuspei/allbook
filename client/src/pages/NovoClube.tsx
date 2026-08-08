@@ -206,7 +206,7 @@ export default function NovoClube() {
                 onClick={() => setInicio(somarDiasIso(hojeIso(), opcao.dias))}
                 className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors ${
                   inicio === somarDiasIso(hojeIso(), opcao.dias)
-                    ? "bg-white text-black"
+                    ? "bg-white text-background"
                     : "bg-white/[0.06] text-white/60 hover:bg-white/10"
                 }`}
                 data-testid={`clube-estreia-${opcao.dias}`}
@@ -249,7 +249,7 @@ export default function NovoClube() {
                 onClick={() => setLimite(valor)}
                 className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
                   limite === valor
-                    ? "bg-white text-black"
+                    ? "bg-white text-background"
                     : "bg-white/[0.06] text-white/60 hover:bg-white/10"
                 }`}
                 data-testid={`clube-vagas-${valor ?? "livre"}`}
@@ -352,7 +352,7 @@ export default function NovoClube() {
                 onClick={() => setFim(somarDiasIso(inicio, valor * 7))}
                 className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors ${
                   fim === somarDiasIso(inicio, valor * 7)
-                    ? "bg-white text-black"
+                    ? "bg-white text-background"
                     : "bg-white/[0.06] text-white/60 hover:bg-white/10"
                 }`}
                 data-testid={`clube-semanas-${valor}`}
@@ -414,7 +414,7 @@ export default function NovoClube() {
             navegar(`/clube/${clube.id}`);
           }}
           disabled={!podeCriar}
-          className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-black transition-colors hover:bg-primary/90 disabled:bg-white/10 disabled:text-white/25"
+          className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:bg-white/10 disabled:text-white/25"
           data-testid="button-criar-clube"
         >
           Criar clube

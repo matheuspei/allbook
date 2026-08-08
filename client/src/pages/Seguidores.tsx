@@ -172,7 +172,7 @@ export default function Seguidores() {
                           description: "Passa a ver o que você ouve, comenta e avalia.",
                         });
                       }}
-                      className="grid h-9 w-9 place-items-center rounded-full bg-primary text-black transition-transform active:scale-95"
+                      className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground transition-transform active:scale-95"
                       aria-label={`Aceitar ${pessoa.name}`}
                       data-testid={`aceitar-${pessoa.slug}`}
                     >

@@ -616,7 +616,7 @@ function UmEvento({ evento, grupoId }: { evento: Evento; grupoId: string }) {
                   onClick={() => responderPresenca(evento.id, valor)}
                   className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
                     marcada
-                      ? "bg-primary text-black"
+                      ? "bg-primary text-primary-foreground"
                       : "border border-white/15 text-white/55 hover:text-white/85"
                   }`}
                   data-testid={`presenca-${evento.id}-${valor}`}
@@ -738,7 +738,7 @@ function ClubeDoEvento({ clubeId }: { clubeId: string }) {
                 : "O combinado da roda passa a valer para você.",
             });
           }}
-          className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-black transition-colors hover:bg-primary/90"
+          className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
           data-testid={`entrar-clube-${clubeId}`}
         >
           Entrar no clube

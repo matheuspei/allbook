@@ -27,7 +27,13 @@ export default function SeloDeMedalha({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/30 px-2.5 py-1 text-[10px] font-semibold backdrop-blur-sm ${cores.texto}`}
+      /*
+        O selo é uma ilha escura nos DOIS temas (`sobre-midia` + preto de
+        verdade). As cores de `TIERS` são metálicas — prata, carmim, dourado — e
+        metal só brilha sobre escuro: no tema claro, o dourado sobre o papel
+        creme ficava com 1,9 de contraste, ilegível.
+      */
+      className={`sobre-midia inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[10px] font-semibold backdrop-blur-sm ${cores.texto}`}
       title={`${label} · ${cores.label}`}
       data-testid={`selo-${label.toLowerCase().replace(/ /g, "-")}`}
     >

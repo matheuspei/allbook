@@ -57,7 +57,7 @@ export default function AnotarMarcacao({
       <DrawerContent className="mx-auto max-w-[480px] border-white/10 bg-card text-white">
         <DrawerHeader className="text-left">
           <DrawerTitle className="flex items-center gap-2 font-display tracking-tight text-white">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-black">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-primary-foreground">
               <Check className="h-3.5 w-3.5" strokeWidth={3} />
             </span>
             Trecho guardado
@@ -81,7 +81,7 @@ export default function AnotarMarcacao({
             placeholder="O que você quer lembrar deste trecho?"
             rows={4}
             autoFocus
-            className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm leading-relaxed text-white placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
+            className="w-full resize-none rounded-xl border border-white/10 bg-background/60 px-4 py-3 text-sm leading-relaxed text-white placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
             data-testid="note-input"
           />
 
@@ -96,7 +96,7 @@ export default function AnotarMarcacao({
             <button
               onClick={salvar}
               disabled={texto.trim().length === 0}
-              className="h-11 flex-[1.4] rounded-xl bg-white text-sm font-bold text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/15 disabled:text-white/40"
+              className="h-11 flex-[1.4] rounded-xl bg-white text-sm font-bold text-background transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/15 disabled:text-white/40"
               data-testid="note-save"
             >
               Salvar nota

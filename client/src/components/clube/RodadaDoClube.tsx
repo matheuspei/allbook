@@ -77,7 +77,7 @@ export default function RodadaDoClube({ clube }: { clube: Clube }) {
           <p className="mt-2 font-display text-base font-bold leading-snug">{aberta.pergunta}</p>
 
           {jaRespondi ? (
-            <div className="mt-3 rounded-lg bg-black/25 p-3">
+            <div className="mt-3 rounded-lg bg-background/60 p-3">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold text-primary">Sua resposta</span>
                 <button
@@ -100,7 +100,7 @@ export default function RodadaDoClube({ clube }: { clube: Clube }) {
                 onChange={(event) => setTexto(event.target.value.slice(0, 600))}
                 placeholder="Responda quando der — a rodada espera."
                 rows={3}
-                className="w-full resize-none rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/25 focus:outline-none"
+                className="w-full resize-none rounded-lg border border-white/10 bg-background/60 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:border-white/25 focus:outline-none"
                 data-testid="rodada-input"
               />
               <div className="mt-2 flex justify-end">
