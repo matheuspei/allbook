@@ -5591,3 +5591,57 @@ com o texto pronto para colar, em vez de editar arquivo alheio.
 **Toda camada que sobe para a conta deixa um texto para trás.** A migração não
 termina no código: termina quando a tela volta a dizer a verdade. Vale para
 comentários, clubes e fóruns quando eles forem.
+
+---
+
+## 4.126 Cópia de segurança do banco — e o erro que eu cometi testando ela (08/08)
+
+Desde a §4.121 o banco guarda **dado de gente**: biblioteca, progresso, notas,
+marcações e trechos escritos pela pessoa. Ele rodava só nesta máquina e **não
+havia cópia nenhuma** — um disco com problema apagaria tudo, que é literalmente o
+medo que fez o `docs/BANCO-DE-DADOS.md` existir.
+
+`scripts/backup-banco.sh`: `agora`, `listar`, `restaurar`, `instalar`,
+`desinstalar`, `limpar-testes`. Instalado como LaunchAgent
+(`com.allbook.backup`), uma cópia por dia às 13h, mantendo as **14 últimas**.
+Formato `custom` do `pg_dump` — comprimido, e o `pg_restore` consegue trazer de
+volta tabela por tabela, que é o que importa no dia em que só uma coisa se
+perdeu.
+
+⚠️ **As cópias ficam FORA do repositório** (`~/AllBook-backups`): dado de pessoa
+não entra no git — um `git push` distraído publicaria a biblioteca e as notas de
+alguém.
+
+### Testei restaurando de verdade — e por isso o erro apareceu
+
+**Cópia não testada não é cópia.** Fiz o caminho completo: criei dado, tirei a
+cópia, **apaguei o banco** e restaurei. A conta, os livros, a nota escrita e o
+catálogo voltaram inteiros.
+
+### 🚨 O erro: apaguei a conta real do Matheus
+
+Para "simular o desastre" rodei `delete from contas` **sem olhar o que havia na
+tabela**. Eu supus que só existiam as minhas contas de teste — e ele tinha criado
+a conta dele **dois minutos antes**, enquanto eu trabalhava.
+
+Deu para devolver: a cópia tinha sido feita depois do cadastro dele, então a
+conta, os ajustes, a assinatura e o dia de audição voltaram com o **mesmo id** —
+e, como a tabela `session` não tem chave estrangeira para `contas`, ela
+sobreviveu ao apagamento e **a sessão dele continuou valendo**. Ele não precisou
+entrar de novo.
+
+**A ironia não passa despercebida:** o backup que eu estava testando salvou o
+estrago que o teste causou. Se eu tivesse feito o mesmo teste uma hora antes, o
+dado dele teria sumido sem volta.
+
+### O que mudou por causa disso
+
+`limpar-testes` nasceu daqui. Ele apaga **só** contas `@teste.com` e
+`@allbook.com.br`, **mostra o que vai apagar antes**, diz quantas contas reais
+existem, e **não apaga nada** sem `--confirmo`. Conta de gente de verdade nunca
+casa com o filtro.
+
+**A regra, que vale para qualquer janela:** o banco deixou de ser um rascunho no
+dia em que a primeira conta real entrou. **Nunca mais `delete from <tabela>` no
+banco de verdade** — olhe o que está lá primeiro, e use o alvo estreito. Comando
+cego em banco com gente dentro não é atalho, é acidente esperando data.

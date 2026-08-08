@@ -121,6 +121,18 @@ o catálogo, idempotente), `npm run db:psql` (abre o banco no terminal),
 fora do ar: `brew services start postgresql@17`. O endereço mora no `.env`, que
 não vai para o git — em cópia nova, `cp .env.example .env`.
 
+🚨 **O banco tem CONTA DE VERDADE dentro. Nunca rode `delete from <tabela>` nele.**
+Em 08/08 eu apaguei a conta real do Matheus assim, "só para testar" — ele a tinha
+criado dois minutos antes, e só não se perdeu porque a cópia de segurança tinha
+acabado de rodar (§4.126). Para limpar dado de teste existe alvo estreito:
+`zsh scripts/backup-banco.sh limpar-testes` (mostra o que vai apagar, e só apaga
+com `--confirmo`). **Antes de apagar qualquer coisa, olhe o que está lá.**
+
+**Cópia de segurança:** `zsh scripts/backup-banco.sh agora | listar | restaurar
+<arquivo>`. Já roda sozinha uma vez por dia (LaunchAgent `com.allbook.backup`),
+guardando as 14 últimas em `~/AllBook-backups` — **fora do repositório**, porque
+dado de pessoa não entra no git.
+
 ### Ordem das rotas no `Switch` (wouter)
 A rota **mais específica vem antes da mais curta**, senão a curta captura a longa
 (`/profile/edit` antes de `/profile`, `/forum/minhas` antes de `/forum/:id`). Há
