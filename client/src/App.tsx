@@ -41,6 +41,7 @@ import Bookmarks from "@/pages/Bookmarks";
 import Trechos from "@/pages/Trechos";
 import Seguidores from "@/pages/Seguidores";
 import Acompanhando from "@/pages/Acompanhando";
+import Avisos from "@/pages/Avisos";
 import Privacidade from "@/pages/Privacidade";
 import Downloads from "@/pages/Downloads";
 import Notifications from "@/pages/Notifications";
@@ -195,6 +196,11 @@ function Router() {
             {/* Privacidade tem tela própria desde 29/07: no painel ela é uma
                 linha como as outras (ROTEIRO 4.55). */}
             <Route path="/privacidade" component={Privacidade} />
+            {/* ⚠️ `/avisos` são os AJUSTES de notificação; `/notifications` é a
+                CAIXA que o sino abre. Nomes diferentes de propósito (§4.117) —
+                a linha "Notificações" das Configurações apontava para a caixa,
+                e era isso que não fazia sentido numa tela de ajustes. */}
+            <Route path="/avisos" component={Avisos} />
             {/* As suas, sem slug — o mesmo componente das de cima. */}
             <Route path="/recomendacoes" component={Recomendacoes} />
             <Route path="/comentarios" component={Comentarios} />

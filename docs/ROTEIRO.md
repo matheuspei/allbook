@@ -4657,3 +4657,112 @@ em aberto, não como pendência.
   degradê que funde a imagem com o fundo do app (`from-background`) mora dentro
   da mesma caixa que o texto, e apontá-lo para preto pintava uma tarja preta no
   pé de toda imagem.
+
+---
+
+## 4.117 A linha "Notificações" apontava para a caixa, e a vitrine repetia (08/08)
+
+Saiu de um **levantamento do que falta no front-end** que ele pediu à janela B.
+O apanhado inteiro está no chat e no git; aqui ficam só as decisões e o que
+foi apurado com custo.
+
+### A linha "Notificações" nas Configurações — decidido por ele
+
+**A queixa, e ela é de régua:** *"não faz sentido ela estar em configurações.
+Em configurações, ela só valeria a pena se fosse configuração de notificação.
+Aí ela valeria a pena, mas como está, não pode ficar. Ou a gente adiciona
+configuração de notificação, ou a gente retira as notificações."*
+
+Ele tinha razão: a linha abria `/notifications`, **a mesma caixa do sino do
+topo** — duas portas para a lista, e nenhuma para o ajuste.
+
+**A saída não foi nenhuma das duas que ele ofereceu, e o motivo é um achado:
+a configuração já existia.** Os dois interruptores ("curtidas no que eu
+escrevi", "comentários no que eu escrevi") estavam prontos e funcionando desde
+a §4.92, escondidos **no fim da lista de Perfil e privacidade** — onde ninguém
+procura barulho. O próprio comentário no código já admitia o desconforto:
+*"não é privacidade e sim barulho"*. Então não foi preciso escolher entre pôr
+e tirar: **bastou mandar a linha para o lugar que sempre foi dela.**
+
+- `/avisos` (novo) = **os ajustes**. `/notifications` = **a caixa** do sino.
+  Nomes diferentes de propósito; endereços parecidos para coisas diferentes
+  seria repetir na barra o problema que a tela veio desfazer.
+- Os dois interruptores **saíram** de `AjustesDoPerfil` — não foram copiados.
+  Controle em dois lugares é a redundância que a §4.105 varreu.
+- A tela nova tem **uma porta para a caixa** no fim ("Ver meus avisos"): quem
+  toca em "Notificações" procurando os avisos não cai num beco.
+- As peças de desenho (título, moldura, porta, interruptor) saíram para
+  `components/perfil/PecasDeAjuste.tsx`, porque agora há duas listas.
+
+> **A régua que fica:** *numa tela de ajustes, o rótulo promete um ajuste.*
+> Quando uma linha de Configurações leva a uma lista de conteúdo, ou ela vira
+> ajuste, ou ela sai.
+
+### A vitrine do `/forum` — o defeito da §4.104, e a lição que custou duas tentativas
+
+O recado formal da §4.104 (a mesma comunidade em duas seções, o motivo repetido
+palavra por palavra) estava **de pé desde 05/08** e foi consertado agora.
+
+**A regra da dobra, e ela é estreita de propósito.** Repetir comunidade entre
+carrosséis **continua valendo** — é decisão dele de 05/08, o molde do Reddit,
+onde o que muda é o ângulo. O que estava errado era repetir na **mesma dobra**:
+"Hábitos na vida real" aparecia em "Semelhantes a Suspense & Mistério" e outra
+vez em "Semelhantes a Quem ouve no trânsito", os dois títulos visíveis sem
+rolar. Agora **cada seção evita só o que a seção imediatamente anterior
+mostrou**; duas seções adiante a comunidade volta. Deduplicar contra tudo o que
+já apareceu esvaziaria as últimas seções — são 25 comunidades fora das suas
+para 5 carrosséis.
+
+**A lição que vale além desta tela — e eu precisei errar para achá-la.** O
+motivo repetido tinha duas caras: "também é de ficção científica" (categoria) e
+**"alguém que você segue está aqui"**, que saía igual em quatro cartões. A
+primeira tentativa trocou a segunda frase pelo **nome** da pessoa — e na tela
+**continuou igual**: eu sigo uma pessoa só, ela está em quatro comunidades, e
+os quatro cartões passaram a dizer "Juliana S. está aqui".
+
+> **Trocar o texto não conserta repetição quando o *dado* é o mesmo.** O
+> desempate tem que ser **outro dado**. O motivo mais forte fica com o primeiro
+> cartão; os seguintes caem para o que descreve cada comunidade por si
+> (movimento da semana, acervo de conversas, tamanho). Empate ainda é possível
+> — duas comunidades novas, do mesmo tamanho, sem conversa —, e aí a frase
+> igual é a verdade: não há o que as separe.
+
+**Armadilha registrada:** a limpeza roda na **lista final da tela**, não dentro
+de `sugestoes()`. O carrossel "Recomendado para você" é feito de duas fontes
+(`sugestoes` + `emAlta`) e as duas escrevem motivo — limpar só uma deixaria a
+repetição atravessar a emenda.
+
+### As folhas foram fechadas — decisão dele
+
+*"Você pode fechar todas essas folhas, menos a folha pedir sem crédito, porque
+essa ainda vai ser construída. As demais já foram vistas."*
+
+**Fechadas:** `_logos-C.html`, `_o-que-cada-botao-faz-B.html`,
+`_comentarios-fora-da-vitrine-B.html` — e, por consequência, toda a leva de
+marca reprovada (`_muitas-logos-B`, `_logo-premium-A`, `_logo-infinito-A`).
+Nenhuma delas espera resposta; onde o roteiro as cita, é história, não fila.
+
+**Continua aberta, uma só:** `_pedir-sem-credito-A.html` — as 4 decisões de
+crédito e planos. **É a próxima a virar tela**, e é a que destrava a §"planos
+com crédito de pedido" (os números estão decididos desde 26/07 e não há tela
+onde morar, porque a `/plans` foi removida na §4.31).
+
+**Os arquivos `.html` não foram apagados**, e é decisão minha declarada: eles
+não estão no git, então apagar é irreversível e custa nada guardar. O que foi
+apagado é o **status de pendente**.
+
+### O que este levantamento apurou, e não virou trabalho
+
+- **O onboarding nunca foi construído** — é o único item remanescente da fila
+  original de telas. Nada no código.
+- **O favicon do app ainda é o do Replit** (`client/public/favicon.png`,
+  1,1 KB, de 20/02), como a §4.111 já registrava. Segue pendente.
+- **A crítica "o app nunca foi visto num celular" era falsa** e foi retirada: a
+  moldura de prévia tem seletor de aparelho (iPhone 16 Pro Max, Galaxy S25
+  Ultra, Pixel…), e ele usa. A anotação da §4.104 envelheceu; **conferir antes
+  de repetir crítica lida em documento.**
+- **Sobraram ~22 linhas com cor literal** em código de verdade (o resto é
+  comentário ou cor que precisa ser escrita à mão, como o canvas do
+  `CartaoDeResumo`, que não lê CSS). O que importa ali é o **âmbar da
+  identidade antiga nos clubes** — `CartaoDoCiclo`, `FaixaDoClubeNoLivro`,
+  `ClubesComecando`, `LinhaDoCiclo` — que briga com o vermelho novo.

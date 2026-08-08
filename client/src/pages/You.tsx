@@ -181,7 +181,14 @@ export default function You() {
   }
 
   const conta: LinhaDoPainel[] = [
-    { icon: Bell, label: "Notificações", href: "/notifications" },
+    /* ⚠️ Aponta para os AJUSTES (`/avisos`), não para a caixa do sino
+       (`/notifications`) — conserto de 08/08, §4.117. Ele pegou a contradição:
+       *"em configurações, ela só valeria a pena se fosse configuração de
+       notificação. Como está, não pode ficar."* Os dois interruptores já
+       existiam, escondidos no fim de Perfil e privacidade; só mudaram de
+       endereço. **Não devolva esta linha para `/notifications`** — o sino do
+       topo já é essa porta, e duas portas para a mesma caixa foi o defeito. */
+    { icon: Bell, label: "Notificações", href: "/avisos" },
     /* Uma linha como as outras, e não uma seção aberta (ROTEIRO 4.55). O número
        de pedidos aparece aqui porque é a única pendência do painel que espera
        resposta sua — o resto é ajuste, não fila. */

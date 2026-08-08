@@ -25,7 +25,7 @@ import {
   situacaoDe,
   type SituacaoDeEntrada,
 } from "@/lib/forum";
-import { emAlta, porCategoria, sugestoes } from "@/lib/forumVitrine";
+import { emAlta, porCategoria, semRepetirAFrase, sugestoes } from "@/lib/forumVitrine";
 import { GRUPOS_EVENT, alternarParticipacao, criarGrupo, topicosDa, type Grupo } from "@/lib/grupos";
 
 /**
@@ -105,7 +105,9 @@ export default function Comunidades() {
     const vivas = emAlta(8)
       .filter(({ grupo }) => situacaoDe(grupo.id) !== "dentro" && !jaTem.has(grupo.id))
       .slice(0, Math.max(0, 6 - fortes.length));
-    return [...fortes, ...vivas];
+    /* A limpeza dos motivos repetidos roda **depois da emenda** das duas
+       fontes — as duas escrevem motivo, e a repetição atravessava a costura. */
+    return semRepetirAFrase([...fortes, ...vivas]);
   }, [versao]);
   const categorias = useMemo(() => porCategoria(), [versao]);
 
@@ -131,6 +133,24 @@ export default function Comunidades() {
    */
   const foraDasMinhas = todas.filter((grupo) => situacaoDe(grupo.id) !== "dentro");
 
+  /*
+   * ⚠️ **A regra da dobra, e por que ela não desfaz a decisão de 05/08.**
+   *
+   * Repetir a mesma comunidade em seções diferentes é **de propósito** (o
+   * comentário acima), e continua valendo: o ângulo muda. O que estava errado
+   * — e ele viu na tela em 08/08 — é repetir na **mesma dobra**: "Hábitos de
+   * escuta" aparecia em "Semelhantes a Suspense & Mistério" e outra vez em
+   * "Semelhantes a Quem ouve no trânsito", os dois títulos visíveis sem rolar.
+   * Aí não lê como ângulo novo, lê como falha.
+   *
+   * A saída é estreita de propósito: **cada seção evita só o que a seção
+   * imediatamente anterior mostrou.** Duas seções adiante a comunidade pode
+   * voltar, porque a essa altura o cartão já saiu da tela. Deduplicar contra
+   * *tudo* que já apareceu esvaziaria as últimas seções — são 25 comunidades
+   * fora das suas para 5 carrosséis.
+   */
+  let daSecaoAnterior = new Set(recomendadas.map(({ grupo }) => grupo.id));
+
   /* "Semelhantes a X": mesma categoria, OU 2+ membros em comum — o "quem
      está lá também está cá" é o que o Reddit usa de verdade. */
   const semelhantes: { dona: Grupo; parecidas: Grupo[] }[] = [];
@@ -149,19 +169,24 @@ export default function Comunidades() {
               ? 1
               : 0,
       }))
-      .filter((item) => item.peso > 0)
+      .filter((item) => item.peso > 0 && !daSecaoAnterior.has(item.grupo.id))
       .sort((a, b) => b.peso - a.peso)
       .map((item) => item.grupo)
       .slice(0, 6);
+    /* Menos de dois sobrando não vira carrossel: seção com um cartão só parece
+       sobra de outra seção, que é justo o que estamos consertando. */
     if (parecidas.length < 2) continue;
     semelhantes.push({ dona, parecidas });
+    daSecaoAnterior = new Set(parecidas.map((grupo) => grupo.id));
     if (semelhantes.length === 2) break;
   }
 
   /* "Mais populares": as maiores em que você ainda não está. */
   const populares = [...foraDasMinhas]
+    .filter((grupo) => !daSecaoAnterior.has(grupo.id))
     .sort((a, b) => membrosDo(b.id).length - membrosDo(a.id).length)
     .slice(0, 6);
+  if (populares.length >= 2) daSecaoAnterior = new Set(populares.map((grupo) => grupo.id));
 
   /* Os carrosséis por assunto — o "Jogos" do screenshot dele: as categorias
      com mais comunidades para você descobrir viram seções com nome próprio. */
@@ -172,10 +197,25 @@ export default function Comunidades() {
       if (!cat) continue;
       mapa.set(cat, [...(mapa.get(cat) ?? []), grupo]);
     }
-    return Array.from(mapa, ([cat, grupos]) => ({ cat, grupos }))
+    const lista = Array.from(mapa, ([cat, grupos]) => ({ cat, grupos }))
       .filter((item) => item.grupos.length >= 2)
       .sort((a, b) => b.grupos.length - a.grupos.length)
       .slice(0, 3);
+    /*
+     * Entre si estes carrosséis nunca repetem — cada comunidade tem uma
+     * categoria só. O único encosto é o **primeiro**, colado em "Mais
+     * populares", e é só nele que a regra da dobra se aplica.
+     *
+     * **Se o filtro deixar menos de dois, o carrossel fica como estava.**
+     * Repetir um cartão é menos ruim que sumir com um assunto inteiro da
+     * vitrine — a categoria some da tela, e o "ninguém fica invisível" do
+     * censo (§4.23) valia para as comunidades, não para os assuntos.
+     */
+    if (lista.length > 0) {
+      const semRepetir = lista[0].grupos.filter((grupo) => !daSecaoAnterior.has(grupo.id));
+      if (semRepetir.length >= 2) lista[0] = { cat: lista[0].cat, grupos: semRepetir };
+    }
+    return lista;
   })();
 
   function limpar() {
@@ -215,7 +255,7 @@ export default function Comunidades() {
           <button
             type="button"
             onClick={() => setCriando((v) => !v)}
-            className="flex shrink-0 items-center gap-1 rounded-full bg-primary py-2.5 pl-2.5 pr-3.5 text-[12.5px] font-bold text-black transition-opacity hover:opacity-90"
+            className="flex shrink-0 items-center gap-1 rounded-full bg-primary py-2.5 pl-2.5 pr-3.5 text-[12.5px] font-bold text-primary-foreground transition-opacity hover:opacity-90"
             data-testid="criar-comunidade"
           >
             <Plus className="h-4 w-4" />
@@ -250,7 +290,7 @@ export default function Comunidades() {
                   onClick={() => setCategoria(ligada ? "" : item.categoria)}
                   className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
                     ligada
-                      ? "bg-primary font-semibold text-black"
+                      ? "bg-primary font-semibold text-primary-foreground"
                       : item.total === 0
                         ? "bg-white/[0.04] text-white/35 hover:text-white/60"
                         : "bg-white/[0.07] text-white/85 hover:bg-white/10"
@@ -350,12 +390,16 @@ export default function Comunidades() {
               />
             ))}
 
-            {/* ---------------- mais populares ---------------- */}
-            <SecaoDeCartoes
-              titulo="Mais populares"
-              itens={populares.map((grupo) => ({ grupo }))}
-              testid="mais-populares"
-            />
+            {/* ---------------- mais populares ----------------
+                Some com menos de dois: depois da regra da dobra a lista pode
+                encolher, e carrossel de um cartão só parece erro. */}
+            {populares.length >= 2 && (
+              <SecaoDeCartoes
+                titulo="Mais populares"
+                itens={populares.map((grupo) => ({ grupo }))}
+                testid="mais-populares"
+              />
+            )}
 
             {/* ---------------- os carrosséis por assunto ---------------- */}
             {porAssunto.map(({ cat, grupos }) => (
@@ -509,7 +553,7 @@ function BotaoDeEntrar({ grupo }: { grupo: Grupo }) {
       disabled={situacao === "so-convidado"}
       className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12px] font-bold transition-colors disabled:opacity-30 ${
         situacao === "livre" || situacao === "pedir"
-          ? "bg-primary text-black hover:opacity-90"
+          ? "bg-primary text-primary-foreground hover:opacity-90"
           : "border border-white/15 text-white/60 hover:bg-white/5"
       }`}
       data-testid={`entrar-${grupo.id}`}

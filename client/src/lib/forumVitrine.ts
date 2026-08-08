@@ -12,6 +12,7 @@
  * educada de mentir que existe atividade.
  */
 
+import { nomeDoMembro } from "@/lib/clubes";
 import { readFollowing } from "@/lib/following";
 import { CATEGORIAS, categoriaDe, forunsVisiveis, membrosDo, situacaoDe } from "@/lib/forum";
 import { topicosDa, type Grupo, type TopicoNaTela } from "@/lib/grupos";
@@ -127,12 +128,43 @@ export function porCategoria(): { categoria: string; total: number }[] {
 }
 
 /**
+ * O motivo que descreve **o que a comunidade tem** — o único que varia sozinho,
+ * porque sai de números que são dela.
+ *
+ * Serve em dois papéis: é o motivo de quem é sugerido pelo assunto, e é o
+ * **desempate** quando o motivo mais forte sairia repetido (ver `sugestoes`).
+ * A categoria entra como complemento quando existe.
+ */
+function motivoDeMovimento(grupoId: string, categoria?: string): string {
+  const onde = categoria ? ` em ${categoria.toLowerCase()}` : "";
+  const sobre = categoria ? ` sobre ${categoria.toLowerCase()}` : "";
+  const { conversasDaSemana, topicos } = movimentoDe(grupoId);
+
+  if (conversasDaSemana > 0) {
+    return conversasDaSemana === 1
+      ? `1 conversa esta semana${onde}`
+      : `${conversasDaSemana} conversas esta semana${onde}`;
+  }
+  if (topicos > 1) return `${topicos} conversas${sobre}`;
+  const pessoas = membrosDo(grupoId).length;
+  if (topicos === 1) return `${pessoas} pessoas, e a primeira conversa já começou`;
+  return `${pessoas} pessoas, e a conversa ainda vai começar`;
+}
+
+/**
  * **Para você** — comunidades de fora, com o motivo de estarem sendo sugeridas.
  *
  * Dois motivos, nesta ordem de preferência: **gente que você segue está lá**
  * (o mais forte, e o mesmo critério que a §4.58 usou nas sugestões da
  * Comunidade) e **é da categoria de uma comunidade sua**. Sem motivo, não
  * sugere — recomendação sem porquê é lista aleatória com nome bonito.
+ *
+ * ⚠️ **O motivo saía idêntico em cartões seguidos** — "também é de ficção
+ * científica", palavra por palavra, três vezes na mesma dobra (apontado na
+ * §4.104 e consertado em 08/08). Frase repetida lê como enfeite, não como
+ * razão: quem vê três iguais para de ler todas. Duas coisas mudaram, e a
+ * segunda é a que resolveu de verdade — ver `semRepetirAFrase` no fim do
+ * arquivo. Nenhum número é inventado: todos saem de `movimentoDe`.
  */
 export function sugestoes(limite = 3): { grupo: Grupo; motivo: string }[] {
   const sigo = readFollowing();
@@ -148,25 +180,71 @@ export function sugestoes(limite = 3): { grupo: Grupo; motivo: string }[] {
     .map((grupo) => {
       const conhecidos = membrosDo(grupo.id).filter((membro) => sigo.includes(membro.slug));
       if (conhecidos.length > 0) {
+        /*
+         * ⚠️ **Dizia "alguém que você segue está aqui"** — e saía igual em
+         * quatro cartões seguidos (visto na tela em 08/08). Com o nome, cada
+         * cartão diz uma coisa diferente **e** diz mais: "a Juliana está aqui"
+         * é motivo; "alguém" é categoria de motivo. O nome já é público em todo
+         * o app (perfil, comentário, membro do clube), então não vaza nada — e
+         * quem você segue você sabe quem é.
+         */
+        const primeiro = nomeDoMembro(conhecidos[0].slug);
         return {
           grupo,
           peso: 2,
           motivo:
             conhecidos.length === 1
-              ? "alguém que você segue está aqui"
-              : `${conhecidos.length} pessoas que você segue estão aqui`,
+              ? `${primeiro} está aqui`
+              : conhecidos.length === 2
+                ? `${primeiro} e mais 1 que você segue estão aqui`
+                : `${primeiro} e mais ${conhecidos.length - 1} que você segue estão aqui`,
         };
       }
       const categoria = categoriaDe(grupo.id);
       if (categoria && minhasCategorias.has(categoria)) {
-        return { grupo, peso: 1, motivo: `também é de ${categoria.toLowerCase()}` };
+        return { grupo, peso: 1, motivo: motivoDeMovimento(grupo.id, categoria) };
       }
       return { grupo, peso: 0, motivo: "" };
     })
     .filter((item) => item.peso > 0)
     .sort((a, b) => b.peso - a.peso)
-    .slice(0, limite)
-    .map(({ grupo, motivo }) => ({ grupo, motivo }));
+    .slice(0, limite);
+}
+
+/**
+ * **Nenhuma frase de motivo aparece duas vezes na mesma lista.**
+ *
+ * A primeira tentativa de consertar a repetição (08/08) trocou "alguém que você
+ * segue está aqui" pelo nome da pessoa — e na tela **continuou igual**: eu sigo
+ * uma pessoa só, ela está em quatro comunidades, e os quatro cartões passaram a
+ * dizer "Juliana S. está aqui". **A lição:** trocar o texto não conserta
+ * repetição quando o *dado* é o mesmo; o desempate tem que ser outro dado.
+ *
+ * Então o motivo mais forte fica com o **primeiro** cartão — é dele que a frase
+ * informa mais — e os seguintes caem para o que descreve cada comunidade por si.
+ * A ordem nunca muda: quem entra primeiro é quem tem o motivo mais forte.
+ *
+ * ⚠️ **Roda na lista final da tela, não dentro de `sugestoes`.** O carrossel
+ * "Recomendado para você" é feito de **duas** fontes (`sugestoes` + `emAlta`),
+ * e as duas escrevem motivo; limpar só uma delas deixaria a repetição
+ * atravessar a emenda.
+ *
+ * Empate ainda é possível (duas comunidades novas, do mesmo tamanho, sem
+ * conversa). Aí a frase igual é a verdade: não há o que as separe.
+ */
+export function semRepetirAFrase(
+  lista: { grupo: Grupo; motivo: string }[],
+): { grupo: Grupo; motivo: string }[] {
+  const ditas = new Set<string>();
+  return lista.map(({ grupo, motivo }) => {
+    if (!ditas.has(motivo)) {
+      ditas.add(motivo);
+      return { grupo, motivo };
+    }
+    const alternativo = motivoDeMovimento(grupo.id, categoriaDe(grupo.id) ?? undefined);
+    ditas.add(alternativo);
+    return { grupo, motivo: alternativo };
+  });
 }
 
 /** Os números do rodapé da vitrine. */
