@@ -232,7 +232,7 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
       <div className="sobre-midia relative flex items-center gap-3.5 p-3.5">
         <div aria-hidden className="absolute inset-0">
           <img src={livro.cover} alt="" className="h-full w-full scale-125 object-cover blur-2xl" />
-          <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/55 to-black/80" />
         </div>
 
         <Link href={`/book/${livro.id}`} className="relative shrink-0">

@@ -660,8 +660,8 @@ export default function Library() {
         <section className="px-5" data-testid="section-stats-link">
           <Link href="/statistics">
             <div className="flex items-center gap-3.5 rounded-xl border border-white/8 bg-white/[0.04] px-4 py-3.5 transition-colors hover:bg-white/[0.07]">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <BarChart3 className="h-[18px] w-[18px] text-primary" />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <BarChart3 className="h-[18px] w-[18px]" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold">Suas estatísticas</p>

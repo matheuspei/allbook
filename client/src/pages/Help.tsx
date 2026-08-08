@@ -171,8 +171,8 @@ export default function Help() {
       <PageHeader title="Ajuda e suporte" fallback="/profile" />
 
       <header className="px-5 pt-6 pb-2">
-        <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary/15 ring-1 ring-primary/25">
-          <LifeBuoy className="h-6 w-6 text-primary" />
+        <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground">
+          <LifeBuoy className="h-6 w-6" />
         </div>
         <h1 className="mt-4 font-display text-2xl font-bold tracking-tight text-white">
           Como podemos ajudar?

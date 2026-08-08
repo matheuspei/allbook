@@ -71,7 +71,12 @@ export default function PersonAvatar({
   const avatar = (
     <div
       className={cn(
-        "relative shrink-0 overflow-hidden rounded-full ring-2 ring-white/15 shadow-lg shadow-black/40",
+        /* O anel é da COR DO FUNDO, não um branco translúcido: no tema claro o
+           branco translúcido vira tinta e cerca o avatar de um aro escuro, que
+           é o que fazia a cor parecer suja (apontado por ele em 08/08). Anel da
+           cor do papel é o recorte que Instagram e Slack usam, e funciona nos
+           dois temas. */
+        "relative shrink-0 overflow-hidden rounded-full ring-2 ring-background shadow-lg shadow-black/40",
         caixa,
         className
       )}

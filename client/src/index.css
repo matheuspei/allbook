@@ -96,13 +96,23 @@
   --card-foreground: 38 18% 9%;
   --popover: 40 100% 99%;
   --popover-foreground: 38 18% 9%;
-  --primary: 3 61% 47%;            /* #C1362F carmim de editora */
+  /*
+    #DA281B — o vermelho ganhou saturação em 08/08. O carmim de editora que
+    estava aqui (`#C1362F`, saturação 61%) foi apontado por ele como "morto", e
+    ele tem razão: sobre papel claro uma cor média parece mais apagada do que a
+    mesma cor sobre grafite (é contraste simultâneo, não impressão). Subimos a
+    saturação para 78% e baixamos a luminosidade para 48%, que é o ponto onde a
+    cor fica viva SEM perder legibilidade — 4,4:1 sobre o papel, contra os 4,7:1
+    de antes. Mais vivo que isto (o `#FF4438` do Estúdio) cai para 2,9:1 e não
+    serve como cor de texto sobre papel.
+  */
+  --primary: 4 78% 48%;            /* #DA281B vermelho de gravação, versão tinta */
   --primary-foreground: 40 100% 99%;
   --secondary: 39 30% 87%;         /* #E8E1D4 */
   --secondary-foreground: 38 18% 9%;
   --muted: 39 30% 87%;
   --muted-foreground: 36 10% 40%;  /* #6F675B */
-  --accent: 3 61% 47%;
+  --accent: 4 78% 48%;
   --accent-foreground: 40 100% 99%;
   --destructive: 0 65% 45%;
   --destructive-foreground: 40 100% 99%;
@@ -201,21 +211,35 @@
 }
 
 /* ---------------------------------------------------------------------------
- * O REFORÇO DAS OPACIDADES NO TEMA CLARO — bloco gerado, mas fácil de manter.
+ * AS DUAS CORREÇÕES DO TEMA CLARO — bloco gerado, mas fácil de manter.
  *
+ * ── 1. Texto, borda e anel: o mesmo contraste, com mais alpha ──
  * `text-white/40` quer dizer "texto secundário". Sobre o grafite, branco a 40%
  * rende 3,6:1 de contraste e se lê bem; sobre o papel creme, tinta a 40% rende
- * só 2,4:1 e **some** — foi a segunda reclamação dele em 08/08. A conta não é
- * simétrica porque o papel é muito mais claro do que o grafite é escuro.
+ * só 2,4:1 e **some**. A conta não é simétrica porque o papel é muito mais claro
+ * (93%) do que o grafite é escuro (7%). Cada linha corrige o alpha para dar o
+ * MESMO contraste no claro: 40% → 53%, 25% → 34%, 70% → 80%.
  *
- * Cada linha abaixo é a mesma classe com o alpha corrigido para dar o MESMO
- * contraste no claro (40% → 53%, 25% → 34%, 70% → 80%…). Ficam dentro de
- * `@layer utilities` e com `:where()` de propósito: assim empatam em
- * especificidade com a classe original e ganham só por virem depois — um
- * `hover:text-primary` na mesma tela continua ganhando delas.
+ * ── 2. Fundo de superfície: papel elevado é papel mais BRANCO ──
+ * Aqui está o erro que a primeira versão deste bloco *piorou*, e que ele viu na
+ * tela: `bg-white/5` num cartão quer dizer "mais um degrau de superfície". No
+ * escuro isso é clarear; no claro, escurecer o papel dá um **cinza sujo** — o
+ * cartão do feed e os blocos "escrito por / narrado por" pareciam mortos, e a
+ * palavra dele foi exatamente essa. Então, no claro, esses fundos passam a ser
+ * **branco** (com a borda dando o recorte), e não tinta.
+ *
+ * Vale só até 25%: acima disso `bg-white/NN` não é superfície, é botão quase
+ * sólido (`hover:bg-white/90`) — ali a tinta é que está certa. E a exclusão de
+ * `.sobre-midia` é obrigatória: lá dentro o fundo translúcido é vidro por cima
+ * de foto, e branco puro taparia a imagem.
+ *
+ * ── Por que `:where()` e `@layer utilities` ──
+ * As duas coisas rebaixam a regra ao mesmo peso da classe original, então ela
+ * ganha só por vir depois; um `hover:text-primary` na mesma tela continua
+ * ganhando dela. Sem isso, o reforço atropelaria os estados.
  *
  * ⚠️ **Usou uma opacidade que não está aqui** (`text-white/33`)? Ela vai ficar
- * fraca no claro. Acrescente a linha — a régua é a tabela do comentário acima.
+ * fraca no claro. Acrescente a linha — a régua é a tabela acima.
  * ------------------------------------------------------------------------- */
 
 /* Hide scrollbar for horizontal scrolling lists */
@@ -227,24 +251,48 @@
   scrollbar-width: none;
 }
 @layer utilities {
-  :where(html:not(.dark)) .bg-white\/5 { background-color: hsl(var(--foreground) / 7%); }   /* de 5% */
-  :where(html:not(.dark)) .hover\:bg-white\/5:hover { background-color: hsl(var(--foreground) / 7%); }   /* de 5% */
-  :where(html:not(.dark)) .hover\:bg-white\/8:hover { background-color: hsl(var(--foreground) / 11%); }   /* de 8% */
-  :where(html:not(.dark)) .bg-white\/10 { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
-  :where(html:not(.dark)) .active\:bg-white\/10:active { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
-  :where(html:not(.dark)) .disabled\:bg-white\/10:disabled { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
-  :where(html:not(.dark)) .focus\:bg-white\/10:focus { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
-  :where(html:not(.dark)) .group:hover .group-hover\:bg-white\/10 { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
-  :where(html:not(.dark)) .hover\:bg-white\/10:hover { background-color: hsl(var(--foreground) / 14%); }   /* de 10% */
-  :where(html:not(.dark)) .bg-white\/12 { background-color: hsl(var(--foreground) / 16%); }   /* de 12% */
-  :where(html:not(.dark)) .hover\:bg-white\/12:hover { background-color: hsl(var(--foreground) / 16%); }   /* de 12% */
-  :where(html:not(.dark)) .bg-white\/15 { background-color: hsl(var(--foreground) / 20%); }   /* de 15% */
-  :where(html:not(.dark)) .active\:bg-white\/15:active { background-color: hsl(var(--foreground) / 20%); }   /* de 15% */
-  :where(html:not(.dark)) .disabled\:bg-white\/15:disabled { background-color: hsl(var(--foreground) / 20%); }   /* de 15% */
-  :where(html:not(.dark)) .hover\:bg-white\/15:hover { background-color: hsl(var(--foreground) / 20%); }   /* de 15% */
-  :where(html:not(.dark)) .bg-white\/20 { background-color: hsl(var(--foreground) / 27%); }   /* de 20% */
-  :where(html:not(.dark)) .hover\:bg-white\/20:hover { background-color: hsl(var(--foreground) / 27%); }   /* de 20% */
-  :where(html:not(.dark)) .bg-white\/25 { background-color: hsl(var(--foreground) / 34%); }   /* de 25% */
+  /* ---- superfície: papel elevado é papel mais BRANCO ---- */
+  :where(html:not(.dark)) .bg-white\/\[0\.015\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.12); }   /* era 1.5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.02\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.16); }   /* era 2% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.025\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.20); }   /* era 2.5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.03\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.24); }   /* era 3% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.03\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.24); }   /* era 3% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.035\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.28); }   /* era 3.5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.04\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.32); }   /* era 4% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.04\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.32); }   /* era 4% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.045\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.36); }   /* era 4.5% de tinta */
+  :where(html:not(.dark)) .bg-white\/5:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.40); }   /* era 5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.05\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.40); }   /* era 5% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.05\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.40); }   /* era 5% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/5:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.40); }   /* era 5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.055\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.44); }   /* era 5.5% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.06\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.48); }   /* era 6% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.06\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.48); }   /* era 6% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.07\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.56); }   /* era 7% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.07\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.56); }   /* era 7% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.08\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.64); }   /* era 8% de tinta */
+  :where(html:not(.dark)) .group:hover .group-hover\:bg-white\/\[0\.08\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.64); }   /* era 8% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.08\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.64); }   /* era 8% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/8:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.64); }   /* era 8% de tinta */
+  :where(html:not(.dark)) .bg-white\/10:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .active\:bg-white\/10:active:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .disabled\:bg-white\/10:disabled:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .focus\:bg-white\/10:focus:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .group:hover .group-hover\:bg-white\/10:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/10:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.80); }   /* era 10% de tinta */
+  :where(html:not(.dark)) .bg-white\/12:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.96); }   /* era 12% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/12:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.96); }   /* era 12% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/\[0\.12\]:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 0.96); }   /* era 12% de tinta */
+  :where(html:not(.dark)) .bg-white\/\[0\.13\]:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 13% de tinta */
+  :where(html:not(.dark)) .bg-white\/15:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 15% de tinta */
+  :where(html:not(.dark)) .active\:bg-white\/15:active:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 15% de tinta */
+  :where(html:not(.dark)) .disabled\:bg-white\/15:disabled:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 15% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/15:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 15% de tinta */
+  :where(html:not(.dark)) .bg-white\/20:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 20% de tinta */
+  :where(html:not(.dark)) .hover\:bg-white\/20:hover:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 20% de tinta */
+  :where(html:not(.dark)) .bg-white\/25:not(.sobre-midia, .sobre-midia *) { background-color: rgb(255 255 255 / 1.00); }   /* era 25% de tinta */
+
+  /* ---- texto, borda e anel: a tinta, com o alpha engrossado ---- */
   :where(html:not(.dark)) .bg-white\/30 { background-color: hsl(var(--foreground) / 41%); }   /* de 30% */
   :where(html:not(.dark)) .hover\:bg-white\/30:hover { background-color: hsl(var(--foreground) / 41%); }   /* de 30% */
   :where(html:not(.dark)) .bg-white\/40 { background-color: hsl(var(--foreground) / 53%); }   /* de 40% */
@@ -252,8 +300,13 @@
   :where(html:not(.dark)) .hover\:bg-white\/60:hover { background-color: hsl(var(--foreground) / 72%); }   /* de 60% */
   :where(html:not(.dark)) .hover\:bg-white\/90:hover { background-color: hsl(var(--foreground) / 95%); }   /* de 90% */
   :where(html:not(.dark)) .border-white\/5 { border-color: hsl(var(--foreground) / 7%); }   /* de 5% */
+  :where(html:not(.dark)) .border-white\/\[0\.05\] { border-color: hsl(var(--foreground) / 7%); }   /* de 5% */
+  :where(html:not(.dark)) .border-white\/\[0\.06\] { border-color: hsl(var(--foreground) / 8%); }   /* de 6% */
+  :where(html:not(.dark)) .border-white\/\[0\.07\] { border-color: hsl(var(--foreground) / 10%); }   /* de 7% */
   :where(html:not(.dark)) .border-white\/8 { border-color: hsl(var(--foreground) / 11%); }   /* de 8% */
+  :where(html:not(.dark)) .border-white\/\[0\.08\] { border-color: hsl(var(--foreground) / 11%); }   /* de 8% */
   :where(html:not(.dark)) .border-white\/10 { border-color: hsl(var(--foreground) / 14%); }   /* de 10% */
+  :where(html:not(.dark)) .border-white\/\[0\.12\] { border-color: hsl(var(--foreground) / 16%); }   /* de 12% */
   :where(html:not(.dark)) .border-white\/12 { border-color: hsl(var(--foreground) / 16%); }   /* de 12% */
   :where(html:not(.dark)) .border-white\/15 { border-color: hsl(var(--foreground) / 20%); }   /* de 15% */
   :where(html:not(.dark)) .border-white\/20 { border-color: hsl(var(--foreground) / 27%); }   /* de 20% */

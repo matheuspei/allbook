@@ -130,7 +130,7 @@ export default function Compositor({ aoPublicar }: { aoPublicar?: () => void }) 
         <span className="min-w-0 flex-1 truncate text-[13.5px] text-white/35">
           O que você está ouvindo?
         </span>
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
           <Send className="h-3.5 w-3.5" />
         </span>
       </button>

@@ -150,7 +150,7 @@ export default function Bookmarks() {
                                 aria-label={`Ouvir a partir de ${formatarTempo(marcacao.positionSec)}`}
                                 data-testid={`bookmark-play-${marcacao.id}`}
                               >
-                                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                                   <Play className="h-4 w-4 fill-current" />
                                 </div>
                                 <div className="min-w-0 flex-1">

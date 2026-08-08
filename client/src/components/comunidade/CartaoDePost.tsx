@@ -475,7 +475,7 @@ function CapaDoLivro({ bookId }: { bookId: number }) {
           Fundo escuro nos dois temas ⇒ o bloco leva `sobre-midia`. */}
       <div aria-hidden className="absolute inset-0">
         <img src={livro.cover} alt="" className="h-full w-full scale-125 object-cover blur-2xl" />
-        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/55 to-black/80" />
       </div>
 
       <Link href={`/book/${livro.id}`} className="relative shrink-0">
@@ -668,7 +668,7 @@ export function CartaoDoClube({ clubeId }: { clubeId: string }) {
           {livro && (
             <img src={livro.cover} alt="" className="h-full w-full scale-125 object-cover blur-2xl" />
           )}
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/55 to-black/80" />
         </div>
 
         {livro && (

@@ -867,7 +867,7 @@ function PrazosDosClubes() {
             className="flex w-full items-start gap-3 rounded-xl border border-primary/20 bg-primary/[0.06] p-3.5 text-left transition-colors hover:bg-primary/[0.1]"
             data-testid={`aviso-clube-${aviso.tipo}`}
           >
-            <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+            <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
               {aviso.tipo === "rodada" ? (
                 <MessageCircleQuestion className="h-4 w-4" />
               ) : aviso.tipo === "votacao" ? (

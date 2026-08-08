@@ -4557,6 +4557,29 @@ perguntar antes de redesenhar.
   coladas. Isso vale para **qualquer** marca que ponha algo dentro dos dois laços,
   inclusive as que nascerem do ChatGPT.
 
+### A régua que decide ícone: cor sobrevive, forma não (08/08)
+
+Ele trouxe do ChatGPT uma leva de símbolos (infinito + livro aberto, uns com
+onda de áudio dentro dos laços, outros com olhos de coruja). Montei
+`_prova-icones.html`, que reduz o mesmo arquivo a 160 / 64 / 48 / 32 / 24 px, e
+o resultado **contrariou a minha própria previsão** — vale guardar como régua:
+
+- **Detalhe fino de forma morre; contraste de cor não.** Eu previ que a onda
+  vermelha usada como bico sumiria em 32 px: **não some**, fica nítida até 24 px.
+  Já as ondas brancas dentro dos laços viram **textura cinza** em 32 px — ou
+  seja, o elemento que dizia "áudio" é o primeiro a morrer justamente na versão
+  que apostava nele.
+- **Rosto sobrevive à redução melhor que qualquer símbolo abstrato** (olho é
+  mancha compacta; onda é pente). Isso não decide a marca — mede legibilidade,
+  não originalidade, e coruja+livro continua sendo o clichê do ramo.
+- **Meio-termo é o pior caminho:** trocar os olhos da coruja por ondas perde o
+  rosto **e** o áudio de uma vez, e em 32 px o desenho fica igual ao que não tem
+  coruja nenhuma, só com dois espetos a mais.
+
+**Método a repetir:** antes de opinar sobre ícone, reduzir e olhar. A folha da
+prova leva 5 minutos e desmentiu uma opinião minha que eu já tinha dito em voz
+alta duas vezes.
+
 ## 4.116 O tema claro "Tinta" consertado — e o erro de projeto que o quebrava (08/08)
 
 **A reclamação dele, na abertura da sessão:** *"o preto até que corrigiu, ficou
@@ -4795,3 +4818,50 @@ apagado é o **status de pendente**.
   `CartaoDeResumo`, que não lê CSS). O que importa ali é o **âmbar da
   identidade antiga nos clubes** — `CartaoDoCiclo`, `FaixaDoClubeNoLivro`,
   `ClubesComecando`, `LinhaDoCiclo` — que briga com o vermelho novo.
+
+### A segunda rodada, no mesmo dia: "parece uma coisa mais morta" (08/08)
+
+Com o tema claro já consertado, ele voltou com três reclamações — e as três
+tinham a mesma raiz, que a primeira rodada **não** pegou: eu tratei o tema claro
+como "o escuro com as cores trocadas", e ele não é.
+
+**1. Superfície não se empilha do mesmo jeito nos dois temas.** `bg-white/5` num
+cartão quer dizer *"mais um degrau acima do fundo"*. No Estúdio isso é clarear;
+no Tinta, a primeira rodada mandou escurecer o papel — e escurecer papel creme
+com tinta quente dá um **cinza sujo**. Era o que deixava os blocos "escrito por /
+narrado por" e os cartões do feed com cara de morto. Agora, no claro, esses
+fundos são **branco** (com a borda dando o recorte), e o teto é 25%: acima disso
+`bg-white/NN` não é superfície, é botão quase sólido, e ali a tinta é que vale.
+*(A regra vale para `bg-`; texto, borda e anel continuam sendo tinta.)*
+
+**2. O vermelho estava mesmo morto, e o motivo é físico.** O carmim de editora
+`#C1362F` tem 61% de saturação. Sobre papel claro, uma cor média parece mais
+apagada do que a mesma cor sobre grafite — contraste simultâneo. Subiu para
+`#DA281B` (saturação 78%, luminosidade 48%), que é o ponto onde a cor fica viva
+**sem** perder legibilidade: 4,4:1 sobre o papel, contra os 4,7:1 de antes. Mais
+vivo que isso — o `#FF4438` do Estúdio — cai para 2,9:1 e deixa de servir como
+cor de texto. *(Sobre foto continua valendo o `#FF4438`: `.sobre-midia` já o
+devolve.)*
+
+**3. A pastilha de ícone esmaecida não sobrevive ao papel.** `bg-primary/15` com
+o ícone em `text-primary` é bonito sobre grafite — vermelho profundo com o ícone
+brilhando. Sobre branco vira **rosa-bebê**, e foi isso que ele chamou de "ícone
+cinza". As 12 pastilhas de ícone do app passaram a ter a **cor cheia com o ícone
+em `primary-foreground`**, e ficou melhor nos dois temas (conferido). Os selos
+com texto (`bg-primary/15 text-primary`) continuam esmaecidos de propósito — se
+todos virassem vermelho cheio, a tela viraria semáforo.
+
+**Dois consertos menores da mesma conversa:** o anel dos avatares
+(`ring-white/15`) virava um aro escuro em volta da cara da pessoa no tema claro —
+passou a ser **a cor do fundo**, que é o recorte que Instagram e Slack usam; e o
+véu dos cartões com capa ao fundo deixou de ser chapado e virou **degradê
+horizontal** (`from-black/30 … to-black/80`), para a capa voltar a aparecer do
+lado da arte — era a reclamação de que "no escuro você vê a capa presente, no
+claro não".
+
+**A lição que fica, e é a mesma da primeira rodada em outra escala:** tema claro
+não é a foto negativa do escuro. Clarear e escurecer não são operações
+simétricas, porque o papel tem pouco espaço acima dele (6 pontos de L\*) e o
+grafite tem muito. Toda vez que uma peça do escuro "some" no claro, a pergunta
+certa não é *quanto* de opacidade falta — é **em que direção** aquela peça
+deveria se afastar do fundo.

@@ -170,8 +170,8 @@ function EstudioDoLivro({ narrador }: { narrador: string }) {
       className="flex items-center gap-3 rounded-xl bg-white/5 p-3 text-left ring-1 ring-white/5 transition-colors hover:bg-white/10 active:bg-white/15"
       data-testid="link-studio"
     >
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/15 ring-1 ring-primary/25">
-        <AudioLines className="h-5 w-5 text-primary" />
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
+        <AudioLines className="h-5 w-5" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[10px] uppercase tracking-widest text-white/40">
@@ -622,7 +622,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 text-left transition-colors hover:bg-white/[0.08]"
             data-testid="button-book-bookmarks"
           >
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
               <BookMarked className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">

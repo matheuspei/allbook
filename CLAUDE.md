@@ -143,10 +143,21 @@ um `<div className="veu-de-midia absolute inset-0" />` entre a imagem e o texto.
 ⚠️ Dentro de `.sobre-midia` o `--background` **não** muda, de propósito: é o que
 deixa o degradê de fusão (`from-background`) continuar valendo lá dentro.
 
-**As opacidades no tema claro têm uma tabela de reforço no fim do `index.css`**
-(`text-white/40` vira 53% no claro, para dar o mesmo contraste que 40% dá sobre
-o grafite). Usou uma opacidade que não está na tabela? Acrescente a linha, senão
-o texto sai fraco no claro.
+**No fim do `index.css` há a tabela que acerta o tema claro**, e ela faz duas
+coisas diferentes: *texto, borda e anel* ganham mais alpha (`text-white/40` vira
+53%, para dar o mesmo contraste que 40% dá sobre o grafite); *fundo de
+superfície* (`bg-white/5` e afins, até 25%) deixa de ser tinta e vira **branco**
+— no claro, papel elevado é papel mais branco, e escurecer o creme dá cinza sujo.
+Usou uma opacidade que não está na tabela? Acrescente a linha.
+
+**Pastilha de ícone usa a cor cheia** (`bg-primary text-primary-foreground`), não
+`bg-primary/15`: esmaecido vira rosa-bebê sobre papel. Selo com texto continua
+esmaecido — se tudo virasse vermelho cheio, a tela viraria semáforo.
+
+⚠️ **Tema claro não é a foto negativa do escuro.** Clarear e escurecer não são
+simétricos: o papel tem pouco espaço acima dele e o grafite tem muito. Quando uma
+peça "some" no claro, a pergunta não é *quanta* opacidade falta — é **em que
+direção** ela deveria se afastar do fundo.
 
 Antes de criar tela nova, olhar `Home.tsx` e `BookDetails.tsx` para manter a
 mesma cara — e não acrescentar biblioteca de UI nova.

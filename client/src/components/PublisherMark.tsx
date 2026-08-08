@@ -44,7 +44,8 @@ export default function PublisherMark({
   return (
     <div
       className={cn(
-        "relative shrink-0 overflow-hidden ring-2 ring-white/15 shadow-lg shadow-black/40",
+        /* Anel da cor do fundo, pelo mesmo motivo do `PersonAvatar`. */
+        "relative shrink-0 overflow-hidden ring-2 ring-background shadow-lg shadow-black/40",
         caixa,
         className
       )}

@@ -51,11 +51,11 @@ export default function RequestBanner({
       data-testid="banner-request"
     >
       <span
-        className={`grid shrink-0 place-items-center rounded-lg bg-primary/20 ring-1 ring-primary/30 ${
+        className={`grid shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground ${
           ehDestaque ? "h-11 w-11" : "h-9 w-9"
         }`}
       >
-        <Mic className={ehDestaque ? "h-5 w-5 text-primary" : "h-4 w-4 text-primary"} />
+        <Mic className={ehDestaque ? "h-5 w-5" : "h-4 w-4"} />
       </span>
 
       <span className="min-w-0 flex-1">

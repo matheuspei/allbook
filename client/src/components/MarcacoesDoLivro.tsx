@@ -120,7 +120,7 @@ export default function MarcacoesDoLivro({
                     className="flex min-w-0 flex-1 items-center gap-3 text-left"
                     aria-label={`Ir para ${formatarTempo(marcacao.positionSec)}`}
                   >
-                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                       <Play className="h-4 w-4 fill-current" />
                     </div>
                     <div className="min-w-0 flex-1">

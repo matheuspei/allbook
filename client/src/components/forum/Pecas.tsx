@@ -408,7 +408,7 @@ export function CartazDoTopico({
           style={{ background: degradeDe(semente ?? emoji ?? "💬") }}
         />
       )}
-      <span aria-hidden className="absolute inset-0 bg-black/55" />
+      <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/55 to-black/80" />
 
       <div className="relative flex items-center gap-3 p-3">
         <CapaDoTopico
