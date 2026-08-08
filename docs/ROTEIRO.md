@@ -5645,3 +5645,68 @@ casa com o filtro.
 dia em que a primeira conta real entrou. **Nunca mais `delete from <tabela>` no
 banco de verdade** — olhe o que está lá primeiro, e use o alvo estreito. Comando
 cego em banco com gente dentro não é atalho, é acidente esperando data.
+
+---
+
+## 4.127 A fila do pedido existe: o estúdio ganhou uma mesa (08/08)
+
+Armadilha **2.6** resolvida na parte que dependia de nós. Até hoje o pedido
+nascia e **permanecia em `recebido` para sempre** — não havia fila, servidor nem
+ninguém do outro lado. A tela era honesta sobre isso, mas a promessa pública do
+AllBook é de **24 horas**.
+
+`npm run estudio` — a fila, do mais antigo ao mais novo, com quem pediu, há
+quanto tempo espera (avisando quando passa de 24h), a voz escolhida e a
+observação. `mover`, `pronto`, `recusar`.
+
+### Nenhuma tela mudou, e isso não foi sorte
+
+O estúdio move o pedido **no servidor**, e a sincronização da §4.122 leva o
+estado novo ao app sozinha — porque no `mesclar()` de `allbook_book_requests` o
+**servidor vence** para o mesmo id. A trilha de quatro etapas que a janela B
+construiu passa a mostrar o estado real **sem uma linha de mudança**, e o
+`idLocal` (§4.122) garante que é o mesmo pedido dos dois lados.
+
+### Duas decisões que valem registro
+
+**1. É um comando de terminal, não uma tela de administração — por segurança.**
+A ferramenta fala **direto com o banco**, sem rota HTTP. Uma rota de admin é uma
+porta a mais exposta, com autenticação, papéis e o risco de alguém achá-la — tudo
+isso para um estúdio que hoje é **uma pessoa, nesta máquina**. Quem tem acesso ao
+banco local já é o dono do projeto. Quando o estúdio virar equipe, a rota (e uma
+coluna de papel em `contas`) passam a valer a pena; antes disso seria superfície
+de ataque sem dono.
+
+**2. `pronto` EXIGE o livro entregue.** Marcar pronto sem apontar um livro seria
+dizer a alguém que a narração dela está no catálogo quando não está — e o
+comando recusa. Quando o livro ainda não existe, ele **ensina o caminho** em vez
+de aceitar: acrescentar em `books.ts` → `npm run catalogo` → `npm run db:catalogo`
+→ voltar com o id.
+
+### O limite honesto: livro novo ainda não nasce daqui
+
+**O catálogo que o app mostra vem do CÓDIGO** (`lib/books.ts`), não do banco —
+medido: **63 arquivos** leem de lá, e alguns no topo do módulo. Um livro criado
+só no banco existiria para as chaves estrangeiras e **não apareceria em tela
+nenhuma**.
+
+Avaliei fazer o app ler o catálogo do banco antes desta etapa e **descartei**: é
+a maior reescrita que resta e o ganho hoje é baixo, porque o catálogo é curado à
+mão e funciona. Fica registrado como o pré-requisito real para o pedido virar
+livro de ponta a ponta — e para o áudio.
+
+### Dívidas nomeadas
+
+- **A tela não desenha `recusado`.** Ela conhece as quatro etapas da trilha; um
+  pedido recusado fica mudo para quem pediu. O comando avisa isso ao recusar.
+- **O crédito ainda é debitado no navegador** (`lib/assinatura.ts`, da janela B).
+  O servidor registra o pedido mas não valida saldo — o que só fecha quando a
+  criação do pedido passar pela API. Hoje nada cobra, então o risco é zero.
+
+### Armadilha apurada: o `npm run` engole as `--flags`
+
+`npm run estudio pronto <id> --livro 8` **falhava dizendo que faltava o livro**,
+com o livro escrito ali. O `npm` interpreta a flag como dele e não a repassa;
+funciona com `npm run estudio -- pronto <id> --livro 8`, mas exigir aquele `--`
+perdido no meio é detalhe que ninguém lembra. O comando passou a aceitar o id do
+livro como **número solto**: `npm run estudio pronto <id> 8`.

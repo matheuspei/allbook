@@ -380,14 +380,26 @@ que o app toca.
       fica no disco da pessoa). Hoje `allbook_downloads` é só uma marca, e
       **nenhum byte é gravado** — não há nada exposto ainda.
 
-### 2.6 ⚠️ O pedido de livro não sai do aparelho
+### 2.6 🔸 O pedido de livro não saía do aparelho — FILA FEITA (08/08)
 
 `/request` grava no navegador e o pedido nasce e permanece em `recebido` — não há
 fila, servidor nem estúdio ligado. A tela diz isso à pessoa, mas a promessa
 pública é de **24 horas**.
 
-- [ ] Fila real, os quatro estados (`recebido` → `procurando` → `produzindo` →
-      `pronto`), e o livro entrando no catálogo ao final.
+- [x] **Fila real e os quatro estados** — feito em 08/08 (§4.127): `npm run
+      estudio` lista a fila e move os pedidos, direto no banco (sem rota de
+      administração, por segurança). A tela do app mostra o estado real **sem
+      nenhuma mudança**, porque a sincronização já traz o pedido do servidor.
+- [ ] ⚠️ **O livro entrando no catálogo ao final ainda NÃO acontece**, e o motivo
+      é estrutural: o catálogo que o app mostra vem de `lib/books.ts` (**código**,
+      lido por 63 arquivos), não do banco. Um livro criado só no banco não
+      apareceria em tela nenhuma. Por isso `pronto` exige um livro **que já
+      existe** e ensina o caminho manual. **Fazer o app ler o catálogo do banco é
+      o pré-requisito** — para isto e para o áudio.
+- [ ] **A tela não desenha o estado `recusado`** (ela conhece as 4 etapas da
+      trilha): um pedido recusado fica mudo para quem pediu.
+- [ ] **O crédito é debitado no navegador**, não no servidor — só fecha quando a
+      criação do pedido passar pela API. Hoje nada cobra, então o risco é zero.
 
 ### 2.7 ⚠️ O catálogo é arquivo, não tabela
 
