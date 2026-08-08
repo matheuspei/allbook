@@ -5894,3 +5894,79 @@ capítulo **10 antes do 2**, e o livro sairia embaralhado sem erro nenhum.
   esbarra no mesmo pré-requisito de sempre: o catálogo vem do código.
 - **A vinheta não existe** (§4.35, é trabalho de marca). O mecanismo está pronto:
   ponha os arquivos em `<AUDIO_RAIZ>/vinhetas/` e rode `refazer`.
+
+---
+
+## 4.130 A entrega do áudio: as três defesas, e o furo na frase "URL assinada" (08/08)
+
+A outra metade da armadilha **2.5**. Duas rotas — `GET /api/audio/:id/lista.m3u8`
+e `GET /api/audio/:id/s00042.ts` — e nenhum byte de narração sai sem conta.
+
+### O furo que apareceu ao construir
+
+A §4.34 pedia **"URL assinada por sessão, com expiração de minutos"**. Ao
+escrever, a frase não fecha: **um audiolivro dura dez horas**. Numa lista VOD o
+player baixa os endereços **uma vez** e usa a escuta inteira — endereço que
+expira em minutos morre no meio do capítulo 3, e endereço que dura dez horas não
+protege nada. A frase misturava dois mundos: assinatura serve para quando o
+**provedor** entrega direto ao navegador, não para uma lista que o player guarda.
+
+**A saída é pôr o servidor no meio.** Os endereços dentro da lista apontam para a
+nossa rota, e a permissão é conferida **a cada pedaço**, na hora. Não existe
+endereço que envelheça porque não existe endereço permanente. Quando o
+armazenamento souber assinar (R2), `urlTemporaria()` devolve uma URL de 60s
+gerada **naquele instante** e a rota redireciona — o áudio passa a ir do provedor
+direto ao ouvinte, sem atravessar o servidor, e **nenhuma linha da rota muda**.
+
+### As três defesas, e por que os números são esses
+
+| Defesa | Onde | Número | A conta |
+|---|---|---|---|
+| Sessão obrigatória | rota | — | sem conta, nem lista nem pedaço |
+| Rajada | memória | **600 pedaços/min** | = 1h de áudio por minuto. Ouvir a 2x consome 20; baixar um livro de 10h leva 10 min; raspar 10 mil livros levaria 70 dias |
+| Livros distintos/dia | **banco** | **20 livros** | ninguém ouve 20 num dia; o acervo de 10 mil exigiria 500 dias de conta paga |
+
+A terceira está no banco de propósito: em memória, quem raspa só precisaria
+esperar o próximo reinício do servidor. A primeira está em memória de propósito:
+seriam 6.000 escritas por livro ouvido, e quem burla reiniciando esbarra na
+terceira. *(Testado: 610 pedidos → exatamente 600 passaram, 10 recusados.)*
+
+### Dois defeitos que o teste pegou — e o primeiro era sério
+
+**1. O limite punia quem estava ouvindo.** A primeira versão contava todas as
+linhas do dia e barrava a partir do teto — **inclusive quando o livro pedido já
+estava na lista**. Efeito: quem chegasse a 20 livros ficava sem conseguir
+**voltar ao livro que estava ouvindo**; bastava recarregar a página para o player
+perder o lugar no meio do capítulo. Um limite contra raspagem que castiga o
+ouvinte está errado. Agora **reabrir livro já aberto nunca é barrado**, só livro
+novo — e o livro recusado **não consome cota**, senão uma tentativa que não tocou
+nada custaria o dia inteiro.
+
+**2. `/api` sem rota devolvia a página do app com HTTP 200.** Apareceu testando
+travessia de caminho: `/api/audio/1/....//mestres/…` respondeu **200**, e por um
+instante pareceu vazamento do arquivo-mestre. Era HTML — o Vite (e o
+`serveStatic`, em produção) mandam tudo que não reconhecem para o `index.html`,
+que é o certo para rota de tela e errado para `/api`. Não era falha de segurança,
+mas é armadilha de diagnóstico cara: um `fetch` para rota inexistente recebe 200
+e quebra ao ler o JSON, longe da causa. Agora há um 404 honesto no fim das rotas.
+
+### Decisões pequenas que valem registro
+
+- **Livro sem narração devolve 404 com `podePedir: true`, não 403.** "Não existe"
+  é diferente de "está barrado", e a tela precisa saber para oferecer o **pedido
+  sob demanda** em vez de dizer "sem permissão" — é o coração do produto.
+- **Só `s00042.ts` passa** pela rota do pedaço (regex fechada). Sem isso,
+  `../../mestres/7/livro.mp3` entregaria justamente o arquivo que nunca pode ser
+  servido. A camada de armazenamento também barra `..`; defesa de um nível só é
+  defesa que um dia falha.
+- **Banco diz que tem áudio e o disco diz que não** → erro que **nomeia o
+  conserto** (`npm run audio refazer <id>`) em vez de um 500 mudo.
+
+### O que falta
+
+- **O player tocar HLS.** Nenhuma tela pede estas rotas ainda; falta o `hls.js`
+  no player e o app ler duração e capítulos do **banco** — o que esbarra no mesmo
+  pré-requisito de sempre: o catálogo vem do código (§4.127).
+- **Limitar tentativas de login** (seção 2.3) continua aberto — é o mesmo
+  mecanismo de rajada, agora que ele existe.
+- **Marca d'água por conta** (§4.34) segue opcional e para depois.

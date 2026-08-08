@@ -329,11 +329,13 @@ Não é dado do usuário — é **código**, e alguém precisa decidir o que aco
 - [ ] `lib/reactions.ts` — sua curtida soma sobre um **número base fixo no
       código**. Com banco o número base some, e todas as contagens mudam de valor.
 
-### 2.5 🔸 Áudio: a INGESTÃO existe (08/08) — falta a entrega
+### 2.5 🔸 Áudio: ingestão e entrega existem (08/08) — falta o player
 
-`npm run audio <id> <arquivo|pasta>` faz o caminho inteiro do estúdio até o
-banco: guarda o mestre, cola a vinheta, fatia em HLS e grava duração e capítulos
-**medidos**. Ver §4.129. O que ainda **não** existe é servir isso ao app.
+`npm run audio <id> <arquivo|pasta>` faz o caminho do estúdio até o banco
+(§4.129), e `GET /api/audio/:id/lista.m3u8` + `/api/audio/:id/s00042.ts` servem
+ao ouvinte com sessão obrigatória e dois limites (§4.130). O que **não** existe é
+tela pedindo isso: falta o `hls.js` no player e o app ler duração e capítulos do
+banco — que esbarra em 2.7 (o catálogo vem do código).
 
 - [ ] `lib/chapters.ts` — a lista de capítulos continua **gerada** no navegador.
       A tabela `capitulos` já recebe os reais na ingestão; o app só passa a
@@ -361,11 +363,20 @@ que o app toca.
       (testado: apagada a entrega, refeita a partir do mestre).
 - [x] Áudio segmentado (HLS) gerado na ingestão, nunca um arquivo inteiro
       exposto. AAC 64k mono, segmentos de 6s, lista `vod`.
-- [ ] URL assinada por sessão, com expiração de minutos. **É a próxima etapa** —
-      hoje nada serve os segmentos, então nada está exposto.
-- [ ] **Limite de taxa por conta** — é a defesa contra raspagem em escala (o
-      concorrente baixando o acervo), e é a mais barata das três. Precisa de
-      conta de verdade, então nasce junto com o login no servidor.
+- [x] URL assinada por sessão — **feito, e a frase precisou ser corrigida**
+      (§4.130). Assinatura com expiração de minutos **não funciona** para uma
+      lista VOD de 10h: o player guarda os endereços e eles morreriam no meio da
+      escuta. O servidor entrou no meio e a permissão passou a ser conferida **a
+      cada pedaço**. `armazenamento.urlTemporaria()` existe para o dia do R2:
+      quando ela devolver endereço, a rota redireciona e o áudio vai do provedor
+      direto ao ouvinte — sem mudar uma linha da rota.
+- [x] **Limite de taxa por conta** — feito, em duas camadas: **600 pedaços/min**
+      (memória, contra rajada) e **20 livros distintos/dia** (tabela
+      `audio_acessos`, contra o concorrente levando o acervo). A segunda está no
+      banco porque em memória bastaria reiniciar o servidor para zerar.
+      ⚠️ **Reabrir livro já aberto no dia nunca é barrado** — a primeira versão
+      barrava, e quem batia no teto perdia o lugar do livro que estava ouvindo ao
+      recarregar a página.
 - [x] **Vinheta do AllBook** no começo e no fim de cada livro (decisão do
       Matheus, 26/07) — o **mecanismo está pronto**; falta só o arquivo de som,
       que é trabalho de marca (§4.35). Ponha `abertura.mp3` e `fecho.mp3` em

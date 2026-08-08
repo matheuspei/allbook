@@ -76,6 +76,18 @@ export interface Armazenamento {
   apagar(prefixo: string): Promise<void>;
   /** As chaves sob um prefixo, em ordem. */
   listar(prefixo: string): Promise<string[]>;
+  /**
+   * Um endereço temporário que o **navegador** pode buscar direto, sem passar
+   * pelo servidor. `null` quando o lugar não sabe fazer isso.
+   *
+   * ⚠️ **É o único método que existe pensando no amanhã, e não é enfeite.** Numa
+   * pasta local a resposta é sempre `null` e o Express serve os bytes ele mesmo.
+   * Num S3 ela devolve a URL assinada, e a rota passa a **redirecionar** — o
+   * áudio vai do provedor direto para o ouvinte, sem atravessar o servidor duas
+   * vezes. É a diferença entre pagar banda uma vez e pagar duas, e o único jeito
+   * de a troca de provedor não virar reescrita da rota (§4.128).
+   */
+  urlTemporaria(chave: string, segundos: number): Promise<string | null>;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -162,6 +174,15 @@ class PastaLocal implements Armazenamento {
 
   async apagar(prefixo: string): Promise<void> {
     await rm(this.caminho(prefixo), { recursive: true, force: true });
+  }
+
+  /**
+   * Uma pasta no disco não tem endereço que o navegador alcance — quem serve os
+   * bytes é o Express. Devolver `null` aqui é o que faz a rota escolher o
+   * caminho certo sem saber onde o arquivo mora.
+   */
+  async urlTemporaria(): Promise<string | null> {
+    return null;
   }
 
   async listar(prefixo: string): Promise<string[]> {

@@ -5,6 +5,7 @@ import path from "path";
 import { sql } from "drizzle-orm";
 
 import { db } from "./db";
+import { registrarAudio } from "./audio";
 import { registrarContas } from "./contas";
 import { registrarDados } from "./dados";
 
@@ -23,6 +24,10 @@ export async function registerRoutes(
   // Os dados da pessoa: biblioteca, progresso, diário, notas, marcações e
   // trechos (§4.121). Depende da sessão instalada logo acima.
   registrarDados(app);
+
+  // A entrega do áudio: a lista de reprodução e os pedaços (§4.130). Também
+  // depende da sessão — sem conta, nenhum byte de narração sai daqui.
+  registrarAudio(app);
 
   /**
    * O banco está de pé? (08/08, §4.119)
@@ -78,6 +83,25 @@ export async function registerRoutes(
       ),
     );
     return res.json({ ok: true });
+  });
+
+  /**
+   * Qualquer `/api/...` que chegue aqui não existe.
+   *
+   * ⚠️ **Sem isto, um endereço `/api` errado devolvia a PÁGINA DO APP com
+   * HTTP 200** — porque tanto o Vite (desenvolvimento) quanto o `serveStatic`
+   * (produção) mandam tudo o que não reconhecem para o `index.html`, que é o
+   * certo para as rotas de tela. Apareceu testando a travessia de caminho do
+   * áudio (08/08, §4.130): `/api/audio/1/....//mestres/…` respondeu 200, e por
+   * um instante pareceu vazamento do arquivo-mestre — era HTML.
+   *
+   * Não era falha de segurança, mas é uma armadilha de diagnóstico cara: um
+   * `fetch` para uma rota que não existe recebe 200 e um HTML, e quebra na hora
+   * de ler o JSON, longe da causa. Precisa vir **depois** de todas as rotas
+   * `/api` e **antes** do Vite, que é exatamente aqui.
+   */
+  app.use("/api", (req, res) => {
+    res.status(404).json({ erro: `Não existe a rota ${req.method} /api${req.path}` });
   });
 
   return httpServer;

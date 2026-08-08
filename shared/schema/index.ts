@@ -15,6 +15,7 @@
 export * from "./catalogo";
 export * from "./contas";
 export * from "./biblioteca";
+export * from "./audio";
 export * from "./opiniao";
 export * from "./social";
 export * from "./clubes";

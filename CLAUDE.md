@@ -133,7 +133,7 @@ com `--confirmo`). **Antes de apagar qualquer coisa, olhe o que está lá.**
 guardando as 14 últimas em `~/AllBook-backups` — **fora do repositório**, porque
 dado de pessoa não entra no git.
 
-### O áudio: a ingestão existe (08/08), a entrega não
+### O áudio: ingestão e entrega existem (08/08); o player, não
 
 `npm run audio <id do livro> <arquivo ou pasta>` leva o que o estúdio entregou
 até o banco (`refazer <id>`, `remover <id>`, sem argumento = a situação). Ele
@@ -155,6 +155,20 @@ guarda o mestre, cola a vinheta, fatia em HLS e grava duração e capítulos
   arquivo por capítulo numa pasta → um bloco só (e ele avisa).
 - ⚠️ **`AUDIO_RAIZ` tem de ser caminho absoluto** — vazio ou relativo gravava
   dentro do repositório, e isso já aconteceu.
+
+**Servir** é `GET /api/audio/:id/lista.m3u8` (a lista) e `/api/audio/:id/s00042.ts`
+(um pedaço de ~6s), com **sessão obrigatória** e dois limites: 600 pedaços/min
+por conta (memória) e 20 livros distintos por dia (tabela `audio_acessos`).
+**Nenhuma tela pede essas rotas ainda** — falta `hls.js` no player.
+
+- ⚠️ **A permissão é conferida a cada pedaço, não por URL assinada.** Um livro
+  tem 10h e o player guarda os endereços da lista: assinatura que expira em
+  minutos morreria no meio da escuta (§4.130). Quando houver R2,
+  `urlTemporaria()` passa a devolver endereço e a rota redireciona sozinha.
+- ⚠️ **Livro sem narração devolve 404 com `podePedir: true`**, não 403 — "não
+  existe" e "está barrado" levam a telas diferentes.
+- ⚠️ **Rota `/api` inexistente agora devolve 404 JSON.** Antes caía no
+  `index.html` com HTTP 200, e um `fetch` quebrava ao ler o JSON longe da causa.
 
 ### Ordem das rotas no `Switch` (wouter)
 A rota **mais específica vem antes da mais curta**, senão a curta captura a longa
