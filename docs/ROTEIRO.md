@@ -46,6 +46,7 @@ As seções abaixo contêm decisão **não tomada**. Todas estão neste arquivo,
 - **A correção dele — e o receio verdadeiro (31/07, mais tarde)** — Corrige a leitura da frase dele: o risco não é hoje, é o dia em que alguém abrir tópico sobre um livro — é o critério da decisão pendente.
 - **As quatro foram rejeitadas — e o defeito comum vale mais que elas (01/08)** — Rejeição em vigor com o defeito comum nomeado (arrumação de caixas em vez de usar o que só o AllBook tem) e a segunda leva ainda não decidida.
 - **A recomendação, e a armadilha do "deletar" (04/08)** — É a recomendação mais recente, ainda sem resposta dele, e carrega a armadilha que quebra em silêncio: `ratings.ts` lê `notasDoLivro` de `comments.ts`, então apagar a conversa apaga a nota dos livros sem nenhum erro.
+- **4.128 Onde o áudio vai morar: as contas, e a premissa que não se sustenta (08/08)** — Ele quer provedor "impossível de derrubar" (não existe: a Cloudflare já cortou clientes por decisão própria) e **um** disco de 22 TB (um disco não é cópia). Traz as contas de GB e de custo mensal, e a saída que não bloqueia nada: escrever contra o protocolo S3 e começar com pasta local.
 
 ---
 
@@ -5710,3 +5711,97 @@ com o livro escrito ali. O `npm` interpreta a flag como dele e não a repassa;
 funciona com `npm run estudio -- pronto <id> --livro 8`, mas exigir aquele `--`
 perdido no meio é detalhe que ninguém lembra. O comando passou a aceitar o id do
 livro como **número solto**: `npm run estudio pronto <id> 8`.
+
+---
+
+## 4.128 Onde o áudio vai morar: as contas, e a premissa que não se sustenta (08/08)
+
+**Decisão em aberto** — o Matheus levantou duas preocupações antes de começarmos
+o áudio, e as duas mudam a arquitetura. Registro aqui a apuração para a conversa
+não recomeçar do zero.
+
+### 1. "Um lugar que não pode ser derrubado por nada" — a premissa é falsa
+
+Ele sugeriu a Cloudflare por acreditar que ela seria imune. **Não é, e nenhuma
+é.** A Cloudflare já **cortou clientes por decisão própria**, mais de uma vez e
+sob pressão pública — o *Daily Stormer* em 2017, o *8chan* em 2019, o
+*Kiwi Farms* em 2022. É empresa americana e responde a ordem judicial como
+qualquer outra. Escolher um provedor achando que ele é santuário é o pior dos
+dois mundos: paga-se a conta e continua-se dependente.
+
+**A defesa que funciona não é achar a fortaleza certa — é não depender de
+nenhuma.** E ela é barata, porque tem duas pernas que já cabem na arquitetura:
+
+1. **O mestre é dele, no disco dele.** É a decisão que a §4.34 já tinha tomado
+   por outro motivo ("guardar sempre o MP3 mestre"). Com o mestre em mãos, o
+   provedor de entrega vira detalhe: perdê-lo custa uma tarde, não o acervo.
+2. **Escrever contra o protocolo S3, não contra um fornecedor.** R2, Backblaze
+   B2, Wasabi, Scaleway, Hetzner, MinIO na própria máquina — **todos falam o
+   mesmo protocolo**. Trocar de provedor passa a ser mudar três variáveis no
+   `.env`, e não reescrever nada.
+
+**A Cloudflare continua sendo a recomendação — mas pelo motivo certo**, que é o
+item 2 abaixo, e apenas enquanto for a mais barata.
+
+### 2. Os números — e por que o R2 ganha (é a saída de dados, não o disco)
+
+Audiolivro é o pior caso de **egress** (dados que saem do servidor para quem
+ouve) que existe: muitas horas, ouvidas repetidas vezes. Nas contas abaixo, MP3
+mono a **64 kbps** — qualidade de fala boa, e a régua da indústria — dá
+**28,8 MB por hora**; um livro médio de 10h dá **~290 MB**.
+
+| Acervo | Tamanho (MP3 64 kbps) |
+|---|---|
+| 1.000 livros | ~290 GB |
+| 5.000 livros | ~1,4 TB |
+| 10.000 livros | ~2,9 TB |
+
+Guardar **também** o mestre não comprimido (WAV) multiplica por 11: 3,2 GB por
+livro, **~3,2 TB a cada mil livros**.
+
+Custo mensal, acervo de 10.000 livros e 10.000 ouvintes a 20h/mês cada:
+
+| | Armazenar | Saída de dados | Total/mês |
+|---|---|---|---|
+| **Cloudflare R2** ($0,015/GB) | ~$43 | **$0** | **~$43** |
+| **AWS S3** ($0,023/GB + $0,09/GB de saída) | ~$66 | ~$518 | ~$584 |
+
+**~13× de diferença, e ela quase toda vem do egress.** É esse o argumento para o
+R2 — não a imunidade. Backblaze B2 e Wasabi têm política de saída parecida e
+servem de plano B **sem reescrita**, pelo item 2 da seção anterior.
+
+### 3. O disco de 22 TB: a ideia está certa, o formato não
+
+Ele quer comprar **um** disco de ~22 TB. Três correções:
+
+- **Um disco não é cópia de segurança — é uma cópia.** Se ele guarda os mestres
+  e morre, o acervo morre junto. HDD é peça de desgaste. **Dois discos de 12 TB
+  espelhados custam praticamente o mesmo que um de 22 TB** (~US$ 180–220 cada
+  contra ~US$ 350–450 o de 22 TB; no Brasil, bem mais, conferir na hora) e
+  sobrevivem à morte de um.
+- **Nuvem e disco não são alternativas — são as duas pontas da mesma regra.** Um
+  disco na mesa dele está no **mesmo lugar físico** que o Mac: incêndio, roubo ou
+  raio levam os dois. A cópia fora de casa mais barata que existe hoje é
+  justamente a nuvem. Ele precisa das duas coisas que propôs, não de uma delas.
+- **22 TB só se justifica se o mestre for guardado sem compressão.** Se o mestre
+  é MP3, como a §4.34 registrou, 22 TB comportam **~76 mil livros** — número que
+  o AllBook não alcança tão cedo. Nesse caso **4 a 8 TB cobrem a década**, e a
+  diferença de dinheiro vale mais como o segundo disco do espelho.
+
+Bônus: o disco resolve de graça uma dívida já anotada na §4.126 — as cópias do
+Postgres estão **no mesmo disco** que o banco.
+
+### 4. O que isso muda no plano: nada bloqueia
+
+**Nenhuma dessas decisões precisa ser tomada para o áudio começar.** O caminho
+que não depende de compra nem de contrato:
+
+1. A ingestão com `ffmpeg` (vinheta → fatiar → **recalcular capítulos depois da
+   vinheta**, a armadilha da 2.5) rodando contra uma **pasta local**.
+2. Uma camada de armazenamento com duas implementações — pasta local e
+   S3-compatível — atrás da mesma interface.
+3. Só quando o primeiro livro estiver tocando de verdade é que se escolhe o
+   provedor. E aí a escolha é uma linha, que é exatamente o ponto da seção 1.
+
+**O pré-requisito continua sendo o mesmo da §4.127:** o app lendo o catálogo do
+**banco**, não de `lib/books.ts`.
