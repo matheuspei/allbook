@@ -28,7 +28,7 @@ depois*. Cada item abaixo diz **como está hoje** e **o que precisa acontecer**.
 | Catálogo no banco | **cheio**: 59 livros, 48 pessoas, 10 editoras, 8 gêneros, 13 coleções |
 | Rotas de API | **10** — folhas, saúde do banco, 6 de conta e 2 de dados |
 | Contas | **de verdade desde 08/08**: senha cifrada (scrypt), sessão em cookie guardada no banco, "Esqueci minha senha" funcionando |
-| Dados da pessoa | **7 chaves já sobem para a conta** (biblioteca, progresso, concluídos, diário, notas, marcações, trechos) — §4.121 |
+| Dados da pessoa | **14 chaves já sobem para a conta**: biblioteca, progresso, concluídos, diário, notas, marcações e trechos (§4.121); perfil, ajustes, meta, conquistas, recomendações, pedidos e assinatura (§4.122) |
 | Onde o app guarda tudo | ainda as chaves `allbook_*`, **mas agora como espelho**: as 7 acima voltam do servidor ao entrar; as outras 54 continuam só no navegador |
 | Áudio | **não existe** — nenhum arquivo, nenhum player real |
 
@@ -102,7 +102,11 @@ trocar de celular**. A coluna "cuidado" é o que morde na migração.
       obrigaria a inventar o cruzamento.
 - [ ] `allbook_listening_seeded` — marca que o diário já foi **semeado com dados
       falsos**. ⚠️ **Semeadura tem de morrer em produção**, senão o usuário novo
-      recebe um histórico que não é dele.
+      recebe um histórico que não é dele. **Contido em parte (08/08, §4.122):** o
+      servidor **recusa** dias marcados como `exemplo`, então os 42 dias falsos
+      ficam no navegador e não ocupam a conta. ⚠️ **MAS os troféus calculados em
+      cima deles ainda sobem** — `achievements.ts` não distingue medalha ganha de
+      medalha derivada de exemplo. O conserto é a semeadura morrer.
 
 ### Opinião
 

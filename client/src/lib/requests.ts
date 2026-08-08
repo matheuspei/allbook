@@ -115,8 +115,12 @@ export function myRequests(): BookRequest[] {
   return readRequests().sort((a, b) => b.date.localeCompare(a.date));
 }
 
+/** Um pedido entrou ou mudou de etapa — o padrão de evento da casa (§4.122). */
+export const REQUESTS_EVENT = "allbook:pedidos";
+
 function save(list: BookRequest[]): BookRequest[] {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  window.dispatchEvent(new Event(REQUESTS_EVENT));
   return list;
 }
 

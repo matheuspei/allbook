@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, pgTable, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, smallint, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 import { contas } from "./contas";
 import { livros, pessoas } from "./catalogo";
@@ -66,6 +66,16 @@ export const pedidos = pgTable(
     /** O livro que nasceu do pedido, quando fica pronto. */
     livroId: integer("livro_id").references(() => livros.id, { onDelete: "set null" }),
 
+    /**
+     * O id que o pedido tem **no navegador**.
+     *
+     * ⚠️ Mesmo motivo de `marcacoes.idLocal`: sem ele, a sincronização
+     * **duplica o pedido** a cada rodada — o navegador guarda o id dele, o banco
+     * gera outro, e na volta o front não reconhece que é o mesmo. Foi um defeito
+     * de verdade, achado testando as duas vezes (§4.121 e §4.122).
+     */
+    idLocal: text("id_local"),
+
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
@@ -78,6 +88,7 @@ export const pedidos = pgTable(
     index("pedidos_conta_idx").on(t.contaId, t.criadoEm),
     /** A fila do estúdio: o que está aberto, na ordem de chegada. */
     index("pedidos_fila_idx").on(t.situacao, t.criadoEm),
+    unique("pedidos_id_local").on(t.contaId, t.idLocal),
   ],
 );
 

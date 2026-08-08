@@ -5394,3 +5394,70 @@ numa tabela que já tem linhas —, o `drizzle-kit` **para e espera um "sim"
 digitado**, e a sessão do Claude não tem terminal interativo (o erro fala em
 TTY). A saída é preparar o terreno antes: apagar a tabela vazia, ou limpar as
 linhas de teste, e rodar de novo. Aconteceu duas vezes hoje.
+
+---
+
+## 4.122 O perfil, os ajustes e o resto do que é só da pessoa sobem para a conta (08/08)
+
+Continuação direta da §4.121, e **não depende da decisão sobre a ficção** — é
+tudo dado de uma pessoa só. Sete chaves novas: `allbook_profile`,
+`allbook_settings`, `allbook_weekly_goal`, `allbook_achievements_won`,
+`allbook_recommendations`, `allbook_book_requests` e `allbook_assinatura`.
+São **14 no total** sincronizadas.
+
+### Quatro libs ganharam evento — e é a convenção da casa, não invenção
+
+`profile.ts`, `achievements.ts`, `recommendations.ts` e `requests.ts` eram as
+únicas da família **sem um evento de `window`** ao escrever. Sem ele,
+`lib/sincronizacao.ts` não teria como saber que o nome ou a foto mudaram.
+
+A adição é de uma linha em cada, no ponto de gravação, e **não muda assinatura
+nenhuma** — as telas não sabem que aconteceu. `assinatura.ts` (da janela B) já
+tinha o dele, então não precisou ser aberto.
+
+### Três decisões que valem registro
+
+- **O e-mail NÃO viaja pela rota de dados.** Ele é o login. Trocá-lo é operação
+  de conta — pede confirmação e checagem de duplicidade —, não efeito colateral
+  de salvar o perfil. O servidor ignora o campo, e testei mandando um e-mail
+  diferente de propósito.
+- **A etapa do pedido vinda do navegador é ignorada.** Hoje o pedido nasce e
+  fica em `recebido` porque não há fila (armadilha 2.6); quando o estúdio
+  existir, **quem move o pedido é ele**. Aceitar a etapa do navegador deixaria
+  qualquer um se declarar "pronto". Pedido que o estúdio já mexeu não é
+  rebaixado.
+- **A meta semanal é o único caso em que o LOCAL vence na entrada.** A conta
+  nasce com a meta padrão (180 min), então deixar o servidor ganhar apagaria a
+  meta que a pessoa escolheu antes de se cadastrar. Perfil e ajustes seguem a
+  regra oposta (servidor vence onde tem valor), e a diferença está comentada nos
+  dois lugares.
+
+### O mesmo defeito de id apareceu de novo — nos pedidos
+
+O servidor trocava o id do pedido por um `uuid`, e a sincronização **duplicaria
+o pedido a cada rodada** — idêntico ao que aconteceu com as marcações na §4.121.
+Ganhou a mesma coluna `idLocal`. Testei mandando três rodadas seguidas do que o
+servidor devolveu: continua um pedido só.
+
+**A lição, que vale para toda chave que ainda falta:** se o item tem id gerado no
+navegador, **o banco precisa guardar esse id** — senão a identidade se perde na
+volta e o dado se multiplica sozinho.
+
+### E a semeadura chegou à porta do banco
+
+Testando, apareceram na conta **quatro troféus que a pessoa nunca ganhou**. A
+causa: o app semeia **42 dias de audição falsa** para as Estatísticas não
+nascerem vazias (`allbook_listening_seeded`, cada dia com `exemplo: true`), e
+`achievements.ts` calcula as medalhas em cima disso.
+
+Enquanto era só no navegador, era vitrine. **Subindo para a conta, vira histórico
+falso que atravessa aparelhos e fica indistinguível do real** — exatamente o que
+o checklist mandava evitar (*"semeadura tem de morrer em produção"*).
+
+**Conserto aplicado:** o servidor **recusa dias marcados como exemplo**. Medido
+depois: 42 dias de demonstração no navegador, **zero na conta**.
+
+⚠️ **O que NÃO foi consertado, e é pendência nomeada:** os troféus derivados
+desse histórico ainda sobem, porque o front não distingue medalha ganha de
+medalha calculada sobre exemplo. O conserto de verdade é a semeadura morrer — que
+é decisão de produto, já prevista no checklist, e não código.

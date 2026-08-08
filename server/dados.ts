@@ -2,14 +2,20 @@ import { and, eq, notInArray, sql } from "drizzle-orm";
 import type { Express, NextFunction, Request, Response } from "express";
 
 import {
+  ajustes,
+  assinaturas,
   audicaoDia,
   audicaoPorHora,
   audicaoPorLivro,
   avaliacoes,
   biblioteca,
+  conquistas,
+  contas,
   livros,
   marcacoes,
+  pedidos,
   progresso,
+  recomendacoes,
   trechosGuardados,
   type Conta,
 } from "@shared/schema";
@@ -89,7 +95,21 @@ export function registrarDados(app: Express) {
     try {
       const conta = contaDe(req);
 
-      const [itens, progressos, notas, marcas, trechos, dias, horas, porLivro] = await Promise.all([
+      const [
+        itens,
+        progressos,
+        notas,
+        marcas,
+        trechos,
+        dias,
+        horas,
+        porLivro,
+        trofeus,
+        recomendados,
+        pedidosDela,
+        [assinatura],
+        [preferencias],
+      ] = await Promise.all([
         db.select().from(biblioteca).where(eq(biblioteca.contaId, conta)),
         db.select().from(progresso).where(eq(progresso.contaId, conta)),
         db.select().from(avaliacoes).where(eq(avaliacoes.contaId, conta)),
@@ -98,6 +118,11 @@ export function registrarDados(app: Express) {
         db.select().from(audicaoDia).where(eq(audicaoDia.contaId, conta)),
         db.select().from(audicaoPorHora).where(eq(audicaoPorHora.contaId, conta)),
         db.select().from(audicaoPorLivro).where(eq(audicaoPorLivro.contaId, conta)),
+        db.select().from(conquistas).where(eq(conquistas.contaId, conta)),
+        db.select().from(recomendacoes).where(eq(recomendacoes.contaId, conta)),
+        db.select().from(pedidos).where(eq(pedidos.contaId, conta)),
+        db.select().from(assinaturas).where(eq(assinaturas.contaId, conta)).limit(1),
+        db.select().from(ajustes).where(eq(ajustes.contaId, conta)).limit(1),
       ]);
 
       /* O diário volta a ser o JSON aninhado que `listening.ts` espera. */
@@ -163,6 +188,66 @@ export function registrarDados(app: Express) {
           nota: t.nota ?? undefined,
           guardadoEm: t.guardadoEm.toISOString(),
         })),
+
+        /* ---- §4.122: quem a pessoa é, e o que é só dela ---- */
+
+        /**
+         * ⚠️ **O e-mail NÃO vai aqui, de propósito.** Ele é o login, e mora em
+         * `contas`. Se ele viajasse por esta rota, editar o perfil num aparelho
+         * poderia trocar o e-mail de acesso da pessoa sem ela perceber.
+         */
+        allbook_profile: {
+          name: (req.user as Conta).nome,
+          photo: (req.user as Conta).foto ?? "",
+          bio: (req.user as Conta).bio ?? "",
+        },
+
+        allbook_settings: preferencias
+          ? {
+              speed: preferencias.velocidade,
+              mostrarOuvindoAgora: preferencias.mostrarOuvindoAgora,
+              mostrarMeusClubes: preferencias.mostrarMeusClubes,
+              contaPrivada: preferencias.contaPrivada,
+              mostrarMeusComentarios: preferencias.mostrarMeusComentarios,
+              mostrarMeuCapitulo: preferencias.mostrarMeuCapitulo,
+              mostrarQuemAcompanho: preferencias.mostrarQuemAcompanho,
+              avisarCurtidas: preferencias.avisarCurtidas,
+              avisarComentarios: preferencias.avisarComentarios,
+            }
+          : null,
+
+        allbook_weekly_goal: preferencias?.metaSemanalMinutos ?? null,
+
+        allbook_achievements_won: Object.fromEntries(
+          trofeus.map((t) => [t.chave, t.ganhoEm.toISOString()]),
+        ),
+
+        allbook_recommendations: recomendados.map((r) => ({
+          id: r.livroId,
+          note: r.nota,
+          date: r.recomendadoEm.toISOString(),
+        })),
+
+        allbook_book_requests: pedidosDela.map((p) => ({
+          // O id do navegador vence — sem isto, cada sincronização duplica o pedido.
+          id: p.idLocal ?? p.id,
+          title: p.titulo,
+          author: p.autor ?? undefined,
+          note: p.observacao ?? undefined,
+          voiceSlug: p.vozSlug ?? undefined,
+          date: p.criadoEm.toISOString(),
+          status: p.situacao,
+        })),
+
+        allbook_assinatura: assinatura
+          ? {
+              plano: assinatura.plano,
+              creditos: assinatura.creditos,
+              boasVindas: assinatura.boasVindas === "sim",
+              boasVindasUsado: assinatura.boasVindasUsado === "sim",
+              ultimaRecarga: assinatura.ultimaRecarga,
+            }
+          : null,
       });
     } catch (erro) {
       return next(erro);
@@ -283,8 +368,25 @@ export function registrarDados(app: Express) {
             for (const [dia, valorDoDia] of Object.entries(diario)) {
               const segundos = Math.max(0, Math.round(Number(valorDoDia?.sec) || 0));
               if (!segundos) continue;
-              dias.push({ contaId: conta, dia, segundos, exemplo: valorDoDia?.exemplo === true });
 
+              /*
+               * ⚠️ **O histórico de DEMONSTRAÇÃO não entra na conta** (08/08,
+               * §4.122). O app semeia 42 dias de audição falsa para as
+               * Estatísticas não nascerem vazias (`allbook_listening_seeded`), e
+               * cada um vem marcado com `exemplo: true`. Isso é uma peça de
+               * vitrine local; deixá-la subir gravaria no servidor um histórico
+               * que a pessoa nunca viveu — e, pior, ele passaria a atravessar
+               * aparelhos, ficando indistinguível do real.
+               *
+               * O checklist já mandava: *"semeadura tem de morrer em
+               * produção"*. Aqui ela para na porta do banco.
+               */
+              if (valorDoDia?.exemplo === true) continue;
+
+              dias.push({ contaId: conta, dia, segundos, exemplo: false });
+
+              // (os dois recortes abaixo só existem para dias reais — o `continue`
+              //  acima já barrou os de exemplo antes de chegar aqui)
               for (const [hora, seg] of Object.entries(valorDoDia?.horas ?? {})) {
                 const h = Number(hora);
                 if (h < 0 || h > 23) continue;
@@ -369,6 +471,147 @@ export function registrarDados(app: Express) {
           break;
         }
 
+        /* ---- §4.122 ---- */
+
+        case "allbook_profile": {
+          const p = (valor ?? {}) as Record<string, unknown>;
+          const mudanca: Record<string, unknown> = {};
+          if (typeof p.name === "string" && p.name.trim()) mudanca.nome = p.name.trim();
+          if (typeof p.photo === "string") mudanca.foto = p.photo || null;
+          if (typeof p.bio === "string") mudanca.bio = p.bio.slice(0, 300);
+          /*
+           * ⚠️ **`email` é ignorado de propósito.** Ele é o login. Trocá-lo é
+           * uma operação de conta (confirmação por e-mail, checar duplicidade),
+           * não um efeito colateral de salvar o perfil.
+           *
+           * ⚠️ **`foto` ainda é uma `data:` URL** — uns 40 KB de base64 dentro
+           * da linha, carregados em toda leitura de perfil. Funciona e mantém a
+           * foto atravessando aparelhos, que é o que importa agora; vira upload
+           * de arquivo quando houver onde subir (anotado no esquema).
+           */
+          if (Object.keys(mudanca).length) {
+            await db.update(contas).set(mudanca).where(eq(contas.id, conta));
+          }
+          break;
+        }
+
+        case "allbook_settings": {
+          const s = (valor ?? {}) as Record<string, unknown>;
+          const bool = (v: unknown, campo: string) =>
+            typeof v === "boolean" ? { [campo]: v } : {};
+          const mudanca = {
+            ...(typeof s.speed === "number" ? { velocidade: s.speed } : {}),
+            ...bool(s.mostrarOuvindoAgora, "mostrarOuvindoAgora"),
+            ...bool(s.mostrarMeusClubes, "mostrarMeusClubes"),
+            ...bool(s.contaPrivada, "contaPrivada"),
+            ...bool(s.mostrarMeusComentarios, "mostrarMeusComentarios"),
+            ...bool(s.mostrarMeuCapitulo, "mostrarMeuCapitulo"),
+            ...bool(s.mostrarQuemAcompanho, "mostrarQuemAcompanho"),
+            ...bool(s.avisarCurtidas, "avisarCurtidas"),
+            ...bool(s.avisarComentarios, "avisarComentarios"),
+          };
+          if (Object.keys(mudanca).length) {
+            await db.update(ajustes).set(mudanca).where(eq(ajustes.contaId, conta));
+          }
+          break;
+        }
+
+        case "allbook_weekly_goal": {
+          const minutos = Math.round(Number(valor));
+          if (Number.isFinite(minutos) && minutos > 0) {
+            await db
+              .update(ajustes)
+              .set({ metaSemanalMinutos: minutos })
+              .where(eq(ajustes.contaId, conta));
+          }
+          break;
+        }
+
+        case "allbook_achievements_won": {
+          const mapa = valor && typeof valor === "object" ? (valor as Record<string, string>) : {};
+          const linhas = Object.entries(mapa).map(([ch, quando]) => ({
+            contaId: conta,
+            chave: ch,
+            ganhoEm: comoData(quando),
+          }));
+          await db.transaction(async (tx) => {
+            await tx.delete(conquistas).where(eq(conquistas.contaId, conta));
+            if (linhas.length) await tx.insert(conquistas).values(linhas);
+          });
+          break;
+        }
+
+        case "allbook_recommendations": {
+          const linhas = (Array.isArray(valor) ? valor : [])
+            .map((r: any) => ({
+              contaId: conta,
+              livroId: Number(r?.id),
+              nota: comoTexto(r?.note, ""),
+              recomendadoEm: comoData(r?.date),
+            }))
+            .filter((r) => validos.has(r.livroId));
+
+          await db.transaction(async (tx) => {
+            await tx.delete(recomendacoes).where(eq(recomendacoes.contaId, conta));
+            if (linhas.length) await tx.insert(recomendacoes).values(linhas);
+          });
+          break;
+        }
+
+        case "allbook_book_requests": {
+          /*
+           * ⚠️ **A `situacao` que vem do navegador é ignorada.** Hoje o pedido
+           * nasce e permanece em `recebido` porque não há fila (armadilha 2.6);
+           * quando o estúdio existir, quem move o pedido é **ele**, e aceitar a
+           * etapa vinda do navegador deixaria qualquer um se declarar "pronto".
+           * Pedido que já está no banco não é rebaixado.
+           */
+          const linhas = (Array.isArray(valor) ? valor : [])
+            .map((p: any) => ({
+              titulo: comoTexto(p?.title, "").slice(0, 120),
+              autor: comoTexto(p?.author, "") || null,
+              observacao: comoTexto(p?.note, "").slice(0, 300) || null,
+              vozSlug: comoTexto(p?.voiceSlug, "") || null,
+              idLocal: comoTexto(p?.id, "") || null,
+              criadoEm: comoData(p?.date),
+            }))
+            .filter((p) => p.titulo);
+
+          await db.transaction(async (tx) => {
+            // Só os que ainda não saíram da fila: o que o estúdio já mexeu fica.
+            await tx
+              .delete(pedidos)
+              .where(and(eq(pedidos.contaId, conta), eq(pedidos.situacao, "recebido")));
+            if (linhas.length) {
+              await tx.insert(pedidos).values(linhas.map((p) => ({ ...p, contaId: conta })));
+            }
+          });
+          break;
+        }
+
+        case "allbook_assinatura": {
+          const a = (valor ?? {}) as Record<string, unknown>;
+          const planos = ["nenhum", "ouvir", "pedir", "pedirMais"];
+          const mudanca = {
+            ...(typeof a.plano === "string" && planos.includes(a.plano)
+              ? { plano: a.plano as "nenhum" | "ouvir" | "pedir" | "pedirMais" }
+              : {}),
+            ...(Number.isFinite(Number(a.creditos))
+              ? { creditos: Math.max(0, Math.round(Number(a.creditos))) }
+              : {}),
+            ...(typeof a.boasVindas === "boolean"
+              ? { boasVindas: (a.boasVindas ? "sim" : "nao") as "sim" | "nao" }
+              : {}),
+            ...(typeof a.boasVindasUsado === "boolean"
+              ? { boasVindasUsado: (a.boasVindasUsado ? "sim" : "nao") as "sim" | "nao" }
+              : {}),
+            ...(typeof a.ultimaRecarga === "string" ? { ultimaRecarga: a.ultimaRecarga } : {}),
+            atualizadoEm: new Date(),
+          };
+          await db.update(assinaturas).set(mudanca).where(eq(assinaturas.contaId, conta));
+          break;
+        }
+
         default:
           return res.status(400).json({ erro: `Não sei guardar "${chave}".` });
       }
@@ -392,6 +635,7 @@ export function registrarDados(app: Express) {
  * `allbook_playing`, `allbook_library_view` e `allbook_library_sort`.
  */
 export const CHAVES_SINCRONIZADAS = [
+  /* biblioteca e audição (§4.121) */
   "allbook_library",
   "allbook_playback",
   "allbook_finished",
@@ -399,4 +643,12 @@ export const CHAVES_SINCRONIZADAS = [
   "allbook_ratings",
   "allbook_bookmarks",
   "allbook_trechos_guardados",
+  /* quem a pessoa é, e o que é só dela (§4.122) */
+  "allbook_profile",
+  "allbook_settings",
+  "allbook_weekly_goal",
+  "allbook_achievements_won",
+  "allbook_recommendations",
+  "allbook_book_requests",
+  "allbook_assinatura",
 ] as const;

@@ -77,13 +77,21 @@ export function isRecommended(id: number): boolean {
 }
 
 /** Põe ou tira da lista. Devolve os ids novos (mantém a assinatura antiga). */
+/** As recomendações mudaram — o padrão de evento da casa (§4.122). */
+export const RECOMMENDATIONS_EVENT = "allbook:recomendacoes";
+
+function gravar(next: RecommendationItem[]): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  window.dispatchEvent(new Event(RECOMMENDATIONS_EVENT));
+}
+
 export function toggleRecommendation(id: number): number[] {
   const current = readRecommendationItems();
   const next = current.some((item) => item.id === id)
     ? current.filter((item) => item.id !== id)
     : [...current, { id, note: "", date: new Date().toISOString() }];
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  gravar(next);
   return next.map((item) => item.id);
 }
 
@@ -91,5 +99,5 @@ export function toggleRecommendation(id: number): number[] {
 export function setRecommendationNote(id: number, note: string): void {
   const current = readRecommendationItems();
   const next = current.map((item) => (item.id === id ? { ...item, note } : item));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  gravar(next);
 }

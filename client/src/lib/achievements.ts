@@ -351,12 +351,18 @@ export function readGanhas(): Record<string, string> {
   }
 }
 
+/** Avisa que um troféu foi ganho — o padrão de evento da casa (§4.122). */
+export const ACHIEVEMENTS_EVENT = "allbook:conquistas";
+
 function gravarGanhas(mapa: Record<string, string>): void {
   try {
     localStorage.setItem(GANHAS_KEY, JSON.stringify(mapa));
   } catch {
     // Sem storage a data se perde, mas a medalha continua acesa.
   }
+  // Fora do try: mesmo sem conseguir gravar aqui, a conquista precisa subir
+  // para a conta — é lá que ela passa a viver.
+  window.dispatchEvent(new Event(ACHIEVEMENTS_EVENT));
 }
 
 /** As medalhas com o `unlocked`, o progresso e a data **decididos pelos dados**. */

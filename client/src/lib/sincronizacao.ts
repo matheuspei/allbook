@@ -38,6 +38,7 @@
  * ficam de fora: são estado de tela e preferência de aparelho.
  */
 const CHAVES: { chave: string; evento: string }[] = [
+  /* — biblioteca e audição (§4.121) — */
   { chave: "allbook_library", evento: "allbook:library" },
   { chave: "allbook_playback", evento: "allbook:playback" },
   { chave: "allbook_finished", evento: "allbook:playback" },
@@ -45,6 +46,15 @@ const CHAVES: { chave: string; evento: string }[] = [
   { chave: "allbook_ratings", evento: "allbook:ratings" },
   { chave: "allbook_bookmarks", evento: "allbook:bookmarks" },
   { chave: "allbook_trechos_guardados", evento: "allbook:trechos" },
+
+  /* — quem a pessoa é, e o que é só dela (§4.122) — */
+  { chave: "allbook_profile", evento: "allbook:profile" },
+  { chave: "allbook_settings", evento: "allbook:settings" },
+  { chave: "allbook_weekly_goal", evento: "allbook:goal" },
+  { chave: "allbook_achievements_won", evento: "allbook:conquistas" },
+  { chave: "allbook_recommendations", evento: "allbook:recomendacoes" },
+  { chave: "allbook_book_requests", evento: "allbook:pedidos" },
+  { chave: "allbook_assinatura", evento: "allbook:assinatura" },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -159,6 +169,62 @@ function mesclar(chave: string, local: any, servidor: any): any {
       }
       return junto;
     }
+
+    /* ---- as chaves de §4.122 ---- */
+
+    case "allbook_achievements_won": {
+      /* `{ chave: ISO }`. Ganhar um troféu acontece uma vez: vale a data mais
+         antiga, senão entrar de novo "reganharia" tudo hoje. */
+      const junto: Record<string, string> = { ...(servidor ?? {}) };
+      for (const [id, quando] of Object.entries(local ?? {})) {
+        const atual = junto[id];
+        junto[id] = atual && atual <= String(quando) ? atual : String(quando);
+      }
+      return junto;
+    }
+
+    case "allbook_recommendations":
+      return porId(local, (i) => String(i.id), maisAntigo("date"));
+
+    case "allbook_book_requests":
+      return porId(local, (i) => String(i.id), maisNovo("date"));
+
+    case "allbook_profile":
+    case "allbook_settings": {
+      /*
+       * Objetos **sem carimbo de tempo**, então não há como saber qual lado é o
+       * mais novo. A regra é campo a campo: **o servidor vence onde tem valor**,
+       * e o local preenche o que lá está vazio.
+       *
+       * É o que resolve o caso real: quem usou o app sem conta e escreveu uma
+       * bio não pode perdê-la ao se cadastrar (a conta nasce sem bio) — mas
+       * quem já tem o perfil na conta também não pode vê-lo sobrescrito por um
+       * aparelho velho.
+       */
+      const l = (local ?? {}) as Record<string, unknown>;
+      const s = (servidor ?? {}) as Record<string, unknown>;
+      const junto: Record<string, unknown> = { ...l };
+      for (const [campo, valor] of Object.entries(s)) {
+        const vazio = valor === undefined || valor === null || valor === "";
+        if (!vazio) junto[campo] = valor;
+      }
+      return junto;
+    }
+
+    case "allbook_assinatura":
+      /* Quem manda é a conta: o plano e os créditos vivem lá. */
+      return servidor ?? local;
+
+    case "allbook_weekly_goal":
+      /*
+       * Aqui o **local** vence quando existe, ao contrário da assinatura.
+       *
+       * A razão é o caso da primeira entrada: a conta nasce com a meta padrão
+       * (180 min), então deixar o servidor ganhar apagaria a meta que a pessoa
+       * escolheu de propósito antes de se cadastrar. Num aparelho novo o local
+       * está vazio, e aí o da conta vale.
+       */
+      return local ?? servidor;
 
     default:
       return local ?? servidor;

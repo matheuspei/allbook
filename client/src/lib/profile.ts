@@ -55,8 +55,19 @@ export function readProfile(): Profile {
   }
 }
 
+/**
+ * O perfil mudou — o mesmo padrão de evento do resto da casa
+ * (`LIBRARY_EVENT`, `BOOKMARK_EVENT`…).
+ *
+ * Entrou em 08/08 (§4.122) porque este arquivo era o único da sua família sem
+ * um: sem o aviso, `lib/sincronizacao.ts` não teria como saber que o nome ou a
+ * foto mudaram, e o perfil não subiria para a conta.
+ */
+export const PROFILE_EVENT = "allbook:profile";
+
 export function saveProfile(profile: Profile): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+  window.dispatchEvent(new Event(PROFILE_EVENT));
 }
 
 /** A inicial mostrada quando não há foto. */

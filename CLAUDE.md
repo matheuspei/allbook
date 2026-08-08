@@ -91,10 +91,17 @@ guardada no banco, "Esqueci minha senha" funcionando. `lib/auth.ts` fala com
 virou *espelho* da sessão, não a verdade. Tela que precise saber quem está
 logado segue usando `readSession()` como sempre.
 
-Desde 08/08 **sete chaves sobem para a conta** (§4.121): `allbook_library`,
-`allbook_playback`, `allbook_finished`, `allbook_listening`, `allbook_ratings`,
-`allbook_bookmarks` e `allbook_trechos_guardados`. Entre num aparelho novo e a
-biblioteca aparece. **`allbook_downloads` NÃO sobe** — baixado é do aparelho.
+Desde 08/08 **14 chaves sobem para a conta**: biblioteca, progresso, concluídos,
+diário, notas, marcações e trechos (§4.121); perfil, ajustes, meta semanal,
+conquistas, recomendações, pedidos e assinatura (§4.122). Entre num aparelho novo
+e tudo aparece. **`allbook_downloads` NÃO sobe** — baixado é do aparelho.
+
+⚠️ **Chave nova que precise subir?** Acrescente-a à lista `CHAVES` de
+`lib/sincronizacao.ts` e o caso correspondente em `server/dados.ts`. Se a lib
+dela não disparar evento de `window` ao gravar, **adicione o evento** (uma linha,
+o padrão da casa) — é ele que a sincronização escuta. E **se o item tiver id
+gerado no navegador, o banco tem de guardar esse id** (coluna `idLocal`): sem
+ele, cada sincronização duplica o item. Já mordeu duas vezes.
 
 ⚠️ **Mesmo assim, tela nenhuma mudou, e tela nova continua lendo das libs.** O
 `localStorage` virou *espelho*: `lib/sincronizacao.ts` escuta os eventos que as
