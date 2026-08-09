@@ -27,6 +27,7 @@
  * o espelho ainda diz que você está logado, e a próxima leitura acerta.
  */
 
+import { EH_A_MOLDURA } from "@/lib/dev-moldura";
 import { defaultProfile, readProfile, saveProfile } from "@/lib/profile";
 import {
   ligarSincronizacao,
@@ -299,8 +300,17 @@ export function isValidEmail(email: string): boolean {
  *
  * `ligarSincronizacao` só instala os ouvintes de evento — é barato e não fala
  * com a rede enquanto ninguém mexer em nada.
+ *
+ * ⚠️ **Menos na moldura de prévia** (`EH_A_MOLDURA`, ver `DevMobileWrapper`).
+ * Em desenvolvimento a página de cima é só a moldura e o app roda dentro de um
+ * iframe — as duas carregam este módulo, e sem esta guarda cada abertura
+ * sincronizaria a conta **duas vezes ao mesmo tempo**, nos dois frames, contra
+ * o mesmo `localStorage`. É exatamente a corrida que duplica item (a armadilha
+ * do `idLocal` no CLAUDE.md). Quem manda na conta é o frame onde o app está.
  */
-ligarSincronizacao();
-void sincronizarSessao().then((sessao) => {
-  if (sessao) void sincronizarDados();
-});
+if (!EH_A_MOLDURA) {
+  ligarSincronizacao();
+  void sincronizarSessao().then((sessao) => {
+    if (sessao) void sincronizarDados();
+  });
+}

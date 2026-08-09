@@ -36,16 +36,32 @@ sozinho se cair.
 
 ## Armadilhas apuradas (não descobrir de novo)
 
-### A moldura de celular da prévia NÃO simula um celular
-Em desenvolvimento o app aparece dentro de uma moldura de telefone
-(`DevMobileWrapper`), que é só uma caixa de largura fixa. **As regras responsivas do
-Tailwind (`sm:`, `md:`…) continuam olhando a largura da janela do navegador** — numa
-janela larga, a prévia mostra o layout de desktop espremido num retângulo com cara
-de celular. Para ver o celular de verdade, estreite a **janela** para menos de 640px.
+### A moldura de celular da prévia é um `<iframe>` — e agora simula o celular
+Desde 09/08 (§4.131) a moldura de prévia (`DevMobileWrapper`) é um iframe de
+verdade, e não mais uma `<div>` de largura fixa. **Isso inverteu a armadilha que
+estava escrita aqui:** as regras responsivas do Tailwind (`sm:`, `md:`…) agora
+enxergam a largura do aparelho (430×932 e não a da janela), `position: fixed`
+ancora na tela do telefone, e `window.scrollY` / `scrollTo` **voltaram a
+funcionar** na prévia. Trocar de aparelho na barra troca o layout na hora, sem
+recarregar o app. Não é mais preciso estreitar a janela para conferir celular.
 
-A moldura também tem o próprio `overflow`: **quem rola é ela, não a janela**. Logo
-`window.scrollY` e `window.scrollTo` não fazem nada na prévia (funcionam no app
-real) — há vários espalhados pelas telas, inofensivos.
+⚠️ **A contrapartida: a mesma URL carrega duas vezes** — a página de cima (só a
+moldura) e a de dentro do iframe (o app). Módulo que **aja ao ser carregado**
+(falar com o servidor, instalar ouvinte, escrever no `localStorage`) faria tudo
+em dobro; é o caso do `lib/auth.ts`, cuja sincronização de conta em dois frames
+seria a mesma corrida que duplica item. Guarde-o com `EH_A_MOLDURA` de
+`lib/dev-moldura.ts`. Em produção nada disso existe.
+
+⚠️ **A barra do Chrome não mostra mais a tela aberta** (o endereço é o da
+moldura); quem mostra é a barra da prévia, no canto direito. E o console do
+navegador abre no frame de fora: para rodar `auditarContraste()` ou qualquer
+script no app, **troque o contexto para o iframe** no seletor do console (ou use
+`document.querySelector('iframe').contentWindow`).
+
+A prévia abre em **tamanho real (100%)**. Aparelho mais alto que a janela faz a
+área rolar e aparece o botão "Caber na janela" — a escala fica sempre visível em
+número na barra, e reduzir já não falsifica o layout (a viewport de dentro
+continua a do aparelho).
 
 ### O catálogo tem duas metades, e uma é arquivo gerado
 A parte curada à mão fica em `client/src/lib/books.ts` (id, título, autor, narrador,

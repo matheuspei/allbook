@@ -5970,3 +5970,67 @@ e quebra ao ler o JSON, longe da causa. Agora há um 404 honesto no fim das rota
 - **Limitar tentativas de login** (seção 2.3) continua aberto — é o mesmo
   mecanismo de rajada, agora que ele existe.
 - **Marca d'água por conta** (§4.34) segue opcional e para depois.
+
+---
+
+## 4.131 A moldura de prévia virou um iframe — ela mentia sobre o celular (09/08)
+
+**O pedido dele foi "está reduzido, põe em tamanho normal".** Estava mesmo: a
+moldura encolhia o telefone para caber na altura da janela (medido: **95,7%**).
+Mas ao medir apareceu um defeito maior, e é ele que justifica a troca.
+
+**O que a moldura era, e por que isso a tornava inútil.** Uma `<div>` de 430px
+com o app dentro. Uma div não é uma tela: as regras responsivas do Tailwind
+(`sm:`, `md:`, `lg:`) olham a **largura da janela do navegador**, não a da caixa
+em volta. Medido no Chrome dele, janela de 1728px: `sm`, `md` e `lg` **todas
+ligadas**. Ou seja, o que aparecia dentro do desenho de telefone era o layout de
+**computador** espremido num retângulo estreito — nunca foi o celular. Isto já
+estava escrito no CLAUDE.md como armadilha a conviver; a decisão de hoje é que
+uma ferramenta de conferência que mostra a tela errada não é para conviver, é
+para consertar.
+
+**A escolha: `<iframe>`.** Dentro dele a viewport é o próprio iframe, então as
+media queries enxergam 430×932 de verdade. Vieram junto, de graça, três coisas
+que estavam quebradas na prévia e obrigavam a testar "no app real":
+
+- `position: fixed` ancora na **tela do telefone** (menu de baixo medido em
+  779–844, colado no rodapé) e não na moldura;
+- `window.scrollY` / `scrollTo` voltam a funcionar — antes quem rolava era a
+  moldura, e havia vários desses espalhados pelas telas, inertes;
+- trocar de aparelho na barra **re-renderiza o layout sem recarregar o app**
+  (provado marcando o documento de dentro e vendo a marca sobreviver).
+
+**O que foi rejeitado.** *Container queries* — resolveriam a largura sem iframe,
+mas exigiriam reescrever todo o responsivo do projeto e ainda deixariam o
+`fixed` e o `scrollY` mentindo. *Manter o encolhimento como padrão* — é o que os
+DevTools fazem, e é justamente o que ele reclamou.
+
+**A decisão de tamanho: 100% é o padrão, e a redução é botão.** Quando o
+aparelho não cabe na janela, a área rola e aparece o botão "Caber na janela" —
+nunca mais encolhe sozinho e sem avisar. A barra sempre mostra a escala em
+número (`430x932 · 100%`), verde em tamanho real e âmbar quando reduzido: o
+estado da ferramenta tem de estar visível, senão volta a mentir em silêncio.
+**E com o iframe a redução deixou de falsificar o layout** — o `transform`
+escala a imagem, mas a viewport de dentro continua sendo a do aparelho.
+
+**Duas contas que viraram código.** A barra e a folga foram para 32 + 8×2
+porque na janela dele (902px) isso deixa 854px, e é o que faz o **iPhone 16
+(844) caber inteiro em tamanho real** — com 36 + 12×2 faltavam 2px. E a borda da
+moldura virou `inset`: uma `border` somava 4px à caixa e derrubava de 100% o
+aparelho que cabia raspando. *(O iPhone 16 Pro Max, 932px, não cabe inteiro numa
+janela de MacBook com abas e favoritos — é física, não bug; para ele, o botão.)*
+
+**A armadilha que o iframe criou, e a guarda.** A mesma URL passa a carregar
+**duas vezes** (a moldura e o app). `lib/auth.ts` age ao ser carregado —
+`ligarSincronizacao()` e `sincronizarSessao()` — e sem guarda cada abertura
+sincronizaria a conta **em dois frames ao mesmo tempo**, contra o mesmo
+`localStorage`: exatamente a corrida que duplica item. Daí `lib/dev-moldura.ts`
+com o `EH_A_MOLDURA`, que vive em `lib/` (e não no componente) para o `auth` não
+depender de um `.tsx` de desenvolvimento. **Módulo novo que aja ao ser carregado
+precisa dessa guarda.**
+
+**Sobrou uma perda, resolvida na barra:** a barra de endereço do Chrome mostra o
+endereço da moldura e não muda mais com a navegação. Por isso a barra da prévia
+passou a mostrar o caminho da tela aberta lá dentro (`/library`) — lido por
+espiada periódica, porque o wouter navega por `pushState` e isso não emite
+evento para quem está de fora.
