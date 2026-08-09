@@ -6029,6 +6029,14 @@ com o `EH_A_MOLDURA`, que vive em `lib/` (e não no componente) para o `auth` n�
 depender de um `.tsx` de desenvolvimento. **Módulo novo que aja ao ser carregado
 precisa dessa guarda.**
 
+**Ainda no mesmo dia, uma correção que só apareceu ao mostrar para alguém.** Ele
+pediu um link para uma pessoa distante ver o app (túnel do `cloudflared` sobre o
+servidor de desenvolvimento). Quem abria o link recebia **a moldura**: barra de
+aparelhos e o app preso num desenho de telefone **dentro do próprio telefone**.
+Por isso o `EH_A_MOLDURA` passou a exigir **acesso local** (`localhost`): de
+fora, o app aparece inteiro na tela, como um app. A moldura é instrumento de
+quem constrói, e o túnel mostrou que ela vazava para quem só quer ver.
+
 **Sobrou uma perda, resolvida na barra:** a barra de endereço do Chrome mostra o
 endereço da moldura e não muda mais com a navegação. Por isso a barra da prévia
 passou a mostrar o caminho da tela aberta lá dentro (`/library`) — lido por

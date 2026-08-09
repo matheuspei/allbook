@@ -13,5 +13,13 @@
  * Fica aqui, e não no componente, para que `lib/` não passe a depender de um
  * `.tsx` de desenvolvimento. Em produção é sempre `false` — e como a conta é uma
  * constante de `import.meta.env.DEV`, o empacotador apaga o ramo morto.
+ *
+ * ⚠️ **E só para quem acessa da própria máquina.** Quando o servidor de
+ * desenvolvimento é exposto por um túnel para mostrar o app a alguém de longe
+ * (09/08), quem abre o link é uma pessoa, não um programador: ela via a barra
+ * de aparelhos e o app preso num desenho de telefone dentro do próprio telefone.
+ * De fora, o app aparece inteiro na tela, como um app.
  */
-export const EH_A_MOLDURA = import.meta.env.DEV && window.self === window.top;
+const ACESSO_LOCAL = ["localhost", "127.0.0.1", "[::1]", "::1"].includes(window.location.hostname);
+
+export const EH_A_MOLDURA = import.meta.env.DEV && ACESSO_LOCAL && window.self === window.top;

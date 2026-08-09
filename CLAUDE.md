@@ -63,6 +63,11 @@ A prévia abre em **tamanho real (100%)**. Aparelho mais alto que a janela faz a
 número na barra, e reduzir já não falsifica o layout (a viewport de dentro
 continua a do aparelho).
 
+**A moldura só existe em acesso local** (`localhost`). Quando o servidor é
+exposto por um túnel para mostrar o app a alguém de longe, quem abre o link vê
+o app inteiro na tela, sem barra de aparelhos — a moldura é instrumento de quem
+constrói. Para expor: `cloudflared tunnel --url http://localhost:3000`.
+
 ### O catálogo tem duas metades, e uma é arquivo gerado
 A parte curada à mão fica em `client/src/lib/books.ts` (id, título, autor, narrador,
 nota, gênero). A parte importada vem da [Open Library](https://openlibrary.org) por
