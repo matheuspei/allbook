@@ -1629,17 +1629,6 @@ function gravarCapa(topicoId: string, capa: CapaDeTopico): void {
   }
   window.dispatchEvent(new Event(GRUPOS_EVENT));
 }
-
-/**
- * A capa **escolhida** para um tópico — o que a pessoa gravou, se gravou.
- *
- * Não devolve a do esqueleto de propósito: quem junta as duas é `topicosDa`,
- * pela mesma razão de sempre (a tela não deve lembrar de casar duas fontes).
- */
-export function capaEscolhida(topicoId: string): CapaDeTopico | undefined {
-  return lerCapas()[topicoId];
-}
-
 /**
  * Põe (ou troca) a capa de um tópico. Só o **autor** ou um **moderador** —
  * é a mesma régua de fixar e esconder.
@@ -2047,21 +2036,4 @@ export function fioDo(topicoId: string): RespostaNaTela[] {
   return [...doEsqueleto, ...minhas]
     .filter((resposta) => !resposta.escondida)
     .sort((a, b) => a.date.localeCompare(b.date));
-}
-
-/** O resumo que a vitrine da Comunidade mostra. */
-export function resumoDosGrupos(): {
-  grupo: Grupo;
-  totalTopicos: number;
-  totalPessoas: number;
-  participo: boolean;
-}[] {
-  // Os seus grupos primeiro: quem cria quer se ver no topo da lista.
-  return [...meusGrupos(), ...grupos].map((grupo) => ({
-    grupo,
-    totalTopicos: topicosDa(grupo.id).length,
-    // Você conta quando entrou — o esqueleto não vira número inflado.
-    totalPessoas: grupo.membros.length + (participoDa(grupo.id) ? 1 : 0),
-    participo: participoDa(grupo.id),
-  }));
 }

@@ -6042,3 +6042,96 @@ endereço da moldura e não muda mais com a navegação. Por isso a barra da pr�
 passou a mostrar o caminho da tela aberta lá dentro (`/library`) — lido por
 espiada periódica, porque o wouter navega por `pushState` e isso não emite
 evento para quem está de fora.
+
+---
+
+## 4.132 A faxina de código morto — e a decisão da §4.88 revista (10/08)
+
+Pedido dele, em uma frase: *"se tem código morto no projeto para matar e
+otimizar, elimine tudo: coisas inúteis, código morto, e tudo isso."*
+
+**Como se mediu, e por que não foi de olho.** Três varreduras escritas para esta
+faxina (no scratchpad da sessão, não no repositório): o **grafo de importações**
+a partir das raízes de verdade (`main.tsx`, `server/index.ts`, `vite.config.ts`,
+os scripts do `npm`), que acha o arquivo que ninguém alcança; o **fecho de
+alcance dentro de cada arquivo**, que acha a função morta que só outra função
+morta chamava; e o `tsc` com `--noUnusedLocals --noUnusedParameters`, que acha o
+import e o parâmetro sobrando. Rodadas **em ondas, até secar**: apagar um
+arquivo mata a lib que só ele usava, que mata a função que só ela chamava. A
+`vitrineDeConversas` (61 linhas) só apareceu na segunda onda.
+
+**O saldo:** 47 arquivos, ~5.900 linhas e 31 dependências fora; as três medidas
+agora dão zero. E 7 MB de imagem, que era o maior peso do app e não era código.
+
+### As três coisas que valem mais que o número
+
+1. **A aposta da §4.88 foi testada e perdeu.** Aquela faxina manteve o
+   `apiRequest`/`queryClient` por serem *"infraestrutura documentada no CLAUDE.md
+   para a hora do backend"*. O backend chegou em 08/08 (§4.119–§4.122) e **não
+   usou nada disso**: o `lib/auth.ts` escreveu o seu próprio `chamar()`, e o
+   `@tanstack/react-query` ficou no app com **zero `useQuery` e zero
+   `useMutation`** — só o `Provider` envolvendo tudo. Guardar peça para um futuro
+   que ainda não existe não paga: quando o futuro chega, ele traz o seu próprio
+   jeito. Saiu o `Provider`, o `lib/queryClient.ts` e a dependência.
+2. **Documentação duplicada é pior que código morto.** O `server/dados.ts` tinha
+   a constante `CHAVES_SINCRONIZADAS` com as 14 chaves — **sem nenhum leitor**,
+   ao lado dos 14 `case` do `switch` que fazem o trabalho de verdade, e da lista
+   `CHAVES` do `lib/sincronizacao.ts`. Uma terceira cópia que ninguém executa não
+   avisa quando diverge: ela só passa a mentir. Saiu; o porquê do
+   `allbook_downloads` não subir continua no CLAUDE.md e neste arquivo.
+3. **Um argumento que a função ignorava.** Em `lib/sincronizacao.ts`, o `porId`
+   recebia a lista como primeiro parâmetro e **usava a variável do escopo de
+   fora** — as seis chamadas passavam `local` para o nada. Não quebrava (era o
+   mesmo valor), mas quem lesse acreditaria que aquele argumento mandava em
+   alguma coisa. O parâmetro saiu.
+
+### A decisão que eu mudei: os componentes do shadcn saem
+
+A §4.88 deixou `components/ui/*` de fora do corte com dois argumentos: *"o Vite
+já exclui do app final o que não é usado"* e *"apagar obrigaria a recriar peça a
+peça"*. **Hoje eles saíram — 43 dos 55, ficaram os 12 que alguma tela usa.** Os
+dois argumentos continuam verdadeiros e mesmo assim não bastam:
+
+- O tree-shaking cobre o **bundle**, e o custo não estava no bundle: estava no
+  `package.json`. Aqueles 43 arquivos seguravam **30 dependências** — `cmdk`,
+  `react-day-picker`, `embla-carousel`, `input-otp`, `react-hook-form`, 22
+  pacotes do Radix — que o `npm install` baixa, que aparecem em auditoria de
+  segurança e que alguém atualiza. O projeto foi de **57 dependências para 27**.
+- "Recriar peça a peça" virou um comando: `git show 16e72e5:client/src/components/ui/dialog.tsx`.
+- E existe hoje um custo que a §4.88 não tinha: as regras de cor da §4.112 e da
+  §4.116. Componente do shadcn vem com cor literal; "reutilizar" um deles é a
+  porta de entrada do **defeito que mais se repete no projeto**. Quem trouxer um
+  de volta tem de passar as cores para os tokens antes.
+
+**O que NÃO saiu, de propósito:** as tabelas de `shared/schema/` que ainda não
+têm código chamando (elas são o desenho do banco — o `drizzle-kit push` as cria,
+e as tabelas existem no Postgres); os tipos exportados que só o próprio arquivo
+usa (tirar a palavra `export` é ruído sem ganho); e as folhas
+`client/public/_*.html`, que não são código do app.
+
+### A trava, para não precisar de uma §4.133
+
+`noUnusedLocals` e `noUnusedParameters` entraram no `tsconfig.json`. O
+`npm run check` passa a **reprovar** import que ninguém usa, variável que
+ninguém lê e parâmetro que a função ignora — as 21 sobras desta faxina teriam
+sido pegas no dia em que nasceram. Parâmetro que precisa existir mas não é usado
+leva `_` na frente. *(O que essa trava **não** pega é o arquivo inteiro que
+ninguém importa e a função exportada sem consumidor — para esses, o jeito é
+rodar o grafo de novo de tempos em tempos.)*
+
+### A otimização que não era código: 7 MB de imagem
+
+As 8 capas genéricas de reserva (uma por gênero) eram **PNG de 896×1280 somando
+9 MB** — a de mistério sozinha tinha 1,6 MB. Para comparação: as **58 capas de
+verdade**, em JPEG, somam 2,7 MB, ~47 KB cada. Cada capa de reserva pesava vinte
+vezes mais que uma capa real, e todas entravam no que o navegador baixa.
+Convertidas para JPEG na mesma resolução: **9 MB → 1,9 MB**, sem diferença
+visível. As capas das comunidades também encolheram (1,4 MB → 760 KB), com uma
+lição no meio: **recomprimir imagem já comprimida a engorda** — duas das cinco
+ficaram maiores e foram devolvidas ao original. A pasta de imagens foi de ~14 MB
+para 6,3 MB. **Imagem nova de reserva entra em JPEG, não em PNG.**
+
+**O que ficou em aberto:** o `dist/public/index.js` tem 1,83 MB (528 KB
+comprimido) num pedaço só, e o Vite avisa a cada build. Dividir por rota
+(`import()` dinâmico) é a saída conhecida, mas mexe em como o app carrega e não
+é faxina — fica registrado, não feito.

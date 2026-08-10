@@ -65,7 +65,7 @@ export default function ConversaDoCiclo({ clube }: { clube: Clube }) {
       </div>
 
       <div className="space-y-2">
-        {liberados.map((marco, i) => {
+        {liberados.map((marco) => {
           const posicaoOriginal = marcos.indexOf(marco);
           const capInicial = posicaoOriginal === 0 ? 1 : marcos[posicaoOriginal - 1].chapter + 1;
           /* O fim do trecho, em segundos: o começo do capítulo seguinte, ou o

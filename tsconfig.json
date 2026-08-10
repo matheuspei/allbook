@@ -7,6 +7,15 @@
     "noEmit": true,
     "module": "ESNext",
     "strict": true,
+    /*
+     * As duas travas que impedem o código morto de voltar (10/08). O `npm run
+     * check` passa a acusar import que ninguém usa, variável que ninguém lê e
+     * parâmetro que a função ignora — foi assim que apareceram as 21 sobras da
+     * faxina, inclusive um argumento que a sincronização passava e jogava fora.
+     * Parâmetro que precisa existir mas não é usado leva `_` na frente.
+     */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "target": "ES2022",
     "jsx": "preserve",

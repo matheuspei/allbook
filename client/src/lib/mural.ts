@@ -29,11 +29,6 @@ import { catalog, type Book } from "@/lib/books";
 import { clubePorId } from "@/lib/clubes";
 import { comments, ehAvaliacao } from "@/lib/comments";
 import { community, type CommunityMember } from "@/lib/community";
-import { readFollowing } from "@/lib/following";
-import { readConcluidos } from "@/lib/playback";
-import { readProfile } from "@/lib/profile";
-import { readMyRatings } from "@/lib/ratings";
-import { readRecommendationItems } from "@/lib/recommendations";
 import { estadoNaSala, posicaoNoLivro, type EstadoNaSala } from "@/lib/sala";
 
 const STORAGE_KEY = "allbook_mural_posts";
@@ -155,11 +150,6 @@ export function apagarPost(id: string): MeuPost[] {
 function autorDoMembro(member: CommunityMember): AutorDoMural {
   return { nome: member.name, slug: member.slug, cor: member.color, souEu: false };
 }
-
-function eu(): AutorDoMural {
-  return { nome: readProfile().name, souEu: true };
-}
-
 function livro(bookId: number): Book | undefined {
   return catalog.find((book) => book.id === bookId);
 }
@@ -252,98 +242,4 @@ export function muralDe(
     .filter((item) => !tipos || tipos.includes(item.tipo))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, limite);
-}
-
-/**
- * O mural, do acontecimento mais novo para o mais velho.
- *
- * Seguindo alguém: só quem você segue, mais você. Sem seguir ninguém: a
- * comunidade inteira — é o que dá vida ao primeiro dia.
- */
-export function feedDoMural(limite = 30): ItemDoMural[] {
-  const seguindo = new Set(readFollowing());
-  const filtrar = seguindo.size > 0;
-  const membros = community.filter((member) => !filtrar || seguindo.has(member.slug));
-
-  // — o que os leitores do esqueleto andaram fazendo —
-  const itens: ItemDoMural[] = membros.flatMap(itensDoMembro);
-
-  // — os seus acontecimentos —
-  for (const post of readMeusPosts()) {
-    if (post.clubeId !== undefined) {
-      // Post no clube: a capa vem do livro da vez, o link vai para o clube.
-      const clube = clubePorId(post.clubeId);
-      const daVez = clube ? livro(clube.ciclo.bookId) : undefined;
-      if (!clube || !daVez) continue; // clube apagado leva os posts junto
-      itens.push({
-        id: post.id,
-        date: post.date,
-        autor: eu(),
-        book: daVez,
-        tipo: "disse",
-        texto: post.texto,
-        meuPostId: post.id,
-        clube: { id: clube.id, nome: clube.nome },
-      });
-      continue;
-    }
-
-    const book = post.bookId !== undefined ? livro(post.bookId) : undefined;
-    if (!book) continue;
-    itens.push({
-      id: post.id,
-      date: post.date,
-      autor: eu(),
-      book,
-      tipo: "disse",
-      texto: post.texto,
-      meuPostId: post.id,
-    });
-  }
-
-  for (const [bookId, quando] of Object.entries(readConcluidos())) {
-    const book = livro(Number(bookId));
-    if (!book) continue;
-    itens.push({
-      id: `fim-${bookId}`,
-      date: quando,
-      autor: eu(),
-      book,
-      tipo: "terminou",
-    });
-  }
-
-  for (const nota of readMyRatings()) {
-    const book = livro(nota.bookId);
-    if (!book) continue;
-    const valores = [nota.historia, nota.narracao].filter((n): n is number => !!n);
-    if (valores.length === 0) continue;
-    itens.push({
-      id: `minha-aval-${nota.bookId}`,
-      date: nota.updatedAt,
-      autor: eu(),
-      book,
-      tipo: "avaliou",
-      nota: valores.reduce((soma, n) => soma + n, 0) / valores.length,
-    });
-  }
-
-  // Recomendações antigas não tinham data — só as com carimbo entram no feed
-  // (todas continuam na sua página; aqui é linha do tempo, e linha do tempo
-  // sem data seria chute).
-  for (const rec of readRecommendationItems()) {
-    if (!rec.date) continue;
-    const book = livro(rec.id);
-    if (!book) continue;
-    itens.push({
-      id: `minha-rec-${rec.id}`,
-      date: rec.date,
-      autor: eu(),
-      book,
-      tipo: "recomendou",
-      note: rec.note,
-    });
-  }
-
-  return itens.sort((a, b) => b.date.localeCompare(a.date)).slice(0, limite);
 }

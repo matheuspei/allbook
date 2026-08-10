@@ -38,7 +38,7 @@
  * ele não existe ainda. Ver o texto de ajuda em `entregar()`.
  */
 
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 
 import { contas, livros, pedidos } from "@shared/schema";
 import { db, pool } from "../server/db";

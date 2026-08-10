@@ -850,24 +850,6 @@ function normalizar(texto: string): string {
     .toLowerCase()
     .trim();
 }
-
-/**
- * Os assuntos que **existem de fato**, com quantos clubes cada um tem.
- *
- * Sai dos clubes, não da lista de gêneros do catálogo: um filtro "Romance" que
- * devolve zero clubes é o botão morto que a 4.23 mandou varrer. A ordem é por
- * quantidade — o assunto com mais gente é o que mais serve a quem chega.
- */
-export function topicosDeClube(): { genero: string; total: number }[] {
-  const contagem = new Map<string, number>();
-  for (const clube of todosOsClubes()) {
-    contagem.set(clube.genero, (contagem.get(clube.genero) ?? 0) + 1);
-  }
-  return Array.from(contagem.entries())
-    .map(([genero, total]) => ({ genero, total }))
-    .sort((a, b) => b.total - a.total || a.genero.localeCompare(b.genero));
-}
-
 /**
  * Busca por nome do clube, descrição, **título do livro e autor**.
  *

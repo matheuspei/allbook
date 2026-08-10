@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Switch, Route, useLocation } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import AvisoDeConquista from "@/components/AvisoDeConquista";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -82,7 +80,7 @@ class ErrorBoundary extends React.Component<
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error) {
     console.warn("React ErrorBoundary caught:", error.message);
   }
 
@@ -311,15 +309,13 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          {/* Fica aqui, e não numa tela: a medalha pode acender ouvindo,
-              salvando na lista ou curtindo um comentário. */}
-          <AvisoDeConquista />
-          <Router />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <TooltipProvider>
+        <Toaster />
+        {/* Fica aqui, e não numa tela: a medalha pode acender ouvindo,
+            salvando na lista ou curtindo um comentário. */}
+        <AvisoDeConquista />
+        <Router />
+      </TooltipProvider>
     </ErrorBoundary>
   );
 }

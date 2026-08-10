@@ -1,11 +1,11 @@
-import coverScifi from "@/assets/images/cover-scifi.png";
-import coverSelfhelp from "@/assets/images/cover-selfhelp.png";
-import coverRomance from "@/assets/images/cover-romance.png";
-import coverMystery from "@/assets/images/cover-mystery.png";
-import coverBusiness from "@/assets/images/cover-business.png";
-import coverBiography from "@/assets/images/cover-biography.png";
-import coverHorror from "@/assets/images/cover-horror.png";
-import coverProductivity from "@/assets/images/cover-productivity.png";
+import coverScifi from "@/assets/images/cover-scifi.jpg";
+import coverSelfhelp from "@/assets/images/cover-selfhelp.jpg";
+import coverRomance from "@/assets/images/cover-romance.jpg";
+import coverMystery from "@/assets/images/cover-mystery.jpg";
+import coverBusiness from "@/assets/images/cover-business.jpg";
+import coverBiography from "@/assets/images/cover-biography.jpg";
+import coverHorror from "@/assets/images/cover-horror.jpg";
+import coverProductivity from "@/assets/images/cover-productivity.jpg";
 
 import { fichasImportadas } from "./catalog-enriched";
 import { capaTipografica } from "./coverFallback";

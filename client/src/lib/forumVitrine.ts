@@ -15,7 +15,7 @@
 import { nomeDoMembro } from "@/lib/clubes";
 import { readFollowing } from "@/lib/following";
 import { CATEGORIAS, categoriaDe, forunsVisiveis, membrosDo, situacaoDe } from "@/lib/forum";
-import { topicosDa, type Grupo, type TopicoNaTela } from "@/lib/grupos";
+import { topicosDa, type Grupo } from "@/lib/grupos";
 
 /** A janela do "esta semana" — sete dias, como em toda parte do app. */
 const DIAS_DE_ALTA = 7;
@@ -83,23 +83,6 @@ export function emAlta(limite = 6): { grupo: Grupo; motivo: string }[] {
           ? "1 conversa esta semana"
           : `${movimento.conversasDaSemana} conversas esta semana`,
     }));
-}
-
-/**
- * **Acontecendo agora** — os últimos tópicos com mensagem, de todas as
- * comunidades que você pode ler.
- *
- * É o bloco que responde "tem gente aqui?" sem a pessoa precisar entrar em
- * comunidade nenhuma.
- */
-export function acontecendoAgora(limite = 5): { grupo: Grupo; topico: TopicoNaTela }[] {
-  const tudo: { grupo: Grupo; topico: TopicoNaTela }[] = [];
-  for (const grupo of forunsVisiveis()) {
-    for (const topico of topicosDa(grupo.id)) tudo.push({ grupo, topico });
-  }
-  return tudo
-    .sort((a, b) => b.topico.ultimaAtividade.localeCompare(a.topico.ultimaAtividade))
-    .slice(0, limite);
 }
 
 /**
@@ -245,26 +228,4 @@ export function semRepetirAFrase(
     ditas.add(alternativo);
     return { grupo, motivo: alternativo };
   });
-}
-
-/** Os números do rodapé da vitrine. */
-export function numerosDoForum(): {
-  comunidades: number;
-  topicos: number;
-  mensagens: number;
-  pessoas: number;
-} {
-  const visiveis = forunsVisiveis();
-  const pessoas = new Set<string>();
-  let topicos = 0;
-  let mensagens = 0;
-
-  for (const grupo of visiveis) {
-    const movimento = movimentoDe(grupo.id);
-    topicos += movimento.topicos;
-    mensagens += movimento.mensagens;
-    for (const membro of membrosDo(grupo.id)) pessoas.add(membro.slug);
-  }
-
-  return { comunidades: visiveis.length, topicos, mensagens, pessoas: pessoas.size };
 }

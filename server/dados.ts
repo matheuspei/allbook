@@ -622,33 +622,3 @@ export function registrarDados(app: Express) {
     }
   });
 }
-
-/**
- * As chaves que esta camada sincroniza — a lista que o front também usa.
- *
- * ⚠️ **`allbook_downloads` NÃO está aqui, e a ausência é a decisão** (seção 1 do
- * checklist): baixado é **do aparelho**, não da conta — o arquivo está *naquele*
- * celular. Sincronizar faria o tablet de alguém anunciar como baixado um arquivo
- * que só existe no telefone.
- *
- * Também ficam de fora, por serem estado de tela: `allbook_miniplayer`,
- * `allbook_playing`, `allbook_library_view` e `allbook_library_sort`.
- */
-export const CHAVES_SINCRONIZADAS = [
-  /* biblioteca e audição (§4.121) */
-  "allbook_library",
-  "allbook_playback",
-  "allbook_finished",
-  "allbook_listening",
-  "allbook_ratings",
-  "allbook_bookmarks",
-  "allbook_trechos_guardados",
-  /* quem a pessoa é, e o que é só dela (§4.122) */
-  "allbook_profile",
-  "allbook_settings",
-  "allbook_weekly_goal",
-  "allbook_achievements_won",
-  "allbook_recommendations",
-  "allbook_book_requests",
-  "allbook_assinatura",
-] as const;

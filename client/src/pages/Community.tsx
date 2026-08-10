@@ -10,7 +10,6 @@ import Compositor from "@/components/comunidade/Compositor";
 import SalasComoStories from "@/components/comunidade/SalasComoStories";
 import { POSTS_EVENT } from "@/lib/posts";
 import { montarFeed, type ItemDoFeed, type Lente } from "@/lib/feedDaComunidade";
-import SalasAoVivoNoFeed from "@/components/sala/SalasAoVivoNoFeed";
 import { MURAL_EVENT } from "@/lib/mural";
 import { ouvindoAgoraNaComunidade, type AudicaoDeAgora } from "@/lib/activity";
 import { readFollowing } from "@/lib/following";

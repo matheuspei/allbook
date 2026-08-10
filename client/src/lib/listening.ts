@@ -440,7 +440,6 @@ export interface HistoricoDeUmLivro {
 export function historicoDoLivro(
   diario: Diario,
   bookId: number,
-  hoje = new Date()
 ): HistoricoDeUmLivro {
   const dias: DiaDoLivro[] = [];
   let totalSec = 0;

@@ -103,8 +103,10 @@ coração do produto (ROTEIRO 4.18). Não traga de volta.
 ### O banco existe (08/08), mas o app ainda lê o navegador
 Desde 08/08 há **Postgres 17 de verdade** rodando na máquina (banco `allbook`),
 com **62 tabelas** em `shared/schema/` — um arquivo por assunto — e o **catálogo
-já dentro dele**. O `MemStorage` morreu; `server/storage.ts` é Drizzle sobre
-Postgres.
+já dentro dele**. O `MemStorage` morreu em 08/08; o `PgStorage` que o substituiu
+**também morreu, em 10/08**, porque nenhuma rota chegou a chamá-lo — quem fala
+com o banco é `server/db.ts` (o `db` do Drizzle), direto, em `contas.ts`,
+`dados.ts` e `audio.ts`.
 
 Desde 08/08 o **login é de verdade** (§4.120): senha cifrada, sessão em cookie
 guardada no banco, "Esqueci minha senha" funcionando. `lib/auth.ts` fala com
@@ -202,13 +204,18 @@ estão em `client/src/App.tsx` — é lá que se olha, não numa tabela aqui.
 ## Onde ficam as coisas
 - `client/src/pages/` — as telas (uma por rota) · `App.tsx` — as rotas
 - `client/src/components/layout/` — TopNav, BottomNav, MiniPlayer ·
-  `components/ui/` — shadcn (reutilizar, não reinventar) · e as subpastas por
-  assunto: `clube/`, `comunidade/`, `forum/`, `perfil/`, `sala/`
+  `components/ui/` — os **12 componentes do shadcn que o app usa de verdade**
+  (§4.132: os 43 que nunca foram usados saíram em 10/08 — precisa de um deles?
+  `git show 16e72e5:client/src/components/ui/dialog.tsx > …`, e **passe as cores
+  literais dele para os tokens** antes de usar) · e as subpastas por assunto:
+  `clube/`, `comunidade/`, `forum/`, `perfil/`, `sala/`
 - `client/src/lib/` — o estado do app, um arquivo por assunto
-- `client/src/assets/images/` — 8 capas genéricas por gênero (reserva);
-  `covers/<id>.jpg` (do script) e `people/<slug>.jpg` (basta soltar o arquivo; sem
-  foto, o avatar é gerado do nome)
-- `server/` — Express na porta 3000 · `shared/schema/` — Drizzle + Zod
+- `client/src/assets/images/` — 8 capas genéricas por gênero (reserva, **em JPEG
+  desde 10/08**: eram PNG e pesavam 9 MB, contra 2,7 MB das 58 capas de verdade
+  — imagem nova aqui entra em JPEG); `covers/<id>.jpg` (do script) e
+  `people/<slug>.jpg` (basta soltar o arquivo; sem foto, o avatar é gerado do nome)
+- `server/` — Express na porta 3000 · `shared/schema/` — Drizzle (o `zod` e o
+  `drizzle-zod` saíram em 10/08: estavam no `package.json` sem um único import)
 - `client/public/_*.html` — **folhas de proposta**, o instrumento com que o Matheus
   decide desenho clicando (elas respondem em `/api/folha/respostas`). Não são código
   do app e não estão no git — não apague achando que é sobra.

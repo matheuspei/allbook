@@ -113,7 +113,7 @@ function avisarTelas(): void {
  *   e o certo diante da dúvida é não apagar nenhum.
  */
 function mesclar(chave: string, local: any, servidor: any): any {
-  const porId = (lista: any[], id: (i: any) => string, ganha: (a: any, b: any) => any) => {
+  const porId = (id: (i: any) => string, ganha: (a: any, b: any) => any) => {
     const mapa = new Map<string, any>();
     for (const item of [...(servidor ?? []), ...(local ?? [])]) {
       if (!item) continue;
@@ -131,19 +131,19 @@ function mesclar(chave: string, local: any, servidor: any): any {
 
   switch (chave) {
     case "allbook_library":
-      return porId(local, (i) => String(i.id), maisAntigo("addedAt"));
+      return porId((i) => String(i.id), maisAntigo("addedAt"));
 
     case "allbook_playback":
-      return porId(local, (i) => String(i.bookId), maisNovo("updatedAt")).sort((a: any, b: any) =>
+      return porId((i) => String(i.bookId), maisNovo("updatedAt")).sort((a: any, b: any) =>
         String(b.updatedAt).localeCompare(String(a.updatedAt)),
       );
 
     case "allbook_ratings":
-      return porId(local, (i) => String(i.bookId), maisNovo("updatedAt"));
+      return porId((i) => String(i.bookId), maisNovo("updatedAt"));
 
     case "allbook_bookmarks":
     case "allbook_trechos_guardados":
-      return porId(local, (i) => String(i.id), (a) => a);
+      return porId((i) => String(i.id), (a) => a);
 
     case "allbook_finished": {
       const junto: Record<string, string> = { ...(servidor ?? {}) };
@@ -184,10 +184,10 @@ function mesclar(chave: string, local: any, servidor: any): any {
     }
 
     case "allbook_recommendations":
-      return porId(local, (i) => String(i.id), maisAntigo("date"));
+      return porId((i) => String(i.id), maisAntigo("date"));
 
     case "allbook_book_requests":
-      return porId(local, (i) => String(i.id), maisNovo("date"));
+      return porId((i) => String(i.id), maisNovo("date"));
 
     case "allbook_profile":
     case "allbook_settings": {

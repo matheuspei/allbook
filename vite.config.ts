@@ -4,22 +4,13 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 export default defineConfig({
-  plugins: [
-    react(),
-    runtimeErrorOverlay(),
-    tailwindcss(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-          await import("@replit/vite-plugin-dev-banner").then((m) =>
-            m.devBanner(),
-          ),
-        ]
-      : []),
-  ],
+  /*
+   * O `cartographer` e o `devBanner` do Replit saíram em 10/08: os dois só
+   * carregavam com `REPL_ID` no ambiente, e o projeto roda na máquina do
+   * Matheus desde sempre — era código que nunca executava. Ficou o overlay de
+   * erro, que roda de verdade em desenvolvimento.
+   */
+  plugins: [react(), runtimeErrorOverlay(), tailwindcss()],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),

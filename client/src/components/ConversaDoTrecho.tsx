@@ -2,14 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { ChevronRight, EyeOff, MessageSquare, X } from "lucide-react";
 
-import CitacaoDeAudio from "@/components/CitacaoDeAudio";
 import CommentComposer from "@/components/CommentComposer";
 import CommentThread from "@/components/CommentThread";
 import MeuComentario from "@/components/MeuComentario";
-import { citacaoDoComentario, type Citacao } from "@/lib/citacoes";
 import { meuClubeDoLivro } from "@/lib/clubes";
 import { commentsForBook } from "@/lib/comments";
-import { findMember } from "@/lib/community";
 import {
   MEUS_COMENTARIOS_EVENT,
   myCommentsFor,
@@ -322,45 +319,5 @@ function Aba({
     >
       {children}
     </button>
-  );
-}
-
-/**
- * Uma fala dentro da folha.
- *
- * O spoiler aqui **não fica coberto**: tudo o que aparece nesta lista está atrás
- * de onde a pessoa já ouviu, e ela abriu a folha para ler justamente isso. A
- * marca continua visível para dar o aviso — quem prefere não ler, fecha.
- */
-function FalaDoTrecho({
-  nome,
-  quando,
-  texto,
-  spoiler,
-  citacao,
-  ehSeu,
-}: {
-  nome: string;
-  quando: string;
-  texto: string;
-  spoiler?: boolean;
-  citacao?: Citacao;
-  ehSeu?: boolean;
-}) {
-  return (
-    <div className="rounded-xl border border-white/5 bg-white/5 p-4" data-testid="fala-do-trecho">
-      <div className="flex items-center gap-2 text-xs">
-        <span className={`font-bold ${ehSeu ? "text-primary" : "text-white"}`}>{nome}</span>
-        <span className="text-white/30">{quando}</span>
-        {spoiler && (
-          <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-primary">
-            spoiler
-          </span>
-        )}
-      </div>
-      <p className="mt-1.5 text-sm italic leading-relaxed text-white/70">"{texto}"</p>
-      {/* Compacto: dentro do player já se sabe de que livro é o trecho. */}
-      {citacao && <CitacaoDeAudio citacao={citacao} compacto />}
-    </div>
   );
 }

@@ -24,7 +24,7 @@ depois*. Cada item abaixo diz **como está hoje** e **o que precisa acontecer**.
 |---|---|
 | Banco | **Postgres 17 rodando na máquina**, banco `allbook` (LaunchAgent do Homebrew) |
 | Tabelas | **62**, em `shared/schema/` (um arquivo por assunto) |
-| Armazenamento em uso | `PgStorage` — Drizzle sobre o Postgres. O `MemStorage`, que sumia com o servidor, **morreu em 08/08** |
+| Armazenamento em uso | O `db` do Drizzle (`server/db.ts`), chamado direto por `contas.ts`, `dados.ts` e `audio.ts`. O `MemStorage` morreu em 08/08; o `PgStorage` que o sucedeu **morreu em 10/08** — era uma interface que nenhuma rota chegou a usar (§4.132) |
 | Catálogo no banco | **cheio**: 59 livros, 48 pessoas, 10 editoras, 8 gêneros, 13 coleções |
 | Rotas de API | **10** — folhas, saúde do banco, 6 de conta e 2 de dados |
 | Contas | **de verdade desde 08/08**: senha cifrada (scrypt), sessão em cookie guardada no banco, "Esqueci minha senha" funcionando |
@@ -440,7 +440,9 @@ pública é de **24 horas**.
 - [x] Trocar por armazenamento real ligado ao Drizzle antes de qualquer dado de
       usuário passar pelo servidor. **Feito em 08/08 (§4.119):**
       `server/storage.ts` virou `PgStorage`, sobre o Postgres, e nenhum dado de
-      usuário chegou a passar pela versão em memória.
+      usuário chegou a passar pela versão em memória. ⚠️ **O arquivo saiu em
+      10/08** (§4.132): as rotas que nasceram depois foram falar com o `db` do
+      Drizzle direto, e o `PgStorage` ficou lá sem um único chamador.
 
 ### 2.9 ⚠️ O endereço do perfil deriva do nome — com contas, ele precisa congelar
 

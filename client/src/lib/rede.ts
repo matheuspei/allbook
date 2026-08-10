@@ -41,7 +41,6 @@
  */
 
 import { community, type CommunityMember } from "@/lib/community";
-import { isFollowing } from "@/lib/following";
 import { meusSeguidores } from "@/lib/seguidores";
 
 /** O mesmo semeador do resto do app: número estável a partir de um texto. */
@@ -85,12 +84,6 @@ export function seguindoDe(slug: string): CommunityMember[] {
 export function meSegue(slug: string): boolean {
   return meusSeguidores().some((membro) => membro.slug === slug);
 }
-
-/** Quantos seguem esta pessoa, **contando você** se você a segue. */
-export function totalDeSeguidores(slug: string): number {
-  return seguidoresDe(slug).length + (isFollowing(slug) ? 1 : 0);
-}
-
 /** Quantos esta pessoa segue, **contando você** se ela te segue. */
 export function totalSeguindo(slug: string): number {
   return seguindoDe(slug).length + (meSegue(slug) ? 1 : 0);

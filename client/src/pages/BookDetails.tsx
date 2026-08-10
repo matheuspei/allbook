@@ -38,7 +38,7 @@ import {
   removeFromLibrary,
 } from "@/lib/library";
 
-import coverScifi from "@/assets/images/cover-scifi.png";
+import coverScifi from "@/assets/images/cover-scifi.jpg";
 
 /**
  * Ficha curada à mão de alguns livros. Só o que o catálogo NÃO sabe entra aqui
@@ -83,12 +83,6 @@ const defaultBook = {
   story: 4.5,
 };
 
-/**
- * Livros sem ficha detalhada em `bookData` caem aqui. Em vez de mostrar
- * "Título do Livro", puxamos do catálogo central o que ele sabe (título, autor,
- * capa, nota, gênero) e completamos o resto com o padrão. Só um id que não
- * existe em lugar nenhum cai no `defaultBook` puro.
- */
 /**
  * Autor ou narrador do livro, levando ao perfil da pessoa.
  *
@@ -292,6 +286,12 @@ function OrigemDaNota({ bookId }: { bookId: number }) {
   );
 }
 
+/**
+ * Livros sem ficha detalhada em `bookData` caem aqui. Em vez de mostrar
+ * "Título do Livro", puxamos do catálogo central o que ele sabe (título, autor,
+ * capa, nota, gênero) e completamos o resto com o padrão. Só um id que não
+ * existe em lugar nenhum cai no `defaultBook` puro.
+ */
 function buildFromCatalog(id: string) {
   const entry = catalog.find((b) => String(b.id) === id);
   if (!entry) return { ...defaultBook, id };

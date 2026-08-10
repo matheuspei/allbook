@@ -11,7 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { contas } from "./contas";
-import { editoras, livros, pessoas } from "./catalogo";
+import { livros, pessoas } from "./catalogo";
 
 /**
  * SOCIAL — seguir, publicar, comentar, ser avisado.

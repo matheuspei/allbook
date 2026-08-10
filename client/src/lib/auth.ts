@@ -280,14 +280,6 @@ export async function redefinirSenha(token: string, senha: string): Promise<void
 }
 
 /* -------------------------------------------------------------------------- */
-
-/** "maria.souza@x.com" → "Maria". Palpite razoável quando não há nome. */
-export function nameFromEmail(email: string): string {
-  const local = email.split("@")[0] || "";
-  const first = local.split(/[._-]/)[0] || local;
-  return first.charAt(0).toUpperCase() + first.slice(1);
-}
-
 /** Validação simples: tem algo, um @ e um ponto depois dele. */
 export function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
