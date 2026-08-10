@@ -6135,3 +6135,14 @@ para 6,3 MB. **Imagem nova de reserva entra em JPEG, não em PNG.**
 comprimido) num pedaço só, e o Vite avisa a cada build. Dividir por rota
 (`import()` dinâmico) é a saída conhecida, mas mexe em como o app carrega e não
 é faxina — fica registrado, não feito.
+
+**Duas notas finais desta faxina.** O `npm audit fix` (conservador, sem
+`--force`) fechou a única falha **alta** — `nanoid` — e mais uma; sobraram 4
+moderadas, todas do mesmo `esbuild` antigo que o `drizzle-kit` carrega por baixo
+(`@esbuild-kit/core-utils`). O `--force` resolveria fazendo **downgrade do
+drizzle-kit**, que é a mesma troca que a §4.7 já recusou em 24/07 — continua
+recusada, e é falha de ferramenta de desenvolvimento, não de código que roda no
+navegador de ninguém. E há **sete nomes de função exportados em mais de um
+arquivo** (`votar`, `souDono`, `meuVoto`, `desbanir`…): apurado e **deixado como
+está**, porque são domínios diferentes (votar numa rodada de clube, numa pauta,
+num fórum) e unificá-los é reorganizar arquitetura, não varrer lixo.
