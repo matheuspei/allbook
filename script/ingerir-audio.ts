@@ -83,7 +83,7 @@ const EXTENSOES = new Set([".mp3", ".m4a", ".m4b", ".aac", ".wav", ".flac", ".og
 /* Conversar com o ffmpeg                                                      */
 /* -------------------------------------------------------------------------- */
 
-type Faixa = { caminho: string; nome: string; segundos: number };
+type Faixa = { caminho: string; nome: string; segundos: number; tituloTag?: string };
 type Marcador = { titulo: string; inicio: number; fim: number };
 
 async function duracaoDe(arquivo: string): Promise<number> {
@@ -98,6 +98,32 @@ async function duracaoDe(arquivo: string): Promise<number> {
     throw new Error(`não consegui medir a duração de ${path.basename(arquivo)}`);
   }
   return segundos;
+}
+
+/**
+ * O nome do capítulo gravado DENTRO do arquivo, na etiqueta `CAPITULO_TITULO`.
+ *
+ * É a fonte boa: veio de quem baixou o livro, com o título real do capítulo
+ * ("Cap. I - AS DEFINIÇÕES"), e não depende de como o arquivo foi batizado.
+ * O `baixalivro` grava esta etiqueta em todas as fontes — nos atoms
+ * `----:com.apple.iTunes:` do MP4 e nos frames `TXXX` do MP3, que é o que o
+ * `ffprobe` devolve aqui como tag de formato.
+ *
+ * Devolve "" quando o arquivo não tem a etiqueta (livro antigo, ou áudio de
+ * outra procedência) — nesse caso quem responde é o `tituloDoArquivo`.
+ */
+async function tituloNaEtiqueta(arquivo: string): Promise<string> {
+  try {
+    const { stdout } = await rodar("ffprobe", [
+      "-v", "error",
+      "-show_entries", "format_tags=CAPITULO_TITULO",
+      "-of", "default=nw=1:nk=1",
+      arquivo,
+    ]);
+    return stdout.trim();
+  } catch {
+    return "";
+  }
 }
 
 /**
@@ -164,6 +190,7 @@ async function faixasDe(entrada: string): Promise<Faixa[]> {
       caminho,
       nome: path.basename(caminho),
       segundos: await duracaoDe(caminho),
+      tituloTag: await tituloNaEtiqueta(caminho),
     });
   }
   return faixas;
@@ -302,10 +329,19 @@ async function ingerir(livroId: number, entrada: string, guardarMestre: boolean)
         fim: c.fim + vinhetaSegundos,
       }));
     } else if (faixas.length > 1) {
-      console.log(`   ✓ ${faixas.length} capítulos, um por arquivo`);
+      // O título de cada capítulo, na ordem de confiança: a etiqueta gravada
+      // dentro do arquivo primeiro (veio de quem baixou, com o nome real do
+      // capítulo), o nome do arquivo depois. Sem essa ordem, um arquivo
+      // chamado "O Monge e o Executivo - 01 - Prefácio.m4a" entraria com o
+      // nome do livro repetido e o número no meio, porque `tituloDoArquivo`
+      // só sabe cortar número que esteja no começo.
+      const comEtiqueta = faixas.filter((f) => f.tituloTag).length;
+      console.log(`   ✓ ${faixas.length} capítulos, um por arquivo`
+        + (comEtiqueta ? `  (${comEtiqueta} com o nome na etiqueta do arquivo)` : ""));
       let onde = vinhetaSegundos;
       marcadores = faixas.map((f, i) => {
-        const m = { titulo: tituloDoArquivo(f.nome, i + 1), inicio: onde, fim: onde + f.segundos };
+        const titulo = f.tituloTag || tituloDoArquivo(f.nome, i + 1);
+        const m = { titulo, inicio: onde, fim: onde + f.segundos };
         onde += f.segundos;
         return m;
       });
