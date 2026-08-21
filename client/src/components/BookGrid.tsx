@@ -41,10 +41,14 @@ export default function BookGrid({
             <span className="mt-0.5 block truncate text-[11px] text-white/45">{livro.author}</span>
           )}
 
-          <span className="mt-0.5 flex items-center gap-1 text-[11px] text-white/60">
-            <Star className="h-3 w-3 shrink-0 fill-primary text-primary" />
-            {livro.rating.toFixed(1)}
-          </span>
+          {/* Sem nota, sem estrela — livro do acervo chega sem avaliação, e
+              "0,0" leria como péssimo em vez de desconhecido (§4.134). */}
+          {livro.rating !== undefined && (
+            <span className="mt-0.5 flex items-center gap-1 text-[11px] text-white/60">
+              <Star className="h-3 w-3 shrink-0 fill-primary text-primary" />
+              {livro.rating.toFixed(1)}
+            </span>
+          )}
         </button>
       ))}
     </div>

@@ -7,7 +7,7 @@ import PersonAvatar, { hueDoNome } from "@/components/PersonAvatar";
 import BookGrid from "@/components/BookGrid";
 import ProfileComments from "@/components/ProfileComments";
 import { findPerson, roleLabels } from "@/lib/people";
-import { getBooksByGenre } from "@/lib/books";
+import { getBooksByGenre, porNota} from "@/lib/books";
 import { commentsForPerson } from "@/lib/comments";
 import { STUDIO_NAME, findVoice } from "@/lib/studio";
 
@@ -60,13 +60,17 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
   const daObra = { rotulo: "Nota da escrita", valor: person.ratingAutor ?? person.rating };
   const daNarracao = { rotulo: "Nota da narração", valor: person.ratingNarrador ?? person.rating };
   const notaPrincipal = escreveMais ? daObra : daNarracao;
-  const notaSecundaria = ehAutorENarrador
-    ? {
-        texto: escreveMais
-          ? `Na narração, a média é ${daNarracao.valor.toFixed(1)}.`
-          : `Na escrita, a média é ${daObra.valor.toFixed(1)}.`,
-      }
-    : null;
+  /* A segunda nota só existe quando ela existe: pessoa cujos livros ainda não
+     têm avaliação não ganha frase nenhuma, em vez de "a média é 0,0". */
+  const valorSecundario = escreveMais ? daNarracao.valor : daObra.valor;
+  const notaSecundaria =
+    ehAutorENarrador && valorSecundario !== undefined
+      ? {
+          texto: escreveMais
+            ? `Na narração, a média é ${valorSecundario.toFixed(1)}.`
+            : `Na escrita, a média é ${valorSecundario.toFixed(1)}.`,
+        }
+      : null;
 
   /**
    * Se este narrador é uma voz do AllBook Studio. É **aqui** — e na tela do
@@ -82,7 +86,7 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
   const relacionados = generoPrincipal
     ? getBooksByGenre(generoPrincipal)
         .filter((livro) => !idsDaPessoa.has(livro.id))
-        .sort((a, b) => b.rating - a.rating)
+        .sort(porNota)
         .slice(0, 6)
     : [];
 
@@ -164,7 +168,12 @@ export default function PersonProfile({ params }: { params: { slug: string } }) 
               ROTEIRO 4.15). Quem faz os dois ganha a segunda nota logo abaixo,
               em vez de uma quarta caixa que apertaria a grade no celular.
             */}
-            <Estatistica rotulo={notaPrincipal.rotulo} valor={notaPrincipal.valor.toFixed(1)} />
+            <Estatistica
+              rotulo={notaPrincipal.rotulo}
+              /* Travessão, e não "0,0": a nota ainda não existe (o acervo não
+                 traz avaliação), e some da grade desalinharia as 3 colunas. */
+              valor={notaPrincipal.valor?.toFixed(1) ?? "—"}
+            />
             <Estatistica
               rotulo={person.genres.length === 1 ? "Gênero" : "Gêneros"}
               valor={String(person.genres.length)}

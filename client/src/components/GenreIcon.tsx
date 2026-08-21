@@ -30,7 +30,16 @@ import type { Genre } from "@/lib/books";
 /** O elemento preenchido de cada ícone — um por desenho, nunca dois. */
 const cheio = { fill: "currentColor", stroke: "none" } as const;
 
-const desenhos: Record<Genre, ReactNode> = {
+/** Livro aberto — o desenho de quem não tem desenho. O marcador é o sólido. */
+const PADRAO: ReactNode = (
+  <>
+    <path d="M12 6.5S9.5 4.4 4.2 4.4v13.2C9.5 17.6 12 19.7 12 19.7s2.5-2.1 7.8-2.1V4.4C14.5 4.4 12 6.5 12 6.5Z" />
+    <path d="M12 6.5v13.2" />
+    <path d="M15.4 4.9v5.2l1.7-1.3 1.7 1.3V4.6" {...cheio} />
+  </>
+);
+
+const desenhos: Record<string, ReactNode> = {
   // Planeta com anel; a cratera é o sólido.
   "Ficção Científica": (
     <>
@@ -133,7 +142,11 @@ export default function GenreIcon({
       className={className}
       aria-hidden="true"
     >
-      {desenhos[genre]}
+      {/* ⚠️ Gênero que não tem desenho próprio cai no livro aberto (21/08).
+          Os 8 gêneros de maquete tinham um ícone cada; o acervo de verdade traz
+          dezenas de categorias das lojas, e sem este padrão o `<svg>` saía
+          VAZIO — um buraco do tamanho do ícone, sem erro nenhum. */}
+      {desenhos[genre] ?? PADRAO}
     </svg>
   );
 }

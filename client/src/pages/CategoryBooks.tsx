@@ -4,7 +4,7 @@ import { Star, Library } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import BookGrid from "@/components/BookGrid";
 import { Button } from "@/components/ui/button";
-import { findGenreBySlug, getBooksByGenre, genreGradient } from "@/lib/books";
+import { findGenreBySlug, getBooksByGenre, genreGradient, porNota, mediaDeNotas} from "@/lib/books";
 import CatalogoVazio from "@/components/CatalogoVazio";
 
 /**
@@ -36,10 +36,8 @@ export default function CategoryBooks({ params }: { params: { slug: string } }) 
     );
   }
 
-  const livros = getBooksByGenre(genero).sort((a, b) => b.rating - a.rating);
-  const notaMedia = livros.length
-    ? livros.reduce((soma, livro) => soma + livro.rating, 0) / livros.length
-    : 0;
+  const livros = getBooksByGenre(genero).sort(porNota);
+  const notaMedia = mediaDeNotas(livros);
 
   return (
     <div className="pb-10" data-testid="category-books">
@@ -69,7 +67,7 @@ export default function CategoryBooks({ params }: { params: { slug: string } }) 
             </span>
             {/* Gênero sem livro não tem média: "0.0 de média" é um número que
                 não existe, e parece nota péssima em vez de ausência (§4.134). */}
-            {livros.length > 0 && (
+            {notaMedia !== undefined && (
               <span className="flex items-center gap-1.5">
                 <Star className="h-4 w-4 fill-white text-white" />
                 {notaMedia.toFixed(1)} de média

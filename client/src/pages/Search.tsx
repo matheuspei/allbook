@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 
-import { catalog, genres, getBooksByGenre, genreSlug, temCapaReal, type Genre, type Book } from "@/lib/books";
+import { catalog, genres, getBooksByGenre, genreSlug, temCapaReal, type Genre, type Book, porNota} from "@/lib/books";
 import SearchResults from "@/components/SearchResults";
 import RequestBanner from "@/components/RequestBanner";
 import CategoryCard from "@/components/CategoryCard";
@@ -66,7 +66,7 @@ function GenreGrid({ onSelect }: { onSelect: (genre: Genre) => void }) {
               // livro segue no gênero, só não estampa a vitrine.
               covers={[...getBooksByGenre(genre.label)]
                 .filter(temCapaReal)
-                .sort((a, b) => b.rating - a.rating)
+                .sort(porNota)
                 .slice(0, 3)
                 .map((book) => book.cover)}
               onClick={() => onSelect(genre.label)}
@@ -148,10 +148,12 @@ function EmAltaRow({ books }: { books: Book[] }) {
                 {book.title}
               </span>
               <span className="mt-0.5 block truncate text-[11px] text-white/50">{book.author}</span>
-              <span className="mt-1 flex items-center gap-1 text-[11px] text-white/70">
-                <Star className="h-3 w-3 shrink-0 fill-primary text-primary" />
-                {book.rating.toFixed(1)}
-              </span>
+              {book.rating !== undefined && (
+                <span className="mt-1 flex items-center gap-1 text-[11px] text-white/70">
+                  <Star className="h-3 w-3 shrink-0 fill-primary text-primary" />
+                  {book.rating.toFixed(1)}
+                </span>
+              )}
             </button>
           );
         })}
@@ -173,7 +175,7 @@ function EmAltaRow({ books }: { books: Book[] }) {
 function SearchSuggestions() {
   const [, navegar] = useLocation();
   const emAlta = useMemo(
-    () => [...catalog].sort((a, b) => b.rating - a.rating).slice(0, 10),
+    () => [...catalog].sort(porNota).slice(0, 10),
     []
   );
 

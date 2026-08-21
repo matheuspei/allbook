@@ -4,11 +4,11 @@ import {
   integer,
   pgTable,
   primaryKey,
-  real,
   serial,
   text,
   timestamp,
   unique,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -110,8 +110,15 @@ export const pessoas = pgTable("pessoas", {
 export const editoras = pgTable("editoras", {
   slug: text("slug").primaryKey(),
   nome: text("nome").notNull(),
-  /** Uma linha sobre o recorte da editora **dentro do AllBook**. */
-  linha: text("linha").notNull(),
+  /**
+   * Uma linha sobre o recorte da editora **dentro do AllBook**.
+   *
+   * ⚠️ Deixou de ser obrigatória em 21/08 (§4.134) pelo mesmo motivo da `nota`:
+   * é texto **editorial**, escrito por alguém, e as lojas do acervo entregam só
+   * o nome da editora. Exigi-la faria a importação inventar uma frase por
+   * editora — 4 mil frases sem autor.
+   */
+  linha: text("linha"),
 });
 
 /* -------------------------------------------------------------------------- */
@@ -148,21 +155,23 @@ export const livros = pgTable(
       .notNull()
       .references(() => generos.slug),
 
-    /** A nota geral, de 0 a 5. */
-    nota: real("nota").notNull(),
-    /**
-     * As duas notas separadas: `notaHistoria` é a obra (o texto) e
-     * `notaNarracao` é a leitura desta edição.
-     *
-     * **Opcionais de propósito** — só quem tem ficha curada as tem. Preencher
-     * as duas para todo livro seria inventar número, e daqui a um mês ninguém
-     * saberia que foi chute (ROTEIRO §4.15). Quem lê cai na `nota` geral
-     * quando faltam.
-     */
-    notaHistoria: real("nota_historia"),
-    notaNarracao: real("nota_narracao"),
+    /* ---- Nota: NÃO existe aqui, e é decisão (21/08, §4.134) ---------------
 
-    // Daqui para baixo, o que o `npm run catalogo` traz da Open Library.
+       Havia três colunas de nota no livro — `nota`, `nota_historia` e
+       `nota_narracao` —, herdadas das 63 maquetes, que traziam um número
+       escrito à mão para cada uma.
+
+       🚨 **Nota de avaliação quem dá é o usuário.** Ela não é um atributo da
+       obra: é o que as pessoas acharam dela. Guardá-la como coluna do livro
+       permite que alguém escreva ali uma nota que ninguém deu — e foi
+       exatamente o que as maquetes faziam. A nota agora **sai de
+       `avaliacoes`** (`historia` e `narracao`, uma linha por conta), calculada
+       na hora de ler, e só aparece a partir de 5 avaliações, que é a régua que
+       `lib/ratings.ts` já usava no navegador. Livro sem avaliação não tem nota
+       — e é o caso de todo o acervo, porque nenhuma loja entrega avaliação.  */
+
+    // Daqui para baixo, o que veio da ficha da loja (ou da Open Library, nos
+    // livros antigos).
     /** Título no idioma original — é por ele que a busca de capas funciona. */
     tituloOriginal: text("titulo_original"),
     ano: integer("ano"),
@@ -201,11 +210,31 @@ export const livros = pgTable(
      */
     vinhetaSegundos: integer("vinheta_segundos").default(0).notNull(),
 
+    /* ---- De onde este livro veio (21/08, §4.134) --------------------------- */
+
+    /**
+     * A loja do acervo de onde a ficha veio (`audible`, `storytel`, `ubook`,
+     * `tocalivros`) e o id do título **nela**.
+     *
+     * ⚠️ **Não é enfeite de procedência: é o que torna a importação
+     * idempotente.** O `id` do livro é um número nosso, gerado na primeira
+     * importação. Sem um par estável vindo da origem, rodar o importador de
+     * novo criaria livros novos para os mesmos títulos — e a biblioteca, o
+     * progresso e as marcações de quem já ouviu apontariam para os antigos,
+     * que ninguém mais mostraria. O índice único abaixo é o que impede isso.
+     *
+     * Vazio nos livros que **não** vieram de loja (os que o AllBook Studio
+     * gravar a partir de um pedido).
+     */
+    origemLoja: text("origem_loja"),
+    origemId: text("origem_id"),
+
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
   },
   (t) => [
+    uniqueIndex("livros_origem_idx").on(t.origemLoja, t.origemId),
     index("livros_genero_idx").on(t.generoSlug),
     index("livros_autor_idx").on(t.autorSlug),
     index("livros_narrador_idx").on(t.narradorSlug),

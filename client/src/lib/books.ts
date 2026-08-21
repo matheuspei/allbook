@@ -45,7 +45,15 @@ export interface Book {
    */
   narrator: string;
   cover: string;
-  rating: number;
+  /**
+   * A nota geral, de 0 a 5.
+   *
+   * ⚠️ **Pode faltar, e falta na maioria** (21/08, §4.134). Nenhuma das quatro
+   * lojas do acervo entrega avaliação, então livro real chega sem nota. Quem
+   * desenha estrela precisa esconder o bloco quando ela não existe — mostrar
+   * "0,0" seria inventar que o livro é ruim.
+   */
+  rating?: number;
   genre: Genre;
 
   /**
@@ -87,11 +95,40 @@ export interface Book {
  * quem só precisa disso não deve arrastar junto o portão de avaliação, o
  * progresso de audição e os comentários.
  */
-export function notaHistoria(book: Book): number {
+/**
+ * Comparador para ordenar do mais bem avaliado ao menos — **e livro sem nota
+ * vai para o fim**, em vez de ser tratado como nota zero.
+ *
+ * Existe porque `b.rating - a.rating` deixou de compilar quando a nota virou
+ * opcional (§4.134), e a correção ingênua (`?? 0`) diria que um livro sem
+ * avaliação é pior que um avaliado com 0,1. Ele não é pior: é desconhecido.
+ */
+export function porNota(a: Book, b: Book): number {
+  if (a.rating === undefined && b.rating === undefined) return 0;
+  if (a.rating === undefined) return 1;
+  if (b.rating === undefined) return -1;
+  return b.rating - a.rating;
+}
+
+/**
+ * A média das notas que **existem**, ou `undefined` se nenhuma existe.
+ *
+ * Livro sem nota não entra na conta nem como zero: uma prateleira com dois
+ * livros 5,0 e oito sem avaliação tem média 5,0, não 1,0.
+ */
+export function mediaDeNotas(livros: Book[]): number | undefined {
+  const notas = livros
+    .map((livro) => livro.rating)
+    .filter((nota): nota is number => nota !== undefined);
+  if (notas.length === 0) return undefined;
+  return notas.reduce((soma, nota) => soma + nota, 0) / notas.length;
+}
+
+export function notaHistoria(book: Book): number | undefined {
   return book.story ?? book.rating;
 }
 
-export function notaNarracao(book: Book): number {
+export function notaNarracao(book: Book): number | undefined {
   return book.performance ?? book.rating;
 }
 
@@ -152,7 +189,7 @@ interface LivroDaApi {
   author: string;
   narrator: string;
   cover: string | null;
-  rating: number;
+  rating?: number;
   genre: string;
   story?: number;
   performance?: number;

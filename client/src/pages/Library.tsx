@@ -29,6 +29,7 @@ import {
   minutosEstimados,
   type Book,
   type Genre,
+  porNota,
 } from "@/lib/books";
 import { LIBRARY_EVENT, libraryBooks, readDownloads, removeDownload } from "@/lib/library";
 import {
@@ -297,7 +298,7 @@ export default function Library() {
       : catalog;
     return candidatos
       .filter((livro) => !jaTem.has(livro.id))
-      .sort((a, b) => b.rating - a.rating)
+      .sort(porNota)
       .slice(0, 12);
   }, [acervo, generosDoAcervo]);
 

@@ -1,4 +1,4 @@
-import { catalog, slugify, type Book, type Genre } from "./books";
+import { catalog, slugify, type Book, type Genre, porNota, mediaDeNotas} from "./books";
 
 /**
  * Editoras do catálogo — quem publicou cada livro.
@@ -114,7 +114,8 @@ export interface Publisher {
   genres: Genre[];
   titles: number;
   /** Média das notas dos títulos. Zero quando a editora não tem livro no ar. */
-  rating: number;
+  /** Média das notas dos livros da editora — falta enquanto nenhum tiver nota. */
+  rating?: number;
 }
 
 function construir(): Publisher[] {
@@ -123,7 +124,7 @@ function construir(): Publisher[] {
     // mais (livro retirado) some sozinho em vez de virar buraco na lista.
     const livros = catalog
       .filter((livro) => editora.bookIds.includes(livro.id))
-      .sort((a, b) => b.rating - a.rating);
+      .sort(porNota);
 
     const frequenciaPorGenero = new Map<Genre, number>();
     for (const livro of livros) {
@@ -144,9 +145,7 @@ function construir(): Publisher[] {
         .sort((a, b) => b[1] - a[1])
         .map(([genero]) => genero),
       titles: livros.length,
-      rating: livros.length
-        ? livros.reduce((soma, livro) => soma + livro.rating, 0) / livros.length
-        : 0,
+      rating: mediaDeNotas(livros),
     };
   });
 }

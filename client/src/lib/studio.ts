@@ -1,4 +1,4 @@
-import { catalog, slugify, type Book } from "./books";
+import { catalog, slugify, type Book, porNota} from "./books";
 
 /**
  * O AllBook Studio — quem **produz** as narrações, e as vozes que ele usa.
@@ -147,12 +147,12 @@ export function isStudioProduction(book: Book): boolean {
 
 /** Tudo que o Studio produziu, do mais bem avaliado para o menos. */
 export function studioBooks(): Book[] {
-  return catalog.filter(isStudioProduction).sort((a, b) => b.rating - a.rating);
+  return catalog.filter(isStudioProduction).sort(porNota);
 }
 
 /** Os livros narrados por uma voz específica, do mais bem avaliado para o menos. */
 export function booksByVoice(slug: string): Book[] {
   return catalog
     .filter((livro) => slugify(livro.narrator) === slug)
-    .sort((a, b) => b.rating - a.rating);
+    .sort(porNota);
 }

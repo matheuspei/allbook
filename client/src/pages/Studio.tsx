@@ -15,6 +15,7 @@ import {
   studioBooks,
   studioVoices,
 } from "@/lib/studio";
+import { mediaDeNotas } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { REQUEST_PROMISE } from "@/lib/requests";
 
@@ -39,9 +40,7 @@ export default function Studio() {
     window.scrollTo(0, 0);
   }, []);
 
-  const notaMedia = livros.length
-    ? livros.reduce((soma, livro) => soma + livro.rating, 0) / livros.length
-    : 0;
+  const notaMedia = mediaDeNotas(livros);
 
   return (
     <div className="pb-10" data-testid="studio-page">
@@ -88,7 +87,7 @@ export default function Studio() {
           <dl className="mt-6 grid w-full grid-cols-3 gap-2">
             <Estatistica rotulo="Vozes" valor={String(studioVoices.length)} />
             <Estatistica rotulo="Títulos" valor={String(livros.length)} />
-            <Estatistica rotulo="Nota média" valor={notaMedia.toFixed(1)} />
+            <Estatistica rotulo="Nota média" valor={notaMedia?.toFixed(1) ?? "—"} />
           </dl>
         </div>
       </header>

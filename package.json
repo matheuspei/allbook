@@ -14,7 +14,8 @@
     "db:push": "drizzle-kit push",
     "db:psql": "/opt/homebrew/opt/postgresql@17/bin/psql -d allbook",
     "estudio": "tsx script/estudio.ts",
-    "audio": "tsx script/ingerir-audio.ts"
+    "audio": "tsx script/ingerir-audio.ts",
+    "acervo": "tsx script/importar-acervo.ts"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",

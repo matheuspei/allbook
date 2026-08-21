@@ -11,6 +11,7 @@ import {
   temCapaReal,
   type Book,
   type Genre,
+  porNota,
 } from "@/lib/books";
 import FimDaLista from "@/components/FimDaLista";
 import { collections, homeRows, getBooksForCollection } from "@/lib/collections";
@@ -63,11 +64,11 @@ function destaquesDaCapa(): Book[] {
     .map(({ label }) =>
       catalog
         .filter((book) => book.genre === label)
-        .sort((a, b) => b.rating - a.rating)[0]
+        .sort(porNota)[0]
     )
     .filter((book): book is Book => Boolean(book));
 
-  return melhorDeCadaGenero.sort((a, b) => b.rating - a.rating).slice(0, 5);
+  return melhorDeCadaGenero.sort(porNota).slice(0, 5);
 }
 
 const heroBooks = destaquesDaCapa().map((book) => ({

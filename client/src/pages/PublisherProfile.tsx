@@ -94,7 +94,7 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
               rotulo={publisher.titles === 1 ? "Título" : "Títulos"}
               valor={String(publisher.titles)}
             />
-            <Estatistica rotulo="Nota média" valor={publisher.rating.toFixed(1)} />
+            <Estatistica rotulo="Nota média" valor={publisher.rating?.toFixed(1) ?? "—"} />
             <Estatistica
               rotulo={publisher.authors.length === 1 ? "Autor" : "Autores"}
               valor={String(publisher.authors.length)}

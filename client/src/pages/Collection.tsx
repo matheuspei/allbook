@@ -6,6 +6,7 @@ import BookGrid from "@/components/BookGrid";
 import { Button } from "@/components/ui/button";
 import { findListBySlug, getBooksForCollection } from "@/lib/collections";
 import CatalogoVazio from "@/components/CatalogoVazio";
+import { mediaDeNotas } from "@/lib/books";
 
 /**
  * Uma coleção da tela Início ("Só na AllBook", "Favoritos"…). Espelha a tela de
@@ -37,9 +38,7 @@ export default function Collection({ params }: { params: { slug: string } }) {
   }
 
   const livros = getBooksForCollection(colecao);
-  const notaMedia = livros.length
-    ? livros.reduce((soma, livro) => soma + livro.rating, 0) / livros.length
-    : 0;
+  const notaMedia = mediaDeNotas(livros);
 
   return (
     <div className="pb-10" data-testid="collection-books">
@@ -68,7 +67,7 @@ export default function Collection({ params }: { params: { slug: string } }) {
             </span>
             {/* Coleção sem livro não tem média — "0.0" lê como nota péssima,
                 não como ausência (§4.134). */}
-            {livros.length > 0 && (
+            {notaMedia !== undefined && (
               <span className="flex items-center gap-1.5">
                 <Star className="h-4 w-4 fill-white text-white" />
                 {notaMedia.toFixed(1)} de média

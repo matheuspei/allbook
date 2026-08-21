@@ -15,7 +15,7 @@ import {
   papelDoAlvo,
   type Alvo,
 } from "@/lib/acompanhando";
-import { catalog } from "@/lib/books";
+import { catalog, porNota} from "@/lib/books";
 import { libraryBooks } from "@/lib/library";
 import { findPerson } from "@/lib/people";
 import { personSlugOf, publisherOfBook } from "@/lib/publishers";
@@ -188,7 +188,7 @@ function Vazio() {
       ? []
       : catalog
           .slice()
-          .sort((a, b) => b.rating - a.rating)
+          .sort(porNota)
           .slice(0, 6)
           .map((livro) => publisherOfBook(livro.id))
           .filter((item, indice, lista) =>
