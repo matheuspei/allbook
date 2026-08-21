@@ -5,6 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import BookGrid from "@/components/BookGrid";
 import { Button } from "@/components/ui/button";
 import { findGenreBySlug, getBooksByGenre, genreGradient } from "@/lib/books";
+import CatalogoVazio from "@/components/CatalogoVazio";
 
 /**
  * Todos os livros de um gênero. É o destino do link de gênero na tela do livro
@@ -66,16 +67,27 @@ export default function CategoryBooks({ params }: { params: { slug: string } }) 
               <Library className="h-4 w-4" />
               {livros.length} {livros.length === 1 ? "título" : "títulos"}
             </span>
-            <span className="flex items-center gap-1.5">
-              <Star className="h-4 w-4 fill-white text-white" />
-              {notaMedia.toFixed(1)} de média
-            </span>
+            {/* Gênero sem livro não tem média: "0.0 de média" é um número que
+                não existe, e parece nota péssima em vez de ausência (§4.134). */}
+            {livros.length > 0 && (
+              <span className="flex items-center gap-1.5">
+                <Star className="h-4 w-4 fill-white text-white" />
+                {notaMedia.toFixed(1)} de média
+              </span>
+            )}
           </div>
         </div>
       </header>
 
       <section className="px-4 pt-6" data-testid="category-grid">
-        <BookGrid books={livros} showAuthor />
+        {livros.length === 0 ? (
+          <CatalogoVazio
+            titulo={`Nada em ${genero} ainda`}
+            descricao="Este gênero está esperando as primeiras narrações. Se você já sabe qual livro quer ouvir, é só pedir."
+          />
+        ) : (
+          <BookGrid books={livros} showAuthor />
+        )}
       </section>
     </div>
   );

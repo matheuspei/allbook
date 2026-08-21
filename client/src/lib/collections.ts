@@ -8,10 +8,21 @@ import { getBooksByIds, type Book } from "./books";
  *
  * Cada card da Início aponta para a tela `/collection/:slug`, que mostra os
  * livros desta lista. Para mudar o que aparece num card, edite os `bookIds`
- * abaixo — são os `id` dos livros no catálogo (`books.ts`). Id que não existe é
- * ignorado sozinho, então dá para mexer sem medo de quebrar a tela.
+ * abaixo — são os `id` dos livros no catálogo. Id que não existe é ignorado
+ * sozinho, então dá para mexer sem medo de quebrar a tela.
  *
- * A curadoria de agora é um ponto de partida razoável; ajuste à vontade.
+ * 🚨 **Toda a curadoria foi ESVAZIADA em 21/08, e não foi limpeza de arrumação
+ * (§4.134).** Estas listas apontavam para os ids das 63 maquetes — 7, 101, 102…
+ * Deixá-las escritas com o catálogo apagado montaria uma armadilha silenciosa:
+ * quando o acervo de verdade entrar, um livro real que calhasse de receber o id
+ * 7 apareceria em "Só na AllBook" **por acaso**, e ninguém teria como suspeitar
+ * de onde aquilo veio. Lista vazia não desenha cartão nem fileira (as guardas
+ * estão em `Home.tsx`), então o app simplesmente não mostra a coleção até
+ * alguém curá-la de novo.
+ *
+ * ⚠️ **A estrutura fica de propósito** — slug, rótulo, gradiente e descrição.
+ * O que se perdeu foi a escolha dos livros, que era sobre um catálogo que não
+ * existe mais; o desenho das prateleiras continua valendo.
  */
 export interface Collection {
   /** Pedaço da URL: `/collection/<slug>`. */
@@ -32,56 +43,56 @@ export const collections: Collection[] = [
     label: "Só na AllBook",
     gradient: "from-orange-600 to-red-700",
     description: "Produções e destaques exclusivos do AllBook.",
-    bookIds: [7, 101, 102, 129, 104, 111, 2, 4],
+    bookIds: [],
   },
   {
     slug: "best-sellers-internacionais",
     label: "Best-sellers Internacionais",
     gradient: "from-blue-600 to-teal-500",
     description: "Os campeões de venda que o mundo todo está ouvindo.",
-    bookIds: [102, 101, 3, 119, 201, 130, 140, 203, 112, 2],
+    bookIds: [],
   },
   {
     slug: "mais-ouvidos",
     label: "Mais Ouvidos",
     gradient: "from-pink-600 to-rose-500",
     description: "Os títulos que mais tocaram no AllBook.",
-    bookIds: [7, 105, 129, 132, 102, 136, 104, 130, 113, 137],
+    bookIds: [],
   },
   {
     slug: "favoritos",
     label: "Favoritos",
     gradient: "from-teal-500 to-cyan-400",
     description: "Os queridinhos dos leitores, de todos os gêneros.",
-    bookIds: [203, 129, 140, 130, 136, 137, 7, 111],
+    bookIds: [],
   },
   {
     slug: "o-brasil-curtiu",
     label: "O Brasil Curtiu",
     gradient: "from-red-700 to-rose-600",
     description: "O que está bombando entre os leitores brasileiros.",
-    bookIds: [201, 203, 102, 101, 4, 125, 142, 309],
+    bookIds: [],
   },
   {
     slug: "lancamentos",
     label: "Lançamentos",
     gradient: "from-purple-700 to-violet-500",
     description: "Chegaram agora ao catálogo.",
-    bookIds: [301, 305, 307, 311, 313, 315, 317, 318, 320, 321],
+    bookIds: [],
   },
   {
     slug: "para-maratonar",
     label: "Para Maratonar",
     gradient: "from-teal-600 to-emerald-500",
     description: "Sagas e séries para ouvir sem parar.",
-    bookIds: [129, 301, 302, 8, 132, 104, 119, 311, 312, 7],
+    bookIds: [],
   },
   {
     slug: "autoajuda-e-negocios",
     label: "Autoajuda & Negócios",
     gradient: "from-amber-600 to-orange-500",
     description: "Ideias para crescer na vida e no trabalho.",
-    bookIds: [101, 108, 125, 4, 201, 203, 102, 107, 124, 321],
+    bookIds: [],
   },
 ];
 
@@ -99,14 +110,14 @@ export const homeRows: Collection[] = [
     label: "Minha lista",
     gradient: "from-orange-600 to-amber-500",
     description: "O que você separou para ouvir.",
-    bookIds: [101, 102, 1, 103, 8],
+    bookIds: [],
   },
   {
     slug: "proximas-historias",
     label: "Descubra suas próximas histórias",
     gradient: "from-indigo-600 to-blue-500",
     description: "Sugestões para a sua próxima aventura.",
-    bookIds: [2, 3, 104, 105, 106, 119, 120],
+    bookIds: [],
   },
   {
     slug: "sugestoes",
@@ -115,21 +126,21 @@ export const homeRows: Collection[] = [
     label: "Sugestões que você vai adorar",
     gradient: "from-rose-600 to-orange-500",
     description: "Escolhidos a dedo para o seu gosto.",
-    bookIds: [7, 109, 129, 130, 131, 132],
+    bookIds: [],
   },
   {
     slug: "desenvolvimento-e-negocios",
     label: "Desenvolvimento e Negócios",
     gradient: "from-amber-600 to-orange-500",
     description: "Para crescer na carreira e nas ideias.",
-    bookIds: [4, 107, 5, 108, 124, 125],
+    bookIds: [],
   },
   {
     slug: "biografias",
     label: "Biografias e Histórias Reais",
     gradient: "from-teal-600 to-emerald-500",
     description: "Vidas e trajetórias que valem a escuta.",
-    bookIds: [111, 112, 113, 135, 136, 137],
+    bookIds: [],
   },
 ];
 

@@ -19,6 +19,7 @@ import { PLAYBACK_EVENT, playbackEntries, removeFromPlayback } from "@/lib/playb
 import { readProfile } from "@/lib/profile";
 import BookActionsMenu from "@/components/BookActionsMenu";
 import CategoryCard from "@/components/CategoryCard";
+import CatalogoVazio from "@/components/CatalogoVazio";
 
 /**
  * Os livros do billboard do topo (a "capa" do app).
@@ -163,6 +164,15 @@ function HeroBillboard() {
     dragStartX.current = null;
     isDragging.current = false;
   };
+
+  /**
+   * ⚠️ **Sem destaque, sem retângulo.** Com o catálogo vazio isto desenhava
+   * 75vh de preto no topo da Início — e `% heroBooks.length` num array vazio dá
+   * `NaN`, que não quebra nada e não avisa nada. A guarda vem **depois de todos
+   * os hooks**, que é onde ela pode vir: `return` antes de um `useEffect` muda
+   * a ordem dos hooks entre renders e o React reclama.
+   */
+  if (heroBooks.length === 0) return null;
 
   const hero = heroBooks[currentIndex];
 
@@ -357,9 +367,19 @@ function CategoryGrid() {
    * entra em vitrine (`temCapaReal`). Se faltar inédita, repete das próprias —
    * mosaico vazio seria pior que mosaico repetido.
    */
+  /**
+   * As coleções que têm ao menos um livro. Cartão de coleção vazia é uma porta
+   * para uma tela vazia — e com o catálogo apagado eram oito deles em fila,
+   * retângulos escuros com um rótulo em cima.
+   */
+  const colecoesComLivro = useMemo(
+    () => collections.filter((colecao) => getBooksForCollection(colecao).length > 0),
+    [],
+  );
+
   const capasDosMosaicos = useMemo(() => {
     const usadas = new Set<string>();
-    return collections.map((colecao) => {
+    return colecoesComLivro.map((colecao) => {
       const comCapaReal = getBooksForCollection(colecao).filter(temCapaReal);
       const ineditas = comCapaReal.filter((livro) => !usadas.has(livro.cover));
       const doCard: string[] = [];
@@ -370,7 +390,7 @@ function CategoryGrid() {
       doCard.forEach((capa) => usadas.add(capa));
       return doCard;
     });
-  }, []);
+  }, [colecoesComLivro]);
 
   return (
     <section className="px-4 py-6 space-y-4" data-testid="category-grid">
@@ -434,7 +454,7 @@ function CategoryGrid() {
       )}
 
       <div className="grid grid-cols-2 gap-3" data-testid="category-cards">
-        {collections.map((colecao, i) => (
+        {colecoesComLivro.map((colecao, i) => (
           <CategoryCard
             key={colecao.slug}
             label={colecao.label}
@@ -480,6 +500,10 @@ function ContinueListeningSection() {
   const items = entries.length
     ? entries.map(({ book, percent }) => ({ ...book, progress: percent, real: true }))
     : continueListening;
+
+  // Nem histórico real nem exemplo: o título ficaria sozinho sobre o vazio.
+  // (Os exemplos são `getBooksByIds`, então somem junto com o catálogo.)
+  if (items.length === 0) return null;
 
   return (
     <section className="px-4 py-2 space-y-4" data-testid="continue-listening">
@@ -562,6 +586,10 @@ function ContinueListeningSection() {
 function BookCarousel({ slug, title, books }: { slug: string; title: string; books: Book[] }) {
   const [, setLocation] = useLocation();
 
+  // Fileira sem livro não se desenha. Título com "Ver tudo" e nada embaixo é
+  // pior do que a ausência: promete conteúdo e leva a uma tela vazia.
+  if (books.length === 0) return null;
+
   return (
     <section className="py-2 space-y-3" data-testid={`carousel-${slug}`}>
       <div className="flex items-center justify-between px-4">
@@ -623,6 +651,21 @@ function BookCarousel({ slug, title, books }: { slug: string; title: string; boo
 }
 
 export default function Home() {
+  /**
+   * Catálogo inteiro vazio — o app acabou de ser aberto sem um livro sequer.
+   *
+   * Com as guardas acima, o que sobraria na tela seria a barra "Categorias", um
+   * título de fileira e o rodapé: esqueleto. Aqui a Início vira o que o AllBook
+   * tem a oferecer mesmo sem acervo — a porta do pedido (§4.134).
+   */
+  if (catalog.length === 0) {
+    return (
+      <div className="min-h-screen bg-background" data-testid="page-home">
+        <CatalogoVazio />
+      </div>
+    );
+  }
+
   return (
     // Sem `pb-24` desde §4.104: ele somava com o `pb-20` do App e a tela
     // terminava num vão morto. Quem fecha a rolagem agora é o <FimDaLista />.

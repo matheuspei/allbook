@@ -38,49 +38,43 @@ import {
   removeFromLibrary,
 } from "@/lib/library";
 
-import coverScifi from "@/assets/images/cover-scifi.jpg";
 
 /**
- * Ficha curada à mão de alguns livros. Só o que o catálogo NÃO sabe entra aqui
- * (resumo revisado, duração oficial, notas de narração/história). Título,
- * autor, capa, nota e gênero vêm sempre do catálogo — quando a ficha também os
- * trazia, ela cobria a capa real baixada com a genérica do gênero.
+ * Os valores de reserva de uma ficha — só o que **não é dado sobre a obra**.
+ *
+ * 🚨 Aqui moravam duas maquetes, e as duas saíram em 21/08 com o resto do
+ * catálogo (§4.134): um `bookData` com a ficha escrita à mão de 4 livros
+ * (resumo, duração, número de avaliações) e um `defaultBook` que, para um id
+ * que não existisse, desenhava a tela inteira com **"Título do Livro", "Autor
+ * Desconhecido" e um resumo fictício** — o pior tipo de maquete, a que parece
+ * dado de verdade. Id inexistente agora leva a "livro não encontrado", que é o
+ * que ele é.
  */
-const bookData: Record<string, any> = {
-  "1": {
-    duration: "12h 45min",
-    reviewsCount: 128,
-    summary: "Setenta anos atrás, a mansão Hope foi palco de um crime brutal que chocou a pacata cidade litorânea. Agora, Kit McDeere é contratada como cuidadora de Lenora Hope, a única sobrevivente do massacre, que nunca falou sobre aquela noite. Em uma casa caindo aos pedaços, Kit descobre que os segredos da família Hope são muito mais profundos e perigosos do que qualquer um poderia imaginar.",
-  },
-  "5": {
-    duration: "4h 42min",
-    reviewsCount: 116,
-    summary: "Neste guia prático, Ciara Conlon apresenta técnicas essenciais para retomar o controle de sua vida e carreira. Aprenda a eliminar distrações, priorizar o que realmente importa e criar sistemas de organização que funcionam no longo prazo. Um audiolivro indispensável para quem busca fazer mais em menos tempo sem sacrificar o bem-estar mental.",
-  },
-  "101": {
-    duration: "8h 12min",
-    reviewsCount: 342,
-    summary: "O sucesso financeiro tem menos a ver com a sua inteligência e muito mais com o seu comportamento. Morgan Housel compartilha 19 histórias curtas que exploram as formas estranhas como as pessoas pensam sobre o dinheiro e ensina como ter uma relação melhor com suas finanças, focando na liberdade e na paz de espírito em vez de apenas números.",
-  },
-  "102": {
-    duration: "9h 30min",
-    reviewsCount: 856,
-    summary: "Pequenas mudanças, resultados impressionantes. James Clear revela como transformações minúsculas no seu dia a dia podem levar a resultados gigantescos. Baseado em ciência biológica e psicológica, este audiolivro oferece um método comprovado para quebrar maus hábitos e construir rotinas positivas de forma automática.",
-  }
-};
-
-const defaultBook = {
-  title: "Título do Livro",
-  author: "Autor Desconhecido",
-  narrator: "Narrador Padrão",
+const PADROES_DA_FICHA = {
+  /** Só entra quando o livro não tem páginas para estimar a duração. */
   duration: "5h 00m",
-  rating: 4.5,
-  reviewsCount: 10,
-  genre: "Geral",
-  summary: "Este é um resumo fictício para este audiolivro incrível que você está prestes a descobrir no AllBook. Uma jornada emocionante cheia de aprendizado e entretenimento.",
-  cover: coverScifi,
   performance: 4.5,
   story: 4.5,
+};
+
+/**
+ * Ficha neutra para um id que não existe.
+ *
+ * ⚠️ **Nunca é desenhada** — mais abaixo há uma guarda que devolve a tela de
+ * "livro não encontrado". Ela existe só para os hooks entre aqui e a guarda
+ * terem um objeto em vez de `null`: um `return` antes deles mudaria a ordem dos
+ * hooks entre renders, que é o que o React proíbe.
+ */
+const FICHA_AUSENTE = {
+  ...PADROES_DA_FICHA,
+  id: 0,
+  title: "",
+  author: "",
+  narrator: "",
+  cover: "",
+  rating: 0,
+  genre: "",
+  summary: "",
 };
 
 /**
@@ -287,18 +281,19 @@ function OrigemDaNota({ bookId }: { bookId: number }) {
 }
 
 /**
- * Livros sem ficha detalhada em `bookData` caem aqui. Em vez de mostrar
- * "Título do Livro", puxamos do catálogo central o que ele sabe (título, autor,
- * capa, nota, gênero) e completamos o resto com o padrão. Só um id que não
- * existe em lugar nenhum cai no `defaultBook` puro.
+ * A ficha do livro, montada a partir do catálogo — a fonte única.
+ *
+ * Devolve `null` quando o id não existe. Antes devolvia um livro inventado, e
+ * era impossível distinguir na tela "este livro não existe" de "este livro
+ * existe e chama-se Título do Livro" (§4.134).
  */
 function buildFromCatalog(id: string) {
   const entry = catalog.find((b) => String(b.id) === id);
-  if (!entry) return { ...defaultBook, id };
+  if (!entry) return null;
 
   return {
-    ...defaultBook,
-    id,
+    ...PADROES_DA_FICHA,
+    id: entry.id,
     title: entry.title,
     author: entry.author,
     narrator: entry.narrator,
@@ -317,7 +312,7 @@ function buildFromCatalog(id: string) {
       entry.sinopse ??
       entry.synopsis ??
       `"${entry.title}", de ${entry.author}. A sinopse deste título ainda não foi importada.`,
-    duration: duracaoEstimada(entry.pages) ?? defaultBook.duration,
+    duration: duracaoEstimada(entry.pages) ?? PADROES_DA_FICHA.duration,
   };
 }
 
@@ -338,7 +333,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
    * tudo, e por isso o narrador dela podia discordar do catálogo — o que
    * quebraria o link para o perfil do narrador.
    */
-  const book = { ...buildFromCatalog(params.id), ...(bookData[params.id] ?? {}) };
+  const book = buildFromCatalog(params.id) ?? FICHA_AUSENTE;
 
   /**
    * A narração que vale agora — um livro pode ter mais de uma voz (ROTEIRO 4.30).
@@ -518,8 +513,10 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           <div className="flex items-center gap-3 text-sm text-white/70">
             <div className="flex items-center gap-1">
               <Star className="w-3.5 h-3.5 fill-primary text-primary" />
+              {/* O "(128)" que ficava aqui era número escrito à mão numa ficha
+                  de maquete (§4.134). Contagem de avaliações volta quando sair
+                  da tabela `avaliacoes`, com o número de verdade. */}
               <span className="font-semibold text-white">{book.rating}</span>
-              <span>({book.reviewsCount})</span>
             </div>
             <span>•</span>
             <div className="flex items-center gap-1">

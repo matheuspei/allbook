@@ -14,7 +14,7 @@ uma frase o que ele significa. Os textos da interface também são todos em PT-B
 
 O comando do dia a dia é `npm run dev` (http://localhost:3000) — **mas não o rode
 solto dentro da sessão do Claude** (ver logo abaixo). Os outros: `npm run check`
-(erros de tipo), `npm run build`, `npm run catalogo`. O resto está no `package.json`.
+(erros de tipo), `npm run build`, `npm run audio`. O resto está no `package.json`.
 
 ### O servidor é um serviço do sistema (launchd), fora da sessão do Claude
 
@@ -68,31 +68,55 @@ exposto por um túnel para mostrar o app a alguém de longe, quem abre o link v�
 o app inteiro na tela, sem barra de aparelhos — a moldura é instrumento de quem
 constrói. Para expor: `cloudflared tunnel --url http://localhost:3000`.
 
-### O catálogo tem duas metades, e uma é arquivo gerado
-A parte curada à mão fica em `client/src/lib/books.ts` (id, título, autor, narrador,
-nota, gênero). A parte importada vem da [Open Library](https://openlibrary.org) por
-`npm run catalogo`, que grava as capas em
-`client/src/assets/images/covers/<id>.jpg` e as fichas em
-`client/src/lib/catalog-enriched.ts` — **arquivo gerado, não edite à mão**. O script
-roda na máquina, nunca durante o uso: o app não depende de internet. Ao acrescentar
-um livro em `books.ts`, acrescente-o também na lista `ALVOS` do script e rode de novo.
+### O catálogo vem do BANCO desde 21/08 — e o app não tem livro nenhum agora
 
-O que só apareceu testando, e por isso está no script:
-- a busca usa o **título original**, não o português (medido: 2 capas de 6 pelo
-  português, 6 de 6 pelo original);
-- pede 5 resultados e prefere o primeiro **com capa** — a edição do topo às vezes
-  não tem imagem;
-- tenta de novo antes de desistir: falha de rede passageira derrubava livro bom.
+Até 21/08 os livros moravam no **código**: um array literal em
+`client/src/lib/books.ts` com 63 maquetes, que **62 arquivos** importavam. Isso
+travava três coisas ao mesmo tempo — livro novo não nascia de um pedido, o
+player não tinha capítulo medido para ler, e o acervo de verdade não tinha por
+onde entrar. Hoje:
 
-**Limite conhecido:** comparar títulos **não** detecta capa errada. A Open Library
-agrupa as edições de uma série — "O Problema dos 3 Corpos" veio com a arte de "The
-Dark Forest" e o título devolvido estava certo. Nesses casos, fixe a edição pelo
-campo `isbnDaCapa` no `ALVOS`. **Conferir capa exige olho humano.**
+- **`GET /api/catalogo`** (`server/catalogo.ts`) devolve gêneros e livros do
+  Postgres, no mesmo desenho da `interface Book`. **Sem sessão** — a vitrine é
+  pública; o que exige conta é ouvir.
+- **`lib/books.ts` é uma fachada.** Mesmos exports de sempre (`catalog`,
+  `genres`, `getBooksByIds`…), só que a lista **nasce vazia e se enche** em
+  `carregarCatalogo()`. Nenhuma tela mudou.
+- **As capas vêm de `/capas/<arquivo>`**, servido de `CAPAS_RAIZ` (padrão
+  `~/AllBook-capas`), **fora do repositório** — milhares de imagens não entram
+  no git, pela mesma razão do áudio-mestre.
+
+🚨 **O catálogo está VAZIO de propósito.** As 63 maquetes foram apagadas
+(código, capas, banco) para o acervo real entrar — 13.932 narrações já baixadas
+pelo `baixalivro` esperando ingestão. Tela vazia aqui não é bug.
+
+⚠️ **`catalog` nunca troca de referência** — nasce `[]` e é preenchido com
+`push`. Um `catalog = novoArray` deixaria os 62 importadores segurando o array
+velho, vazio, **sem erro nenhum**.
+
+🚨 **A armadilha que custou uma rodada de teste: `import` estático é avaliado
+ANTES da primeira linha do `main.tsx`.** Esperar o catálogo antes do render não
+basta — telas que calculam no nível do módulo (`Home.tsx` tem `const heroBooks =
+destaquesDaCapa()`) leriam a lista ainda vazia e a guardariam para sempre. Por
+isso o `App` entra por **`import()` dinâmico**, depois do `await`. Tela nova que
+calcule algo do catálogo fora de um componente depende disso.
+
+⚠️ **Os alvos de npm "catalogo" e "db:catalogo" SAÍRAM** (§4.134). O primeiro
+buscava capa e ficha na Open Library para a lista de maquetes; o segundo levava
+o array literal para dentro do banco. Os dois dependiam de um array que deixou
+de existir, e por isso hoje só quebrariam. Precisa de um deles?
+`git show a4885cf~1:script/importar-catalogo.ts > /tmp/x.ts`.
+
+⚠️ **Toda a curadoria de `lib/collections.ts` foi esvaziada** (`bookIds: []`),
+e não por arrumação: as listas apontavam para os ids das maquetes, e um livro
+real que calhasse de receber o id 7 apareceria em "Só na AllBook" **por acaso**.
+A estrutura (slug, rótulo, gradiente, descrição) ficou.
 
 ### `books.ts` é a fonte única dos livros
 `catalog`, `genres`, `getBooksByIds` e `getBooksByGenre` saem de lá. **Tela nova lê
-dali e não recria lista de livro.** (O `BookDetails.tsx` ainda tem dados próprios,
-herdados de antes.)
+dali e não recria lista de livro** — e não fala com `/api/catalogo` por conta
+própria: quem carrega é o `main.tsx`, uma vez, na abertura. (As fichas escritas à
+mão que o `BookDetails.tsx` guardava saíram em 21/08 com as maquetes.)
 
 ### A busca não usa Fuse.js — de propósito
 Ela roda só no navegador, em duas etapas: substring sem acento e, se não achar nada,
@@ -138,8 +162,8 @@ saiu para o próximo que pegar o celular.
 
 Comunidade, clubes, fóruns e perfil **continuam só no navegador**.
 
-Comandos: `npm run db:push` (aplica o esquema), `npm run db:catalogo` (recarrega
-o catálogo, idempotente), `npm run db:psql` (abre o banco no terminal),
+Comandos: `npm run db:push` (aplica o esquema), `npm run db:psql` (abre o banco
+no terminal),
 `curl localhost:3000/api/banco/saude` (o servidor enxerga o banco?). Postgres
 fora do ar: `brew services start postgresql@17`. O endereço mora no `.env`, que
 não vai para o git — em cópia nova, `cp .env.example .env`.

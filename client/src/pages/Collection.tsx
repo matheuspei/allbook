@@ -5,6 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import BookGrid from "@/components/BookGrid";
 import { Button } from "@/components/ui/button";
 import { findListBySlug, getBooksForCollection } from "@/lib/collections";
+import CatalogoVazio from "@/components/CatalogoVazio";
 
 /**
  * Uma coleção da tela Início ("Só na AllBook", "Favoritos"…). Espelha a tela de
@@ -65,16 +66,27 @@ export default function Collection({ params }: { params: { slug: string } }) {
               <Library className="h-4 w-4" />
               {livros.length} {livros.length === 1 ? "título" : "títulos"}
             </span>
-            <span className="flex items-center gap-1.5">
-              <Star className="h-4 w-4 fill-white text-white" />
-              {notaMedia.toFixed(1)} de média
-            </span>
+            {/* Coleção sem livro não tem média — "0.0" lê como nota péssima,
+                não como ausência (§4.134). */}
+            {livros.length > 0 && (
+              <span className="flex items-center gap-1.5">
+                <Star className="h-4 w-4 fill-white text-white" />
+                {notaMedia.toFixed(1)} de média
+              </span>
+            )}
           </div>
         </div>
       </header>
 
       <section className="px-4 pt-6" data-testid="collection-grid">
-        <BookGrid books={livros} showAuthor />
+        {livros.length === 0 ? (
+          <CatalogoVazio
+            titulo="Esta lista ainda está vazia"
+            descricao="A curadoria volta quando o acervo entrar. Enquanto isso, você pode pedir a narração de um livro."
+          />
+        ) : (
+          <BookGrid books={livros} showAuthor />
+        )}
       </section>
     </div>
   );
