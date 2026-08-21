@@ -1,25 +1,39 @@
-import coverScifi from "@/assets/images/cover-scifi.jpg";
-import coverSelfhelp from "@/assets/images/cover-selfhelp.jpg";
-import coverRomance from "@/assets/images/cover-romance.jpg";
-import coverMystery from "@/assets/images/cover-mystery.jpg";
-import coverBusiness from "@/assets/images/cover-business.jpg";
-import coverBiography from "@/assets/images/cover-biography.jpg";
-import coverHorror from "@/assets/images/cover-horror.jpg";
-import coverProductivity from "@/assets/images/cover-productivity.jpg";
+/**
+ * Os livros do app — agora vindos do **banco**, não do código (21/08).
+ *
+ * Este arquivo era a fonte única dos livros: um array literal com 63 maquetes
+ * escritas à mão. Isso travava três coisas ao mesmo tempo — livro novo não
+ * nascia de um pedido, o player não tinha capítulo medido para ler, e o acervo
+ * de verdade não tinha por onde entrar.
+ *
+ * Ele continua sendo a fonte única para as telas: **62 arquivos importam daqui
+ * e nenhum deles mudou**. O que mudou é de onde `catalog` se enche.
+ *
+ * ## As duas regras que fazem isso funcionar sem tocar em tela nenhuma
+ *
+ * 1. **`catalog` nunca troca de referência.** Ele nasce como um array vazio e é
+ *    preenchido com `push`. Quem importou o array continua com o mesmo objeto na
+ *    mão, cheio. Trocar por um `catalog = novoArray` deixaria todo mundo
+ *    segurando o array velho, vazio, **sem erro nenhum**.
+ * 2. **O carregamento acontece ANTES do primeiro render** — `main.tsx` faz
+ *    `await carregarCatalogo()` antes do `createRoot(...).render(...)`. É o que
+ *    permite as telas continuarem lendo `catalog` de forma síncrona, como
+ *    sempre fizeram. Sem isso, cada uma delas precisaria virar assíncrona, e
+ *    seria a "meia migração" que o CLAUDE.md avisa que quebra em silêncio.
+ */
 
-import { fichasImportadas } from "./catalog-enriched";
 import { capaTipografica } from "./coverFallback";
-import { sinopsesCuradas } from "./sinopses";
 
-export type Genre =
-  | "Ficção Científica"
-  | "Romance"
-  | "Terror"
-  | "Mistério"
-  | "Negócios"
-  | "Biografia"
-  | "Autoajuda"
-  | "Produtividade";
+/**
+ * O gênero do livro.
+ *
+ * **Era um union fechado de 8 nomes; virou `string` em 21/08.** Os 8 continuam
+ * existindo (são as linhas da tabela `generos`), mas o tipo não pode mais
+ * enumerá-los: os gêneros passam a vir do banco, e o acervo de verdade traz as
+ * categorias das lojas. Um union fechado faria o TypeScript recusar um gênero
+ * novo que o banco entregasse — erro numa linha que não tem defeito nenhum.
+ */
+export type Genre = string;
 
 export interface Book {
   id: number;
@@ -52,18 +66,15 @@ export interface Book {
   story?: number;
   performance?: number;
 
-  // Daqui para baixo vem tudo do `npm run catalogo`, que busca na Open Library.
-  // É opcional porque um livro recém-acrescentado só ganha esses campos depois
-  // que o script rodar de novo.
-  /** Título no idioma original — é por ele que o script busca. */
+  /** Título no idioma original — é por ele que a busca de capas funciona. */
   originalTitle?: string;
   year?: number;
   pages?: number;
   isbn?: string;
   synopsis?: string;
   /**
-   * A sinopse curada em PT-BR (§4.104), de `sinopses.ts` — na ficha ela VENCE a
-   * `synopsis` importada, que vem em inglês e fica de reserva.
+   * A sinopse curada em PT-BR (§4.104) — na ficha ela **vence** a `synopsis`
+   * importada, que vem em inglês e fica de reserva.
    */
   sinopse?: string;
 }
@@ -84,12 +95,16 @@ export function notaNarracao(book: Book): number {
   return book.performance ?? book.rating;
 }
 
-/** O que é digitado à mão. O resto da ficha o script preenche. */
-type BookCurado = Omit<Book, "originalTitle" | "year" | "pages" | "isbn" | "synopsis">;
-
 /**
- * Capas reais baixadas pelo script, uma por id (`covers/7.jpg`). Quem ainda não
- * tem arquivo continua com a imagem genérica do gênero, definida logo abaixo.
+ * Capas que estão **dentro do repositório**, empacotadas pelo Vite
+ * (`assets/images/covers/7.jpg`).
+ *
+ * ⚠️ Esta pasta é herança das 58 capas que o `npm run catalogo` baixou para as
+ * maquetes, e **não é para onde as capas do acervo vão**: milhares de imagens
+ * não entram no git, pela mesma razão que o áudio-mestre não entra. A capa de
+ * livro de verdade vem do servidor, em `/capas/<arquivo>` (ver `CAPAS_RAIZ` em
+ * `server/catalogo.ts`). O glob fica porque enquanto houver capa local ela
+ * continua valendo — e some sozinho quando a pasta esvaziar.
  */
 const arquivosDeCapa = import.meta.glob("../assets/images/covers/*.{jpg,jpeg,png,webp}", {
   eager: true,
@@ -104,113 +119,98 @@ const capasPorId: Record<string, string> = Object.fromEntries(
 );
 
 /**
- * Catálogo fixo do app. Enquanto não existe backend, esta é a fonte única
- * dos livros — Home, Descobrir, Detalhes, Categoria e os perfis de pessoa leem
- * daqui, para não duplicar dados.
- * Quando a API existir, trocar por chamadas com TanStack Query.
+ * O catálogo que o app usa.
+ *
+ * ⚠️ **Nasce vazio e é preenchido em `carregarCatalogo()`, sem nunca trocar de
+ * referência** (ver o cabeçalho). Quem lê isto durante o render já encontra a
+ * lista cheia, porque o `main.tsx` espera o carregamento antes de renderizar.
  */
-const catalogoCurado: BookCurado[] = [
-  // Ficção Científica
-  { id: 7, title: "Duna", author: "Frank Herbert", narrator: "Rafael Nogueira", cover: coverScifi, rating: 4.9, genre: "Ficção Científica" },
-  { id: 8, title: "Fundação", author: "Isaac Asimov", narrator: "Diogo Serrano", cover: coverScifi, rating: 4.8, genre: "Ficção Científica" },
-  { id: 109, title: "O Problema dos 3 Corpos", author: "Cixin Liu", narrator: "Diogo Serrano", cover: coverScifi, rating: 4.6, genre: "Ficção Científica" },
-  { id: 129, title: "O Senhor dos Anéis", author: "J.R.R. Tolkien", narrator: "Rafael Nogueira", cover: coverScifi, rating: 4.9, genre: "Ficção Científica" },
-  { id: 130, title: "1984", author: "George Orwell", narrator: "Diogo Serrano", cover: coverScifi, rating: 4.8, genre: "Ficção Científica" },
-  { id: 131, title: "Admirável Mundo Novo", author: "Aldous Huxley", narrator: "Diogo Serrano", cover: coverScifi, rating: 4.7, genre: "Ficção Científica" },
-  { id: 132, title: "A Guerra dos Tronos", author: "George R. R. Martin", narrator: "Rafael Nogueira", cover: coverScifi, rating: 4.9, genre: "Ficção Científica" },
-  { id: 301, title: "O Hobbit", author: "J.R.R. Tolkien", narrator: "Rafael Nogueira", cover: coverScifi, rating: 4.8, genre: "Ficção Científica" },
-  { id: 302, title: "O Silmarillion", author: "J.R.R. Tolkien", narrator: "Rafael Nogueira", cover: coverScifi, rating: 4.4, genre: "Ficção Científica" },
-  { id: 303, title: "Eu, Robô", author: "Isaac Asimov", narrator: "Rafael Nogueira", cover: coverScifi, rating: 4.7, genre: "Ficção Científica" },
-  { id: 304, title: "A Revolução dos Bichos", author: "George Orwell", narrator: "Diogo Serrano", cover: coverScifi, rating: 4.7, genre: "Ficção Científica" },
-
-  // Romance
-  { id: 140, title: "Orgulho e Preconceito", author: "Jane Austen", narrator: "Helena Vasques", cover: coverRomance, rating: 4.8, genre: "Romance" },
-  { id: 141, title: "Como Eu Era Antes de Você", author: "Jojo Moyes", narrator: "Helena Vasques", cover: coverRomance, rating: 4.7, genre: "Romance" },
-  { id: 142, title: "É Assim que Acaba", author: "Colleen Hoover", narrator: "Helena Vasques", cover: coverRomance, rating: 4.6, genre: "Romance" },
-  { id: 143, title: "Um Amor para Recordar", author: "Nicholas Sparks", narrator: "Helena Vasques", cover: coverRomance, rating: 4.5, genre: "Romance" },
-  { id: 307, title: "Razão e Sensibilidade", author: "Jane Austen", narrator: "Helena Vasques", cover: coverRomance, rating: 4.6, genre: "Romance" },
-  { id: 308, title: "Emma", author: "Jane Austen", narrator: "Helena Vasques", cover: coverRomance, rating: 4.5, genre: "Romance" },
-  { id: 309, title: "Todas as Suas (Im)perfeições", author: "Colleen Hoover", narrator: "Helena Vasques", cover: coverRomance, rating: 4.5, genre: "Romance" },
-  { id: 310, title: "Diário de uma Paixão", author: "Nicholas Sparks", narrator: "Helena Vasques", cover: coverRomance, rating: 4.6, genre: "Romance" },
-
-  // Terror
-  { id: 104, title: "It: A Coisa", author: "Stephen King", narrator: "Otávio Marques", cover: coverHorror, rating: 4.8, genre: "Terror" },
-  { id: 105, title: "O Iluminado", author: "Stephen King", narrator: "Otávio Marques", cover: coverHorror, rating: 4.9, genre: "Terror" },
-  { id: 144, title: "Drácula", author: "Bram Stoker", narrator: "Diogo Serrano", cover: coverHorror, rating: 4.6, genre: "Terror" },
-  { id: 145, title: "O Exorcista", author: "William Peter Blatty", narrator: "Otávio Marques", cover: coverHorror, rating: 4.5, genre: "Terror" },
-  { id: 305, title: "Carrie, a Estranha", author: "Stephen King", narrator: "Otávio Marques", cover: coverHorror, rating: 4.6, genre: "Terror" },
-  { id: 306, title: "Misery", author: "Stephen King", narrator: "Otávio Marques", cover: coverHorror, rating: 4.7, genre: "Terror" },
-
-  // Mistério
-  { id: 1, title: "O massacre da família Hope", author: "Riley Sager", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.5, genre: "Mistério", story: 4.3, performance: 4.8 },
-  { id: 2, title: "A empregada", author: "Freida McFadden", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.8, genre: "Mistério" },
-  { id: 3, title: "Garota Exemplar", author: "Gillian Flynn", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.6, genre: "Mistério" },
-  { id: 106, title: "A Paciente Silenciosa", author: "Alex Michaelides", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.5, genre: "Mistério" },
-  { id: 119, title: "O Código Da Vinci", author: "Dan Brown", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.4, genre: "Mistério" },
-  { id: 120, title: "A Garota no Trem", author: "Paula Hawkins", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.6, genre: "Mistério" },
-  { id: 311, title: "Anjos e Demônios", author: "Dan Brown", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.5, genre: "Mistério" },
-  { id: 312, title: "Inferno", author: "Dan Brown", narrator: "Aurélio Prado", cover: coverMystery, rating: 4.3, genre: "Mistério" },
-  { id: 313, title: "Objetos Cortantes", author: "Gillian Flynn", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.4, genre: "Mistério" },
-  { id: 314, title: "Escrito na Água", author: "Paula Hawkins", narrator: "Camila Ferraz", cover: coverMystery, rating: 4.2, genre: "Mistério" },
-
-  // Negócios
-  { id: 101, title: "A Psicologia Financeira", author: "Morgan Housel", narrator: "Roberto Rocha", cover: coverBusiness, rating: 4.8, genre: "Negócios", story: 4.7, performance: 4.9 },
-  { id: 108, title: "Pense de Novo", author: "Adam Grant", narrator: "Roberto Rocha", cover: coverBusiness, rating: 4.7, genre: "Negócios" },
-  { id: 125, title: "Pai Rico, Pai Pobre", author: "Robert T. Kiyosaki", narrator: "Roberto Rocha", cover: coverBusiness, rating: 4.6, genre: "Negócios" },
-  { id: 320, title: "Quadrante do Fluxo de Dinheiro", author: "Robert T. Kiyosaki", narrator: "Roberto Rocha", cover: coverBusiness, rating: 4.4, genre: "Negócios" },
-
-  // Biografia
-  { id: 103, title: "A Terra Prometida", author: "Barack Obama", narrator: "Túlio Bandeira", cover: coverBiography, rating: 4.7, genre: "Biografia" },
-  { id: 111, title: "Minha História", author: "Michelle Obama", narrator: "Lívia Bonfim", cover: coverBiography, rating: 4.8, genre: "Biografia" },
-  { id: 112, title: "Steve Jobs", author: "Walter Isaacson", narrator: "Túlio Bandeira", cover: coverBiography, rating: 4.7, genre: "Biografia" },
-  { id: 113, title: "A Marca da Vitória", author: "Phil Knight", narrator: "Túlio Bandeira", cover: coverBiography, rating: 4.8, genre: "Biografia" },
-  { id: 135, title: "Eu Sou Malala", author: "Malala Yousafzai", narrator: "Lívia Bonfim", cover: coverBiography, rating: 4.8, genre: "Biografia" },
-  { id: 136, title: "O Diário de Anne Frank", author: "Anne Frank", narrator: "Lívia Bonfim", cover: coverBiography, rating: 4.9, genre: "Biografia" },
-  { id: 137, title: "Em Busca de Sentido", author: "Viktor E. Frankl", narrator: "Lívia Bonfim", cover: coverBiography, rating: 4.8, genre: "Biografia" },
-  { id: 315, title: "Einstein: Sua Vida, Seu Universo", author: "Walter Isaacson", narrator: "Túlio Bandeira", cover: coverBiography, rating: 4.7, genre: "Biografia" },
-  { id: 316, title: "Leonardo da Vinci", author: "Walter Isaacson", narrator: "Túlio Bandeira", cover: coverBiography, rating: 4.6, genre: "Biografia" },
-  { id: 317, title: "A Luz Que Há em Nós", author: "Michelle Obama", narrator: "Lívia Bonfim", cover: coverBiography, rating: 4.6, genre: "Biografia" },
-
-  // Autoajuda
-  { id: 4, title: "O clube das 5 da manhã", author: "Robin Sharma", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.7, genre: "Autoajuda" },
-  { id: 201, title: "A Sutil Arte de Ligar o F*da-se", author: "Mark Manson", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.5, genre: "Autoajuda" },
-  { id: 203, title: "O Alquimista", author: "Paulo Coelho", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.7, genre: "Autoajuda" },
-  { id: 318, title: "Tudo é F*da", author: "Mark Manson", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.3, genre: "Autoajuda" },
-  { id: 319, title: "Brida", author: "Paulo Coelho", narrator: "Bruno Sampaio", cover: coverSelfhelp, rating: 4.2, genre: "Autoajuda" },
-
-  // Produtividade
-  { id: 5, title: "Organize-se", author: "Ciara Conlon", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.3, genre: "Produtividade", story: 4.1, performance: 4.5 },
-  { id: 102, title: "Hábitos Atômicos", author: "James Clear", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.9, genre: "Produtividade", story: 4.9, performance: 4.9 },
-  { id: 107, title: "Essencialismo", author: "Greg McKeown", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.6, genre: "Produtividade" },
-  { id: 124, title: "Os 7 Hábitos", author: "Stephen R. Covey", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.8, genre: "Produtividade" },
-  { id: 321, title: "Sem Esforço", author: "Greg McKeown", narrator: "Maitê Cunha", cover: coverProductivity, rating: 4.5, genre: "Produtividade" },
-];
+export const catalog: Book[] = [];
 
 /**
- * O catálogo que o app usa: o que foi curado à mão, com a capa real e a ficha
- * da Open Library por cima quando existirem.
+ * Gêneros na ordem em que aparecem na grade da tela Descobrir.
+ *
+ * Também vem do banco (tabela `generos`, coluna `ordem`) e também é preenchido
+ * sem trocar de referência.
  */
-export const catalog: Book[] = catalogoCurado.map((livro) => ({
-  ...livro,
-  // Capa real baixada pelo script; na falta dela, uma capa tipográfica gerada
-  // (título + autor sobre fundo sóbrio), em vez do PNG genérico de gênero que
-  // se repetia e dava cara de protótipo.
-  cover: capasPorId[livro.id] ?? capaTipografica(livro.title, livro.author, livro.genre),
-  ...(fichasImportadas[livro.id] ?? {}),
-  sinopse: sinopsesCuradas[livro.id],
-}));
+export const genres: { label: Genre; gradient: string }[] = [];
 
-/** Gêneros na ordem em que aparecem na grade da tela Descobrir. */
-export const genres: { label: Genre; gradient: string }[] = [
-  { label: "Ficção Científica", gradient: "from-indigo-600 to-blue-500" },
-  { label: "Romance", gradient: "from-pink-600 to-rose-500" },
-  { label: "Terror", gradient: "from-red-800 to-orange-700" },
-  { label: "Mistério", gradient: "from-slate-700 to-slate-500" },
-  { label: "Negócios", gradient: "from-amber-600 to-orange-500" },
-  { label: "Biografia", gradient: "from-teal-600 to-emerald-500" },
-  { label: "Autoajuda", gradient: "from-purple-700 to-violet-500" },
-  { label: "Produtividade", gradient: "from-cyan-600 to-sky-500" },
-];
+/** Os ids que têm capa de verdade — o resto usa a tipográfica gerada. */
+const comCapaReal = new Set<number>();
+
+/** O catálogo já foi carregado? Serve para o aviso de tela vazia, e para teste. */
+export let catalogoCarregado = false;
+
+/** Quantos livros o servidor entregou na última carga. */
+export function tamanhoDoCatalogo(): number {
+  return catalog.length;
+}
+
+interface LivroDaApi {
+  id: number;
+  title: string;
+  author: string;
+  narrator: string;
+  cover: string | null;
+  rating: number;
+  genre: string;
+  story?: number;
+  performance?: number;
+  originalTitle?: string;
+  year?: number;
+  pages?: number;
+  isbn?: string;
+  synopsis?: string;
+  sinopse?: string;
+}
+
+/**
+ * Traz o catálogo do servidor e enche `catalog` e `genres`.
+ *
+ * Chamada uma vez, em `main.tsx`, **antes do primeiro render**. Chamar de novo
+ * recarrega (limpa e reenche a mesma referência) — útil depois de uma ingestão,
+ * sem precisar recarregar a página.
+ *
+ * ⚠️ **Erro aqui não derruba o app.** Se o servidor ou o Postgres estiverem
+ * fora, o catálogo fica vazio e as telas mostram o estado vazio — que é melhor
+ * do que uma tela branca sem explicação. O erro vai para o console.
+ */
+export async function carregarCatalogo(): Promise<void> {
+  try {
+    const resposta = await fetch("/api/catalogo");
+    if (!resposta.ok) throw new Error(`o servidor respondeu ${resposta.status}`);
+
+    const dados = (await resposta.json()) as {
+      generos: { label: string; slug: string; gradient: string }[];
+      livros: LivroDaApi[];
+    };
+
+    genres.length = 0;
+    genres.push(...dados.generos.map((g) => ({ label: g.label, gradient: g.gradient })));
+
+    catalog.length = 0;
+    comCapaReal.clear();
+    for (const livro of dados.livros) {
+      // A capa local (empacotada) vence a do servidor enquanto existir; na
+      // falta das duas, uma capa tipográfica PRÓPRIA do livro — título e autor
+      // sobre fundo sóbrio —, em vez da imagem genérica de gênero que se
+      // repetia e dava cara de protótipo.
+      const capa = capasPorId[livro.id] ?? livro.cover ?? null;
+      if (capa) comCapaReal.add(livro.id);
+
+      catalog.push({
+        ...livro,
+        cover: capa ?? capaTipografica(livro.title, livro.author, livro.genre),
+      });
+    }
+
+    catalogoCarregado = true;
+  } catch (erro) {
+    // Não relança: o app abre vazio, e é isso que se quer ver.
+    console.error("[catálogo] não deu para carregar do servidor:", erro);
+    catalogoCarregado = true;
+  }
+}
 
 /**
  * "Ficção Científica" → "ficcao-cientifica". Sem acentos, para caber numa URL.
@@ -284,12 +284,12 @@ export function duracaoEstimada(pages?: number): string | undefined {
 }
 
 /**
- * O livro tem capa real baixada (e não a tipográfica gerada de reserva)?
+ * O livro tem capa real (e não a tipográfica gerada de reserva)?
  * As vitrines de colagem usam isto para nunca estampar a capa-reserva no meio
  * de artes de verdade (§4.104) — o livro continua no catálogo e nas listas.
  */
 export function temCapaReal(book: Book): boolean {
-  return book.id in capasPorId;
+  return comCapaReal.has(book.id);
 }
 
 /** Busca livros por id, mantendo a ordem pedida e ignorando ids inexistentes. */

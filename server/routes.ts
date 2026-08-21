@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { type Server } from "http";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm";
 
 import { db } from "./db";
 import { registrarAudio } from "./audio";
+import { CAPAS_RAIZ, registrarCatalogo } from "./catalogo";
 import { registrarContas } from "./contas";
 import { registrarDados } from "./dados";
 
@@ -28,6 +29,32 @@ export async function registerRoutes(
   // A entrega do áudio: a lista de reprodução e os pedaços (§4.130). Também
   // depende da sessão — sem conta, nenhum byte de narração sai daqui.
   registrarAudio(app);
+
+  // O catálogo (21/08): a rota que tirou os livros de dentro do código.
+  // **Sem sessão** — a vitrine é pública; o que exige conta é ouvir.
+  registrarCatalogo(app);
+
+  /**
+   * As capas dos livros de verdade.
+   *
+   * As 58 capas de hoje vêm empacotadas pelo Vite, de dentro do repositório.
+   * Isso serve para dezenas e não serve para milhares — capa de acervo é ativo
+   * grande e fica **fora do git**, como o áudio-mestre. A pasta é `CAPAS_RAIZ`
+   * (padrão `~/AllBook-capas`), e `express.static` já devolve 404 sozinho
+   * quando o arquivo não existe, que é o caso normal enquanto ela está vazia.
+   *
+   * ⚠️ Não é `/api/capas` de propósito: `/api` inexistente devolve 404 JSON
+   * (ver o fim deste arquivo), e uma capa faltando deve dar 404 de imagem, não
+   * um JSON que o `<img>` não sabe ler.
+   */
+  app.use(
+    "/capas",
+    express.static(CAPAS_RAIZ, {
+      // Capa não muda depois de gravada: o nome do arquivo é o id do livro.
+      maxAge: "7d",
+      fallthrough: false,
+    }),
+  );
 
   /**
    * O banco está de pé? (08/08, §4.119)
