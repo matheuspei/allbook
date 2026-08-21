@@ -79,6 +79,16 @@ export interface Book {
   year?: number;
   pages?: number;
   isbn?: string;
+  /**
+   * A duração do audiolivro em segundos.
+   *
+   * Enquanto o acervo não tinha entrado, o app **estimava** a duração pelo
+   * número de páginas (`duracaoEstimada`), porque não havia áudio nenhum. Agora
+   * a loja entrega a duração anunciada, e o `npm run audio` grava a **medida**
+   * por cima quando o arquivo entra. Este campo vence a estimativa sempre que
+   * existe — ver `duracaoDoLivro`.
+   */
+  duracaoSegundos?: number;
   synopsis?: string;
   /**
    * A sinopse curada em PT-BR (§4.104) — na ficha ela **vence** a `synopsis`
@@ -197,6 +207,16 @@ interface LivroDaApi {
   year?: number;
   pages?: number;
   isbn?: string;
+  /**
+   * A duração do audiolivro em segundos.
+   *
+   * Enquanto o acervo não tinha entrado, o app **estimava** a duração pelo
+   * número de páginas (`duracaoEstimada`), porque não havia áudio nenhum. Agora
+   * a loja entrega a duração anunciada, e o `npm run audio` grava a **medida**
+   * por cima quando o arquivo entra. Este campo vence a estimativa sempre que
+   * existe — ver `duracaoDoLivro`.
+   */
+  duracaoSegundos?: number;
   synopsis?: string;
   sinopse?: string;
 }
@@ -318,6 +338,21 @@ export function duracaoEstimada(pages?: number): string | undefined {
   const horas = Math.floor(totalDeMinutos / 60);
   const minutos = totalDeMinutos % 60;
   return `${horas}h ${String(minutos).padStart(2, "0")}min`;
+}
+
+/**
+ * A duração deste livro, na melhor fonte disponível.
+ *
+ * Ordem: a duração de verdade (medida no arquivo ou anunciada pela loja) e, só
+ * na falta dela, a estimativa por páginas — que é herança da ficha da Open
+ * Library e nunca valeu para livro que o AllBook mesmo grave.
+ */
+export function duracaoDoLivro(book: Book): string | undefined {
+  if (book.duracaoSegundos) {
+    const minutos = Math.round(book.duracaoSegundos / 60);
+    return `${Math.floor(minutos / 60)}h ${String(minutos % 60).padStart(2, "0")}min`;
+  }
+  return duracaoEstimada(book.pages);
 }
 
 /**

@@ -1179,10 +1179,13 @@ vazou. Para o caso do concorrente, saber a empresa é exatamente o que interessa
 a marca d'água por usuário só ganha importância quando o problema for vazamento
 individual.
 
-**Reforço barato, se um dia interessar:** vinhetas curtas também **no meio** do
-livro (a cada N capítulos, em posições variáveis). Cortar começo e fim é um
-recorte fixo; cortar dezenas de pontos que mudam de livro para livro é outro
-nível de trabalho.
+❌ **Vinheta no meio do livro: DESCARTADO pelo Matheus (12/08/2026).** Eu havia
+sugerido aqui vinhetas curtas espalhadas a cada N capítulos, como reforço contra
+quem cortasse começo e fim. **Ele foi direto: não é assim que vinheta funciona.**
+A vinheta é a **primeira** coisa que se ouve e a **última** — e é só isso. Fica
+registrado para não ser reinventado: interromper o livro no meio para carimbar a
+marca estraga a escuta, que é o produto. O ganho contra o copiador não paga o
+custo para quem está ouvindo de verdade.
 
 A tabela abaixo fica para separar os dois papéis — não para dizer que um vale
 mais que o outro:
@@ -1199,6 +1202,29 @@ As duas convivem, e a vinheta vem primeiro por ser muito mais barata. **Detalhe
 de custo:** a vinheta, sendo igual para todos, mantém o arquivo único e cacheável
 na CDN; marca d'água por usuário torna cada entrega diferente — é por isso que
 ela costuma ficar para depois, quando houver acervo e escala que a justifiquem.
+
+### Onde o áudio vai morar, e cifrado — decidido em 12/08/2026
+
+Esta seção é de 26/07, quando não havia servidor na conversa. Ao planejar o
+acervo de verdade (o documento vive em `~/Projects/baixalivro/docs/PLANO-ACERVO.md`),
+três decisões novas se encaixam aqui:
+
+- **Cloudflare R2**, decidido pelo Matheus. O critério que decidiu não foi o preço
+  de guardar e sim o de **entregar**: streaming de áudio gera muita saída de
+  dados, e a R2 não cobra saída. Guardar barato e pagar caro por quem ouve seria o
+  pior dos mundos. `server/armazenamento.ts` já é uma interface com uma
+  implementação; entra uma classe e muda o `.env`.
+- **O mestre nunca sobe.** Só a entrega HLS vai para a nuvem — metade do tamanho.
+  Perdeu-se a entrega? Regenera do mestre, que fica em casa, em dois discos.
+- **Os segmentos sobem cifrados em AES-128** (`ffmpeg -hls_key_info_file`, no
+  mesmo comando que já fatia). A camada 4 desta seção descarta o AES-128 por
+  "deixar a chave ao alcance de quem inspeciona", e isso continua verdade **contra
+  o usuário logado** — ele sempre poderá pegar a chave dele. Mas contra **vazamento
+  do balde** funciona por completo: a chave mora no banco e só sai com sessão
+  válida, então balde inteiro vazado é ruído. As duas leituras convivem; é fraco
+  para um problema e forte para outro.
+  ⚠️ **Perder a chave transforma o acervo na nuvem em lixo.** Ela entra no mesmo
+  backup do banco.
 
 ## 4.35 Abertura do app e vinheta sonora — adiado para depois do backend (26/07)
 
@@ -6146,3 +6172,236 @@ navegador de ninguém. E há **sete nomes de função exportados em mais de um
 arquivo** (`votar`, `souDono`, `meuVoto`, `desbanir`…): apurado e **deixado como
 está**, porque são domínios diferentes (votar numa rodada de clube, numa pauta,
 num fórum) e unificá-los é reorganizar arquitetura, não varrer lixo.
+
+## 4.133 Séries: o livro deixa de ser solto (12/08)
+
+**Ideia do Matheus, no meio do planejamento do acervo:** hoje um livro de série
+entra no catálogo como se fosse avulso, e quem está no *Duna* não tem como saber
+que existe *Messias de Duna* nem chegar nele. A referência que ele deu é o modo
+como as lojas e os serviços de vídeo tratam temporadas: *"você alterna entre o
+livro um, livro dois, livro três"*, dentro da própria ficha.
+
+**Ele pediu explicitamente que outra janela construa isto** — esta entrada existe
+para a tarefa nascer completa, sem precisar perguntar nada a ninguém.
+
+### Por que é barato, e é o motivo de fazer agora
+
+**Os dados já vêm prontos, de duas fontes independentes.** Apurado em 12/08:
+
+- `audible library export -f json` entrega `series_title` e `series_sequence` por
+  título, junto com `asin`, `narrators`, `genres` e `date_added`;
+- a API pública de catálogo (`/1.0/catalog/products/<ASIN>`, **sem login**) aceita
+  `series` em `response_groups` e devolve o mesmo.
+
+Nada precisa ser classificado, inferido nem digitado à mão. Quando a ingestão do
+acervo entrar (o contrato está em `~/Projects/baixalivro/docs/PLANO-ACERVO.md`),
+a série chega junto de graça — e é por isso que a tabela deve existir **antes**, ou
+o dado chega e não tem onde pousar.
+
+### ⚠️ Série NÃO é coleção — e confundir as duas estraga as duas
+
+Existe a tentação de reaproveitar `colecoes` + `colecoes_livros`
+(`shared/schema/catalogo.ts:254`), que já é N-para-N com `ordem`. **Não use.**
+
+- **Coleção é curadoria**: "Só na AllBook", "Para Maratonar". Alguém escolheu, e a
+  ordem é editorial. Muda quando a curadoria muda.
+- **Série é fato da obra**: *Duna* é o livro 1, e será o livro 1 para sempre. Não é
+  opinião de ninguém.
+
+Misturadas, uma lista feita à mão passaria a parecer parte da história do autor —
+e a ordem de leitura ficaria à mercê de quem editar a curadoria.
+
+### O que construir
+
+**No banco** (`shared/schema/catalogo.ts`):
+
+```
+series          slug (PK) · titulo · titulo_original · descricao
+livros          + serie_slug (FK → series, nullable) · serie_n (integer, nullable)
+```
+
+`nullable` nos dois porque **a maioria dos livros não é de série**, e essa é a
+diferença que separa este desenho de `generoSlug` (que é `NOT NULL` e obrigou todo
+livro a ter um gênero). Índice em `(serie_slug, serie_n)`.
+
+⚠️ **`serie_n` não é sempre inteiro.** Existem `1.5` (novela entre dois livros) e
+"livro 0" (prequela). Guardar como `real`, ou aceitar que a numeração da loja vem
+como texto. Decidir na hora de ver o dado real — mas **não** assumir sequência
+perfeita 1, 2, 3, porque não é.
+
+**Na tela** (`client/src/pages/BookDetails.tsx`):
+
+O seletor de série vive **ao lado do `SeletorDeNarracao`**, e são dois eixos
+independentes que não se misturam:
+
+- **qual livro da série** ← navegação entre obras
+- **qual voz** ← `SeletorDeNarracao.tsx`, que já existe
+
+Só aparece quando `serie_slug` não é nulo. Mostrar a posição ("Livro 2 de 6") e
+permitir ir ao anterior e ao próximo sem voltar à busca.
+
+⚠️ **Livro da série que ainda não está no acervo precisa aparecer assim mesmo**,
+marcado como indisponível — senão a lista mente sobre o tamanho da série, e o
+usuário conclui que ela tem 3 volumes quando tem 6. Esse é o caso em que o AllBook
+pode oferecer produzir a narração, que é o coração do produto.
+
+**Página da série** (`/series/:slug`): a lista em ordem, com o que existe e o que
+falta. É a tela que a fileira da Início vai apontar.
+
+### Onde isso encosta no plano do acervo
+
+`edicoes.serie` e `edicoes.serie_n` já estão no esquema do `catalogo.sqlite` do
+`baixalivro` (seção 2.1 do `PLANO-ACERVO.md`). A ingestão vai entregar os dois
+campos por narração — quem construir aqui não precisa esperar por lá, mas deve usar
+**os mesmos nomes** para a ponte não precisar de tradução.
+
+---
+
+## 4.134 O catálogo sai do código e vai para o banco — a ponte do acervo (21/08)
+
+**Pedido dele, na abertura da tarefa:** *"delete todos os livros que tem hoje no
+aplicativo e já deixe preparado para a migração do baixalivro"*. Os 63 livros de
+hoje são maquete; os de verdade vêm do acervo.
+
+### A ordem é o assunto todo — e não é a que parece
+
+A pergunta que ele fez no meio (*"o melhor seria subir os livros reais e, depois,
+apagar as maquetes?"*) tem uma resposta que nenhuma das duas metades acerta:
+**as duas coisas estavam travadas pela mesma peça.** O catálogo morava em
+`client/src/lib/books.ts`, um array literal que **62 arquivos** importavam.
+Enquanto fosse assim, livro real não tinha por onde entrar (o banco não era lido
+por ninguém) e maquete não tinha como sair (o app quebrava). A ponte vem
+primeiro, obrigatoriamente — e é o que a janela B já havia escrito no quadro:
+*"todo o catálogo de hoje é maquete e vai ser apagado, mas só **depois** de o app
+passar a ler o catálogo do banco, nunca antes"*.
+
+**Decidido apagar antes de subir os reais**, e o motivo é de teste, não de gosto:
+misturados, não há como olhar o catálogo e saber qual livro é de verdade — as
+notas, os narradores e parte das capas das maquetes são inventados. E é só com o
+app vazio que aparecem as telas que nunca foram vistas sem livro nenhum, defeito
+que hoje está escondido pelas 63 maquetes.
+
+### O que foi construído
+
+- **`server/catalogo.ts`** — `GET /api/catalogo` devolve gêneros e livros no
+  **mesmo desenho da interface `Book`**, com os joins que trocam slug por nome
+  (autor, narrador, gênero). **Sem sessão de propósito:** a vitrine é pública; o
+  que exige conta é ouvir.
+- **`/capas/<arquivo>`** — `express.static` sobre `CAPAS_RAIZ` (padrão
+  `~/AllBook-capas`), **fora do repositório**, pela mesma razão do áudio-mestre:
+  as 58 capas de hoje cabem no git, milhares não cabem.
+- **`lib/books.ts` virou fachada.** Mesmos exports, mesma `interface Book`,
+  mesmas funções — **nenhuma das 62 telas mudou uma linha**.
+
+### As três armadilhas que isso tem, e a terceira quase passou
+
+1. **`catalog` não pode trocar de referência.** Ele nasce `[]` e é preenchido com
+   `push`. Um `catalog = novoArray` deixaria todos os importadores segurando o
+   array velho, vazio, **sem erro nenhum**.
+2. **O tipo `Genre` deixou de ser um union fechado de 8 nomes e virou `string`.**
+   Os 8 continuam sendo as linhas de `generos`, mas enumerá-los no tipo faria o
+   TypeScript recusar um gênero novo vindo do banco — erro numa linha sem defeito.
+3. 🚨 **Esperar o catálogo antes do render NÃO basta — o `import` estático é
+   avaliado antes.** Foi o defeito que apareceu no teste: o app abriu, as
+   fileiras de baixo vieram certas e **o billboard do topo ficou um retângulo
+   preto**, sem uma linha no console. A causa é que `Home.tsx` calcula
+   `const heroBooks = destaquesDaCapa()` e `const continueListening =
+   getBooksByIds([1, 7, 4])` **no nível do módulo**, e um `import App from
+   "./App"` roda tudo isso antes da primeira linha do `main.tsx`. O conserto é
+   uma linha e vale para toda tela de uma vez: o `App` entra por **`import()`
+   dinâmico**, depois do `await carregarCatalogo()`.
+
+### O limite conhecido, dito aqui para ninguém descobrir na marra
+
+A rota devolve o **catálogo inteiro numa resposta só**, e isso tem prazo de
+validade. Hoje são dezenas de livros e alguns KB. O acervo real tem **13.932
+narrações já baixadas** (Ubook 4.953 · Storytel 4.422 · Tocalivros 3.268 ·
+Audible 1.289), e nesse tamanho vira alguns MB em toda abertura. Quando o
+catálogo passar de uns poucos milhares, a rota precisa de paginação — e aí a
+busca e a grade de gênero, que hoje varrem `catalog` inteiro no navegador,
+passam a perguntar ao servidor.
+
+### Achado no caminho, e não era meu
+
+`client/src/lib/bookmarks.ts` estava **apagado no diretório de trabalho, sem
+commit**, e 6 arquivos ainda o importavam: o projeto não compilava. Restaurado
+com `git restore`. Não havia nada substituindo-o — não era refatoração em curso.
+
+### 4.134.1 O acervo entrou — e a nota voltou para quem a dá (21/08, à noite)
+
+**A correção mais importante do dia veio dele, no meio do trabalho:** *"nota de
+avaliação quem dá é o usuário, não vem do livro… isso que você fez é grave"*.
+
+Ele estava certo, e eu tinha parado no meio do caminho. Ao ver que **nenhuma das
+quatro lojas do acervo entrega avaliação** (conferido campo a campo no `cru` de
+Audible, Storytel, Ubook e Tocalivros), eu tornei a coluna `nota` opcional para
+não inventar número. Mas deixei a coluna lá — e enquanto ela existir, alguém
+pode escrever nela uma nota que ninguém deu, que é exatamente o que as maquetes
+faziam.
+
+**Decidido: as três colunas de nota saíram de `livros`.** `nota`,
+`nota_historia` e `nota_narracao` deixaram de existir. A nota agora é **calculada
+de `avaliacoes`** na hora de ler o catálogo (`server/catalogo.ts`), a partir de
+**5 avaliações** — a mesma régua que `lib/ratings.ts` já usava no navegador, e
+pela mesma razão: com uma ou duas notas, "média" é a opinião de uma pessoa
+vestida de consenso.
+
+Consequência no front, e ela espalhou por 20 arquivos: `Book.rating` virou
+opcional. Onde havia estrela, ela some quando não há nota; nas grades de três
+colunas entra um travessão, porque sumir desalinharia a grade. Dois ajudantes
+novos evitam que isso vire `?? 0` espalhado: `porNota` (livro sem nota vai para
+o **fim**, não é tratado como zero) e `mediaDeNotas` (livro sem nota não entra
+na conta nem como zero).
+
+### A trava da vinheta, e a exceção da Audible
+
+Enquanto eu importava, a janela das vinhetas avisou que estava colando a vinheta
+do AllBook nos arquivos do acervo — **o que muda a duração do livro no disco**.
+A regra que ela deu: só ingerir livro cujo `_ficha.json` já tenha o campo
+`vinheta`, escrito depois de as duas pontas terem sido trocadas com sucesso.
+Está implementada em `script/importar-acervo.ts`.
+
+⚠️ **A Audible é exceção, e a decisão é dele.** Ela ficou de fora da colagem
+(conferido: 0 em 300 fichas têm o campo), e a primeira leitura da regra a
+barraria para sempre. Ele decidiu: *"você pode subir a Audible agora, e depois as
+vinhetas entram depois na Audible… porque a gente ainda tem que recuperar os
+áudios da Audible"*. Então a ficha sobe agora; a vinheta e o áudio vêm depois.
+**Quem for ingerir ÁUDIO da Audible antes da vinheta precisa saber que terá de
+reingerir** — a ficha não, porque a duração que ela guarda é a anunciada pela
+loja, não a medida.
+
+### O que o primeiro lote real revelou
+
+2.436 livros entraram (Audible inteira + o que a vinheta já liberou). O que só
+apareceu com dado de verdade na tela:
+
+- **A capa do app precisou de porteiro.** O billboard estampou um livro sem
+  autor ("Autor desconhecido"), sem descrição e com o título cru da loja, em
+  caixa baixa e sem acento. Agora só entra na capa quem tem **capa real, autor
+  conhecido e alguma descrição** — o livro continua no catálogo, na busca e nas
+  listas; só não é cartão de visita.
+- **O selo "Mais bem avaliados" mentia** num catálogo em que ninguém avaliou
+  nada. Sem nota nenhuma, ele vira "Novo no acervo" e a ordem passa a ser por
+  ano.
+- **A duração deixou de ser estimada.** O app calculava duração pelo número de
+  páginas (≈1h a cada 33) porque não havia áudio. O acervo traz a duração
+  anunciada, e `duracaoDoLivro()` a prefere; a estimativa virou reserva.
+- **A Início ficou vazia com 2.436 livros dentro** — porque a curadoria de
+  `collections.ts` tinha sido esvaziada. Daí as **fileiras que o acervo monta
+  sozinho**, uma por gênero, ordenadas por tamanho: prateleira curada volta
+  quando alguém curar, mas fileira de gênero não precisa de ninguém.
+- **59% do acervo chega sem categoria** (8.221 de 13.932) e vai para "Sem
+  gênero". É o tamanho do trabalho de classificação que a §4.133 e os 35 gêneros
+  da janela B vão encontrar.
+
+### Dívidas nomeadas, para não se perderem
+
+- **Um autor e um narrador por livro.** O acervo entrega listas (`"A & B"`) e o
+  importador fica com o primeiro. O lugar dos demais é a tabela `narracoes`, que
+  a janela B vai ligar.
+- **Título cru.** A Ubook entrega títulos sem acento e sem pontuação ("100
+  vendedor motivacao em vendas…"). É qualidade da origem, e o conserto é lá.
+- **A camada social semeada continua amarrada a ids de maquete** (`comments.ts`,
+  `Notifications.tsx`, `chamadaPorLivro`). Ela aponta para o vazio e some
+  sozinha — a trava dos ids a partir de 100.000 garante que nunca colida com
+  livro real. Quando a camada social virar de verdade, esse material sai.

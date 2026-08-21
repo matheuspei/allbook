@@ -59,6 +59,7 @@ export interface LivroDoCatalogo {
   year?: number;
   pages?: number;
   isbn?: string;
+  duracaoSegundos?: number;
   synopsis?: string;
   sinopse?: string;
 }
@@ -136,6 +137,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         ano: livros.ano,
         paginas: livros.paginas,
         isbn: livros.isbn,
+        duracaoSegundos: livros.duracaoSegundos,
         sinopseImportada: livros.sinopseImportada,
         sinopse: livros.sinopse,
       })
@@ -179,6 +181,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         year: l.ano ?? undefined,
         pages: l.paginas ?? undefined,
         isbn: l.isbn ?? undefined,
+        duracaoSegundos: l.duracaoSegundos ?? undefined,
         synopsis: l.sinopseImportada ?? undefined,
         sinopse: l.sinopse ?? undefined,
       }),

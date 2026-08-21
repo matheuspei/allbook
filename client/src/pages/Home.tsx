@@ -6,7 +6,7 @@ import {
   catalog,
   getBooksByIds,
   genreSlug,
-  duracaoEstimada,
+  duracaoDoLivro,
   genres,
   temCapaReal,
   type Book,
@@ -58,18 +58,80 @@ const chamadaPorGenero: Record<Genre, string> = {
   Produtividade: "Métodos simples para render mais sem se sobrecarregar.",
 };
 
+/**
+ * Há alguma nota no catálogo inteiro?
+ *
+ * Decide o critério E o selo do billboard. Com o acervo de verdade a resposta é
+ * **não**: nenhuma das lojas entrega avaliação, e a nota do AllBook vem de quem
+ * ouve. Chamar de "Mais bem avaliados" uma seleção em que ninguém avaliou nada
+ * seria o mesmo tipo de mentira que as maquetes contavam (§4.134).
+ */
+function existeAlgumaNota(): boolean {
+  return catalog.some((livro) => livro.rating !== undefined);
+}
+
 /** Os mais bem avaliados, um por gênero — os cinco de maior nota vão à capa. */
 function destaquesDaCapa(): Book[] {
+  /**
+   * ⚠️ **A capa do app tem porteiro** (21/08). O acervo de verdade traz fichas
+   * de qualidade desigual, e o billboard é a primeira coisa que se vê: no
+   * primeiro teste ele estampou um livro sem autor ("Autor desconhecido"), sem
+   * descrição e com o título cru da loja, em caixa baixa e sem acento. Livro
+   * assim continua no catálogo, na busca e nas listas — só não é cartão de
+   * visita.
+   */
+  const aptoParaACapa = (book: Book) =>
+    temCapaReal(book) &&
+    book.author !== "Autor desconhecido" &&
+    Boolean(chamadaPorLivro[book.id] ?? book.sinopse ?? chamadaPorGenero[book.genre]);
+
   const melhorDeCadaGenero = genres
     .map(({ label }) =>
       catalog
-        .filter((book) => book.genre === label)
+        .filter((book) => book.genre === label && aptoParaACapa(book))
         .sort(porNota)[0]
     )
     .filter((book): book is Book => Boolean(book));
 
-  return melhorDeCadaGenero.sort(porNota).slice(0, 5);
+  // Com notas, os melhores; sem nenhuma nota no catálogo, os mais recentes —
+  // senão a ordem seria arbitrária e o selo "Novo no acervo" mentiria.
+  const criterio = existeAlgumaNota()
+    ? porNota
+    : (a: Book, b: Book) => (b.year ?? 0) - (a.year ?? 0);
+
+  return melhorDeCadaGenero.sort(criterio).slice(0, 5);
 }
+
+const HA_NOTAS = existeAlgumaNota();
+
+/**
+ * As fileiras que o **acervo** monta sozinho, uma por gênero.
+ *
+ * 🚨 Nasceram em 21/08 de um buraco que eu mesmo abri (§4.134): ao apagar as
+ * maquetes, a curadoria de `lib/collections.ts` foi esvaziada — ela apontava
+ * para os ids delas —, e com 2.436 livros de verdade dentro a Início ficou com
+ * o destaque, um livro em "Continuar ouvindo" e mais nada. Prateleira curada
+ * volta quando alguém curar; **fileira de gênero não precisa de ninguém**, sai
+ * do próprio catálogo e cresce junto com ele.
+ *
+ * Ordem por tamanho do gênero, e só entra livro com capa de verdade: fileira
+ * horizontal é feita de arte, e capa tipográfica gerada no meio de capas reais
+ * é o defeito que a §4.104 já tinha nomeado.
+ */
+function fileirasDoAcervo(): { slug: string; label: string; books: Book[] }[] {
+  return genres
+    .map(({ label }) => ({
+      slug: genreSlug(label),
+      label,
+      books: catalog.filter((livro) => livro.genre === label && temCapaReal(livro)),
+    }))
+    .filter((fileira) => fileira.books.length >= 4)
+    .sort((a, b) => b.books.length - a.books.length)
+    .slice(0, 8)
+    .map((fileira) => ({ ...fileira, books: fileira.books.slice(0, 14) }));
+}
+
+const fileirasPorGenero = fileirasDoAcervo();
 
 const heroBooks = destaquesDaCapa().map((book) => ({
   id: book.id,
@@ -79,9 +141,13 @@ const heroBooks = destaquesDaCapa().map((book) => ({
   // A capa REAL do livro (o `books.ts` já cai na arte genérica do gênero quando
   // não há capa baixada). Antes o billboard usava sempre a genérica.
   cover: book.cover,
-  duration: duracaoEstimada(book.pages),
-  badge: "Mais bem avaliados",
-  description: chamadaPorLivro[book.id] ?? chamadaPorGenero[book.genre],
+  // A duração medida pela loja quando existe (o acervo a traz); só na falta
+  // dela a estimativa por páginas, que é herança da ficha da Open Library.
+  duration: duracaoDoLivro(book),
+  badge: HA_NOTAS ? "Mais bem avaliados" : "Novo no acervo",
+  // A chamada escrita à mão vence; depois a sinopse da própria loja (o acervo
+  // traz uma para quase todo livro); e só então a frase do gênero.
+  description: chamadaPorLivro[book.id] ?? book.sinopse ?? chamadaPorGenero[book.genre],
   rating: book.rating,
 }));
 
@@ -280,11 +346,18 @@ function HeroBillboard() {
                   <span>{book.duration}</span>
                 </>
               )}
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 fill-primary text-primary" />
-                <span>{book.rating}</span>
-              </div>
+              {/* Estrela só com nota: o acervo chega sem avaliação, e o que
+                  ficava aqui era uma estrela vermelha sozinha, sem número
+                  nenhum ao lado (§4.134). */}
+              {book.rating !== undefined && (
+                <>
+                  <span>•</span>
+                  <div className="flex items-center gap-1">
+                    <Star className="w-3 h-3 fill-primary text-primary" />
+                    <span>{book.rating}</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-3 pt-2">
@@ -584,7 +657,22 @@ function ContinueListeningSection() {
   );
 }
 
-function BookCarousel({ slug, title, books }: { slug: string; title: string; books: Book[] }) {
+function BookCarousel({
+  slug,
+  title,
+  books,
+  destino,
+}: {
+  slug: string;
+  title: string;
+  books: Book[];
+  /**
+   * Para onde o "Ver tudo" leva. O padrão é a tela da coleção; as fileiras que
+   * o acervo monta por gênero apontam para `/category/…`, que é a tela que sabe
+   * mostrar um gênero inteiro. Sem isto elas caíam em "Coleção não encontrada".
+   */
+  destino?: string;
+}) {
   const [, setLocation] = useLocation();
 
   // Fileira sem livro não se desenha. Título com "Ver tudo" e nada embaixo é
@@ -596,7 +684,7 @@ function BookCarousel({ slug, title, books }: { slug: string; title: string; boo
       <div className="flex items-center justify-between px-4">
         <h2 className="font-display font-bold text-xl text-white">{title}</h2>
         <button
-          onClick={() => setLocation(`/collection/${slug}`)}
+          onClick={() => setLocation(destino ?? `/collection/${slug}`)}
           className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors"
           data-testid={`button-see-all-${slug}`}
         >
@@ -692,6 +780,18 @@ export default function Home() {
             slug={row.slug}
             title={row.label}
             books={getBooksForCollection(row)}
+          />
+        ))}
+
+        {/* As fileiras que o acervo monta sozinho. Vêm depois das curadas de
+            propósito: curadoria, quando existe, vale mais que contagem. */}
+        {fileirasPorGenero.map((fileira) => (
+          <BookCarousel
+            key={`genero-${fileira.slug}`}
+            slug={`genero-${fileira.slug}`}
+            title={fileira.label}
+            books={fileira.books}
+            destino={`/category/${fileira.slug}`}
           />
         ))}
         <FimDaLista />

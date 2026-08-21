@@ -78,10 +78,19 @@ const SEM_GENERO = { slug: "sem-genero", rotulo: "Sem gênero" };
  * **depois** de as duas pontas terem sido trocadas com sucesso. Se ele está lá,
  * o arquivo está pronto e a duração não muda mais.
  *
- * ⚠️ **A Audible é exceção, e não é descuido:** o Matheus a deixou de fora da
- * vinheta, então nenhum livro dela **nunca** terá esse campo (conferido: 0 em
- * 300 fichas). Como a duração dela não vai mudar, exigir a marca ali barraria
- * 1.289 livros para sempre, por uma razão que não se aplica a eles.
+ * ⚠️ **A Audible é exceção, por decisão do Matheus (21/08).** Ela ficou de fora
+ * da colagem de agora — nenhuma das 300 fichas conferidas tem o campo — porque
+ * **os áudios dela ainda vão ser recuperados**; a vinheta entra depois, quando
+ * isso estiver feito. Ele foi explícito: *"você pode subir a Audible agora, e
+ * depois as vinhetas entram depois na Audible"*. Exigir a marca ali barraria
+ * 1.289 livros por uma etapa que ainda nem começou.
+ *
+ * 🚨 **A consequência, para quem for ingerir ÁUDIO da Audible:** quando a
+ * vinheta dela for colada, a duração muda. Enquanto só a ficha subiu (é o caso
+ * agora), não há marcador para deslocar — a `duracaoSegundos` daqui é a
+ * anunciada pela loja, não a medida. Mas áudio Audible ingerido **antes** da
+ * vinheta terá de ser reingerido, ou reajustado pelo `vinhetaSegundos` como a
+ * §4.129 descreve.
  */
 const LOJAS_COM_VINHETA = ["storytel", "tocalivros", "ubook"];
 
