@@ -26,14 +26,21 @@ export interface Chapter {
 const FALLBACK_MIN = 300;
 
 /**
- * Duração total do livro em segundos, na **mesma conta** de `duracaoEstimada`
- * em `books.ts` (perto de 1 hora a cada 33 páginas). É replicada aqui de
- * propósito: os capítulos precisam somar exatamente a duração que a ficha
- * mostra, senão a porcentagem de progresso não bate com o tamanho do livro.
- * Se a fórmula mudar lá, mude aqui também.
+ * Duração total do livro em segundos.
+ *
+ * ⚠️ **A duração de verdade vem primeiro desde 21/08** (§4.134.1). O acervo
+ * entrega a duração que a loja anuncia, e o `npm run audio` grava a medida por
+ * cima quando o arquivo entra — só na falta das duas é que se estima pelas
+ * páginas (≈1h a cada 33), que é herança da ficha da Open Library. Sem esta
+ * ordem, **todo livro do acervo mostrava "5h 00min"**: nenhum deles tem número
+ * de páginas, então todos caíam na reserva.
+ *
+ * Os capítulos precisam somar exatamente isto, senão a porcentagem de progresso
+ * não bate com o tamanho do livro.
  */
 function totalDurationSec(bookId: number): number {
   const book = catalog.find((item) => item.id === bookId);
+  if (book?.duracaoSegundos) return book.duracaoSegundos;
   const minutes = book?.pages ? Math.round((book.pages / 33) * 60) : FALLBACK_MIN;
   return minutes * 60;
 }

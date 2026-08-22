@@ -89,6 +89,15 @@ export interface Book {
    * existe — ver `duracaoDoLivro`.
    */
   duracaoSegundos?: number;
+  /**
+   * A loja de onde a ficha veio (`audible`, `storytel`, `ubook`,
+   * `tocalivros`), ou vazio quando o livro é do **AllBook Studio**.
+   *
+   * É o que separa o que o AllBook gravou do que ele trouxe de fora — e o selo
+   * "AllBook Original" depende disso. Antes ele estava em toda ficha, porque
+   * todo livro era maquete e portanto "do AllBook".
+   */
+  origem?: string;
   synopsis?: string;
   /**
    * A sinopse curada em PT-BR (§4.104) — na ficha ela **vence** a `synopsis`
@@ -217,6 +226,7 @@ interface LivroDaApi {
    * existe — ver `duracaoDoLivro`.
    */
   duracaoSegundos?: number;
+  origem?: string;
   synopsis?: string;
   sinopse?: string;
 }

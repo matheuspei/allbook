@@ -68,6 +68,7 @@ const PADROES_DA_FICHA = {
 const FICHA_AUSENTE = {
   ...PADROES_DA_FICHA,
   id: 0,
+  origem: undefined as string | undefined,
   title: "",
   author: "",
   narrator: "",
@@ -303,6 +304,7 @@ function buildFromCatalog(id: string) {
     // As duas notas separadas saem do catálogo (fonte única). Livro sem ficha
     // curada não tem as duas, e os ajudantes caem no `rating` — repetir um
     // número verdadeiro é melhor do que estampar dois inventados.
+    origem: entry.origem,
     story: notaHistoria(entry),
     performance: notaNarracao(entry),
     // A sinopse curada em PT-BR vence a importada (§4.104): a da Open Library
@@ -506,19 +508,33 @@ export default function BookDetails({ params }: { params: { id: string } }) {
         </header>
 
         <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
-          <Badge className="bg-primary/90 text-primary-foreground border-none px-3 py-1 text-[10px] uppercase font-bold tracking-wider" data-testid="badge-exclusive">
-            AllBook Original
-          </Badge>
+          {/* 🚨 Este selo estava em TODO livro, herança de quando o catálogo
+              inteiro era maquete e tudo era, por definição, do AllBook. Com o
+              acervo de verdade dentro ele passou a carimbar "AllBook Original"
+              em livro da Storytel e da Audible (§4.134.1). Agora ele é o que
+              diz ser: só aparece no que o estúdio gravou — livro sem `origem`
+              de loja. */}
+          {!book.origem && (
+            <Badge className="bg-primary/90 text-primary-foreground border-none px-3 py-1 text-[10px] uppercase font-bold tracking-wider" data-testid="badge-exclusive">
+              AllBook Original
+            </Badge>
+          )}
           <h1 className="text-3xl font-bold font-display leading-tight drop-shadow-lg" data-testid="text-book-title">{book.title}</h1>
           <div className="flex items-center gap-3 text-sm text-white/70">
-            <div className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 fill-primary text-primary" />
-              {/* O "(128)" que ficava aqui era número escrito à mão numa ficha
-                  de maquete (§4.134). Contagem de avaliações volta quando sair
-                  da tabela `avaliacoes`, com o número de verdade. */}
-              <span className="font-semibold text-white">{book.rating}</span>
-            </div>
-            <span>•</span>
+            {/* Sem nota, sem estrela. O acervo chega sem avaliação, e o que
+                ficava aqui era uma estrela vermelha sozinha, sem número ao
+                lado (§4.134.1). O "(128)" que a acompanhava era número escrito
+                à mão numa ficha de maquete: a contagem volta quando sair de
+                `avaliacoes`, com o número de verdade. */}
+            {book.rating !== undefined && (
+              <>
+                <div className="flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 fill-primary text-primary" />
+                  <span className="font-semibold text-white">{book.rating}</span>
+                </div>
+                <span>•</span>
+              </>
+            )}
             <div className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
               <span>{duracaoLivro}</span>

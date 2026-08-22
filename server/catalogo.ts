@@ -60,6 +60,8 @@ export interface LivroDoCatalogo {
   pages?: number;
   isbn?: string;
   duracaoSegundos?: number;
+  /** A loja de origem; vazio quando o livro é do AllBook Studio. */
+  origem?: string;
   synopsis?: string;
   sinopse?: string;
 }
@@ -138,6 +140,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         paginas: livros.paginas,
         isbn: livros.isbn,
         duracaoSegundos: livros.duracaoSegundos,
+        origem: livros.origemLoja,
         sinopseImportada: livros.sinopseImportada,
         sinopse: livros.sinopse,
       })
@@ -182,6 +185,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         pages: l.paginas ?? undefined,
         isbn: l.isbn ?? undefined,
         duracaoSegundos: l.duracaoSegundos ?? undefined,
+        origem: l.origem ?? undefined,
         synopsis: l.sinopseImportada ?? undefined,
         sinopse: l.sinopse ?? undefined,
       }),
