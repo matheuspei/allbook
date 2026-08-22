@@ -48,6 +48,7 @@ import { asc, eq, sql } from "drizzle-orm";
 import { capitulos, livros, progresso } from "@shared/schema";
 import {
   armazenamento,
+  armazenamentoDeMestres,
   chaveDaLista,
   chaveDaVinheta,
   chaveDoMestre,
@@ -225,10 +226,10 @@ function tituloDoArquivo(nome: string, numero: number): string {
  */
 async function baixarVinheta(qual: "abertura" | "fecho", pasta: string): Promise<Faixa | null> {
   const chave = chaveDaVinheta(qual);
-  if (!(await armazenamento.existe(chave))) return null;
+  if (!(await armazenamentoDeMestres.existe(chave))) return null;
 
   const destino = path.join(pasta, `vinheta-${qual}.mp3`);
-  await pipeline(await armazenamento.abrir(chave), createWriteStream(destino));
+  await pipeline(await armazenamentoDeMestres.abrir(chave), createWriteStream(destino));
   return { caminho: destino, nome: `vinheta-${qual}`, segundos: await duracaoDe(destino) };
 }
 
@@ -294,7 +295,7 @@ async function ingerir(livroId: number, entrada: string, guardarMestre: boolean)
   if (guardarMestre) {
     console.log("\n1. guardando o mestre (antes de processar — se o resto falhar, ele está a salvo)");
     for (const faixa of faixas) {
-      await armazenamento.guardar(chaveDoMestre(livroId, faixa.nome), faixa.caminho);
+      await armazenamentoDeMestres.guardar(chaveDoMestre(livroId, faixa.nome), faixa.caminho);
     }
     console.log(`   ✓ ${faixas.length} arquivo(s) em mestres/${livroId}/`);
   }
@@ -469,7 +470,7 @@ async function ingerir(livroId: number, entrada: string, guardarMestre: boolean)
  * vinheta, mudou o bitrate, apareceu um formato novo? Roda de novo.
  */
 async function refazer(livroId: number) {
-  const mestres = await armazenamento.listar(`mestres/${livroId}`);
+  const mestres = await armazenamentoDeMestres.listar(`mestres/${livroId}`);
   if (mestres.length === 0) {
     console.error(`Não há mestre guardado para o livro ${livroId}.`);
     console.error(`Ingira primeiro: npm run audio ${livroId} <arquivo ou pasta>`);
@@ -481,7 +482,7 @@ async function refazer(livroId: number) {
     console.log(`trazendo ${mestres.length} mestre(s) de volta…`);
     for (const chave of mestres) {
       const destino = path.join(temporario, path.basename(chave));
-      await pipeline(await armazenamento.abrir(chave), createWriteStream(destino));
+      await pipeline(await armazenamentoDeMestres.abrir(chave), createWriteStream(destino));
     }
     // `false`: o mestre já está guardado — recopiá-lo sobre si mesmo é inútil.
     await ingerir(livroId, temporario, false);

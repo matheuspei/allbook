@@ -6528,3 +6528,31 @@ caminho que já funcionou noutra compra dele é **Apple Pay com cartão PayPal**
 plano B é gift card comprado com Pix. Enquanto não passar, nada muda no código:
 `server/armazenamento.ts` segue com a `PastaLocal`, e a `S3Compativel` é uma
 classe e três variáveis de ambiente, como a §4.129 registrou.
+
+### Feito no mesmo dia: a conta, o balde e as duas gavetas (22/08, mais tarde)
+
+O pagamento passou. Conta criada, **R2 ativo**, balde `allbook-audio` (Standard,
+ENAM, público desabilitado) e token com escopo só desse balde.
+
+`server/armazenamento.ts` ganhou a `S3Compativel` — e, mais importante, **duas
+gavetas separadas**, porque a implementação ingênua furava a regra 1 do §1.7 em
+silêncio:
+
+- `armazenamentoDeMestres` — **sempre o disco.** Mestre e vinheta, que é insumo
+  de produção e nunca é servida. `AUDIO_RAIZ=/Volumes/hd 18tb/AllBook-audio`.
+- `armazenamento` — a entrega, e só ela vai para a nuvem.
+
+⚠️ **O furo era real e mudo:** `script/ingerir-audio.ts` usava o mesmo objeto
+para as duas coisas (linha 297, "guardando o mestre"). No instante em que
+`AUDIO_S3_ENDPOINT` entrasse no `.env`, todo mestre subiria junto — sem erro,
+sem aviso, dobrando o acervo de 5,2 para 10,4 TB. São ~R$ 400/mês, e a regra do
+plano diz exatamente o contrário. `npm run r2:testar` agora **falha de saída**
+se a gaveta dos mestres apontar para qualquer coisa que não seja o disco.
+
+`npm run r2:testar` prova o caminho inteiro contra o balde de verdade: PUT,
+HEAD, tamanho, GET com comparação de conteúdo, listagem, **URL assinada buscada
+sem credencial** (o caminho do player) e apagar no fim. Sete verdes.
+
+E `server/audio.ts:304` não precisou de uma linha: o `urlTemporaria()` que a
+§4.128 deixou escrito "para o dia da troca" passou a devolver URL, e a rota
+já redireciona sozinha.

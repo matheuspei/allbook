@@ -425,11 +425,28 @@ const RAIZ = (() => {
 })();
 
 /**
- * O armazenamento em uso — **a escolha acontece aqui, e só aqui** (§4.128).
+ * ⚠️ **Duas gavetas, dois lugares — e a diferença vale ~R$ 400 por mês.**
  *
- * Sem `AUDIO_S3_ENDPOINT`, é a pasta local: nada muda para quem desenvolve sem
- * credencial. Com ele, é o balde. As três variáveis são as únicas que separam
- * um provedor do outro:
+ * A regra 1 do §1.7 do `PLANO-ACERVO` é curta: **o mestre nunca sobe.** Ele
+ * dobra o tamanho do acervo (~10,4 TB contra ~5,2 TB), e não serve para nada na
+ * nuvem — ninguém o escuta, ele existe para a entrega poder ser refeita em casa.
+ *
+ * Um armazenamento só para as duas coisas faria a ingestão mandar o mestre
+ * junto no instante em que `AUDIO_S3_ENDPOINT` aparecesse no `.env`, sem erro
+ * nenhum e sem ninguém perceber — até a fatura. Por isso são dois:
+ *
+ * - `armazenamentoDeMestres` — **sempre o disco**, o HD dele. Também guarda a
+ *   vinheta, que é insumo de produção e nunca é servida a ninguém.
+ * - `armazenamento` — a **entrega**: a lista e os segmentos que o app toca. É a
+ *   única que vai para a nuvem, e a única que precisa de URL assinada.
+ */
+export const armazenamentoDeMestres: Armazenamento = new PastaLocal(RAIZ);
+
+/**
+ * A entrega — **a escolha de provedor acontece aqui, e só aqui** (§4.128).
+ *
+ * Sem `AUDIO_S3_ENDPOINT`, é a mesma pasta local: dá para desenvolver o projeto
+ * inteiro sem credencial nenhuma. Com ele, é o balde:
  *
  * ```
  *   AUDIO_S3_ENDPOINT=https://<conta>.r2.cloudflarestorage.com
@@ -440,7 +457,7 @@ const RAIZ = (() => {
  */
 export const armazenamento: Armazenamento = (() => {
   const endpoint = process.env.AUDIO_S3_ENDPOINT?.trim();
-  if (!endpoint) return new PastaLocal(RAIZ);
+  if (!endpoint) return armazenamentoDeMestres;
 
   const balde = process.env.AUDIO_S3_BALDE?.trim();
   const chave = process.env.AUDIO_S3_CHAVE?.trim();
@@ -498,5 +515,11 @@ export function chaveDaVinheta(qual: "abertura" | "fecho"): string {
 
 /** Só para o terminal dizer onde as coisas estão sem repetir o caminho. */
 export function ondeFica(): string {
-  return `${armazenamento.nome} — ${armazenamento.onde}`;
+  if (armazenamento === armazenamentoDeMestres) {
+    return `${armazenamento.nome} — ${armazenamento.onde}`;
+  }
+  return (
+    `entrega: ${armazenamento.nome} — ${armazenamento.onde}\n` +
+    `mestres: ${armazenamentoDeMestres.nome} — ${armazenamentoDeMestres.onde}`
+  );
 }

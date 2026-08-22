@@ -11,7 +11,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { armazenamento, ondeFica } from "../server/armazenamento";
+import { armazenamento, armazenamentoDeMestres, ondeFica } from "../server/armazenamento";
 
 const CHAVE = "_teste/ola.txt";
 const CONTEUDO = `teste do AllBook — ${new Date().toISOString()}\n`;
@@ -35,6 +35,20 @@ if (armazenamento.nome === "pasta local") {
 }
 
 let falhou = false;
+
+/*
+ * ⚠️ **A trava de custo, e ela vem primeiro.** A regra 1 do §1.7 do
+ * PLANO-ACERVO diz que o mestre nunca sobe: ele dobra o acervo (10,4 TB contra
+ * 5,2 TB) e não serve a ninguém na nuvem. Um dia alguém aponta as duas gavetas
+ * para o mesmo lugar, nada dá erro, e a conta chega. Esta linha existe para
+ * esse dia.
+ */
+if (armazenamentoDeMestres.nome !== "pasta local") {
+  nao(`o MESTRE está apontando para "${armazenamentoDeMestres.nome}" — ele nunca sobe (regra 1 do §1.7)`);
+  process.exit(1);
+}
+ok(`o mestre continua no disco: ${armazenamentoDeMestres.onde}`);
+
 try {
   await armazenamento.guardar(CHAVE, local);
   ok("subiu o arquivo (PUT)");
