@@ -2,8 +2,24 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import {
+  confiarNoProxy,
+  cabecalhosDeSeguranca,
+  permissoesDoNavegador,
+} from "./seguranca";
 
 const app = express();
+
+/*
+ * Segurança antes de tudo o mais — §4.135 do ROTEIRO.
+ *
+ * A ordem importa: `trust proxy` tem de valer antes de qualquer rota ler
+ * `req.ip` ou gravar cookie, e os cabeçalhos têm de sair também nas respostas
+ * de erro, que nascem do primeiro middleware que falhar.
+ */
+const saltosDeProxy = confiarNoProxy(app);
+app.use(cabecalhosDeSeguranca());
+app.use(permissoesDoNavegador());
 
 declare module "http" {
   interface IncomingMessage {
@@ -100,5 +116,11 @@ app.use((req, res, next) => {
   const host = process.env.HOST || "0.0.0.0";
   httpServer.listen(port, host, () => {
     log(`serving on port ${port} (host ${host})`);
+    log(
+      saltosDeProxy
+        ? `confiando em ${saltosDeProxy} proxy — req.ip vem do X-Forwarded-For`
+        : "sem proxy — req.ip é a conexão direta",
+      "seguranca",
+    );
   });
 })();

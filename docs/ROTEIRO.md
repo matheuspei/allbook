@@ -6405,3 +6405,126 @@ apareceu com dado de verdade na tela:
   `Notifications.tsx`, `chamadaPorLivro`). Ela aponta para o vazio e some
   sozinha — a trava dos ids a partir de 100.000 garante que nunca colida com
   livro real. Quando a camada social virar de verdade, esse material sai.
+
+---
+
+## 4.135 A camada de rede fecha na Cloudflare — e o protocolo de segurança da plataforma (22/08)
+
+A decisão de provedor estava parada desde 16/08. Em 22/08 ele fechou —
+**Cloudflare** — e o critério não é preço: é a **camada de rede**, que nenhum
+concorrente entrega inteira.
+
+### As cinco camadas, e quem tem cada uma
+
+Elas moram na **entrega e no domínio**, não no balde:
+
+| Camada | O que faz | Cloudflare | Bunny | Backblaze B2 |
+|---|---|---|---|---|
+| **Proxy reverso** | o DNS aponta para o provedor, não para o servidor; o IP de origem some da vista pública | ✅ | ✅ | ❌ |
+| **Anycast** | o mesmo IP é anunciado por BGP de centenas de datacenters ao mesmo tempo | ✅ ~330 PoPs | ✅ 119 PoPs | ❌ 3 regiões |
+| **IP compartilhado** | o endereço serve milhões de domínios; separa-se quem é quem só pelo `Host`/SNI | ✅ | ✅ | ❌ |
+| **ECH** — Encrypted Client Hello, [RFC 9849](https://www.rfc-editor.org/rfc/rfc9849.html) | cifra o **SNI**, que no TLS comum viaja em texto puro no primeiro pacote | ✅ **por padrão** em domínio *proxied*; primeira grande CDN a implantar em escala | ❓ não confirmado | ❌ |
+| **Project Galileo** | proteção gratuita para jornalismo e sociedade civil | ✅ | ❌ | ❌ |
+
+**O ECH é a peça decisiva.** Sem ele, mesmo sob HTTPS o nome do domínio pedido
+trafega em claro no handshake. Com ele, quem observa a rede vê apenas tráfego
+para `cloudflare-ech.com`, sem distinguir qual dos milhões de sites é o destino.
+
+### O que isso amarra no storage
+
+A CDN **grátis** da Cloudflare **proíbe nos termos (seção 2.8) usar Free e Pro
+principalmente para servir áudio e vídeo** — 100% do tráfego do AllBook. Para
+ter a camada de rede da Cloudflare servindo o acervo, o storage tem de ser
+**R2**, produto pago onde servir mídia por domínio próprio é o uso previsto.
+
+| Acervo alvo 5,2 TB | Guardar | Entrega | Total/mês |
+|---|---|---|---|
+| **Cloudflare R2** ← escolhido | US$ 78 | incluída | **US$ 78** |
+| B2 + Bunny CDN | US$ 36 | ~US$ 29 | US$ 65 |
+| B2 sozinho | US$ 36 | grátis (3×) | US$ 36 |
+
+Hoje, com os 296 GB da Audible, são **US$ 4,44/mês**. E a decisão da §1.7b de
+fatiar o HLS em **10 s ou mais** passa a valer dinheiro de verdade: US$ 93 de
+escrita por subida completa em 30 s, US$ 287 em 10 s, US$ 482 nos 6 s do padrão
+do `ffmpeg`.
+
+---
+
+## O protocolo de segurança do AllBook
+
+Intenção declarada por ele em 22/08: implementar **todas** as camadas, no
+máximo de segurança. O que segue é a lista completa, conferida contra o código
+de hoje.
+
+### 1. Domínio e borda (painel da Cloudflare)
+
+| Item | Estado | Nota |
+|---|---|---|
+| Todos os registros em modo *proxied* | a fazer | é o que ativa proxy reverso, anycast e IP compartilhado |
+| **ECH** ligado | a fazer | padrão em domínio *proxied*; conferir que ficou ativo |
+| **DNSSEC** | a fazer | assina as respostas do DNS contra envenenamento de cache |
+| **TLS mínimo 1.3** | a fazer | 1.2 só se quebrar cliente antigo |
+| **Modo Full (strict)** + certificado **Origin CA** no servidor | a fazer | ⚠️ em modo *Flexible* o cadeado é falso: o trecho Cloudflare→origem viaja em claro |
+| **HSTS** com `max-age` de 1 ano, `includeSubDomains` e **preload** | a fazer | trava o downgrade para HTTP |
+| Always Use HTTPS + Automatic HTTPS Rewrites | a fazer | |
+| **WAF** com regras gerenciadas + OWASP core | a fazer | |
+| **Bot Fight Mode** | a fazer | |
+| **Turnstile** no cadastro, login e recuperação de senha | a fazer | substitui captcha sem entregar dado a terceiro |
+| **Rate limiting na borda** | a fazer | barra a rajada antes de custar CPU do Node |
+| **Cloudflare Access** no painel administrativo | a fazer | rota de admin não fica exposta à internet aberta |
+| **Token Authentication** + hotlink protection nos segmentos | a fazer | o link do áudio não funciona colado noutro site |
+| Regras de cache: segmento `.ts` cacheável, `lista.m3u8` **não** | a fazer | a playlist é por sessão; cachear vaza acesso |
+| **2FA** na conta Cloudflare e no registrador + *registrar lock* | a fazer | a conta é a chave de tudo; sem isso o resto é decoração |
+
+### 2. Aplicação (Express)
+
+| Item | Estado | Onde |
+|---|---|---|
+| ⚠️ **`app.set("trust proxy", 1)`** | **falta — e quebra em silêncio** | `server/index.ts`. Sem isso, atrás do proxy o Express vê o IP da Cloudflare no lugar do IP real (o rate limit passa a punir todo mundo junto) e o cookie `secure` pode não ser emitido. **É o primeiro item.** |
+| ⚠️ **Cabeçalhos de segurança** (`helmet`) | **falta** | grep em `server/` não achou HSTS, CSP, `X-Content-Type-Options`, `Referrer-Policy` nem `frame-ancestors` |
+| **CSP** restritiva com nonce | falta | fecha a porta do XSS, que é o que o `httpOnly` já assume existir |
+| Cookie `httpOnly` + `sameSite: lax` + `secure` em produção | ✅ existe | `server/contas.ts:66-72` — está correto |
+| Prefixo **`__Host-`** no nome do cookie | a fazer | amarra o cookie ao domínio exato e a HTTPS |
+| **`session.regenerate()`** no login | a fazer | contra fixação de sessão |
+| Senha em `scrypt` + `timingSafeEqual` | ✅ existe | `server/senha.ts` |
+| **Rate limit fora da memória** (KV ou Redis) | falta | `server/audio.ts:85` já registra que a versão atual não sobrevive a mais de uma instância |
+| CORS fechado ao próprio domínio | a conferir | |
+
+### 3. O conteúdo (o áudio)
+
+| Item | Estado | Onde |
+|---|---|---|
+| **HLS cifrado em AES-128**, chave no Postgres, entregue só com sessão válida | ✅ existe | `server/audio.ts`, §4.130 |
+| Chave de storage **opaca** (`sha256(loja\|id)[:24]`) — a URL não entrega a origem | ✅ existe | `baixalivro/src/entrega.py`, §1.7c |
+| Playlist reescrita: nenhuma URL de provedor chega ao navegador | ✅ existe | `server/audio.ts` |
+| **URL assinada de 60 s** + rota passando a redirecionar em vez de fazer stream pelo Express | a fazer | está previsto em comentário; sem isso a banda é paga duas vezes e o Node vira o gargalo |
+| **Chave de cifra por narração**, rotacionável | a fazer | uma chave comprometida não abre o acervo inteiro |
+| Limite de 600 segmentos/min e 20 livros/dia por conta | ✅ existe | `server/audio.ts` |
+
+### 4. O aplicativo próprio — a camada que só ele tem
+
+Um app **não usa o resolver de DNS do sistema** se não quiser. Ele embute o
+próprio cliente **DoH** (DNS sobre HTTPS, porta 443) ou conecta direto ao IP com
+o nome no cabeçalho `Host`. É a única peça da pilha que não depende de o usuário
+configurar nada no aparelho — no navegador, o equivalente exige que a pessoa
+ligue "DNS seguro" (Chrome/Firefox) ou "DNS privado" (Android 9+, vale para o
+aparelho inteiro).
+
+Somam-se aí: **certificate pinning** contra o certificado da Cloudflare, e o
+segredo de sessão guardado no Keychain/Keystore em vez de armazenamento comum.
+
+### 5. Operacional
+
+- `SESSION_SECRET` e credenciais do R2 fora do repositório, em variável de
+  ambiente. O `.env` já está no `.gitignore`.
+- Backup do Postgres cifrado e **fora do disco do banco** — dívida já nomeada na
+  §4.126, que o disco externo resolve.
+- Rotação de credencial do R2 documentada, e chave com escopo só do balde.
+
+### A pendência que trava o começo
+
+O checkout do R2 recusou o cartão da Wise e o cartão via PayPal em 15/08. O
+caminho que já funcionou noutra compra dele é **Apple Pay com cartão PayPal**;
+plano B é gift card comprado com Pix. Enquanto não passar, nada muda no código:
+`server/armazenamento.ts` segue com a `PastaLocal`, e a `S3Compativel` é uma
+classe e três variáveis de ambiente, como a §4.129 registrou.
