@@ -6625,3 +6625,49 @@ mudou é que agora isso custa 2 MB de dados em memória, não 14.
 O maior "gênero" do AllBook hoje chama-se **Sem gênero** e tem 59% do acervo.
 É o tamanho da classificação que a §4.133 e os 35 gêneros da janela B vão
 encontrar — e é dado que existe nas lojas, só não veio nesta varredura.
+
+### A correção dele: o disco errado, e a trava que faltava (22/08, ainda mais tarde)
+
+Eu tinha apontado `AUDIO_RAIZ` para o **HD de 18 TB**. Ele corrigiu, e a
+correção vale mais que o ajuste: **o HD nem sempre está plugado**, e o fluxo já
+estava escrito no `LEIA-ME.md` do acervo desde 14/08 — baixa-se no **SSD**, e
+quando o HD é conectado o `baixalivro escoar` move os mestres já conferidos,
+**confere arquivo por arquivo e só então apaga a origem**. Eu passei por cima de
+uma decisão que já existia, por não ter lido antes de escolher.
+
+⚠️ **E o erro tinha um segundo andar, mudo.** `/Volumes/hd 18tb` continua sendo
+um caminho válido com o HD desconectado — só que aí é uma **pasta comum no disco
+de boot**. `mkdir` funciona, a gravação funciona, e tudo some no instante em que
+o disco volta e monta por cima. O `baixalivro` se defende disso desde 14/08 com
+o `.acervo-aqui`; o AllBook não tinha nada.
+
+`server/armazenamento.ts` ganhou as duas defesas:
+
+- `conferirDisco()` — para caminho sob `/Volumes/X`, compara o **device do
+  sistema de arquivos** com o de `/`. Se forem iguais, X não está montado: é
+  pasta no disco interno, e o programa **para**. Rodado a cada operação, não uma
+  vez no início — o disco pode sair no meio de uma ingestão de três horas.
+- `.audio-aqui` — o sentinela na raiz, mesma ideia do `.acervo-aqui`. Raiz que
+  existe sem o sentinela é pasta errada, e para.
+
+Provado: disco inexistente barra com mensagem clara; o SSD montado passa; e a
+comparação de device distingue `/Users/…` (dev 16777233, igual a `/`) de
+`/Volumes/Acervo` (dev 16777246).
+
+### Os números do acervo, medidos em vez de projetados (22/08)
+
+A conta que vinha sendo citada — 296 GB, US$ 4,44/mês — era **só a Audible**, e
+hoje são quatro lojas. Medido no SSD:
+
+| Loja | `pronto/` (sobe) | `mestre/` (fica) |
+|---|---|---|
+| Storytel | 586,8 GB | 2,1 GB |
+| Ubook | 435,9 GB | 9,4 GB |
+| Audible | 316,5 GB | 0,7 GB |
+| Tocalivros | 193,9 GB | 0,5 GB |
+| **Total** | **1.533 GB** | 12,7 GB |
+
+O mestre já está quase todo no HD (~3,6 TB lá), que é o escoamento funcionando.
+
+**O que sobe hoje são ~1,5 TB — US$ 23/mês (R$ 120) no R2.** O nível gratuito
+de 10 GB cobre 0,65% disso: serve para ensaiar o caminho, não para o acervo.

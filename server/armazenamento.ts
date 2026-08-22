@@ -33,7 +33,7 @@
  * falhar no meio, o original já está a salvo.
  */
 
-import { createReadStream } from "node:fs";
+import { createReadStream, statSync, writeFileSync } from "node:fs";
 import { copyFile, mkdir, readdir, rm, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
@@ -123,6 +123,77 @@ function conferirChave(chave: string): string {
 }
 
 /* -------------------------------------------------------------------------- */
+/* A trava do disco externo — a falha que não dá erro                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * ⚠️ **Disco externo desmontado não dá erro: dá um segundo acervo, invisível.**
+ *
+ * `/Volumes/Acervo` continua sendo um caminho válido com o SSD desconectado —
+ * só que aí é uma **pasta comum no disco de boot**. O `mkdir` funciona, a
+ * gravação funciona, e o que se escreve some da vista no instante em que o
+ * disco volta e monta por cima. É o mesmo estrago que o `.acervo-aqui` do
+ * `baixalivro` evita desde 14/08 (ver `LEIA-ME.md` do acervo), e o AllBook não
+ * tinha proteção nenhuma.
+ *
+ * A conferência é por **device do sistema de arquivos**: se `/Volumes/X` tem o
+ * mesmo device que `/`, ele não está montado — é pasta no disco interno.
+ */
+function conferirDisco(raiz: string): void {
+  const emVolume = raiz.match(/^\/Volumes\/([^/]+)/);
+  if (!emVolume) return; // caminho no disco interno: sempre está lá
+
+  const ponto = `/Volumes/${emVolume[1]}`;
+  let devDoPonto: number;
+  try {
+    devDoPonto = statSync(ponto).dev;
+  } catch {
+    throw new Error(
+      `O disco "${emVolume[1]}" não está montado — conecte-o.\n` +
+        `(AUDIO_RAIZ aponta para ${raiz})`,
+    );
+  }
+  if (devDoPonto === statSync("/").dev) {
+    throw new Error(
+      `O disco "${emVolume[1]}" NÃO está montado: "${ponto}" é uma pasta no ` +
+        `disco de boot.\nGravar aí cria um segundo acervo que some quando o ` +
+        `disco voltar. Conecte o disco.`,
+    );
+  }
+}
+
+/**
+ * O sentinela, na raiz do áudio: prova de que esta pasta é a de verdade.
+ *
+ * Se a raiz existe mas o sentinela não, alguém (ou o macOS) criou uma pasta
+ * vazia de mesmo nome noutro lugar. Parar é o certo.
+ */
+const SENTINELA = ".audio-aqui";
+
+function conferirSentinela(raiz: string, criarSePreciso: boolean): void {
+  const marca = path.join(raiz, SENTINELA);
+  try {
+    statSync(marca);
+    return;
+  } catch {
+    /* não existe — decidir abaixo */
+  }
+  let raizExiste = true;
+  try {
+    statSync(raiz);
+  } catch {
+    raizExiste = false;
+  }
+  if (!raizExiste && criarSePreciso) return; // a primeira gravação cria os dois
+  if (raizExiste && !criarSePreciso) {
+    throw new Error(
+      `${raiz} existe mas não tem o "${SENTINELA}".\n` +
+        `Ou é a pasta errada, ou o disco certo não está montado.`,
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* A implementação de hoje: uma pasta no disco                                 */
 /* -------------------------------------------------------------------------- */
 
@@ -136,12 +207,27 @@ class PastaLocal implements Armazenamento {
   }
 
   private caminho(chave: string): string {
+    /*
+     * Conferido a **cada** operação, e não uma vez no início: o disco pode ser
+     * desconectado no meio de uma ingestão de três horas, e a partir daí tudo
+     * continuaria "funcionando" contra o disco de boot.
+     */
+    conferirDisco(this.raiz);
     return path.join(this.raiz, conferirChave(chave));
   }
 
   async guardar(chave: string, arquivoDeOrigem: string): Promise<void> {
     const destino = this.caminho(chave);
+    conferirSentinela(this.raiz, true);
     await mkdir(path.dirname(destino), { recursive: true });
+    // Nasce junto com a pasta, na primeira gravação, e fica.
+    await mkdir(this.raiz, { recursive: true });
+    writeFileSync(
+      path.join(this.raiz, SENTINELA),
+      "Marca do AllBook: esta é a raiz do áudio (AUDIO_RAIZ).\n" +
+        "Não apague — sem ela o programa para em vez de gravar no disco errado.\n",
+      { flag: "a" },
+    );
     await copyFile(arquivoDeOrigem, destino);
   }
 
