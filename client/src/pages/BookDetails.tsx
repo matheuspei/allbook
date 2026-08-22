@@ -5,9 +5,10 @@ import { BOOKMARK_EVENT, bookmarksFor, type Bookmark } from "@/lib/bookmarks";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
+  carregarSinopses,
   catalog,
   findGenreBySlug,
   getBooksByGenre,
@@ -308,8 +309,11 @@ function buildFromCatalog(id: string) {
     story: notaHistoria(entry),
     performance: notaNarracao(entry),
     // A sinopse curada em PT-BR vence a importada (§4.104): a da Open Library
-    // vem em inglês e virou reserva de livro que ainda não ganhou a sua. Sem
-    // nenhuma das duas, um texto que assume a falta em vez de fingir resumo.
+    // vem em inglês e virou reserva de livro que ainda não ganhou a sua.
+    //
+    // ⚠️ Ela **não vem no catálogo** desde 22/08 (§4.134.2) — era 85% de uma
+    // resposta de 14 MB. Esta tela a busca por conta própria logo abaixo; até
+    // chegar, um texto que assume a falta em vez de fingir resumo.
     summary:
       entry.sinopse ??
       entry.synopsis ??
@@ -330,12 +334,37 @@ export default function BookDetails({ params }: { params: { id: string } }) {
   }, [params.id]);
 
   /**
+   * A sinopse deste livro, buscada sob demanda (§4.134.2).
+   *
+   * O catálogo não a carrega — com 13.917 livros ela sozinha pesava 10,9 MB dos
+   * 14 MB da resposta, e só é lida aqui e na descrição do destaque da Início.
+   * `carregarSinopses` a escreve no próprio objeto do catálogo; o estado abaixo
+   * serve só para pedir um novo render quando ela chega.
+   */
+  const [sinopseChegou, setSinopseChegou] = useState(0);
+
+  useEffect(() => {
+    let vivo = true;
+    void carregarSinopses([Number(params.id)]).then(() => {
+      if (vivo) setSinopseChegou((n) => n + 1);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [params.id]);
+
+  /**
    * A base vem sempre do catálogo, e a ficha detalhada entra por cima só com o
    * que ela acrescenta (resumo, duração, comentários). Antes a ficha substituía
    * tudo, e por isso o narrador dela podia discordar do catálogo — o que
    * quebraria o link para o perfil do narrador.
    */
-  const book = buildFromCatalog(params.id) ?? FICHA_AUSENTE;
+  // `sinopseChegou` entra na conta de propósito: é o que faz a ficha ser
+  // remontada quando a sinopse chega do servidor.
+  const book = useMemo(
+    () => buildFromCatalog(params.id) ?? FICHA_AUSENTE,
+    [params.id, sinopseChegou],
+  );
 
   /**
    * A narração que vale agora — um livro pode ter mais de uma voz (ROTEIRO 4.30).

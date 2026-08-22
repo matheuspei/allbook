@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import {
+  carregarSinopses,
   catalog,
   getBooksByIds,
   genreSlug,
@@ -81,9 +82,7 @@ function destaquesDaCapa(): Book[] {
    * visita.
    */
   const aptoParaACapa = (book: Book) =>
-    temCapaReal(book) &&
-    book.author !== "Autor desconhecido" &&
-    Boolean(chamadaPorLivro[book.id] ?? book.sinopse ?? chamadaPorGenero[book.genre]);
+    temCapaReal(book) && book.author !== "Autor desconhecido";
 
   const melhorDeCadaGenero = genres
     .map(({ label }) =>
@@ -147,7 +146,12 @@ const heroBooks = destaquesDaCapa().map((book) => ({
   badge: HA_NOTAS ? "Mais bem avaliados" : "Novo no acervo",
   // A chamada escrita à mão vence; depois a sinopse da própria loja (o acervo
   // traz uma para quase todo livro); e só então a frase do gênero.
-  description: chamadaPorLivro[book.id] ?? book.sinopse ?? chamadaPorGenero[book.genre],
+  // Só a chamada escrita à mão. A cascata completa está no JSX, porque a
+  // sinopse do livro chega depois (o billboard a busca): a ordem é chamada à
+  // mão → sinopse do próprio livro → frase do gênero, da mais específica para
+  // a mais genérica.
+  description: chamadaPorLivro[book.id],
+  chamadaDoGenero: chamadaPorGenero[book.genre],
   rating: book.rating,
 }));
 
@@ -191,6 +195,35 @@ function HeroBillboard() {
     const interval = setInterval(nextSlide, 6000);
     return () => clearInterval(interval);
   }, [nextSlide]);
+
+  /**
+   * As sinopses dos 5 destaques.
+   *
+   * Elas **não** vêm no catálogo (§4.134.2: eram 85% de uma resposta de 14 MB),
+   * então o billboard as pede numa ida só, na abertura. Enquanto não chegam, a
+   * descrição é a chamada escrita à mão ou a frase do gênero — nunca um vazio.
+   */
+  const [sinopses, setSinopses] = useState<Record<number, string | undefined>>({});
+
+  useEffect(() => {
+    const ids = heroBooks.map((livro) => livro.id);
+    if (ids.length === 0) return;
+    let vivo = true;
+    void carregarSinopses(ids).then(() => {
+      if (!vivo) return;
+      setSinopses(
+        Object.fromEntries(
+          ids.map((id) => {
+            const livro = catalog.find((item) => item.id === id);
+            return [id, livro?.sinopse ?? livro?.synopsis];
+          }),
+        ),
+      );
+    });
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   const handleSwipe = useCallback((deltaX: number) => {
     if (Math.abs(deltaX) < 50) return;
@@ -335,7 +368,7 @@ function HeroBillboard() {
             </h1>
 
             <p className="text-sm text-white/70 max-w-sm leading-relaxed line-clamp-3" data-testid="text-hero-description">
-              {book.description}
+              {book.description ?? sinopses[book.id] ?? book.chamadaDoGenero}
             </p>
 
             <div className="flex items-center gap-3 text-xs text-white/50">

@@ -21,7 +21,7 @@
  */
 
 import type { Express } from "express";
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "./db";
@@ -62,8 +62,21 @@ export interface LivroDoCatalogo {
   duracaoSegundos?: number;
   /** A loja de origem; vazio quando o livro é do AllBook Studio. */
   origem?: string;
-  synopsis?: string;
+}
+
+/**
+ * A ficha completa de um livro — hoje, o que a lista **não** carrega.
+ *
+ * 🚨 A separação nasceu de uma medida (22/08, §4.134.2): com 13.917 livros, a
+ * resposta de `/api/catalogo` deu **14 MB**, e **85% disso era sinopse**
+ * (10,9 MB). Como o app baixa o catálogo inteiro em toda abertura e a sinopse
+ * só é lida em duas telas — a ficha do livro e a descrição do destaque —,
+ * mandá-la para os 13.917 era pagar caro por texto que quase nunca se lê.
+ */
+export interface FichaDoLivro {
+  id: number;
   sinopse?: string;
+  synopsis?: string;
 }
 
 export interface RespostaDoCatalogo {
@@ -141,8 +154,6 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         isbn: livros.isbn,
         duracaoSegundos: livros.duracaoSegundos,
         origem: livros.origemLoja,
-        sinopseImportada: livros.sinopseImportada,
-        sinopse: livros.sinopse,
       })
       .from(livros)
       .innerJoin(autor, eq(livros.autorSlug, autor.slug))
@@ -186,11 +197,33 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         isbn: l.isbn ?? undefined,
         duracaoSegundos: l.duracaoSegundos ?? undefined,
         origem: l.origem ?? undefined,
-        synopsis: l.sinopseImportada ?? undefined,
-        sinopse: l.sinopse ?? undefined,
       }),
     ),
   };
+}
+
+/**
+ * As sinopses de um punhado de livros, por id.
+ *
+ * Aceita vários de uma vez porque o billboard da Início mostra 5 destaques e
+ * pedi-los um a um seriam 5 idas ao servidor na abertura de toda sessão.
+ */
+export async function lerFichas(ids: number[]): Promise<FichaDoLivro[]> {
+  if (ids.length === 0) return [];
+  const linhas = await db
+    .select({
+      id: livros.id,
+      sinopse: livros.sinopse,
+      sinopseImportada: livros.sinopseImportada,
+    })
+    .from(livros)
+    .where(inArray(livros.id, ids));
+
+  return linhas.map((l) => ({
+    id: l.id,
+    sinopse: l.sinopse ?? undefined,
+    synopsis: l.sinopseImportada ?? undefined,
+  }));
 }
 
 export function registrarCatalogo(app: Express) {
@@ -202,6 +235,30 @@ export function registrarCatalogo(app: Express) {
   app.get("/api/catalogo", async (_req, res) => {
     try {
       return res.json(await lerCatalogo());
+    } catch (erro) {
+      return res.status(503).json({
+        erro: erro instanceof Error ? erro.message : String(erro),
+      });
+    }
+  });
+
+  /**
+   * As sinopses, sob demanda: `/api/catalogo/fichas?ids=100418,100002`.
+   *
+   * ⚠️ Vem **antes** de qualquer rota mais curta de `/api/catalogo/...` que
+   * venha a existir, pela mesma regra do `Switch` do wouter: a curta captura a
+   * longa.
+   */
+  app.get("/api/catalogo/fichas", async (req, res) => {
+    const ids = String(req.query.ids ?? "")
+      .split(",")
+      .map((n) => Number(n.trim()))
+      .filter((n) => Number.isInteger(n) && n > 0)
+      // Um teto, para um endereço à mão não pedir o catálogo inteiro por aqui.
+      .slice(0, 50);
+
+    try {
+      return res.json(await lerFichas(ids));
     } catch (erro) {
       return res.status(503).json({
         erro: erro instanceof Error ? erro.message : String(erro),

@@ -6556,3 +6556,72 @@ sem credencial** (o caminho do player) e apagar no fim. Sete verdes.
 E `server/audio.ts:304` não precisou de uma linha: o `urlTemporaria()` que a
 §4.128 deixou escrito "para o dia da troca" passou a devolver URL, e a rota
 já redireciona sozinha.
+
+### 4.134.2 O acervo inteiro entrou — e a abertura do app pesava 14 MB (22/08)
+
+**A colagem da vinheta terminou** (12.672 de 12.674) e o acervo migrou por
+inteiro: **13.917 livros** — Ubook 4.938 · Storytel 4.422 · Tocalivros 3.268 ·
+Audible 1.289 —, com **13.914 capas** ocupando 1 GB em `~/AllBook-capas`, fora
+do repositório.
+
+Os **dois** que ficaram de fora não são o do Storytel com o final cortado que o
+Matheus mencionou: são duas pastas **órfãs** da Ubook (`Nascer É Uma
+Catástrofe` e `Previsões para o amor`, sem `_ficha.json` e fora de `copias`) —
+as versões boas delas, com o id da loja no nome da pasta, entraram normalmente.
+⚠️ **O livro do Storytel com o final cortado entrou**, porque a ficha dele tem a
+marca da vinheta; quando for rebaixado, `npm run acervo importar` o atualiza no
+lugar.
+
+### O limite previsto chegou no mesmo dia
+
+A §4.134 dizia que a rota do catálogo devolve tudo numa resposta só e que isso
+tem prazo de validade. Com 13.917 livros a resposta deu **14,5 MB**, baixados em
+**toda abertura do app**.
+
+Medido campo a campo, e o resultado decidiu o conserto: **a sinopse era 85% do
+peso** — 10,9 MB dos 12,8 MB de valores. Título, autor, narrador, capa e gênero
+somados não passam de 1,5 MB.
+
+**Duas mudanças, e nenhuma delas é paginação:**
+
+1. **A sinopse saiu da lista.** Ela só é lida em duas telas — a ficha do livro e
+   a descrição do destaque —, então mandá-la para os 13.917 era pagar caro por
+   texto que quase nunca se lê. Quem precisa dela pede
+   `GET /api/catalogo/fichas?ids=…` (até 50 por vez, porque o billboard mostra
+   5 destaques e pedi-los um a um seriam 5 idas na abertura).
+2. **`compression` no Express**, logo depois dos cabeçalhos de segurança.
+
+**14.497.256 → 525.009 bytes.** 96% a menos.
+
+⚠️ `carregarSinopses()` **escreve no próprio objeto do `catalog`**, pelo mesmo
+princípio do array que nunca troca de referência — mas o React não redesenha por
+isso, então a tela que a chama guarda algo em estado para pedir um render (é o
+`sinopseChegou` do `BookDetails` e o `sinopses` do `HeroBillboard`).
+
+⚠️ **A paginação continua não existindo**, e continua sendo o próximo limite: a
+busca e a grade de gênero ainda varrem `catalog` inteiro no navegador. O que
+mudou é que agora isso custa 2 MB de dados em memória, não 14.
+
+### Três maquetes que só o dado real revelou (na ficha do livro)
+
+- **"5h 00min" em todo livro do acervo.** `chapters.ts` calculava a duração pelo
+  número de páginas e caía numa reserva de 5h quando não havia — e **nenhum**
+  livro do acervo tem páginas. A duração de verdade passou a vir primeiro.
+- **Uma estrela vermelha sozinha**, sem número ao lado, em livro sem nota.
+- **"ALLBOOK ORIGINAL" carimbado em livro da Audible.** O selo estava em toda
+  ficha, herança de quando o catálogo inteiro era maquete e tudo era, por
+  definição, do AllBook. Agora `Book.origem` traz a loja, e o selo só aparece
+  quando ela é vazia — isto é, no que o estúdio gravou.
+
+### Os números que dizem o tamanho do trabalho que sobra
+
+| | |
+|---|---|
+| sem categoria (vão para "Sem gênero") | **8.206** de 13.917 |
+| sem narrador com nome | **5.016** |
+| sem duração | 8.206 |
+| sem sinopse | 639 |
+
+O maior "gênero" do AllBook hoje chama-se **Sem gênero** e tem 59% do acervo.
+É o tamanho da classificação que a §4.133 e os 35 gêneros da janela B vão
+encontrar — e é dado que existe nas lojas, só não veio nesta varredura.

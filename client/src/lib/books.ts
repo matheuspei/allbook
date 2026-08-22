@@ -280,6 +280,49 @@ export async function carregarCatalogo(): Promise<void> {
 }
 
 /**
+ * Traz as sinopses de um punhado de livros e as **escreve nos objetos do
+ * `catalog`**, em vez de devolver uma cópia.
+ *
+ * 🚨 **Por que a sinopse não vem no catálogo.** Medido em 22/08, com o acervo
+ * de verdade dentro: a resposta de `/api/catalogo` tinha **14 MB**, e **85%
+ * disso era sinopse** — 10,9 MB de texto que só duas telas leem (a ficha do
+ * livro e a descrição do destaque). Sem ela a lista cai para ~2 MB, e com o
+ * gzip do servidor para menos de meio.
+ *
+ * ⚠️ **Escrever no próprio objeto é de propósito**, e é o mesmo princípio do
+ * `catalog` que nunca troca de referência: quem já segurava aquele livro passa
+ * a enxergar a sinopse. Mas o React **não** redesenha por causa disso — a tela
+ * que chamar isto precisa guardar algo em estado para pedir um novo render.
+ */
+export async function carregarSinopses(ids: number[]): Promise<void> {
+  const faltando = ids.filter((id) => {
+    const livro = catalog.find((item) => item.id === id);
+    return livro && livro.sinopse === undefined && livro.synopsis === undefined;
+  });
+  if (faltando.length === 0) return;
+
+  try {
+    const resposta = await fetch(`/api/catalogo/fichas?ids=${faltando.join(",")}`);
+    if (!resposta.ok) throw new Error(`o servidor respondeu ${resposta.status}`);
+    const fichas = (await resposta.json()) as {
+      id: number;
+      sinopse?: string;
+      synopsis?: string;
+    }[];
+
+    for (const ficha of fichas) {
+      const livro = catalog.find((item) => item.id === ficha.id);
+      if (!livro) continue;
+      livro.sinopse = ficha.sinopse;
+      livro.synopsis = ficha.synopsis;
+    }
+  } catch (erro) {
+    // Ficha sem sinopse não derruba tela: o texto simplesmente não aparece.
+    console.error("[catálogo] não deu para trazer as sinopses:", erro);
+  }
+}
+
+/**
  * "Ficção Científica" → "ficcao-cientifica". Sem acentos, para caber numa URL.
  *
  * Mora aqui, e não em `people.ts`, porque `people.ts` importa deste arquivo —

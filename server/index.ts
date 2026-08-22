@@ -1,3 +1,4 @@
+import compression from "compression";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
@@ -20,6 +21,21 @@ const app = express();
 const saltosDeProxy = confiarNoProxy(app);
 app.use(cabecalhosDeSeguranca());
 app.use(permissoesDoNavegador());
+
+/**
+ * Compressão (22/08, §4.134.2).
+ *
+ * Entrou por uma medida concreta: com o acervo de verdade dentro (13.917
+ * livros), a resposta de `/api/catalogo` chegou a **14 MB** — e o app a baixa em
+ * toda abertura. O gzip sozinho a leva a menos de um terço disso; junto com a
+ * sinopse, que saiu da lista, a abertura voltou a ser leve.
+ *
+ * Vem **depois** dos cabeçalhos de segurança e **antes** de tudo o mais: assim
+ * comprime também as respostas de erro, e nada que ele deva comprimir passa
+ * antes dele. Os segmentos de áudio não são afetados — já são comprimidos, e o
+ * `compression` pula o que não vale a pena pelo tipo.
+ */
+app.use(compression());
 
 declare module "http" {
   interface IncomingMessage {
