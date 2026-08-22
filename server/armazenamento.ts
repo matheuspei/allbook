@@ -38,6 +38,15 @@ import { copyFile, mkdir, readdir, rm, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 import type { Readable } from "node:stream";
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 try {
   process.loadEnvFile();
@@ -204,6 +213,183 @@ class PastaLocal implements Armazenamento {
 }
 
 /* -------------------------------------------------------------------------- */
+/* A implementação de nuvem: qualquer serviço que fale S3                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * O mesmo contrato, contra um balde S3 — hoje o **Cloudflare R2** (§4.135).
+ *
+ * Nada aqui é específico da Cloudflare de propósito: trocar por Backblaze B2,
+ * Wasabi ou um MinIO na própria máquina é mudar `AUDIO_S3_ENDPOINT` no `.env`.
+ * O que decidiu a Cloudflare foi a camada de rede da entrega, não a API — e
+ * essa parte não mora aqui.
+ */
+class S3Compativel implements Armazenamento {
+  readonly nome = "S3";
+  private readonly cliente: S3Client;
+
+  constructor(
+    private readonly endpoint: string,
+    private readonly balde: string,
+    chave: string,
+    segredo: string,
+  ) {
+    this.cliente = new S3Client({
+      /*
+       * ⚠️ **A armadilha que faz a primeira subida falhar (§1.7c do
+       * PLANO-ACERVO).** As versões novas do SDK mandam uma soma de verificação
+       * CRC32 em todo `PUT`, e a R2 **recusa** o pedido — com um erro que não
+       * diz isso. `WHEN_REQUIRED` só a manda quando o próprio protocolo exige.
+       * O equivalente em Python (`boto3` ≥ 1.36) já tinha mordido o baixalivro.
+       */
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
+      /*
+       * A R2 não tem região de verdade — ela mora no endpoint. `auto` é o que a
+       * Cloudflare documenta; o B2 põe a região dentro do próprio endereço.
+       */
+      region: process.env.AUDIO_S3_REGIAO || "auto",
+      endpoint,
+      credentials: { accessKeyId: chave, secretAccessKey: segredo },
+    });
+  }
+
+  get onde(): string {
+    // Sem credencial no texto: isto vai para o log do terminal.
+    return `${this.balde} em ${new URL(this.endpoint).host}`;
+  }
+
+  async guardar(chave: string, arquivoDeOrigem: string): Promise<void> {
+    const limpa = conferirChave(chave);
+    /*
+     * `ContentLength` explícito, e não é preciosismo: com um fluxo sem tamanho
+     * o SDK carrega o arquivo inteiro na memória para poder assinar. Um mestre
+     * de 600 MB derrubaria o processo.
+     */
+    const { size } = await stat(arquivoDeOrigem);
+    await this.cliente.send(
+      new PutObjectCommand({
+        Bucket: this.balde,
+        Key: limpa,
+        Body: createReadStream(arquivoDeOrigem),
+        ContentLength: size,
+        ContentType: tipoDoArquivo(limpa),
+      }),
+    );
+  }
+
+  async guardarPasta(prefixo: string, pastaDeOrigem: string): Promise<number> {
+    const itens = await readdir(pastaDeOrigem, { withFileTypes: true });
+    let quantos = 0;
+    for (const item of itens) {
+      const origem = path.join(pastaDeOrigem, item.name);
+      const chave = `${prefixo}/${item.name}`;
+      if (item.isDirectory()) quantos += await this.guardarPasta(chave, origem);
+      else {
+        await this.guardar(chave, origem);
+        quantos++;
+      }
+    }
+    return quantos;
+  }
+
+  async abrir(chave: string): Promise<Readable> {
+    const r = await this.cliente.send(
+      new GetObjectCommand({ Bucket: this.balde, Key: conferirChave(chave) }),
+    );
+    if (!r.Body) throw new Error(`chave sem corpo: ${chave}`);
+    return r.Body as Readable;
+  }
+
+  async existe(chave: string): Promise<boolean> {
+    try {
+      await this.cliente.send(
+        new HeadObjectCommand({ Bucket: this.balde, Key: conferirChave(chave) }),
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async tamanho(chave: string): Promise<number> {
+    const r = await this.cliente.send(
+      new HeadObjectCommand({ Bucket: this.balde, Key: conferirChave(chave) }),
+    );
+    if (r.ContentLength === undefined) throw new Error(`sem tamanho: ${chave}`);
+    return r.ContentLength;
+  }
+
+  /**
+   * Apagar em S3 é listar e apagar em lotes — não existe "apague a pasta".
+   * O lote é de 1000 porque é o teto da API; um livro em HLS passa disso.
+   */
+  async apagar(prefixo: string): Promise<void> {
+    const chaves = await this.listar(prefixo);
+    for (let i = 0; i < chaves.length; i += 1000) {
+      await this.cliente.send(
+        new DeleteObjectsCommand({
+          Bucket: this.balde,
+          Delete: { Objects: chaves.slice(i, i + 1000).map((Key) => ({ Key })) },
+        }),
+      );
+    }
+  }
+
+  /**
+   * ⚠️ **Paginar não é opcional.** A API devolve no máximo 1000 chaves por vez
+   * e avisa com `IsTruncated`. Ignorar isso dá uma lista silenciosamente curta
+   * — e um livro que some do meio para o fim sem erro nenhum.
+   */
+  async listar(prefixo: string): Promise<string[]> {
+    const chaves: string[] = [];
+    let token: string | undefined;
+    do {
+      const r = await this.cliente.send(
+        new ListObjectsV2Command({
+          Bucket: this.balde,
+          Prefix: conferirChave(prefixo),
+          ContinuationToken: token,
+        }),
+      );
+      for (const o of r.Contents ?? []) if (o.Key) chaves.push(o.Key);
+      token = r.IsTruncated ? r.NextContinuationToken : undefined;
+    } while (token);
+    return chaves.sort((a, b) => a.localeCompare(b));
+  }
+
+  /**
+   * A URL assinada — o método que existia esperando este dia (§4.128).
+   *
+   * A rota de áudio passa a **redirecionar** para cá em vez de servir os bytes,
+   * e o segmento vai do R2 direto para o ouvinte. É a diferença entre pagar
+   * banda uma vez e pagar duas.
+   */
+  async urlTemporaria(chave: string, segundos: number): Promise<string | null> {
+    return getSignedUrl(
+      this.cliente,
+      new GetObjectCommand({ Bucket: this.balde, Key: conferirChave(chave) }),
+      { expiresIn: segundos },
+    );
+  }
+}
+
+/**
+ * O tipo do arquivo, para o navegador não ter de adivinhar.
+ *
+ * Só os quatro que a entrega usa. Um `.m3u8` servido como `octet-stream` faz
+ * alguns players simplesmente não tocarem, sem erro.
+ */
+function tipoDoArquivo(chave: string): string | undefined {
+  const ext = path.extname(chave).toLowerCase();
+  if (ext === ".m3u8") return "application/vnd.apple.mpegurl";
+  if (ext === ".ts") return "video/mp2t";
+  if (ext === ".mp3") return "audio/mpeg";
+  if (ext === ".m4a" || ext === ".m4b") return "audio/mp4";
+  return undefined;
+}
+
+/* -------------------------------------------------------------------------- */
 /* A fábrica — o único lugar que sabe qual implementação está em uso           */
 /* -------------------------------------------------------------------------- */
 
@@ -239,14 +425,40 @@ const RAIZ = (() => {
 })();
 
 /**
- * O armazenamento em uso.
+ * O armazenamento em uso — **a escolha acontece aqui, e só aqui** (§4.128).
  *
- * ⚠️ **Quando entrar um provedor S3, é AQUI que a escolha acontece** — uma
- * classe `S3Compativel` implementando a mesma interface e um `if` sobre
- * `process.env.AUDIO_S3_ENDPOINT`. Nada mais no projeto muda, e é esse o ponto
- * inteiro desta camada (§4.128).
+ * Sem `AUDIO_S3_ENDPOINT`, é a pasta local: nada muda para quem desenvolve sem
+ * credencial. Com ele, é o balde. As três variáveis são as únicas que separam
+ * um provedor do outro:
+ *
+ * ```
+ *   AUDIO_S3_ENDPOINT=https://<conta>.r2.cloudflarestorage.com
+ *   AUDIO_S3_BALDE=allbook-audio
+ *   AUDIO_S3_CHAVE=…
+ *   AUDIO_S3_SEGREDO=…
+ * ```
  */
-export const armazenamento: Armazenamento = new PastaLocal(RAIZ);
+export const armazenamento: Armazenamento = (() => {
+  const endpoint = process.env.AUDIO_S3_ENDPOINT?.trim();
+  if (!endpoint) return new PastaLocal(RAIZ);
+
+  const balde = process.env.AUDIO_S3_BALDE?.trim();
+  const chave = process.env.AUDIO_S3_CHAVE?.trim();
+  const segredo = process.env.AUDIO_S3_SEGREDO?.trim();
+
+  /*
+   * Falhar aqui, alto, é de propósito. Credencial pela metade não dá erro na
+   * subida — dá `AccessDenied` no meio de um lote de milhares de arquivos,
+   * depois de já ter gasto escrita paga.
+   */
+  if (!balde || !chave || !segredo) {
+    throw new Error(
+      "AUDIO_S3_ENDPOINT está definido, mas falta AUDIO_S3_BALDE, " +
+        "AUDIO_S3_CHAVE ou AUDIO_S3_SEGREDO no `.env`.",
+    );
+  }
+  return new S3Compativel(endpoint, balde, chave, segredo);
+})();
 
 /* -------------------------------------------------------------------------- */
 /* Os nomes das chaves — num lugar só, para os dois lados concordarem          */

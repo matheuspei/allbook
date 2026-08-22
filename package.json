@@ -15,9 +15,12 @@
     "db:psql": "/opt/homebrew/opt/postgresql@17/bin/psql -d allbook",
     "estudio": "tsx script/estudio.ts",
     "audio": "tsx script/ingerir-audio.ts",
-    "acervo": "tsx script/importar-acervo.ts"
+    "acervo": "tsx script/importar-acervo.ts",
+    "r2:testar": "tsx script/testar-r2.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1116.0",
+    "@aws-sdk/s3-request-presigner": "^3.1116.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
