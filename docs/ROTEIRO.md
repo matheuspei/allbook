@@ -6671,3 +6671,28 @@ O mestre já está quase todo no HD (~3,6 TB lá), que é o escoamento funcionan
 
 **O que sobe hoje são ~1,5 TB — US$ 23/mês (R$ 120) no R2.** O nível gratuito
 de 10 GB cobre 0,65% disso: serve para ensaiar o caminho, não para o acervo.
+
+### O que ficou pendente do R2 (adiado por ele em 22/08)
+
+Duas coisas, nesta ordem:
+
+1. **Trocar o token.** As chaves do token `allbook-audio (app)` apareceram numa
+   captura de tela em 22/08. Nada indica vazamento, e o escopo é o mínimo
+   possível — `Object Read & Write` só no balde `allbook-audio` —, mas o certo é
+   tratá-las como circuladas. Painel → R2 → API → criar um token novo com o
+   mesmo escopo, colar as duas linhas no `.env` (`AUDIO_S3_CHAVE` e
+   `AUDIO_S3_SEGREDO`), rodar `npm run r2:testar` e **só então** apagar o
+   antigo. Nessa ordem: apagar primeiro deixa o app sem credencial.
+
+2. **Ingerir o primeiro livro de verdade.** `npm run audio <id> <arquivo|pasta>`
+   — fatia em HLS, guarda o mestre no SSD e sobe **só a entrega**. O ensaio cabe
+   nos 10 GB grátis (~30 livros); serve para descobrir o que quebra no caminho
+   inteiro antes de qualquer lote. Vale conferir na primeira: que o mestre ficou
+   em `/Volumes/Acervo/AllBook-audio/mestres/<id>/` e **não** no balde, e que a
+   rota `/api/audio/<id>/lista.m3u8` redireciona (302) para a URL assinada em
+   vez de servir os bytes pelo Express.
+
+⚠️ Antes de qualquer lote grande, a §1.7b continua valendo: **fatiar o HLS em
+10 s ou mais**. O padrão do `ffmpeg` é 6 s, e em `script/ingerir-audio.ts` ele
+ainda está em 6 — são US$ 482 contra US$ 93 de escrita no acervo alvo. Não
+morde no ensaio, morde no lote.
