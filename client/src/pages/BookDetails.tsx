@@ -31,7 +31,7 @@ import { NARRATIONS_EVENT, chosenNarration } from "@/lib/narrations";
 import { notaDaComunidade, MINIMO_PARA_MEDIA, RATINGS_EVENT } from "@/lib/ratings";
 import PersonAvatar from "@/components/PersonAvatar";
 import { motion } from "framer-motion";
-import { getChapters, chaptersTotalSec, chapterStartSec, formatChapterDuration, formatBookDuration } from "@/lib/chapters";
+import { carregarCapitulos, getChapters, chaptersTotalSec, chapterStartSec, formatChapterDuration, formatBookDuration } from "@/lib/chapters";
 import { readPlaybackList, playbackPercent, remainingLabel, savePlaying, type Playback } from "@/lib/playback";
 import {
   addToLibrary as salvarNaBiblioteca,
@@ -390,14 +390,32 @@ export default function BookDetails({ params }: { params: { id: string } }) {
      desenha comentário nesta tela agora é a página `/book/:id/conversa`, e é lá
      que o estado de reação mora. Estado sem quem o use é código morto. */
 
+  /**
+   * Os capítulos medidos, se este livro já tem áudio (§4.139) — a ficha e o
+   * player têm de contar a mesma história. Sem isto, a ficha diria "12
+   * capítulos" estimados e o player mostraria os 46 de verdade.
+   */
+  const [versaoDosCapitulos, setVersaoDosCapitulos] = useState(0);
+  useEffect(() => {
+    void carregarCapitulos(Number(params.id)).then((trocou) => {
+      if (trocou) setVersaoDosCapitulos((v) => v + 1);
+    });
+  }, [params.id]);
+
   // A lista de capítulos agora é estável por livro (lib/chapters.ts), a mesma
   // que o player usa — assim "começar no capítulo X" leva ao capítulo certo.
-  const chapters = getChapters(Number(params.id));
+  const chapters = useMemo(
+    () => getChapters(Number(params.id)),
+    [params.id, versaoDosCapitulos],
+  );
 
   // A duração mostrada vem da soma dos capítulos, para bater exatamente com a
   // barra de progresso (a % é medida contra ela). Antes o cabeçalho usava um
   // valor à mão que não conversava com os capítulos.
-  const duracaoLivro = formatBookDuration(chaptersTotalSec(Number(params.id)));
+  const duracaoLivro = useMemo(
+    () => formatBookDuration(chaptersTotalSec(Number(params.id))),
+    [params.id, versaoDosCapitulos],
+  );
 
   // Onde a pessoa parou neste livro (se já começou). Alimenta o cartão de
   // progresso no topo e o destaque do capítulo atual na lista.

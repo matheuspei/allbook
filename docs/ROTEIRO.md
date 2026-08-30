@@ -7235,3 +7235,76 @@ com o `line-clamp` embaixo dela. Isso corrige o que eu disse de manhã ao Matheu
 para os livros da Audible resolve de verdade, inclusive casos que a heurística
 não pegava (*Cristo: A ressurreição…*, cujo nome tem 6 letras e não passava da
 régua dos 8) —, mas ela não substitui as outras duas defesas.
+
+---
+
+## 4.139 O AllBook toca som pela primeira vez (30/08)
+
+Desde 08/08 o servidor sabia entregar áudio (§4.130) e **nenhuma tela pedia**.
+O que parecia tocar era um `setInterval` somando 1s por segundo em
+`currentTime`: a barra andava, o capítulo virava, e não havia som nenhum. Hoje
+o caminho fechou, de ponta a ponta, com **um** livro de verdade.
+
+### O que entrou
+
+- **`client/src/hooks/use-tocador.ts`** — pergunta ao servidor se o livro tem
+  narração, monta o HLS e devolve o elemento. Não conhece a tela.
+- **Quatro pontes no `AudioPlayer`**: o `timeupdate` do elemento passa a dar a
+  hora; `isPlaying` vira `play()`/`pause()`; `speed` vira `playbackRate`; e
+  quando a TELA move o tempo (barra, ±30s, capítulo, retomada), o elemento vai
+  junto — com **tolerância de 1,5s**, senão cada `timeupdate` viraria um seek de
+  volta e o áudio gaguejaria sem parar.
+- **`GET /api/catalogo/:id/capitulos`** e `carregarCapitulos()` — os capítulos
+  **medidos** substituem os inventados. O livro provado mostra "Abertura" com
+  19s e "Prefácio" com 3min03, que é o arquivo, não uma estimativa.
+
+⚠️ **O cronômetro NÃO foi removido, e não pode ser.** Hoje 1 dos 13.917 livros
+tem áudio; tirá-lo deixaria o player de todos os outros parado e mudo. Ele só
+cede a vez quando `temAudio` é verdadeiro — os dois juntos fariam o tempo andar
+de dois em dois segundos.
+
+### 🚨 O bug que estava esperando: duração ≠ narração
+
+`GET /lista.m3u8` decidia "este livro tem narração?" perguntando se
+`duracaoSegundos` era nulo. Isso valia em 08/08, quando duração só existia
+depois do `npm run audio`. Desde 21/08 o acervo traz a duração **anunciada pela
+loja** — e hoje são **5.711 livros com duração e nenhum com áudio**. Todos eles
+passariam a porta e bateriam no erro 500 ("o banco diz que tem áudio mas o
+arquivo não está"), em vez do 404 que oferece o pedido sob demanda. Agora quem
+decide é `arquivoMestre`, que só a ingestão escreve.
+
+### O R2 está inacessível NESTA REDE — e o áudio voltou para a pasta local
+
+A primeira ingestão fez tudo (46 capítulos, 1.481 segmentos, duração batendo) e
+morreu ao publicar, com a mensagem `[áudio] falhou:` — **vazia**. O motivo não
+era credencial nem código: `curl` para os IPs do balde
+(172.64.190.1 / 172.64.66.1) **estoura o tempo na porta 443**, enquanto o resto
+da internet responde. `AUDIO_S3_ENDPOINT` ficou comentado no `.env` (cópia em
+`.env.antes-de-desligar-r2-30ago`) e a entrega voltou para `AUDIO_RAIZ`, no SSD,
+que é o modo original. Religar é tirar o `#` e rodar `npm run audio refazer` nos
+livros já ingeridos — o mestre está guardado.
+
+⚠️ **Erro do SDK da AWS costuma vir com `message` vazia.** O `catch` do
+`ingerir-audio.ts` agora imprime nome, código e causa — a linha muda custou uma
+investigação inteira.
+
+### Três armadilhas de navegador, na ordem em que morderam
+
+1. **`credentials: "same-origin"` não manda o cookie** — o servidor respondia
+   401 em tudo. A casa inteira usa `"include"`, e o `lib/auth.ts` já dizia isso
+   com todas as letras desde 08/08. Este fetch é que era o forasteiro.
+2. **O navegador guardou o 401 em cache.** Depois de corrigir para `include`, o
+   pedido *não saía mais* — vinha do cache, o servidor não registrava nada, e o
+   conserto parecia não ter funcionado. `cache: "no-store"` resolveu (e é o
+   certo: a lista é privada e por sessão).
+3. **O servidor caiu no meio da investigação** e por vários minutos "nada
+   respondia" — o que parecia ser mais um defeito do player. Antes de culpar o
+   código do app, `curl` na porta 3000.
+
+### Como se prova que está tocando
+
+Pelo log do servidor: `GET /api/audio/101305/lista.m3u8 200` seguido de
+`s00000.ts`, `s00001.ts`… Se os pedaços param de chegar depois de ~6, o áudio
+está **pausado**, e quase sempre porque nenhum navegador deixa uma página tocar
+sozinha sem um toque da pessoa (o `play()` recusado cai no `catch` e volta o
+botão para "pausado", de propósito).

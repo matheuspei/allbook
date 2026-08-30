@@ -61,6 +61,8 @@ function seeded(seed: number): () => number {
 }
 
 const cache = new Map<number, Chapter[]>();
+/** Os livros cujo cache já é a lista medida, e não a estimada. */
+const medidos = new Set<number>();
 
 /** A lista de capítulos de um livro — sempre a mesma para o mesmo id. */
 export function getChapters(bookId: number): Chapter[] {
@@ -89,6 +91,45 @@ export function getChapters(bookId: number): Chapter[] {
 
   cache.set(bookId, chapters);
   return chapters;
+}
+
+/**
+ * Troca a lista estimada deste livro pelos capítulos **medidos** no áudio
+ * (30/08, §4.139).
+ *
+ * O `npm run audio` grava título e duração de cada capítulo lendo o arquivo com
+ * o `ffprobe` — 46 capítulos com o nome de verdade, no lugar de "Capítulo 1…12"
+ * inventados. Esta função os traz e **sobrescreve o cache**, que é o que faz o
+ * resto do arquivo (início, capítulo atual, barra) passar a falar do livro real
+ * sem que nada mais mude.
+ *
+ * ⚠️ **Quem chama precisa redesenhar depois.** `getChapters` é síncrono e o
+ * resto do app o usa no corpo dos componentes; trocar o cache não avisa
+ * ninguém. O `AudioPlayer` guarda uma "versão" em estado e a incrementa quando
+ * isto devolve `true`.
+ *
+ * Devolve `false` quando o livro não tem áudio ingerido (o normal hoje: 1 de
+ * 13.917) — e aí a lista estimada continua valendo, que é melhor do que uma
+ * tela sem capítulo nenhum.
+ */
+export async function carregarCapitulos(bookId: number): Promise<boolean> {
+  if (medidos.has(bookId)) return true;
+  try {
+    const resposta = await fetch(`/api/catalogo/${bookId}/capitulos`);
+    if (!resposta.ok) return false;
+    const lista = (await resposta.json()) as Chapter[];
+    if (!Array.isArray(lista) || lista.length === 0) return false;
+    cache.set(bookId, lista);
+    medidos.add(bookId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Este livro já está com os capítulos medidos, e não com os estimados? */
+export function temCapitulosMedidos(bookId: number): boolean {
+  return medidos.has(bookId);
 }
 
 /** Soma da duração de todos os capítulos — a duração total do livro. */

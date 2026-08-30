@@ -9,6 +9,8 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { useState, useEffect, useMemo, useRef } from "react";
+
+import { useTocador } from "@/hooks/use-tocador";
 import BarraDeAcoesDoPlayer from "@/components/BarraDeAcoesDoPlayer";
 import ConversaDoTrecho from "@/components/ConversaDoTrecho";
 import MarcasDaConversa from "@/components/MarcasDaConversa";
@@ -40,7 +42,7 @@ import {
 } from "@/lib/bookmarks";
 import { readSettings, saveSettings } from "@/lib/settings";
 import { readPlayback, readPlaying, savePlayback, savePlaying, showMiniPlayer } from "@/lib/playback";
-import { getChapters, chaptersTotalSec, chapterStartSec, chapterAtSec, formatChapterDuration } from "@/lib/chapters";
+import { carregarCapitulos, getChapters, chaptersTotalSec, chapterStartSec, chapterAtSec, formatChapterDuration } from "@/lib/chapters";
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -103,10 +105,28 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     return saved && saved.bookId === book.id ? saved : null;
   })();
 
+  /**
+   * Os capítulos **medidos**, quando o livro tem áudio (30/08, §4.139).
+   *
+   * `carregarCapitulos` troca o cache de `lib/chapters.ts` pela lista real e
+   * não avisa ninguém — `getChapters` é síncrono. Esta versão em estado é o
+   * aviso: ao subir, o componente redesenha e as três linhas abaixo recalculam
+   * com os 46 capítulos de verdade no lugar dos 8 a 14 estimados.
+   */
+  const [versaoDosCapitulos, setVersaoDosCapitulos] = useState(0);
+  useEffect(() => {
+    void carregarCapitulos(book.id).then((trocou) => {
+      if (trocou) setVersaoDosCapitulos((v) => v + 1);
+    });
+  }, [book.id]);
+
   // Capítulos estáveis do livro e duração total (soma dos capítulos) — a mesma
   // fonte que a tela do livro usa, para os dois concordarem.
-  const chapters = getChapters(book.id);
-  const durationSeconds = chaptersTotalSec(book.id);
+  const chapters = useMemo(() => getChapters(book.id), [book.id, versaoDosCapitulos]);
+  const durationSeconds = useMemo(
+    () => chaptersTotalSec(book.id),
+    [book.id, versaoDosCapitulos],
+  );
 
   /*
    * Abrir "/player/:id?chapter=N" começa naquele capítulo, e "?t=SEGUNDOS" num
@@ -168,7 +188,24 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    */
   const [limiteDaCitacao, setLimiteDaCitacao] = useState<number | null>(ateParam);
 
+  /**
+   * O tocador de verdade (30/08, §4.139).
+   *
+   * Ele descobre sozinho se ESTE livro tem narração ingerida. Enquanto não
+   * tiver — e é o caso de 13.916 dos 13.917 livros hoje —, quem marca a hora
+   * continua sendo o cronômetro logo abaixo.
+   */
+  const tocador = useTocador(book.id);
+
+  /**
+   * O cronômetro: a barra andando **sem áudio nenhum**.
+   *
+   * ⚠️ Não é sobra a limpar: é o que sustenta o player de todo livro que ainda
+   * não tem narração. Ele só sai de cena quando o elemento de áudio assume —
+   * ter os dois andando faria o tempo pular de dois em dois segundos.
+   */
   useEffect(() => {
+    if (tocador.temAudio) return;
     let interval: NodeJS.Timeout;
     if (isPlaying) {
       interval = setInterval(() => {
@@ -183,7 +220,66 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, durationSeconds, limiteDaCitacao]);
+  }, [isPlaying, durationSeconds, limiteDaCitacao, tocador.temAudio]);
+
+  /* --- Daqui para baixo, as quatro pontes entre a tela e o elemento -------- */
+
+  /** 1. Quem dá a hora passa a ser o áudio. */
+  useEffect(() => {
+    const audio = tocador.audio;
+    if (!audio) return;
+    const aoAndar = () => {
+      const agora = audio.currentTime;
+      if (limiteDaCitacao !== null && agora >= limiteDaCitacao) {
+        audio.pause();
+        setIsPlaying(false);
+        setLimiteDaCitacao(null);
+        setCurrentTime(limiteDaCitacao);
+        return;
+      }
+      setCurrentTime(agora);
+    };
+    audio.addEventListener("timeupdate", aoAndar);
+    return () => audio.removeEventListener("timeupdate", aoAndar);
+  }, [tocador.audio, limiteDaCitacao]);
+
+  /**
+   * 2. Play e pause.
+   *
+   * ⚠️ `play()` pode ser **recusado pelo navegador** quando a pessoa não tocou
+   * na tela ainda (o player abre tocando, §4.85). Recusa não é erro: é o botão
+   * voltando para "pausado", para ela apertar.
+   */
+  useEffect(() => {
+    const audio = tocador.audio;
+    if (!audio) return;
+    if (isPlaying) void audio.play().catch(() => setIsPlaying(false));
+    else audio.pause();
+  }, [isPlaying, tocador.audio]);
+
+  /**
+   * 4. O caminho de volta: quando a TELA move o tempo (arrastar a barra, pular
+   * 30s, trocar de capítulo, retomar de onde parou), o elemento tem de ir junto.
+   *
+   * ⚠️ A tolerância de 1,5s existe para não brigar com o próprio `timeupdate`:
+   * sem ela, cada aviso do elemento viraria um `seek` de volta, e o áudio
+   * gaguejaria sem parar. E `currentTime` só aceita valor **depois** dos
+   * metadados — antes disso é ignorado em silêncio, que é como uma retomada se
+   * perderia.
+   */
+  const posicaoDesejada = useRef(currentTime);
+  posicaoDesejada.current = currentTime;
+  useEffect(() => {
+    const audio = tocador.audio;
+    if (!audio) return;
+    const irPara = () => {
+      const alvo = posicaoDesejada.current;
+      if (Math.abs(audio.currentTime - alvo) > 1.5) audio.currentTime = alvo;
+    };
+    if (audio.readyState > 0) irPara();
+    else audio.addEventListener("loadedmetadata", irPara, { once: true });
+    return () => audio.removeEventListener("loadedmetadata", irPara);
+  }, [currentTime, tocador.audio]);
 
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.floor(Math.abs(seconds));
@@ -216,6 +312,17 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     const atual = readSettings();
     if (atual.speed !== speed) saveSettings({ ...atual, speed });
   }, [speed]);
+
+  /**
+   * 3. A velocidade escolhida no menu chega ao elemento (§4.139).
+   *
+   * Mora aqui embaixo, longe das outras três pontes, por uma razão boba e
+   * teimosa: `speed` só nasce nesta altura do componente, e o efeito lá em cima
+   * não compilava.
+   */
+  useEffect(() => {
+    if (tocador.audio) tocador.audio.playbackRate = speed;
+  }, [speed, tocador.audio]);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showTimerMenu, setShowTimerMenu] = useState(false);
   const [selectedTimer, setSelectedTimer] = useState("Desligado");

@@ -223,12 +223,22 @@ export function registrarAudio(app: Express) {
     if (!Number.isInteger(livroId)) return res.status(400).json({ erro: "livro inválido" });
 
     const [livro] = await db
-      .select({ id: livros.id, titulo: livros.titulo, duracao: livros.duracaoSegundos })
+      .select({ id: livros.id, titulo: livros.titulo, mestre: livros.arquivoMestre })
       .from(livros)
       .where(eq(livros.id, livroId))
       .limit(1);
 
-    if (!livro || livro.duracao === null) {
+    /*
+     * ⚠️ **Quem diz que há narração é `arquivoMestre`, NÃO a duração** (30/08).
+     *
+     * Até 21/08 os dois queriam dizer a mesma coisa: duração só existia depois
+     * do `npm run audio`, que a media com ffprobe. Aí o acervo entrou trazendo
+     * a duração **anunciada pela loja** — e hoje são **5.711 livros com duração
+     * e nenhum com áudio**. Com o teste antigo, todos esses passavam por esta
+     * porta e batiam no erro 500 lá embaixo ("o banco diz que tem áudio mas o
+     * arquivo não está"), quando o certo é o 404 que oferece o pedido.
+     */
+    if (!livro || livro.mestre === null) {
       // 404 e não 403: este livro **não tem** narração, que é diferente de
       // existir e estar barrada. A tela precisa saber a diferença para
       // oferecer o pedido sob demanda em vez de dizer "sem permissão".

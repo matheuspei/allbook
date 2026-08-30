@@ -25,7 +25,7 @@ import { asc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "./db";
-import { avaliacoes, generos, livros, pessoas } from "@shared/schema";
+import { avaliacoes, capitulos, generos, livros, pessoas } from "@shared/schema";
 
 /**
  * Onde moram as capas dos livros de verdade.
@@ -243,6 +243,41 @@ export function registrarCatalogo(app: Express) {
    * em qualquer loja de audiolivro; o que exige conta é ouvir (ver
    * `server/audio.ts`), não olhar.
    */
+  /**
+   * Os capítulos **medidos** de um livro (30/08, §4.139).
+   *
+   * Rota própria e não parte de `/api/catalogo` por uma questão de tamanho: um
+   * livro tem dezenas de capítulos e o catálogo tem 13.917 livros — juntar tudo
+   * desfaria o enxugamento de 14,5 MB para 525 KB da §4.134.2. Aqui se paga só
+   * pelo livro que a pessoa abriu.
+   *
+   * **Sem sessão**, como o resto da vitrine: saber que o livro tem 46 capítulos
+   * é ficha, não é ouvir.
+   *
+   * Lista vazia = este livro não tem áudio ingerido, e quem chama cai na lista
+   * estimada de `lib/chapters.ts`.
+   */
+  app.get("/api/catalogo/:id/capitulos", async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ erro: "livro inválido" });
+    try {
+      const linhas = await db
+        .select({
+          numero: capitulos.numero,
+          titulo: capitulos.titulo,
+          duracaoSegundos: capitulos.duracaoSegundos,
+        })
+        .from(capitulos)
+        .where(eq(capitulos.livroId, id))
+        .orderBy(asc(capitulos.numero));
+      return res.json(
+        linhas.map((c) => ({ id: c.numero, title: c.titulo, durationSec: c.duracaoSegundos })),
+      );
+    } catch {
+      return res.status(503).json({ erro: "não deu para ler os capítulos" });
+    }
+  });
+
   app.get("/api/catalogo", async (_req, res) => {
     try {
       return res.json(await lerCatalogo());

@@ -586,7 +586,17 @@ async function main() {
 
 main()
   .catch((erro) => {
-    console.error("\n[áudio] falhou:", erro instanceof Error ? erro.message : erro);
+    /*
+     * ⚠️ **Erro do SDK da AWS costuma vir com `message` VAZIA** — foi o que
+     * aconteceu em 30/08: a publicação no R2 morreu por timeout de rede e a
+     * linha impressa foi `[áudio] falhou: `, sem nada. Só depois de testar o
+     * endpoint na mão é que apareceu a causa. Por isso aqui se imprime o que
+     * houver: nome, causa e, na falta de tudo, o objeto inteiro.
+     */
+    const e = erro as { name?: string; message?: string; cause?: unknown; code?: string };
+    const partes = [e?.name, e?.code, e?.message].filter(Boolean);
+    console.error("\n[áudio] falhou:", partes.length ? partes.join(" — ") : erro);
+    if (e?.cause) console.error("  causa:", e.cause);
     process.exitCode = 1;
   })
   .finally(() => pool.end());
