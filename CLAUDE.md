@@ -112,6 +112,30 @@ e não por arrumação: as listas apontavam para os ids das maquetes, e um livro
 real que calhasse de receber o id 7 apareceria em "Só na AllBook" **por acaso**.
 A estrutura (slug, rótulo, gradiente, descrição) ficou.
 
+### Os carimbos que ligam o acervo ao app (30/08, §4.138)
+
+O acervo do `baixalivro` continua sendo corrigido (fichas, anos, vinhetas)
+depois de o livro já ter entrado aqui. Quatro colunas de `livros` existem para
+que nada disso se perca em silêncio:
+
+- **`subtitulo`** — o importador **não cola mais** título e subtítulo. `Book`
+  tem `subtitle`; a busca procura nele e a ficha o mostra. ⚠️ **Só a Audible o
+  separa na origem** (899 de 1.597; ubook/storytel/tocalivros mandam zero), por
+  isso `tituloDeVitrine(book)` + `line-clamp` seguem sendo a defesa principal
+  de quem desenha tela com título grande.
+- **`ficha_gerada_em`** e **`vinheta_ficha`** — o que a ficha do acervo dizia na
+  última importação. Quem escreve é `npm run acervo importar`.
+- **`vinheta_ingerida`** — com que vinheta o áudio foi montado. 🚨 **Só o
+  `npm run audio` escreve.** Incluí-la num `set` de importação apagaria o
+  carimbo a cada passada, e é a comparação dela com `vinheta_ficha` que
+  responde "este áudio está velho?" — vinheta trocada **desloca toda posição
+  salva** do livro.
+
+`npm run acervo` (sem argumento) diz quantos faltam entrar, quantas fichas
+mudaram, quantas vinhetas diferem e quantos áudios estão velhos. O carimbo
+(`a1/f15@2026-08-21`) é montado em `script/carimbos.ts` — **um lugar só**, para
+os dois scripts não montarem strings diferentes da mesma vinheta.
+
 ### `books.ts` é a fonte única dos livros
 `catalog`, `genres`, `getBooksByIds` e `getBooksByGenre` saem de lá. **Tela nova lê
 dali e não recria lista de livro** — e não fala com `/api/catalogo` por conta
