@@ -6880,3 +6880,291 @@ em duas colunas, na ingestão. Seria o conserto de raiz e resolveria a busca e a
 ficha junto — mas depende de reingerir 13.917 fichas e ainda deixaria 1.147 de
 pé. A função na vitrine custa 8 linhas e cobre o caso todo. Se um dia a ficha
 ganhar `subtitulo`, `tituloDeVitrine()` passa a lê-lo e some a heurística.
+
+## 4.137.1 O título longo também engorda o CARTÃO — o `truncate` não segura (30/08)
+
+Meia hora depois da §4.137 ele mandou outra captura, agora da fileira **"Você
+também pode gostar"** no fim da página do livro: arrastando para o lado, uma
+capa tomava a largura toda e a seguinte saía minúscula.
+
+**Isto derruba uma frase da §4.137 acima** — "nos cartões ele já morria num
+`truncate`". O `truncate` esconde o texto com reticências, mas **não impede que
+ele defina a largura natural do bloco**: `overflow: hidden` zera a contribuição
+de *min-content*, e não a de *max-content*. E o cartão daquela fileira era um
+item flex **sem teto de largura** (só `min-w-[130px]`), então o navegador o
+dimensionava pelo max-content — ou seja, pelo título inteiro, invisível.
+
+**Medido no próprio app**, remontando o markup antigo no DOM, num telefone de
+430px: os seis cartões da fileira mediam **143, 209, 231, 279, 656 e 1050px**
+(o de 1050 era *Desuniversalizando o cuidar…*). Depois da correção, 130 em
+todos os seis. Com as 63 maquetes, de títulos curtos e parecidos, isso nunca
+apareceu — é mais um defeito que só o acervo real revela.
+
+**A regra para tela nova:** item de fileira horizontal leva **`min-w` E `max-w`
+iguais**, no elemento que é o item flex (o `<Link>`, não uma `div` por dentro).
+É o que a Início e a Biblioteca já faziam; a página do livro era a única fora
+do padrão.
+
+Duas coisas menores foram junto, na mesma fileira: **`scroll-pl-5`** (sem ele o
+`snap-mandatory` engolia o respiro de 20px e a primeira capa encostava na borda,
+desalinhada do título — a Biblioteca já tinha) e a **estrela de nota só aparece
+quando há nota** (`rating` é opcional desde §4.134.1, e o ícone vermelho estava
+sozinho, sem número, em todo livro do acervo).
+
+### O nível 2 do ano — e as três armadilhas que o teste pegou (30/08)
+
+Conferindo a folha, o Matheus achou o buraco do nível 1: *"Ao colocar o nome no
+próprio Google (…) a data da primeira publicação em 2014. Por que não foi feito
+isso?"* Ele tinha razão — **o dossiê é feito de APIs estruturadas**, e *O Legado
+das Deusas* não está em nenhuma com o ano certo. Pior: **a Open Library respondeu
+2019**, uma edição posterior; a regra de fonte única foi o que impediu de gravar
+errado. O 2014 estava na página da editora (Jandaíra), que só busca de texto
+livre acha.
+
+🚨 **A medição de 141 mil tokens que condenava o agente de busca estava
+contaminada** — foi feita com `--append-system-prompt`, a mesma flag da §4.136.
+Refeita com `--system-prompt`, nos mesmos livros: **de 361 mil para 76 mil tokens
+por livro, com as mesmas respostas**, e *O Legado das Deusas* voltou 2014 citando
+a Jandaíra.
+
+**Os dois níveis, medidos em 16 sorteados:**
+
+| | cobertura | por livro | acervo (13.068) |
+|---|---|---|---|
+| nível 1 (dossiê de graça) | 8% | US$ 0,017 | US$ 38 |
+| **nível 1 + 2 (busca de verdade)** | **44%** | US$ 0,072 | **US$ 820** |
+
+**As três armadilhas, todas achadas conferindo o resultado — e todas fechadas:**
+
+1. **`culto\b` sem a fronteira da esquerda** casou dentro de *"o poder oCULTO"* e
+   descartou ***O Segredo*, da Rhonda Byrne**, como pregação. Falso positivo na
+   triagem é ano perdido em silêncio, porque livro descartado não é procurado
+   nunca mais. Toda alternativa passou a levar `\b` dos dois lados, e `congresso`
+   e `conferência` saíram (aparecem em livro de história e de negócios).
+2. **"Parte 4" não é motivo para descartar — é motivo para limpar o título.** A
+   triagem jogava fora *Emília no país da gramática - Parte 4* (Lobato, 1934) e
+   *Infância - parte 5* (Graciliano, 1945): obras de verdade que a loja fatiou.
+   Agora `titulo_da_obra()` tira o sufixo e procura a obra inteira — foi assim
+   que *O Retrato de Dorian Gray - Adaptado Infanto-juvenil* achou 1890 no nível
+   1, por 17 mil tokens.
+3. **O nível 2 devolveu "Josué = 2002"**, citando *"The Message (Bible), tradução
+   de Eugene H. Peterson, publicada em 2002"*. Achou o ano de uma TRADUÇÃO da
+   Bíblia e serviu como ano da obra — **erro com procedência convincente**, que é
+   o pior tipo. Fechado com a lista dos 66 nomes de livro bíblico, casada só
+   quando o título é o nome inteiro (*Josué, o Conquistador* passa).
+
+### A triagem: categoria ou sinopse? (30/08)
+
+Ele propôs cortar pela **categoria** já existente: *"a gente já tem a questão de
+categorias de religião (…) não precisa ele buscar título de religião no meio da
+sinopse"*. Medido antes de concordar, no Tocalivros:
+
+```
+categoria religiosa ............. 1.287
+  sinopse diz pregação .........    426
+  casa editorial E não pregação .    827   <- perderíamos estes
+```
+
+Os 827 são livro de verdade: *A Batalha de Toda Mulher* (Mundo Cristão), *A
+Bíblia em 60 Minutos* (Philip Law), *A Chave dos Grandes Mistérios* (Éliphas
+Lévi, 1861). **A categoria não distingue pregação de livro — as duas coisas são
+"Religião e espiritualidade".** Quem distingue é a sinopse, que diz *"Pregações
+do Pastor Davi Goes"* com todas as letras.
+
+**Ele concordou:** *"sim voce está certo nesse ponto. e eu estava errado"*. Fica
+o corte pela sinopse; a categoria pode virar pista para o agente desistir mais
+rápido, não corte.
+
+### A cascata de três níveis, medida (30/08) — e o preço do "não deixar nada para trás"
+
+Ideia do Matheus: *"um primeiro agente mais barato que resolva boa parte (…) nos
+que ele não conseguir, um agente mais caro (…) e por último força máxima, de
+forma que ele não deixasse nada para trás"*. O desenho é o certo — **cada nível
+só paga pelo que o anterior não resolveu** — e está em `tools/ano_barato.py`
+(`--fundo`, `--forca-maxima`).
+
+| | custo/livro | resolve | medido em |
+|---|---|---|---|
+| triagem | grátis | — | 572 dos 3.295 do Tocalivros |
+| nível 1 · Haiku + dossiê, sem net | US$ 0,017 | 8% | 60 sorteados |
+| nível 2 · Haiku + busca, teto de 2 | US$ 0,072 | 44% acum. | 16 sorteados |
+| **nível 3 · Opus alto, sem teto** | **US$ 1,104** | **50% das sobras** | 8 sobras |
+
+🚨 **O nível 3 custa 65× o nível 1, e não 5×.** A estimativa que eu tinha dado
+(US$ 0,35) veio do primeiro livro medido e estava errada: a média dos 8 é
+US$ 1,10, com casos de **1,1 milhão de tokens e US$ 1,91 num livro que voltou
+vazio** (*Momentos Mágicos*). Sem teto de busca, o agente cava até o fim mesmo
+onde não há nada.
+
+**O número que decide é o custo por ANO ACHADO:**
+
+```
+nível 1 .... US$ 0,04
+nível 2 .... US$ 0,15
+nível 3 .... US$ 2,21     <- 55× o nível 1
+```
+
+**A conta fechada:**
+
+| | níveis 1+2 | + nível 3 | cobertura |
+|---|---|---|---|
+| Tocalivros (3.295) | US$ 173 → 1.198 anos | US$ 1.856 → 1.961 | 36% → **60%** |
+| acervo (13.068) | US$ 682 → 4.738 anos | US$ 7.339 → 7.753 | 36% → **59%** |
+
+⚠️ **A cascata inteira custa MAIS que o agente Opus que foi rejeitado em 22/08**
+(US$ 3.556). Ela entrega mais — 59% contra o que aquele entregaria — mas "não
+deixar nada para trás" tem preço, e o preço é ~US$ 6.700 só no último degrau.
+
+**O que o nível 3 entrega de verdade**, para não julgá-lo só pelo custo: achou
+*HIC!STÓRIAS* = 2009 chegando à edição impressa (ISBN 9788588948969, Panda
+Books); descobriu que *Ripply: The Little Wave* é **tradução** do brasileiro
+*Marolinha* e datou a obra original; e datou *A viagem de Meteóris* = 2019 por
+uma matéria de lançamento. Nenhum dos três sai de API estruturada. **E mesmo
+quando volta vazio ele entrega `TIPO_OBRA` e `PROCUREI`** — o registro que tira
+o livro da fila para sempre, em vez de ele ser reprocessado a cada rodada.
+
+⏳ **Decisão dele.** Caminhos na mesa: parar no nível 2; rodar o 3 só onde há
+ISBN ou editora de verdade; ou pôr teto de busca no nível 3 (os casos de US$ 1,91
+foram todos sem teto e sem achado).
+
+---
+
+### A calibração do nível 1, um agente por vez (30/08, fecha a §4.136)
+
+Ele mudou o método na metade: *"tem três agentes (…) minha sugestão seria tentar
+escrever aí 10 livros de cada um, primeiro do primeiro, e me mandar uma folha
+para ver se eu aprovo a forma como está. Depois enviaria para o segundo e depois
+enviaria para o terceiro"*. Aprovar um nível antes de soltar o seguinte é o certo:
+até aqui os três tinham sido medidos no mesmo dia e julgados só pelo número.
+
+**O lote ficou congelado** (`--lote`, em `_catalogo/lote-calibra-30ago.json`): 12
+livros, 3 de cada loja, e os níveis 2 e 3 vão ver **exatamente estes**. Sem isso
+cada nível veria uma amostra diferente e a comparação não valeria nada.
+
+**🚨 O registro de "já tentei" — o buraco que estava lá desde o começo.** O
+programa só escrevia na ficha quando **achava** o ano. Livro que voltava vazio
+ficava idêntico a livro nunca tentado, e como ~90% voltam vazios, uma segunda
+passada pagaria quase o preço inteiro de novo. Pior: o nível 3 devolve
+`TIPO_OBRA` e `PROCUREI` **exatamente** para o livro sem ano sair da fila para
+sempre, e isso ia para o lixo a cada rodada. Agora cada livro ganha um
+**`_ano-tentativa.json`** ao lado do `_ficha.json`, com o nível mais alto que já
+o viu e o que o agente disse ao desistir.
+
+⚠️ **Por que sidecar e não campo na ficha:** `ficha.selar_pasta` regenera o
+`_ficha.json` a partir das **tags do áudio**, e marca de processo não é assunto
+de tag de áudio — na primeira reselada ela sumiria. E sidecar por pasta não
+disputa escrita entre as linhas paralelas.
+
+⚠️ **Erro técnico não vira registro.** Rede caída ou cota estourada não é
+"procurei e não achei"; anotar ali tiraria da fila um livro que nunca foi visto.
+
+**Os três defeitos que a calibração pegou** — todos achados olhando a saída, nenhum
+por teste:
+
+1. **A Wikipédia responde sempre, e quase sempre com o assunto errado.** Para
+   *Antonio José, o Judeu*, de Capistrano de Abreu, voltaram "Ambrósio Fernandes
+   Brandão", "23 de outubro", "Demografia da Paraíba", "Capistrano de Abreu" e
+   "Capistrano" (o município). O agente recusou certo — **e foi assim em 10 dos
+   12**, cada um a preço cheio. `verbete_serve()` corta o que não casa com título
+   nem com autor; sem nenhuma linha o dossiê fica vazio e **não vira pergunta**.
+   O gasto não está no tamanho do dossiê (ele varia ~1.400 tokens dentro de uma
+   chamada de 18 mil): está na **pergunta existir**.
+2. **O parêntese do título afundava a busca.** *As Aventuras de Robin Hood
+   (Infanto-Juvenil)* voltou com Dumas pai, Dumas filho e *Os Três Mosqueteiros*
+   — e nenhum Robin Hood. `titulo_nu()` (sem parêntese e sem subtítulo de
+   coleção) virou uma **consulta a mais**, nunca uma troca: o título cheio ainda
+   é o que acha *Contos de Fadas em Suas Versões Originais*.
+3. **Homônimo de sobrenome entrava como se fosse o autor.** Em *14 dias para se
+   tornar um investidor*, de William Ribeiro, entraram "Bento Ribeiro (ator)" e
+   "Belisa Ribeiro" (jornalista). Agora o verbete precisa **dividir uma palavra
+   com o título** além do sobrenome — *Contos de Grimm* divide "contos"; Bento
+   Ribeiro não divide nada. ⚠️ A regra do sobrenome não podia simplesmente sair:
+   foi ela que datou o Grimm que ele cobrou em 22/08.
+
+**O efeito, no mesmo lote de 12:**
+
+```
+perguntas pagas ......  10  ->  7  ->  3
+custo por pergunta ...  US$ 0,0247  ->  0,0180  ->  0,0092
+acervo (13.068) ......  US$ 269  ->  137  ->  30
+```
+
+🚨 **Cortar 70% das perguntas só vale se nenhum ano se perdeu no corte — então
+rodei uma regressão contra os livros que o nível 1 já tinha acertado.** 6 de 7
+continuam certos, e *O lavrador de palavras (Integral)* foi **recuperado**: o
+"(Integral)" quebrava a chave `(título, autor)` do livro gêmeo, e o título nu
+passou a tentar de novo (vale também para a Open Library). **Economia sem
+regressão é perda silenciosa**, e este arquivo já tem duas dessas.
+
+⚠️ **Um bug meu, do mesmo dia:** `nu` nascia **dentro** do `try` da Wikipédia, e
+o gêmeo e a Open Library o usam depois — queda de rede na Wikipédia derrubaria o
+dossiê inteiro com `NameError`. Nasce fora agora.
+
+**O que ficou para ele decidir**, na folha `_nivel-1-do-ano-A.html`: (1) soltar o
+nível 1 no acervo inteiro (US$ 30, ~4 h — a demora é a busca de graça, não o
+agente); e (2) **a Open Library sozinha vale?** Medida em 19/08 com **8 acertos
+contra 9 erros**, hoje o agente é mandado recusá-la sem segunda fonte — e foi por
+isso que recusou 2014 para *O Fim do Brasil*, que por acaso estava certo.
+Aceitá-la traria mais anos **e** mais erros.
+
+**O resultado cru do lote: 0 anos em 12 livros.** Não é defeito do agente — é o
+acervo. O que sobra sem ano é *Coleção Sons Relaxantes*, *Bíblia NVT - Filemom*,
+*TocaCast #17*: coisas que não têm ano de obra em lugar nenhum do mundo. É para
+isso que existem os níveis 2 e 3, e é por isso que o lote está congelado.
+
+## 4.138 Sincronizar o baixalivro com o AllBook: o que já existe e o que falta (30/08)
+
+Ele perguntou se é hora de ligar o áudio, e levantou dois impedimentos reais:
+a **vinheta da Audible** ainda não foi colada (está baixando os mestres) e as
+**fichas ainda estão sendo completadas** (o ano da obra, §4.136). O pedido:
+*"precisaria ter uma forma de sincronizar isso, de modo que, quando eu mexer no
+baixalivro, também fosse mexido dentro do AllBook."*
+
+**Apurado: metade da sincronização já existe e ninguém tinha percebido.**
+
+- **A identidade é estável nos dois lados.** A ficha traz `loja` + `loja_id`; a
+  tabela `livros` traz `origem_loja` + `origem_id`, com **índice único**
+  (`livros_origem_idx`). O importador casa por esse par.
+- **Reimportar ATUALIZA, não duplica** — `onConflictDoUpdate` em
+  `script/importar-acervo.ts:457`. Ou seja, **correção de ficha feita no
+  baixalivro já chega ao AllBook com um comando** (`npm run acervo importar`), e
+  rodar de novo é seguro. Não há retrabalho nenhum do lado da ficha.
+- **Os carimbos de tempo já estão escritos na origem:** `gerado_em` no
+  `_ficha.json` (quando a ficha foi montada) e `vinheta.em` + `abertura_s` /
+  `fecho_s` no bloco `vinheta` (quando as pontas foram trocadas).
+
+**O que falta é o AllBook GUARDAR esses carimbos.** Hoje o banco não tem onde
+anotar nem `gerado_em` nem a vinheta com que o áudio foi ingerido, e a
+consequência é ser cego duas vezes: o importador reescreve os 13.917 livros
+sempre (funciona, mas não sabe dizer *o que* mudou), e uma narração ingerida com
+a vinheta velha **não tem como se declarar desatualizada** — e vinheta trocada
+desloca toda posição salva daquele livro.
+
+Duas colunas resolvem: `livros.fichaGeradaEm` e um carimbo de vinheta em
+`narracoes`. Com elas, `npm run acervo situacao` passa a responder as duas
+perguntas que importam: *quantas fichas mudaram desde a última importação* e
+*quantas narrações estão com vinheta velha*.
+
+### A ordem que ficou recomendada
+
+1. **Os carimbos primeiro** — é o que garante que nenhuma correção dele se perca
+   e que reingestão futura seja cirúrgica, em vez de "reimportar tudo por via das
+   dúvidas".
+2. **O player depois, com UM livro** de storytel/tocalivros/ubook, que já têm
+   vinheta definitiva. **O player não depende da Audible** — e, ao contrário do
+   que parece, é ele que falta para conferir a vinheta: hoje a abertura é colada
+   sem ninguém nunca ter ouvido o resultado dentro do app.
+3. **Ingestão de áudio em massa só depois da vinheta da Audible.** Aqui ele está
+   certo e o custo de errar é alto: áudio reingerido depois que alguém ouviu
+   desloca a posição salva.
+
+### ⚠️ Correção à §4.137: o subtítulo VEM separado, e nós é que colamos
+
+Ao ler o importador para responder isto, apareceu que a consulta ao acervo já
+traz `t.titulo` e `t.subtitulo` em campos distintos — e o importador os **cola**
+com `": "` (`importar-acervo.ts:435`). Ou seja, o "conserto de raiz" que a §4.137
+descartou por caro (*"depende de reingerir 13.917 fichas"*) é na verdade **uma
+coluna `subtitulo` em `livros` e uma reimportação idempotente**, que é o mesmo
+comando que ele já vai rodar para trazer os anos. A heurística de
+`tituloDeVitrine()` continua valendo para o que vem sem subtítulo separado, mas
+deixa de ser a única defesa. Fica na fila junto com os carimbos.
