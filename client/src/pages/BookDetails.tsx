@@ -843,22 +843,40 @@ export default function BookDetails({ params }: { params: { id: string } }) {
 
         <section className="space-y-4 pb-10">
           <h2 className="text-lg font-bold font-display" data-testid="heading-related">Você também pode gostar</h2>
-          <div className="flex overflow-x-auto pb-4 -mx-5 px-5 scrollbar-hide snap-x snap-mandatory gap-3">
+          {/*
+            ⚠️ A largura vai no próprio <Link> (que é o item flex) e tem TETO,
+            não só piso. Com apenas `min-w`, o cartão crescia até o
+            "max-content" — e quem manda no max-content aqui é o TÍTULO: o
+            `truncate` esconde o texto com reticências, mas **não** impede que
+            ele defina a largura natural do bloco. Medido em 30/08 nesta
+            fileira, num telefone de 430px: os seis cartões iam de 143px a
+            **1050px** ("Desuniversalizando o cuidar…"), um gigante ao lado de
+            um minúsculo. Com as 63 maquetes, de títulos curtos e parecidos,
+            nada disso aparecia; o acervo real tem títulos de 190 caracteres.
+            É o mesmo par `min-w`/`max-w` da Início e da Biblioteca.
+          */}
+          <div className="flex overflow-x-auto pb-4 -mx-5 px-5 scroll-pl-5 scrollbar-hide snap-x snap-mandatory gap-3">
             {relatedBooks.map((item) => (
-              <Link key={item.id} href={`/book/${item.id}`}>
-                <div className="min-w-[130px] snap-start space-y-2 cursor-pointer group" data-testid={`card-related-${item.id}`}>
-                  <div className="relative aspect-[3/4] rounded-lg overflow-hidden shadow-lg border border-white/5 transition-transform group-hover:scale-105 duration-300">
-                    <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <h4 className="text-xs font-bold truncate group-hover:text-primary transition-colors">{item.title}</h4>
-                    <p className="text-[10px] text-white/40 truncate">{item.author}</p>
+              <Link
+                key={item.id}
+                href={`/book/${item.id}`}
+                className="min-w-[130px] max-w-[130px] snap-start space-y-2 cursor-pointer group"
+                data-testid={`card-related-${item.id}`}
+              >
+                <div className="relative aspect-[3/4] rounded-lg overflow-hidden shadow-lg border border-white/5 transition-transform group-hover:scale-105 duration-300">
+                  <img src={item.cover} alt={item.title} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold truncate group-hover:text-primary transition-colors">{item.title}</h4>
+                  <p className="text-[10px] text-white/40 truncate">{item.author}</p>
+                  {/* Livro sem nota não desenha estrela — senão sobra o ícone só. */}
+                  {item.rating !== undefined && (
                     <div className="flex items-center gap-1 text-[10px] text-white/30">
                       <Star className="w-2.5 h-2.5 fill-primary text-primary" />
                       <span>{item.rating}</span>
                     </div>
-                  </div>
+                  )}
                 </div>
               </Link>
             ))}
