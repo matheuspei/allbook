@@ -92,7 +92,14 @@ function pareceCom(query: string, book: Book): boolean {
   const termos = palavrasDe(query);
   if (termos.length === 0) return false;
 
-  const doLivro = [...palavrasDe(book.title), ...palavrasDe(book.author)];
+  // O subtítulo entra na busca desde 30/08 (§4.138): ele saiu de dentro do
+  // `title` e virou campo próprio, e sem esta linha quem procurasse por uma
+  // palavra dele deixaria de achar o livro que achava ontem.
+  const doLivro = [
+    ...palavrasDe(book.title),
+    ...palavrasDe(book.subtitle ?? ""),
+    ...palavrasDe(book.author),
+  ];
   return termos.every((termo) =>
     doLivro.some((palavra) => distancia(termo, palavra) <= tolerancia(termo.length))
   );
@@ -155,7 +162,10 @@ export default function SearchResults({
     const q = normalize(query);
 
     const direct = catalog.filter(
-      (book) => normalize(book.title).includes(q) || normalize(book.author).includes(q)
+      (book) =>
+        normalize(book.title).includes(q) ||
+        normalize(book.subtitle ?? "").includes(q) ||
+        normalize(book.author).includes(q)
     );
 
     if (direct.length > 0) return direct;

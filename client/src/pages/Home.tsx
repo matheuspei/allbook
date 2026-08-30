@@ -138,7 +138,7 @@ const heroBooks = destaquesDaCapa().map((book) => ({
   // Sem o subtítulo: o acervo traz o título cru da loja, e o billboard é o
   // único lugar onde o título é grande o bastante para virar parágrafo
   // (§4.136). O corte em duas linhas no JSX é a trava que sobra.
-  title: tituloDeVitrine(book.title),
+  title: tituloDeVitrine(book),
   author: book.author,
   narrator: book.narrator,
   // A capa REAL do livro (o `books.ts` já cai na arte genérica do gênero quando

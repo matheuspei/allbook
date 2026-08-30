@@ -7168,3 +7168,70 @@ coluna `subtitulo` em `livros` e uma reimportação idempotente**, que é o mesm
 comando que ele já vai rodar para trazer os anos. A heurística de
 `tituloDeVitrine()` continua valendo para o que vem sem subtítulo separado, mas
 deixa de ser a única defesa. Fica na fila junto com os carimbos.
+
+### O que foi construído (30/08, mesmo dia)
+
+Ele aprovou e os passos 1 e 2 foram feitos. **`livros` ganhou quatro colunas**
+(`db:push` rodado, só `ADD COLUMN`):
+
+| coluna | quem escreve | para quê |
+|---|---|---|
+| `subtitulo` | `npm run acervo importar` | o que o importador colava no título |
+| `ficha_gerada_em` | `npm run acervo importar` | *esta ficha mudou desde a última importação?* |
+| `vinheta_ficha` | `npm run acervo importar` | a vinheta que a ficha **declara hoje** |
+| `vinheta_ingerida` | `npm run audio` | a vinheta que o áudio **de fato levou** |
+
+🚨 **`vinheta_ingerida` é a única que o importador NÃO escreve**, e é de
+propósito: o `set` do `onConflictDoUpdate` reescreve tudo que lista, e incluí-la
+apagaria a cada importação justamente o dado que diz se o áudio está velho.
+
+**O carimbo de vinheta é uma string comparável** — `a1/f15@2026-08-21`: qual
+abertura, qual fecho, em que dia. Em três colunas a comparação seria três
+comparações; em uma, é `=`. E a função que a monta mora em `script/carimbos.ts`,
+importada pelos **dois** scripts — se cada um montasse a sua, a comparação
+daria diferente sem nada ter mudado, que é o bug mais difícil de enxergar.
+
+**`npm run acervo` agora responde:** quantos livros do acervo ainda não entraram,
+quantos têm ficha mais nova que a importada, quantos têm vinheta diferente, e
+quantos áudios foram ingeridos com vinheta velha (com o aviso de reingerir).
+
+⚠️ **Um defeito meu, pego no primeiro teste e consertado na hora:** a contagem
+anunciava *"12.628 com vinheta diferente da importada"* — e não havia nenhuma
+diferença: eram 12.628 livros importados **antes** dos carimbos existirem, com
+o campo vazio. Livro sem carimbo agora não entra em comparação nenhuma e é
+contado à parte. **Número que assusta à toa é pior que número que falta.**
+
+**O subtítulo deixou de ser colado** e atravessou o app inteiro: a rota
+`/api/catalogo` o devolve, `Book` tem `subtitle`, **a busca procura nele**
+(sem isso, quem procurasse por uma palavra do subtítulo deixaria de achar o
+livro que achava ontem) e a **ficha do livro o mostra** — é o único lugar onde
+o nome completo interessa. `tituloDeVitrine()` passou a receber o `Book` e
+devolve o título direto quando o campo separado existe; a heurística ficou
+sendo a rede para quem vem colado da loja.
+
+### ⚠️ Medido depois de importar: só a AUDIBLE separa subtítulo
+
+A reimportação dos 13.917 correu limpa (0 novos, 13.917 atualizados, 13.914
+capas), e a sincronia ficou zerada: **0 fichas mais novas, 0 vinhetas
+diferentes, 13.917 carimbados**, 12.628 com vinheta declarada. Mas o subtítulo
+separado só apareceu em **722 livros**, e a razão está na origem:
+
+| loja | títulos | com subtítulo separado |
+|---|---|---|
+| ubook | 47.153 | **0** |
+| storytel | 7.536 | **0** |
+| tocalivros | 3.395 | **0** |
+| audible | 1.597 | 899 |
+
+**Só a Audible separa.** As outras três mandam tudo dentro do título — e não é
+falha do baixalivro: é o que a loja publica.
+
+Efeito real: os títulos acima de 60 caracteres caíram de **3.033 para 2.668**, e
+o maior do acervo de **364 para 297**. Ou seja, **a coluna nova conserta 365
+livros e a heurística de `tituloDeVitrine()` continua sendo a defesa principal**,
+com o `line-clamp` embaixo dela. Isso corrige o que eu disse de manhã ao Matheus
+("o subtítulo vem separado, o conserto de raiz é uma coluna"): vem separado
+**numa loja de quatro**. A coluna valeu — é dado que estava sendo jogado fora, e
+para os livros da Audible resolve de verdade, inclusive casos que a heurística
+não pegava (*Cristo: A ressurreição…*, cujo nome tem 6 letras e não passava da
+régua dos 8) —, mas ela não substitui as outras duas defesas.

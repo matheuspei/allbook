@@ -40,6 +40,7 @@ import { isNotNull, sql } from "drizzle-orm";
 import { db } from "../server/db";
 import { CAPAS_RAIZ } from "../server/catalogo";
 import { editoras, generos, livros, pessoas } from "@shared/schema";
+import { carimbosDaFicha } from "./carimbos";
 
 /* -------------------------------------------------------------------------- */
 /* Onde as coisas ficam                                                        */
@@ -259,11 +260,83 @@ async function situacao() {
   console.log(`\n  AllBook  ${aqui.total} livros, ${aqui.deLoja} vindos de loja`);
 
   const linhas = consultar<LinhaDoAcervo>(CONSULTA).filter((l) => l.titulo?.trim());
-  let prontos = 0;
-  for (const linha of linhas) {
-    if (await passouPelaVinheta(linha.loja, pastaDoPronto(linha))) prontos++;
+
+  /* O que o AllBook já sabe de cada livro de loja — uma consulta só, e a
+     comparação toda acontece em memória, contra o que o acervo diz agora. */
+  const noBanco = new Map<string, { ficha: string | null; vinheta: string | null }>();
+  for (const l of await db
+    .select({
+      loja: livros.origemLoja,
+      id: livros.origemId,
+      ficha: livros.fichaGeradaEm,
+      vinheta: livros.vinhetaFicha,
+    })
+    .from(livros)
+    .where(isNotNull(livros.origemLoja))) {
+    noBanco.set(`${l.loja}/${l.id}`, { ficha: l.ficha, vinheta: l.vinheta });
   }
+
+  let prontos = 0;
+  let ausentes = 0;
+  let fichaMudou = 0;
+  let vinhetaMudou = 0;
+  let semCarimbo = 0;
+
+  for (const linha of linhas) {
+    const pasta = pastaDoPronto(linha);
+    const carimbos = await carimbosDaFicha(pasta);
+    if (await passouPelaVinheta(linha.loja, pasta)) prontos++;
+
+    const aqui = noBanco.get(`${linha.loja}/${linha.loja_id}`);
+    if (!aqui) {
+      ausentes++;
+      continue;
+    }
+    // Livro importado ANTES dos carimbos existirem: não dá para dizer se mudou
+    // — e chamá-lo de "em dia" seria mentir. Ele se resolve na próxima
+    // importação, que é o que a mensagem lá embaixo diz.
+    // ⚠️ Livro importado ANTES dos carimbos existirem não entra em comparação
+    // NENHUMA — nem de ficha, nem de vinheta. A primeira versão comparava a
+    // vinheta mesmo assim e anunciava "12.628 com vinheta diferente", quando o
+    // que havia era 12.628 livros sem carimbo nenhum guardado. Número que
+    // assusta à toa é pior que número que falta.
+    if (aqui.ficha === null) {
+      semCarimbo++;
+      continue;
+    }
+    if (carimbos.geradoEm && carimbos.geradoEm !== aqui.ficha) fichaMudou++;
+    if (carimbos.vinheta !== aqui.vinheta) vinhetaMudou++;
+  }
+
+  /* A pergunta que só o banco responde: áudio ingerido com vinheta que depois
+     mudou. É o caso caro — reingerir desloca toda posição salva do livro. */
+  const [audio] = await db
+    .select({
+      ingeridos: sql<number>`count(vinheta_ingerida)::int`,
+      velhos: sql<number>`count(*) filter (
+        where vinheta_ingerida is not null
+          and vinheta_ingerida is distinct from vinheta_ficha
+      )::int`,
+    })
+    .from(livros);
+
   console.log(`\n  Vinheta  ${prontos} prontos para entrar · ${linhas.length - prontos} ainda não`);
+
+  console.log(`\n  Sincronia (§4.138)`);
+  console.log(`    ${ausentes} no acervo e ainda não no AllBook`);
+  console.log(`    ${fichaMudou} com ficha mais nova que a importada`);
+  console.log(`    ${vinhetaMudou} com vinheta diferente da importada`);
+  if (semCarimbo > 0) {
+    console.log(`    ${semCarimbo} importados antes dos carimbos (a próxima importação os carimba)`);
+  }
+
+  console.log(`\n  Áudio`);
+  console.log(`    ${audio.ingeridos} livros com áudio ingerido`);
+  if (audio.velhos > 0) {
+    console.log(`    🚨 ${audio.velhos} ingeridos com vinheta VELHA — reingerir com npm run audio refazer <id>`);
+    console.log(`       (a vinheta mudou de tamanho: sem reingerir, quem retomar cai fora do lugar)`);
+  }
+
   console.log(`\n  Para importar:  npm run acervo importar\n`);
 }
 
@@ -418,23 +491,19 @@ async function importar(limite: number | null) {
     }
 
     // A sinopse da ficha do pronto vence a do `cru`: ela é a que o baixalivro
-    // conferiu ao montar a entrega.
-    let sinopse = sinopseDoCru(linha.cru);
-    if (pasta && existsSync(join(pasta, "_ficha.json"))) {
-      try {
-        const ficha = JSON.parse(await readFile(join(pasta, "_ficha.json"), "utf8"));
-        const texto = ficha?.ficha?.SINOPSE;
-        if (typeof texto === "string" && texto.trim()) sinopse = texto.trim();
-      } catch {
-        /* ficha ilegível não impede o livro de entrar */
-      }
-    }
+    // conferiu ao montar a entrega. A mesma leitura traz os carimbos (§4.138),
+    // de graça — abrir o arquivo duas vezes seria 14 mil leituras a mais.
+    const carimbos = await carimbosDaFicha(pasta);
+    const sinopse = carimbos.sinopse ?? sinopseDoCru(linha.cru);
 
     const valores = {
       id,
-      titulo: linha.subtitulo?.trim()
-        ? `${linha.titulo!.trim()}: ${linha.subtitulo.trim()}`
-        : linha.titulo!.trim(),
+      // ⚠️ **Título e subtítulo NÃO se colam mais** (30/08, §4.138). A fonte
+      // sempre os entregou separados e era aqui que viravam um só, com `": "`
+      // no meio — daí os 3.033 títulos acima de 60 caracteres, um deles
+      // cobrindo a capa inteira no billboard (§4.137).
+      titulo: linha.titulo!.trim(),
+      subtitulo: linha.subtitulo?.trim() || null,
       autorSlug: autor ? slugify(autor) : "autor-desconhecido",
       narradorSlug: narrador ? slugify(narrador) : "narrador-nao-informado",
       editoraSlug: linha.editora?.trim() ? slugify(linha.editora.trim()) : null,
@@ -449,6 +518,13 @@ async function importar(limite: number | null) {
       duracaoSegundos: linha.minutos ? linha.minutos * 60 : null,
       origemLoja: linha.loja,
       origemId: linha.loja_id,
+      // Os carimbos da sincronização. ⚠️ `vinhetaIngerida` NÃO entra aqui: quem
+      // a escreve é o `npm run audio`, e como este `set` reescreve o que
+      // listar, incluí-la apagaria a cada importação o registro de com que
+      // vinheta o áudio foi de fato montado — justamente o dado que diz se ele
+      // está velho.
+      fichaGeradaEm: carimbos.geradoEm,
+      vinhetaFicha: carimbos.vinheta,
     };
 
     await db

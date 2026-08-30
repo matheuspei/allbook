@@ -45,6 +45,15 @@ export const CAPAS_RAIZ =
 export interface LivroDoCatalogo {
   id: number;
   title: string;
+  /**
+   * O subtítulo, quando a loja o entrega separado (30/08, §4.138).
+   *
+   * Não engorda a resposta: até 30/08 ele vinha **dentro** do `title`, colado
+   * com `": "` pelo importador. O que muda é que agora cada tela escolhe se o
+   * mostra — e o billboard da Início, que não o mostra, parou de ter o título
+   * cobrindo a capa (§4.137).
+   */
+  subtitle?: string;
   author: string;
   narrator: string;
   /** Endereço da capa servida por `/capas/…`, ou `null` para a tipográfica. */
@@ -140,6 +149,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
       .select({
         id: livros.id,
         titulo: livros.titulo,
+        subtitulo: livros.subtitulo,
         autor: autor.nome,
         narrador: narrador.nome,
         capa: livros.capa,
@@ -176,6 +186,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
       (l): LivroDoCatalogo => ({
         id: l.id,
         title: l.titulo,
+        subtitle: l.subtitulo ?? undefined,
         author: l.autor,
         narrator: l.narrador,
         // A capa vem como NOME de arquivo no banco (`7.jpg`); quem monta o

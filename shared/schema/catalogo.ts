@@ -142,6 +142,19 @@ export const livros = pgTable(
     /** Vem de `books.ts`. **Nunca** gerar automaticamente (ver acima). */
     id: integer("id").primaryKey(),
     titulo: text("titulo").notNull(),
+    /**
+     * O subtítulo, **separado do título** (30/08, §4.138).
+     *
+     * A fonte sempre soube separá-los — a tabela `titulos` do acervo tem
+     * `titulo` e `subtitulo` em campos distintos —, mas o importador os colava
+     * com `": "`. O resultado: 3.033 livros com título acima de 60 caracteres e
+     * um deles, com 190, cobrindo a capa inteira no billboard da Início
+     * (§4.137). Separado, cada tela decide o que mostrar.
+     *
+     * Vazio quando a loja não separa (e aí o título pode vir colado mesmo —
+     * `tituloDeVitrine()` em `lib/books.ts` é a rede para esse caso).
+     */
+    subtitulo: text("subtitulo"),
 
     autorSlug: text("autor_slug")
       .notNull()
@@ -228,6 +241,48 @@ export const livros = pgTable(
      */
     origemLoja: text("origem_loja"),
     origemId: text("origem_id"),
+
+    /* ---- Os carimbos da sincronização (30/08, §4.138) --------------------- */
+
+    /**
+     * Quando o `_ficha.json` deste livro foi montado no baixalivro — o campo
+     * `gerado_em` da ficha, copiado como veio.
+     *
+     * É **texto ISO**, não `timestamp`: a origem grava sem fuso
+     * (`2026-08-17T09:36:27`) e inventar um fuso na entrada seria pior que não
+     * ter. Como ISO ordena igual em texto, `>` e `max()` continuam valendo.
+     *
+     * Serve para uma pergunta só, e ela importa: *quais livros mudaram de ficha
+     * desde a última importação?* Sem isto, o importador reescreve os 13.917
+     * sempre — funciona, mas não sabe dizer o que mudou, e o Matheus fica sem
+     * saber se a correção que ele fez lá já chegou aqui.
+     */
+    fichaGeradaEm: text("ficha_gerada_em"),
+
+    /**
+     * A vinheta que a **ficha declara** hoje, como carimbo comparável
+     * (`a1/f15@2026-08-21`), ou vazio se este livro ainda não foi vinhetado.
+     *
+     * Quem cola a vinheta nos arquivos é o `vinhetar.py`, no baixalivro, e ele
+     * anota no `_ficha.json` qual abertura, qual fecho e em que dia. Este campo
+     * é a cópia desse carimbo no momento da importação.
+     */
+    vinhetaFicha: text("vinheta_ficha"),
+
+    /**
+     * A vinheta com que o áudio foi **de fato ingerido** — gravada pelo
+     * `npm run audio`, não pelo importador.
+     *
+     * ⚠️ **É a comparação entre este campo e `vinhetaFicha` que responde "este
+     * áudio está velho?".** Diferentes = a vinheta foi trocada depois da
+     * ingestão, e trocar vinheta **desloca toda posição salva** daquele livro
+     * (a armadilha que `vinhetaSegundos` existe para consertar). Sem os dois
+     * carimbos, uma narração desatualizada não tem como se declarar — e o erro
+     * só apareceria no ouvido de quem retomasse o livro no lugar errado.
+     *
+     * Vazio = não há áudio ingerido para este livro.
+     */
+    vinhetaIngerida: text("vinheta_ingerida"),
 
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .default(sql`now()`)

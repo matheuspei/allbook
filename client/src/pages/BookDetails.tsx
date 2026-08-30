@@ -71,6 +71,7 @@ const FICHA_AUSENTE = {
   id: 0,
   origem: undefined as string | undefined,
   title: "",
+  subtitle: undefined as string | undefined,
   author: "",
   narrator: "",
   cover: "",
@@ -297,6 +298,7 @@ function buildFromCatalog(id: string) {
     ...PADROES_DA_FICHA,
     id: entry.id,
     title: entry.title,
+    subtitle: entry.subtitle,
     author: entry.author,
     narrator: entry.narrator,
     cover: entry.cover,
@@ -549,6 +551,17 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             </Badge>
           )}
           <h1 className="text-3xl font-bold font-display leading-tight drop-shadow-lg" data-testid="text-book-title">{book.title}</h1>
+          {/* O subtítulo, quando a loja o separou (§4.138). Aqui ele APARECE —
+              esta é a ficha do livro, e é o único lugar onde o nome completo
+              interessa; na vitrine ele fica de fora justamente por ser longo. */}
+          {book.subtitle && (
+            <p
+              className="text-base text-white/70 leading-snug drop-shadow"
+              data-testid="text-book-subtitle"
+            >
+              {book.subtitle}
+            </p>
+          )}
           <div className="flex items-center gap-3 text-sm text-white/70">
             {/* Sem nota, sem estrela. O acervo chega sem avaliação, e o que
                 ficava aqui era uma estrela vermelha sozinha, sem número ao

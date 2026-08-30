@@ -38,6 +38,18 @@ export type Genre = string;
 export interface Book {
   id: number;
   title: string;
+  /**
+   * O subtítulo, quando a loja o entrega separado (30/08, §4.138).
+   *
+   * Até 30/08 ele vinha **grudado** no `title`, com `": "` no meio — o
+   * importador é que colava, embora a fonte sempre os tivesse em campos
+   * distintos. Era essa colagem que punha títulos de 190 caracteres na vitrine.
+   *
+   * ⚠️ **Falta na maioria**: só existe quando a loja separou. Livro sem ele
+   * pode ter o subtítulo dentro do `title` mesmo — é para esse caso que
+   * `tituloDeVitrine()` continua existindo.
+   */
+  subtitle?: string;
   author: string;
   /**
    * Quem narra o audiolivro. O elenco é pequeno e recorrente de propósito: um
@@ -205,6 +217,7 @@ export function tamanhoDoCatalogo(): number {
 interface LivroDaApi {
   id: number;
   title: string;
+  subtitle?: string;
   author: string;
   narrator: string;
   cover: string | null;
@@ -437,6 +450,10 @@ export function getBooksByGenre(genre: Genre): Book[] {
  * isso morre num `truncate`; no billboard da Início, que deixava o título
  * crescer à vontade, um desses cobriu a capa inteira e engoliu o próprio livro.
  *
+ * **Desde 30/08 há um caminho melhor antes da heurística:** se o livro tem
+ * `subtitle`, a própria loja separou os dois e o `title` já é o nome curto —
+ * é só devolvê-lo. A heurística abaixo vale para o resto.
+ *
  * A regra é a das lojas: até 48 caracteres o título vai inteiro (título curto
  * com dois-pontos costuma ser parte do nome — "Duna: Messias"); passando disso,
  * fica só o que vem antes do primeiro separador, e apenas se antes dele sobrar
@@ -447,7 +464,10 @@ export function getBooksByGenre(genre: Genre): Book[] {
  * sucesso dicas e estrategias para alcancar o sucesso na carreira"), e para
  * esses só o `line-clamp` segura. Quem mostra título grande precisa dos dois.
  */
-export function tituloDeVitrine(titulo: string): string {
+export function tituloDeVitrine(book: Book): string {
+  // A fonte já separou: não há o que adivinhar.
+  if (book.subtitle) return book.title;
+  const titulo = book.title;
   if (titulo.length <= 48) return titulo;
   for (const separador of [": ", " – ", " — ", " - "]) {
     const corte = titulo.indexOf(separador);

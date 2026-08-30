@@ -56,6 +56,7 @@ import {
   prefixoDaEntrega,
 } from "../server/armazenamento";
 import { db, pool } from "../server/db";
+import { carimbosDaEntrada } from "./carimbos";
 
 const rodar = promisify(execFile);
 
@@ -392,6 +393,7 @@ async function ingerir(livroId: number, entrada: string, guardarMestre: boolean)
     /* --- O banco, numa transação só ----------------------------------------- */
     console.log("\n6. banco");
     const vinhetaAntiga = livro.vinhetaSegundos;
+    const { vinheta: carimboDaEntrada } = await carimbosDaEntrada(entrada);
     const primeiraVez = livro.duracaoSegundos === null;
 
     await db.transaction(async (tx) => {
@@ -407,6 +409,17 @@ async function ingerir(livroId: number, entrada: string, guardarMestre: boolean)
             faixas.length === 1 ? chaveDoMestre(livroId, faixas[0].nome) : `mestres/${livroId}/`,
           duracaoSegundos: Math.round(medido),
           vinhetaSegundos: Math.round(vinhetaSegundos),
+          /*
+           * Com QUE vinheta este áudio foi montado (30/08, §4.138).
+           *
+           * Vem da ficha da pasta de origem, e é comparado com
+           * `livros.vinhetaFicha` (o que a ficha declara hoje) por
+           * `npm run acervo`. Diferentes = a vinheta foi trocada depois desta
+           * ingestão, e como vinheta desloca o livro inteiro, quem retomasse
+           * cairia fora do lugar — sem os dois carimbos, isso só apareceria no
+           * ouvido de alguém.
+           */
+          vinhetaIngerida: carimboDaEntrada,
         })
         .where(eq(livros.id, livroId));
 
