@@ -427,3 +427,31 @@ export function getBooksByIds(ids: number[]): Book[] {
 export function getBooksByGenre(genre: Genre): Book[] {
   return catalog.filter((book) => book.genre === genre);
 }
+
+/**
+ * O título como a **vitrine** deve mostrá-lo: sem o subtítulo.
+ *
+ * O acervo de verdade traz o título cru da loja, e loja grava título e
+ * subtítulo no mesmo campo. Medido em 30/08: dos 13.917 livros, **3.033 passam
+ * de 60 caracteres e 880 passam de 100** — o maior tem 364. Num cartão pequeno
+ * isso morre num `truncate`; no billboard da Início, que deixava o título
+ * crescer à vontade, um desses cobriu a capa inteira e engoliu o próprio livro.
+ *
+ * A regra é a das lojas: até 48 caracteres o título vai inteiro (título curto
+ * com dois-pontos costuma ser parte do nome — "Duna: Messias"); passando disso,
+ * fica só o que vem antes do primeiro separador, e apenas se antes dele sobrar
+ * nome de verdade — senão "365: ..." viraria "365".
+ *
+ * ⚠️ **Isto NÃO substitui o corte por linhas na tela.** 1.147 dos títulos
+ * longos não têm separador nenhum ("Como se tornar um tecnico de futebol de
+ * sucesso dicas e estrategias para alcancar o sucesso na carreira"), e para
+ * esses só o `line-clamp` segura. Quem mostra título grande precisa dos dois.
+ */
+export function tituloDeVitrine(titulo: string): string {
+  if (titulo.length <= 48) return titulo;
+  for (const separador of [": ", " – ", " — ", " - "]) {
+    const corte = titulo.indexOf(separador);
+    if (corte >= 8) return titulo.slice(0, corte).trim();
+  }
+  return titulo;
+}

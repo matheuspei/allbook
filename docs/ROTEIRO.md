@@ -6696,3 +6696,187 @@ Duas coisas, nesta ordem:
 10 s ou mais**. O padrão do `ffmpeg` é 6 s, e em `script/ingerir-audio.ts` ele
 ainda está em 6 — são US$ 482 contra US$ 93 de escrita no acervo alvo. Não
 morde no ensaio, morde no lote.
+
+---
+
+## 4.136 O ano da obra: o que foi medido, e o agente que custa 94× menos (22/08)
+
+Pedido dele em 22/08, começando pelo Tocalivros: *"as principais coisas aqui
+das fichas que faltam são o ano da obra (…) e a falta de sinopse"*. E logo
+depois o enquadramento que muda o peso da coisa: **"a decisão que a gente tomar
+aqui deve ser replicada para as demais"** — Audible, Storytel e Ubook também
+estão sem ano.
+
+O tamanho, medido no acervo: **13.072 livros sem `ANO`** de 13.959 prontos.
+
+### O que a loja já tinha e nós jogávamos fora (consertado, de graça)
+
+Três defeitos nossos, todos no `~/Projects/baixalivro`:
+
+1. **A sinopse era recortada até o `<hr>` ou até a lista de tags.** Página sem
+   tags não tem nem um nem outro, e aí a sinopse ia inteira para o lixo tendo
+   1.685 caracteres na página (o caso do *1984*). **647 livros** assim.
+2. **A trilha do breadcrumb começa em "Livros", não em "Audiolivros".** Só o
+   segundo estava na lista de "degrau de tipo", então **1.582 livros** ficaram
+   com `CATEGORIA = "Livros"` tendo o gênero no degrau seguinte.
+3. **A linha "Produção" da ficha técnica nunca foi gravada** — é o `PUBLICADOR`
+   ("Tocalivros Studios", "Livro Falante"), e vem em 92% das páginas.
+
+Resultado no Tocalivros: sinopse de 80% para **99%**, categoria certa em
+**100%**, publicador em **92%**. `src/tocalivros_source.py` corrigido, então
+livro novo nasce certo; `tools/completar_fichas_tocalivros.py` passa nos já
+baixados.
+
+⚠️ **A ferramenta NÃO resela a pasta, de propósito.** `ficha.selar_pasta` sem
+`capitulos=` reescreve o índice pelo atalho pobre, e 1.435 dos 3.299 já têm as
+durações (`ms`) lá dentro — reselar apagaria as durações para acrescentar uma
+sinopse. O `_ficha.json` é editado cirurgicamente.
+
+### As fontes do ano que foram testadas e estão MORTAS
+
+Registrado para ninguém gastar o dia de novo:
+
+- **Open Library por ISBN.** ISBN brasileiro não existe lá: **92 de 93** deram
+  404. (E temos ISBN em 6.909 livros — parecia o caminho óbvio.)
+- **Google Books sem chave.** HTTP 429 em toda consulta.
+- **CBL / ISBN Brasil.** Atrás de reCAPTCHA, e daria o ano da edição.
+- **O filtro `ano` da busca do Tocalivros.** Lixo de cadastro: *Histórias da
+  Pandemia* consta como 1899.
+
+### O agente que sai procurando: caro e, aqui, quase inútil
+
+Medido em 22/08 (`tools/medir_ano_modelos.py`), Opus e Sonnet, 24 consultas:
+
+- **Parte A**, 6 clássicos com o ano mascarado na sinopse: o Opus responde, mas
+  as "divergências" são escrita×publicação (*Rei Lear* 1605↔1606, *Hamlet*
+  1599↔1601) e num caso **o gabarito é que estava errado** (*Campo Geral*: a
+  sinopse diz 1964, o certo é 1956).
+- **Parte B**, 6 livros sorteados de verdade: **Opus e Sonnet voltaram vazios
+  nos 6, os 12 de 12** — pagando US$ 0,29 a 0,48 cada para não achar nada.
+
+Custo: **141.380 tokens e US$ 0,272 por livro** → 1,85 bilhão de tokens e
+US$ 3.556 no acervo. ⚠️ **A conversão disso em "janelas de 5 h" que circulava
+(`PENDENCIAS-AUDIBLE.md` §3, "270 milhões ≈ 2,5 janelas") NÃO foi medida no
+plano do Matheus** e não há registro de sua origem — usá-la como se fosse dá um
+número emprestado.
+
+### 🚨 A descoberta que barateia TODO subagente do projeto: `--system-prompt`
+
+`--append-system-prompt` **acrescenta** ao preâmbulo padrão — e o preâmbulo traz
+o `~/.claude/CLAUDE.md` do Matheus, que **manda narrar por voz**. O subagente lê
+aquilo, tenta chamar a voz, o `--strict-mcp-config` tirou o servidor, falha, e
+tenta de novo. Medido no mesmo prompt trivial:
+
+| | turnos | resultado |
+|---|---|---|
+| `--append-system-prompt`, sem limite | 18 | *"os serviços de voz não estão rodando"* |
+| `--append-system-prompt`, `--max-turns 3` | 4 | morre em `stop_reason: tool_use`, 12 de 12 |
+| **`--system-prompt`** (substitui tudo) | **1** | **18.730 tokens, resposta certa** |
+
+Vale para o `enriquecer.py` e o `ano_agente.py` também, que ainda usam o
+`--append-`. ⚠️ Só serve em tarefa que **não precisa** das ferramentas do Claude
+Code, porque apaga as instruções delas junto.
+
+### O caminho escolhido: o dossiê pronto (`tools/ano_barato.py`)
+
+Em vez de **dizer** ao agente onde procurar, o Python procura e entrega. Ele
+recebe Wikipédia-pt (o primeiro parágrafo, que é prosa e nenhuma regex lê),
+Wikidata, Open Library, o gêmeo em outra loja nossa e a própria sinopse — e
+**julga**, sem internet.
+
+**As duas economias, em ordem de tamanho:**
+
+1. **Não perguntar quando não há o que julgar.** 27 de 37 sorteados têm dossiê
+   vazio: nenhuma fonte do mundo conhece *O Dom da Fé* ou *Bíblia NVT —
+   Filemom*. Só **17%** viram pergunta.
+2. **`--system-prompt` + Haiku**: 21.556 tokens por chamada, contra 141.380.
+
+**Acervo inteiro: 47 milhões de tokens e US$ 38, contra 1.848 milhões e
+US$ 3.556.** 39× menos contexto, 94× menos dinheiro.
+
+**E acerta:** no gabarito de 12 clássicos com o ano mascarado, **4 certos, 0
+errados**, 5 em branco, 3 pulados. Recusou até um acerto (*Black Power*, 1967
+pela Open Library sozinha) por falta de segunda fonte — que é a regra dele,
+*"só o que for comprovado, e o resto vazio"*.
+
+**Duas regras nasceram de erro pego no teste:**
+
+- **Open Library sozinha não grava** — ele tinha escrito *O Fim do Brasil* como
+  2014 só com ela, e ela erra 9 vezes a cada 17.
+- **A sinopse ganha, e divergência de 1–2 anos com a Wikipédia vira anotação**,
+  não motivo para descartar. Ele recusou *A Arte da Guerra* de Maquiavel porque
+  a Wikipédia dizia "escrito entre 1519 e 1520" e a sinopse "publicada em 1520".
+  Excesso de zelo perde dado bom.
+
+**Estado:** teste de 10 livros gravado no acervo (3 ganharam ano), com cópia de
+segurança de cada ficha. A folha `_ano-antes-e-depois-B.html` mostra o antes e o
+depois de cada um. ⏳ **A decisão de soltar o lote é dele.**
+
+### O segundo defeito do ano, e quem pegou foi ele (22/08, ainda na §4.136)
+
+Conferindo a folha, o Matheus reparou que o agente calou em *Contos De Fadas Em
+Suas Versões Originais*, dos Grimm, e que o ChatGPT respondia **1812** sem
+hesitar: *"me parece que ele está sendo mais assertivo que o agente"*.
+
+Certo no sintoma, e o diagnóstico é pior do que timidez: **o dossiê estava vazio
+de conteúdo útil, por culpa da busca.** Ela procurava na Wikipédia por
+`"<título exato>" <autor>` — e aquele título é o nome de uma **edição brasileira
+de audiolivro**, que não existe como verbete. Voltava um resultado só: *Conto de
+fadas*, o verbete que explica o que é um conto de fadas. Recusar foi correto.
+
+**A busca virou três passadas** (título com aspas → título sem aspas → só o
+autor). Medido no mesmo livro, a terceira devolve *Contos de Grimm*, cujo
+primeiro parágrafo diz *"publicada inicialmente em 1812 por Jacob e Wilhelm
+Grimm"*. A mesma resposta do ChatGPT — **com fonte**, e não de memória de
+modelo, que é a diferença que este acervo faz questão de manter.
+
+Refeitos os 8 que tinham calado: **+1 ano, e nenhum falso positivo.** A passada
+larga traz ruído (a série de TV *Grimm*, "Cor-de-rosa", "Vale S.A.") e o
+julgamento descarta — fonte a mais é barata, fonte a menos é um ano perdido.
+
+⚠️ **A cobertura de 8% foi medida com a busca de UMA passada** e está
+subestimada. Não foi remedida ainda.
+
+**Ele conferiu e aprovou** *Robinson Crusoé* (1719) e *A Arte da Guerra* (1520).
+
+---
+
+## 4.137 O título de vitrine: o billboard deixa de mostrar o subtítulo (30/08)
+
+Ele mandou a captura de um destaque da Início em que o título **cobria a capa
+inteira** — dez linhas de letra grande por cima da arte, e a sinopse, o autor e
+os botões espremidos embaixo. O livro era *365 Hábitos Simples e Poderosos:
+Amor, Espiritualidade, Família, Saúde, Mindset, Negócios, Amizade. Pílulas de
+sabedoria para viver mais e melhor em todos os aspectos do nosso cotidiano* —
+**190 caracteres**.
+
+**Não é um livro esquisito, é o formato do acervo.** Medido no banco: dos
+**13.917** livros, **3.033 passam de 60 caracteres**, **880 passam de 100**, e o
+maior tem **364**. Loja grava título e subtítulo no mesmo campo, e o billboard
+era o único lugar do app onde o título tem tamanho para virar parágrafo — nos
+cartões ele já morria num `truncate`.
+
+**Duas correções, e as duas eram necessárias:**
+
+1. **`line-clamp-2` no `<h1>`** — a trava dura. É ela que garante que nenhum
+   título, hoje ou depois, volte a empurrar o bloco por cima da arte.
+2. **`tituloDeVitrine()` em `lib/books.ts`** — o billboard mostra só o que vem
+   antes do primeiro separador (`: `, ` – `, ` — `, ` - `). Cortar com reticências
+   no meio de um subtítulo é feio; mostrar o nome do livro é o que as lojas fazem.
+
+**Por que só o corte não bastava, e por que só o separador também não:** dos
+4.179 títulos acima de 48 caracteres, o separador encurta **2.238** — e **1.941
+continuam longos**, porque **1.147 dos títulos longos não têm separador nenhum**
+(`Como se tornar um tecnico de futebol de sucesso dicas e estrategias para
+alcancar o sucesso na carreira`). Para esses só o `line-clamp` segura. Quem
+desenhar tela nova com título grande precisa das duas coisas.
+
+**A régua dos 48 caracteres** existe para não estragar título curto: em
+*Duna: Messias* os dois-pontos são parte do nome. E o corte só vale se antes do
+separador sobrar nome de verdade (8 caracteres), senão *365: …* viraria **365**.
+
+**O que ficou de fora, de propósito:** separar título e subtítulo **no banco**,
+em duas colunas, na ingestão. Seria o conserto de raiz e resolveria a busca e a
+ficha junto — mas depende de reingerir 13.917 fichas e ainda deixaria 1.147 de
+pé. A função na vitrine custa 8 linhas e cobre o caso todo. Se um dia a ficha
+ganhar `subtitulo`, `tituloDeVitrine()` passa a lê-lo e some a heurística.

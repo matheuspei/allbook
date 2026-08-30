@@ -10,6 +10,7 @@ import {
   duracaoDoLivro,
   genres,
   temCapaReal,
+  tituloDeVitrine,
   type Book,
   type Genre,
   porNota,
@@ -134,7 +135,10 @@ const fileirasPorGenero = fileirasDoAcervo();
 
 const heroBooks = destaquesDaCapa().map((book) => ({
   id: book.id,
-  title: book.title,
+  // Sem o subtítulo: o acervo traz o título cru da loja, e o billboard é o
+  // único lugar onde o título é grande o bastante para virar parágrafo
+  // (§4.136). O corte em duas linhas no JSX é a trava que sobra.
+  title: tituloDeVitrine(book.title),
   author: book.author,
   narrator: book.narrator,
   // A capa REAL do livro (o `books.ts` já cai na arte genérica do gênero quando
@@ -362,7 +366,7 @@ function HeroBillboard() {
 
             <h1
               data-testid="text-hero-title"
-              className="font-display text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight max-w-sm"
+              className="font-display text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight max-w-sm line-clamp-2"
             >
               {book.title}
             </h1>
