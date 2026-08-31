@@ -171,6 +171,46 @@ regra agora é uma só: **o que não veio do banco não aparece.**
 - ⚠️ `getChapters` devolve **vazio na primeira chamada** e dispara o
   carregamento; quem mostra capítulo escuta `CHAPTERS_EVENT` e redesenha.
 
+### A editora vem do `_ficha.json`, não do `catalogo.sqlite` (31/08, §4.148)
+
+Todo livro do app mostra "Publicado por" com link para `/publisher/:slug`, e o
+perfil da editora lista o catálogo dela — como o do autor sempre fez.
+
+🚨 **A editora NÃO está na coluna `titulos.editora` do acervo.** Lá só a
+**Audible** a preenche (1.592 de 1.597); storytel, tocalivros e ubook mandam
+zero. E como a Audible está fora da vitrine (§4.145), ler dali significava
+**nenhum livro visível com editora**. Ela mora no **`_ficha.json` de cada pasta
+do "pronto", em `ficha.EDITORA`**: 12.918 de 14.575 (88,6%), nas quatro lojas.
+Hoje **12.766 dos 13.917 livros têm editora (91,7%)**, em **692 casas**.
+
+⚠️ **`EDITORA` não é `PUBLICADOR`.** A ficha traz as duas: `PUBLICADOR` é quem
+produziu o **áudio** ("Tocalivros Stúdios"), papel que no AllBook é do Studio;
+`EDITORA` é quem publicou o **livro**.
+
+- **`npm run acervo fichas`** reconcilia só a editora, direto das fichas — 7s,
+  sem tocar em capa, capítulo, duração nem id. É o caminho para a correção
+  feita no baixalivro chegar aqui **sem reimportar** os 13.917.
+- 🚨 **Ninguém precisa lembrar de rodá-lo:** o LaunchAgent `com.allbook.fichas`
+  (`scripts/sincronizar-fichas.sh`) o dispara todo dia às 5h30, como a cópia de
+  segurança do banco. `zsh scripts/sincronizar-fichas.sh situacao | logs`.
+- ⚠️ **Slug de editora, uma vez criado, NUNCA muda.** Ele é endereço e é por ele
+  que o app guarda quem a pessoa acompanha; trocá-lo deixa o seguimento
+  apontando para o vazio **sem erro nenhum**. `resolverEditoras`
+  (`script/editoras.ts`) reusa sempre o slug que já está no banco.
+- ⚠️ **Variantes do mesmo nome são uma editora só** ("Mundo Cristão" e "Editora
+  Mundo Cristão" seriam dois perfis com metade do catálogo cada). Quem junta é
+  `chaveDeEditora`; quem batiza o grupo é a variante mais frequente.
+- ⚠️ **"Independente" e "Sem gênero" não entram**: são a ausência da coisa, não
+  a coisa. Perfil de "Independente" juntaria 137 livros sem relação nenhuma.
+- ⚠️ **`lib/publishers.ts` é DERIVADO do catálogo**, como `people.ts` — não
+  volte a escrever lista de ids ali. `Book.publisher` é o **slug**; o nome de
+  tela sai de `publisherNames` (`books.ts`) ou de `publisherOfBook()`.
+
+🚨 **Terceiro caso seguido de tela morta por id de maquete** — depois dos
+capítulos (§4.141) e do seletor de narração (§4.147). A regra: **tela que "não
+faz nada", veja de onde ela lê.** Aqui a lista curada apontava para os ids das
+63 maquetes apagadas e devolvia `undefined` para os 13.917 livros, calada.
+
 ### Os carimbos que ligam o acervo ao app (30/08, §4.138)
 
 O acervo do `baixalivro` continua sendo corrigido (fichas, anos, vinhetas)

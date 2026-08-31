@@ -45,6 +45,23 @@ export interface CarimbosDaFicha {
   /** A sinopse conferida pelo baixalivro, quando a ficha a traz. */
   sinopse: string | null;
   /**
+   * A editora do LIVRO, como a ficha do acervo a traz (`ficha.EDITORA`).
+   *
+   * 🚨 **A ficha é a única fonte que a tem** (31/08). O `catalogo.sqlite` do
+   * acervo também tem uma coluna `editora`, e foi de lá que a importação a
+   * lia — mas ela só está preenchida na **Audible** (1.592 de 1.597) e vazia
+   * nas outras três lojas, o que dava 1.289 livros com editora contra 12.628
+   * sem. Na ficha do "pronto" ela está em **12.918 dos 14.575 (88,6%)**, nas
+   * quatro lojas, porque o baixalivro a colheu da página do produto e a
+   * gravou também nas tags do arquivo.
+   *
+   * ⚠️ **Não confundir com `PUBLICADOR`**, que a ficha também traz: aquele é
+   * quem produziu o **áudio** ("Tocalivros Stúdios", "Audible Studios"), e no
+   * AllBook esse papel é do Studio da casa (ver `lib/studio.ts`). Aqui é quem
+   * publicou o livro.
+   */
+  editora: string | null;
+  /**
    * Os capítulos **de verdade** — número e título saem em 100% das fichas
    * (medido em 31/08, §4.141). A duração vem no campo `ms` e só é completa na
    * Audible e na Storytel.
@@ -52,7 +69,13 @@ export interface CarimbosDaFicha {
   capitulos: CapituloDaFicha[];
 }
 
-const VAZIO: CarimbosDaFicha = { geradoEm: null, vinheta: null, sinopse: null, capitulos: [] };
+const VAZIO: CarimbosDaFicha = {
+  geradoEm: null,
+  vinheta: null,
+  sinopse: null,
+  editora: null,
+  capitulos: [],
+};
 
 /** Os capítulos da ficha, na ordem, com a duração que houver. */
 function capitulosDe(bruto: unknown): CapituloDaFicha[] {
@@ -80,10 +103,12 @@ export async function carimbosDaFicha(pasta: string | null): Promise<CarimbosDaF
   try {
     const d = JSON.parse(await readFile(caminho, "utf8"));
     const texto = d?.ficha?.SINOPSE;
+    const editora = d?.ficha?.EDITORA;
     return {
       geradoEm: typeof d?.gerado_em === "string" ? d.gerado_em : null,
       vinheta: carimboDeVinheta(d?.vinheta),
       sinopse: typeof texto === "string" && texto.trim() ? texto.trim() : null,
+      editora: typeof editora === "string" && editora.trim() ? editora.trim() : null,
       capitulos: capitulosDe(d?.capitulos),
     };
   } catch {

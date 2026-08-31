@@ -4,6 +4,7 @@
  *     npm run acervo             — o que existe lá e o que já entrou aqui
  *     npm run acervo importar    — importa tudo
  *     npm run acervo importar 50 — importa só os 50 primeiros (para conferir)
+ *     npm run acervo fichas      — só reconcilia a EDITORA das fichas (barato)
  *
  * ⚠️ **`npm run` engole `--flags`** (armadilha da §4.127) — por isso os
  * argumentos são posicionais, sem traço nenhum.
@@ -36,12 +37,13 @@ import { copyFile, mkdir, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { basename, join } from "node:path";
 
-import { eq, isNotNull, sql } from "drizzle-orm";
+import { eq, inArray, isNotNull, sql } from "drizzle-orm";
 
 import { db } from "../server/db";
 import { CAPAS_RAIZ } from "../server/catalogo";
 import { capitulos, editoras, generos, livros, pessoas } from "@shared/schema";
 import { carimbosDaFicha } from "./carimbos";
+import { nomeDeEditora, resolverEditoras, type EditoraResolvida } from "./editoras";
 
 /* -------------------------------------------------------------------------- */
 /* Onde as coisas ficam                                                        */
@@ -288,7 +290,7 @@ async function situacao() {
   for (const linha of linhas) {
     const pasta = pastaDoPronto(linha);
     const carimbos = await carimbosDaFicha(pasta);
-    if (await passouPelaVinheta(linha.loja, pasta)) prontos++;
+    if ((await triarFicha(linha.loja, pasta)).prontoParaEntrar) prontos++;
 
     const aqui = noBanco.get(`${linha.loja}/${linha.loja_id}`);
     if (!aqui) {
@@ -331,6 +333,22 @@ async function situacao() {
   console.log(`    ${vinhetaMudou} com vinheta diferente da importada`);
   if (semCarimbo > 0) {
     console.log(`    ${semCarimbo} importados antes dos carimbos (a próxima importação os carimba)`);
+  }
+
+  /* Quantos ainda esperam a editora — é o tamanho do que falta no baixalivro. */
+  const [editora] = await db
+    .select({
+      total: sql<number>`count(*)::int`,
+      com: sql<number>`count(editora_slug)::int`,
+      casas: sql<number>`count(distinct editora_slug)::int`,
+    })
+    .from(livros);
+
+  console.log(`\n  Editoras (§4.148)`);
+  console.log(`    ${editora.com} de ${editora.total} livros com editora, em ${editora.casas} casas`);
+  if (editora.total > editora.com) {
+    console.log(`    ${editora.total - editora.com} ainda sem — quando o baixalivro as achar,`);
+    console.log(`      elas entram sozinhas (o serviço com.allbook.fichas roda todo dia)`);
   }
 
   console.log(`\n  Áudio`);
@@ -392,16 +410,35 @@ async function medirTodos(
   return resultado;
 }
 
-async function passouPelaVinheta(loja: string, pasta: string | null): Promise<boolean> {
-  if (!LOJAS_COM_VINHETA.includes(loja)) return true;
-  if (!pasta) return false;
+/**
+ * A leitura leve da ficha: só o que a triagem precisa saber ANTES de escrever.
+ *
+ * São duas perguntas, e as duas se respondem no mesmo `JSON.parse` — daí virem
+ * juntas. A vinheta decide se o livro pode entrar; a editora precisa existir
+ * como linha da tabela `editoras` **antes** de o livro referenciá-la, e é por
+ * isso que ela não pode esperar pela leitura completa da etapa 3.
+ */
+interface TriagemDaFicha {
+  /** Já levou a vinheta do AllBook (ou é Audible, que não a recebe)? */
+  prontoParaEntrar: boolean;
+  /** O nome da editora, como a ficha o traz. `null` quando não há. */
+  editora: string | null;
+}
+
+async function triarFicha(loja: string, pasta: string | null): Promise<TriagemDaFicha> {
+  const semVinheta = !LOJAS_COM_VINHETA.includes(loja);
+  if (!pasta) return { prontoParaEntrar: semVinheta, editora: null };
   const ficha = join(pasta, "_ficha.json");
-  if (!existsSync(ficha)) return false;
+  if (!existsSync(ficha)) return { prontoParaEntrar: semVinheta, editora: null };
   try {
     const dados = JSON.parse(await readFile(ficha, "utf8"));
-    return Boolean(dados?.vinheta);
+    return {
+      prontoParaEntrar: semVinheta || Boolean(dados?.vinheta),
+      editora: nomeDeEditora(dados?.ficha?.EDITORA),
+    };
   } catch {
-    return false;
+    /* ficha ilegível: não entra, e não tem editora para dar */
+    return { prontoParaEntrar: semVinheta, editora: null };
   }
 }
 
@@ -416,12 +453,23 @@ async function importar(limite: number | null) {
 
   // A trava da vinheta: só passa quem já tem a marca (ou é Audible, que não a
   // recebe). Feita ANTES de qualquer escrita, para nada entrar pela metade.
-  console.log(`\n  ${linhas.length} no acervo — conferindo a vinheta…`);
+  //
+  // A mesma passada colhe a EDITORA de cada ficha (31/08, §4.148). Ela vem
+  // daqui, e não do `catalogo.sqlite`, porque lá só a Audible a tem — ver
+  // `script/editoras.ts`. Ler as duas coisas no mesmo `JSON.parse` é o que
+  // evita uma terceira varredura de 14 mil arquivos.
+  console.log(`\n  ${linhas.length} no acervo — conferindo a vinheta e a editora…`);
   const prontos: LinhaDoAcervo[] = [];
+  const editoraDaLinha = new Map<string, string>();
   let barrados = 0;
   for (const linha of linhas) {
-    if (await passouPelaVinheta(linha.loja, pastaDoPronto(linha))) prontos.push(linha);
+    const triagem = await triarFicha(linha.loja, pastaDoPronto(linha));
+    if (triagem.prontoParaEntrar) prontos.push(linha);
     else barrados++;
+    // A do `catalogo.sqlite` fica de reserva: ela cobre a Audible e não custa
+    // nada, mas a ficha vence sempre que existe (é a mais nova e a mais ampla).
+    const nome = triagem.editora ?? nomeDeEditora(linha.editora);
+    if (nome) editoraDaLinha.set(`${linha.loja}/${linha.loja_id}`, nome);
   }
 
   const aTrabalhar = limite ? prontos.slice(0, limite) : prontos;
@@ -464,9 +512,26 @@ async function importar(limite: number | null) {
       if (nome) pessoasNovas.set(slugify(nome), nome);
     }
 
-    const editora = linha.editora?.trim();
-    if (editora) editorasNovas.set(slugify(editora), editora);
   }
+
+  /* As editoras, resolvidas de uma vez (§4.148).
+   *
+   * 🚨 **A importação completa é a autoridade sobre o conjunto**, e por isso
+   * ela decide o slug canônico do zero (`jaNoBanco` vazio): as 139 editoras que
+   * o banco tinha nasceram da coluna do `catalogo.sqlite`, só da Audible, e
+   * nunca chegaram a uma tela — nenhum link nem seguimento aponta para elas.
+   * Esta é a única passada em que isso vale. O `npm run acervo fichas`, que
+   * roda depois, respeita o que estiver aqui: slug em uso não se troca. */
+  const editorasResolvidas = resolverEditoras(editoraDaLinha.values(), []);
+  for (const editora of editorasResolvidas.values()) {
+    editorasNovas.set(editora.slug, editora.nome);
+  }
+
+  /** A editora deste livro do acervo, já com o slug e o nome canônicos. */
+  const editoraDoLivro = (chave: string): EditoraResolvida | undefined => {
+    const nome = editoraDaLinha.get(chave);
+    return nome ? editorasResolvidas.get(nome) : undefined;
+  };
 
   const [{ ordemMaxima }] = await db
     .select({ ordemMaxima: sql<number>`coalesce(max(ordem), -1)::int` })
@@ -523,6 +588,7 @@ async function importar(limite: number | null) {
   let semNarrador = 0;
   let comCapa = 0;
   let semCategoria = 0;
+  let semEditora = 0;
 
   for (const linha of aTrabalhar) {
     const chave = `${linha.loja}/${linha.loja_id}`;
@@ -535,6 +601,7 @@ async function importar(limite: number | null) {
 
     const genero = generoDaCategoria(linha.categoria);
     if (genero.slug === SEM_GENERO.slug) semCategoria++;
+    if (!editoraDoLivro(chave)) semEditora++;
 
     // A capa mora ao lado do áudio, na pasta do "pronto". Copiada para
     // CAPAS_RAIZ com o nome do id, que é como `/capas/<arquivo>` a serve.
@@ -565,7 +632,7 @@ async function importar(limite: number | null) {
       subtitulo: linha.subtitulo?.trim() || null,
       autorSlug: autor ? slugify(autor) : "autor-desconhecido",
       narradorSlug: narrador ? slugify(narrador) : "narrador-nao-informado",
-      editoraSlug: linha.editora?.trim() ? slugify(linha.editora.trim()) : null,
+      editoraSlug: editoraDoLivro(chave)?.slug ?? null,
       generoSlug: genero.slug,
       // Sem nota: nenhuma das lojas entrega avaliação (§4.134).
       nota: null,
@@ -651,8 +718,163 @@ async function importar(limite: number | null) {
   console.log(`  ${comCapitulos} com os capítulos da ficha gravados`);
   if (medidos > 0) console.log(`  ${medidos} capítulos medidos com ffprobe (a ficha não trazia a duração)`);
   console.log(`  ${comCapa} com capa copiada para ${CAPAS_RAIZ}`);
+  console.log(`  ${editorasNovas.size} editoras distintas · ${aTrabalhar.length - semEditora} livros com editora`);
   console.log(`\n  ⚠️  ${semCategoria} chegaram SEM categoria (foram para "Sem gênero")`);
-  console.log(`  ⚠️  ${semNarrador} chegaram sem narrador com nome\n`);
+  console.log(`  ⚠️  ${semNarrador} chegaram sem narrador com nome`);
+  console.log(`  ⚠️  ${semEditora} chegaram sem editora (o baixalivro ainda vai atrás delas)\n`);
+
+  await limparEditorasOrfas();
+}
+
+/**
+ * Apaga as editoras que ficaram **sem nenhum livro**.
+ *
+ * Elas aparecem quando um nome muda de forma no acervo ou quando a
+ * normalização junta duas variantes numa só — e editora sem livro é um perfil
+ * que abre vazio e um nome a mais na lista "Outras editoras".
+ *
+ * ⚠️ **É o único `delete` deste script, e ele é estreito de propósito**: só
+ * apaga linha da tabela `editoras` que nenhum livro referencia. Nada de conta,
+ * nada de livro, nada de progresso — o `CLAUDE.md` é taxativo sobre isso.
+ */
+async function limparEditorasOrfas() {
+  const apagadas = await db
+    .delete(editoras)
+    .where(
+      sql`not exists (select 1 from livros where livros.editora_slug = editoras.slug)`,
+    )
+    .returning({ slug: editoras.slug });
+  if (apagadas.length > 0) {
+    console.log(`  ${apagadas.length} editoras sem nenhum livro foram removidas\n`);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* `npm run acervo fichas` — a editora que o baixalivro corrigir chega sozinha  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Reconcilia a **editora** de todo livro já importado, direto das fichas do
+ * acervo (31/08, §4.148).
+ *
+ * ## Por que ele existe
+ *
+ * Hoje 11,4% dos livros do acervo chegam sem editora, e o baixalivro ainda vai
+ * atrás delas — é trabalho que continua depois de o livro já ter entrado aqui.
+ * Sem este comando, a correção feita lá **nunca chegaria ao AllBook** a não ser
+ * reimportando os 13.917 livros: copiar capa de novo, reler capítulo de novo,
+ * medir com ffprobe de novo. Caro demais para trocar um nome.
+ *
+ * Ele faz uma coisa só, e por isso é barato: lê o `ficha.EDITORA` de cada
+ * pasta, compara com o que está no banco e **grava só o que mudou**. Não toca
+ * em capa, capítulo, duração, sinopse nem em id de ninguém.
+ *
+ * ## Quem o chama
+ *
+ * 🚨 **Ninguém precisa lembrar de rodá-lo.** Ele é o alvo do LaunchAgent
+ * `com.allbook.fichas`, que roda uma vez por dia como a cópia de segurança do
+ * banco já faz (`scripts/sincronizar-fichas.sh`). O comando na mão fica para
+ * quando se quiser ver o efeito na hora — não é a via normal, porque comando
+ * que depende de memória humana é comando que não roda.
+ */
+async function reconciliarFichas() {
+  if (!existsSync(CATALOGO_SQLITE)) {
+    console.error(`\n  Não achei o acervo em ${CATALOGO_SQLITE}\n`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const linhas = consultar<LinhaDoAcervo>(CONSULTA).filter((l) => l.titulo?.trim());
+  console.log(`\n  ${linhas.length} no acervo — lendo a editora de cada ficha…`);
+
+  /* O que o AllBook tem hoje: id e editora de cada livro vindo de loja. */
+  const noBanco = new Map<string, { id: number; editora: string | null }>();
+  for (const l of await db
+    .select({ id: livros.id, loja: livros.origemLoja, origemId: livros.origemId, editora: livros.editoraSlug })
+    .from(livros)
+    .where(isNotNull(livros.origemLoja))) {
+    noBanco.set(`${l.loja}/${l.origemId}`, { id: l.id, editora: l.editora });
+  }
+
+  /* O que as fichas dizem agora. Só interessa livro que já entrou: reconciliar
+     não é importar — quem ainda não está aqui entra pelo `importar`. */
+  const nomePorLivro = new Map<number, string>();
+  let semFicha = 0;
+  for (const linha of linhas) {
+    const aqui = noBanco.get(`${linha.loja}/${linha.loja_id}`);
+    if (!aqui) continue;
+    const triagem = await triarFicha(linha.loja, pastaDoPronto(linha));
+    const nome = triagem.editora ?? nomeDeEditora(linha.editora);
+    if (nome) nomePorLivro.set(aqui.id, nome);
+    else semFicha++;
+  }
+
+  /* 🚨 Aqui `jaNoBanco` vem CHEIO, ao contrário da importação: slug em uso não
+     se troca (é endereço de perfil e é por ele que o app guarda quem a pessoa
+     acompanha). Nome novo cuja chave já existe entra na editora existente. */
+  const existentes = await db.select({ slug: editoras.slug, nome: editoras.nome }).from(editoras);
+  const resolvidas = resolverEditoras(nomePorLivro.values(), existentes);
+
+  const jaTem = new Set(existentes.map((e) => e.slug));
+  const novas = new Map<string, string>();
+  for (const editora of resolvidas.values()) {
+    if (!jaTem.has(editora.slug)) novas.set(editora.slug, editora.nome);
+  }
+  if (novas.size > 0) {
+    await db
+      .insert(editoras)
+      .values([...novas].map(([slug, nome]) => ({ slug, nome })))
+      .onConflictDoNothing();
+  }
+
+  /* Agora a comparação: quem mudou de editora, quem ganhou uma, quem perdeu. */
+  const porSlugNovo = new Map<string, number[]>();
+  const perderam: number[] = [];
+  let ganharam = 0;
+  let trocaram = 0;
+  for (const [chave, aqui] of noBanco) {
+    const nome = nomePorLivro.get(aqui.id);
+    const slugNovo = nome ? (resolvidas.get(nome)?.slug ?? null) : null;
+    if (slugNovo === aqui.editora) continue;
+    if (slugNovo === null) {
+      // ⚠️ Editora que some da ficha é apagada aqui de propósito: o banco espelha
+      // o acervo, e manter uma atribuição que a fonte desmentiu é dado velho
+      // que ninguém mais sabe de onde veio. `chave` só existe para o `for`.
+      void chave;
+      perderam.push(aqui.id);
+      continue;
+    }
+    if (aqui.editora === null) ganharam++;
+    else trocaram++;
+    const lista = porSlugNovo.get(slugNovo) ?? [];
+    lista.push(aqui.id);
+    porSlugNovo.set(slugNovo, lista);
+  }
+
+  for (const [slug, ids] of porSlugNovo) {
+    await db.update(livros).set({ editoraSlug: slug }).where(inArray(livros.id, ids));
+  }
+  if (perderam.length > 0) {
+    await db.update(livros).set({ editoraSlug: null }).where(inArray(livros.id, perderam));
+  }
+
+  const [{ comEditora, total }] = await db
+    .select({
+      total: sql<number>`count(*)::int`,
+      comEditora: sql<number>`count(editora_slug)::int`,
+    })
+    .from(livros);
+
+  console.log(`\n  Editoras (§4.148)`);
+  console.log(`    ${ganharam} livros ganharam editora`);
+  console.log(`    ${trocaram} tiveram a editora corrigida`);
+  if (perderam.length > 0) console.log(`    ${perderam.length} perderam a editora (sumiu da ficha)`);
+  if (novas.size > 0) console.log(`    ${novas.size} editoras novas criadas`);
+  console.log(`    ${semFicha} ainda sem editora na ficha do acervo`);
+
+  await limparEditorasOrfas();
+
+  console.log(`  ${comEditora} de ${total} livros com editora (${((100 * comEditora) / total).toFixed(1)}%)\n`);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -674,6 +896,7 @@ async function principal() {
   const limite = process.argv[3] ? Number(process.argv[3]) : null;
 
   if (comando === "importar") await importar(Number.isFinite(limite) ? limite : null);
+  else if (comando === "fichas") await reconciliarFichas();
   else await situacao();
 
   process.exit(0);

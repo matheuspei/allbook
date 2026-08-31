@@ -46,7 +46,16 @@ export default function BotaoDeAcompanhar({
   }, [tipo, slug]);
 
   const novidades = novidadesDe({ tipo, slug });
-  const primeiroNome = nome.split(" ")[0];
+  /**
+   * Como o alvo é chamado nas frases curtas do botão.
+   *
+   * 🚨 **Pessoa se chama pelo primeiro nome; marca, não** (31/08, §4.148). A
+   * regra era `nome.split(" ")[0]` para todo mundo, e com as editoras de
+   * verdade dentro ela passou a escrever *"livro ou narração nova de
+   * Editora."* — o primeiro nome de "Editora Mundo Cristão". Editora e Studio
+   * usam o nome inteiro; só gente vira primeiro nome.
+   */
+  const comoChamar = tipo === "pessoa" ? nome.split(" ")[0] : nome;
 
   return (
     <div className={className} data-testid={`acompanhar-${tipo}-${slug}`}>
@@ -64,7 +73,7 @@ export default function BotaoDeAcompanhar({
                       ? `Já há ${novidades.length} ${novidades.length === 1 ? "novidade" : "novidades"} em «Seguindo».`
                       : "Você é avisado quando houver novidade.",
                 }
-              : { title: `Você deixou de seguir ${primeiroNome}` },
+              : { title: `Você deixou de seguir ${comoChamar}` },
           );
         }}
         className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-colors ${
@@ -94,7 +103,7 @@ export default function BotaoDeAcompanhar({
         {segue ? (
           <span>
             Você recebe os avisos {tipo === "studio" ? "do" : tipo === "editora" ? "da" : "de"}{" "}
-            {primeiroNome}
+            {comoChamar}
             {novidades.length > 0 && (
               <>
                 {" — "}
@@ -108,8 +117,8 @@ export default function BotaoDeAcompanhar({
           </span>
         ) : (
           <span>
-            Seguindo, você é avisado quando houver livro ou narração
-            {tipo === "editora" || tipo === "studio" ? " nova" : " nova"} de {primeiroNome}.
+            Seguindo, você é avisado quando houver livro ou narração nova de{" "}
+            {comoChamar}.
           </span>
         )}
       </p>

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { Library, PenLine, Mic, Building2, ChevronRight } from "lucide-react";
 
@@ -9,6 +9,7 @@ import PersonAvatar, { hueDoNome } from "@/components/PersonAvatar";
 import BookGrid from "@/components/BookGrid";
 import ProfileComments from "@/components/ProfileComments";
 import { findPublisher, otherPublishers, personSlugOf } from "@/lib/publishers";
+import type { Book } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { commentsForPublisher } from "@/lib/comments";
 
@@ -25,7 +26,38 @@ import { commentsForPublisher } from "@/lib/comments";
  * e o mesmo bloco de comentários (`ProfileComments`, compartilhado). O que muda
  * é o miolo — além dos livros, ela lista **as pessoas** que a editora publica e
  * grava, cada uma levando ao perfil próprio.
+ *
+ * ⚠️ **Ela foi escrita para dez editoras de meia dúzia de títulos e agora atende
+ * 692 do acervo real** (31/08, §4.148). A maior tem **1.448 livros** e centenas
+ * de autores; despejar tudo de uma vez são 1.448 capas montadas na abertura da
+ * tela, e o celular trava antes de a primeira aparecer. Daí os dois tetos daqui:
+ * a grade abre com um punhado e cresce a pedido, e as fileiras de pessoas
+ * mostram as mais publicadas, com a contagem inteira no cabeçalho da seção —
+ * quem tem 300 autores continua vendo "300 autores", só não vê 300 fotos.
  */
+
+/**
+ * O número com o ponto de milhar do português.
+ *
+ * Não é preciosismo: a maior editora do acervo tem 1.447 títulos, e "1447
+ * títulos" numa frase de apresentação parece código, não texto.
+ */
+function emNumero(n: number): string {
+  return n.toLocaleString("pt-BR");
+}
+
+/** Quantos livros a grade mostra de saída, e quantos ela acrescenta por vez. */
+const LIVROS_POR_VEZ = 24;
+
+/**
+ * Quantas pessoas cabem numa fileira que rola de lado.
+ *
+ * Não é limite de tela: é limite de sentido. Passadas as primeiras dezenas,
+ * ninguém rola uma fileira horizontal até o fim — e como a ordem agora é por
+ * quantidade de títulos (ver `publishers.ts`), as que sobram são as de um
+ * título só.
+ */
+const PESSOAS_NA_FILEIRA = 24;
 export default function PublisherProfile({ params }: { params: { slug: string } }) {
   const publisher = findPublisher(params.slug);
 
@@ -50,6 +82,24 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
   const hue = hueDoNome(publisher.name);
   const comentarios = commentsForPublisher(publisher.slug);
   const outras = otherPublishers(publisher.slug);
+
+  /**
+   * A apresentação da editora.
+   *
+   * A `linha` curada vence quando existe — mas hoje ela não existe para
+   * nenhuma: eram dez frases escritas à mão para dez editoras, e são 692 (ver
+   * `lib/publishers.ts`). Na falta dela a tela **não inventa nada sobre a
+   * empresa**: monta uma frase com o que o próprio catálogo do AllBook sabe.
+   */
+  const apresentacao =
+    publisher.linha ??
+    [
+      `${emNumero(publisher.titles)} ${publisher.titles === 1 ? "título" : "títulos"} no AllBook`,
+      publisher.genres.length > 0
+        ? `, sobretudo em ${publisher.genres.slice(0, 2).join(" e ")}`
+        : "",
+      ".",
+    ].join("");
 
   return (
     <div className="pb-10" data-testid="publisher-profile">
@@ -79,7 +129,7 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
             {publisher.name}
           </h1>
 
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/55">{publisher.linha}</p>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/55">{apresentacao}</p>
 
           {/* Seguir a editora — §4.84. */}
           <BotaoDeAcompanhar
@@ -92,7 +142,7 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
           <dl className="mt-6 grid w-full grid-cols-3 gap-2">
             <Estatistica
               rotulo={publisher.titles === 1 ? "Título" : "Títulos"}
-              valor={String(publisher.titles)}
+              valor={emNumero(publisher.titles)}
             />
             <Estatistica rotulo="Nota média" valor={publisher.rating?.toFixed(1) ?? "—"} />
             <Estatistica
@@ -102,8 +152,11 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
           </dl>
 
           {publisher.genres.length > 0 && (
+            /* Os seis gêneros mais frequentes, não todos: uma editora grande
+               cobre vinte, e vinte pastilhas empurram a tela inteira para
+               baixo antes de aparecer um livro sequer. */
             <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-              {publisher.genres.map((genero) => (
+              {publisher.genres.slice(0, 6).map((genero) => (
                 <span
                   key={genero}
                   className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] text-white/60 ring-1 ring-white/10"
@@ -119,10 +172,10 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
       <Secao
         icone={<Library className="h-4 w-4 text-primary" />}
         titulo="No catálogo"
-        contagem={`${publisher.titles} ${publisher.titles === 1 ? "título" : "títulos"}`}
+        contagem={`${emNumero(publisher.titles)} ${publisher.titles === 1 ? "título" : "títulos"}`}
         testid="section-publisher-books"
       >
-        <BookGrid books={publisher.books} showAuthor />
+        <GradeQueCresce key={publisher.slug} books={publisher.books} />
       </Secao>
 
       <Secao
@@ -131,7 +184,7 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
         contagem={`${publisher.authors.length} ${publisher.authors.length === 1 ? "autor" : "autores"}`}
         testid="section-publisher-authors"
       >
-        <FileiraDePessoas nomes={publisher.authors} />
+        <FileiraDePessoas nomes={publisher.authors.slice(0, PESSOAS_NA_FILEIRA)} />
       </Secao>
 
       <Secao
@@ -142,7 +195,7 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
         }`}
         testid="section-publisher-narrators"
       >
-        <FileiraDePessoas nomes={publisher.narrators} />
+        <FileiraDePessoas nomes={publisher.narrators.slice(0, PESSOAS_NA_FILEIRA)} />
       </Secao>
 
       <ProfileComments
@@ -183,6 +236,43 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
             ))}
           </div>
         </Secao>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A grade de livros da editora, que começa curta e cresce a pedido.
+ *
+ * 🚨 **A alternativa era travar o celular.** `BookGrid` monta um cartão por
+ * livro, cada um com a sua capa; a maior editora do acervo tem 1.448, e montar
+ * 1.448 de uma vez congela a tela por segundos antes de a primeira aparecer.
+ * Rolagem infinita resolveria também, mas custa um observador de rolagem e um
+ * caso a mais para quem for mexer aqui — e o botão tem uma vantagem que ela não
+ * tem: diz **quantos faltam**, que numa editora de mil títulos é a informação
+ * mais útil da tela.
+ */
+function GradeQueCresce({ books }: { books: Book[] }) {
+  const [mostrando, setMostrando] = useState(LIVROS_POR_VEZ);
+  const visiveis = useMemo(() => books.slice(0, mostrando), [books, mostrando]);
+  const faltam = books.length - visiveis.length;
+
+  return (
+    <div className="space-y-4">
+      <BookGrid books={visiveis} showAuthor />
+      {faltam > 0 && (
+        <button
+          type="button"
+          onClick={() => setMostrando((quantos) => quantos + LIVROS_POR_VEZ * 2)}
+          className="w-full rounded-xl bg-white/5 py-3 text-sm font-semibold text-white ring-1 ring-white/10 transition-colors hover:bg-white/10 active:bg-white/15"
+          data-testid="button-more-publisher-books"
+        >
+          Mostrar mais{" "}
+          {faltam === 1 ? "1 título" : `${emNumero(Math.min(faltam, LIVROS_POR_VEZ * 2))} títulos`}
+          <span className="ml-1 text-white/40">
+            ({emNumero(visiveis.length)} de {emNumero(books.length)})
+          </span>
+        </button>
       )}
     </div>
   );

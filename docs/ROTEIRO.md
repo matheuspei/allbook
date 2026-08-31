@@ -7724,3 +7724,158 @@ realmente separa uma leitura integral de uma resumida.
 3. **A escolha não sobe para a conta.** `allbook_narration_choice` não está na
    lista `CHAVES` de `lib/sincronizacao.ts`, e a tabela `narracao_escolhida`
    segue vazia.
+
+## 4.148 A editora do livro existia em tudo, menos onde importava (31/08)
+
+**O pedido dele:** *"na ficha do livro a gente só tem o escrito por e narrado
+por, e não tem o ícone da editora, o link que leva ao perfil dela. A gente tem
+essa informação dentro do baixalivro. Precisa fazer um agente completo que
+colocasse todas as editoras e todos os livros que essa editora produziu, como
+já é com os escritores."*
+
+### O que se descobriu antes de escrever uma linha
+
+**Quase tudo já estava construído — e nada funcionava.** A tela
+`/publisher/:slug` existia, o bloco "Publicado por" já estava escrito dentro do
+`BookDetails.tsx`, a tabela `editoras` existia no banco com `livros.editora_slug`
+apontando para ela, e o `BotaoDeAcompanhar` já sabia seguir editora.
+
+🚨 **O fio estava cortado em dois pontos, e os dois em silêncio.**
+
+1. **`lib/publishers.ts` era uma lista escrita à mão** — dez editoras, cada uma
+   com os ids dos livros dela (`bookIds: [7, 8, 303, 131]`). Quando as 63
+   maquetes foram apagadas (§4.134), aqueles ids deixaram de existir e a lista
+   virou **dez editoras com zero livros cada**. `publisherOfBook()` passou a
+   devolver `undefined` para os 13.917 livros, e o bloco da ficha — que só se
+   desenha quando há editora — sumiu sem erro nenhum.
+2. **`/api/catalogo` nunca mandou a editora.** Mesmo com o banco cheio, o app
+   não tinha como saber.
+
+É o **terceiro caso seguido de funcionalidade morta por id de maquete** —
+depois dos capítulos (§4.141) e do seletor de narração (§4.147). Vale como
+regra: *tela que "não faz nada" — veja de onde ela lê.*
+
+### A descoberta que mudou o trabalho: a fonte certa não era a óbvia
+
+O importador lia a editora da coluna `titulos.editora` do `catalogo.sqlite` do
+acervo. Medido:
+
+| loja | títulos | com editora no SQLite |
+|---|---|---|
+| audible | 1.597 | 1.592 |
+| storytel | 7.536 | **0** |
+| tocalivros | 3.395 | **0** |
+| ubook | 47.153 | **0** |
+
+🚨 **Só a Audible — e a Audible está escondida da vitrine (§4.145).** Ou seja:
+dos 12.628 livros que o app mostrava, **nenhum** tinha editora, e nenhum teria
+mesmo depois de consertar o `publishers.ts`.
+
+**Ela estava no `_ficha.json` de cada livro do "pronto"**, no campo
+`ficha.EDITORA` — colhido pelo baixalivro da página do produto e gravado
+também nas tags do arquivo:
+
+| loja | cópias | com `ficha.EDITORA` |
+|---|---|---|
+| audible | 1.289 | 1.289 (100%) |
+| tocalivros | 3.268 | 3.268 (100%) |
+| storytel | 5.065 | 4.422 (87%) |
+| ubook | 4.953 | 3.939 (80%) |
+| **total** | **14.575** | **12.918 (88,6%)** |
+
+⚠️ **`EDITORA` não é `PUBLICADOR`**, e a ficha traz as duas. `PUBLICADOR` é
+quem produziu o **áudio** ("Tocalivros Stúdios", "Audible Studios"); no AllBook
+esse papel é do Studio da casa. Quem publicou o **livro** é a `EDITORA`.
+
+### As três decisões de desenho
+
+**1. Variantes do mesmo nome viram uma editora só.** "Mundo Cristão" (134
+livros) e "Editora Mundo Cristão" (131) são a mesma casa; sem juntá-las, o app
+teria dois perfis com metade do catálogo cada, e nenhum dos dois estaria certo.
+`chaveDeEditora` (em `script/editoras.ts`) tira o "Editora/Grupo/Edições" da
+frente e o "Editora/Ltda/Publishing" de trás só para **comparar**, e quem
+batiza o grupo é a variante mais frequente. **724 nomes brutos → 692 editoras**,
+32 grupos juntados — e os 32 foram conferidos um a um antes de virar código
+(nenhum juntou casas diferentes; pegou de quebra "SuperSônica"/"Supersônica" e
+"Librivox"/"LibriVox").
+
+**2. 🚨 Slug criado nunca muda.** O slug é endereço (`/publisher/sextante`) e é
+por ele que o app guarda **quem a pessoa acompanha**. Trocá-lo numa passada
+seguinte deixaria o seguimento apontando para o vazio, sem erro nenhum. Por
+isso `resolverEditoras` recebe o que já está no banco e reusa o slug de lá
+sempre que a chave bate. *(A consequência visível: as 139 editoras que a
+Audible já tinha criado ficaram com os slugs delas — daí `editora-sextante` e
+não `sextante`. Feio em ~13 casos de 692, e o preço de não quebrar endereço.)*
+
+**3. "Independente" não é editora — é a ausência dela.** Aparece em 137 livros.
+Virar perfil juntaria 137 livros sem relação nenhuma sob uma marca que não
+existe. Fica de fora, como "Sem gênero" ficou de fora da lista de gêneros da
+editora: `genero_slug` é obrigatório e nem toda ficha traz categoria, mas
+escrever "sobretudo em Sem gênero" não diz nada sobre a casa.
+
+### O que ele levantou no meio do caminho, e mudou o resultado
+
+> *"As editoras que ainda não existem nesses outros livros, a gente ainda vai
+> atrás delas… quando isso for corrigido no baixalivro, ele também precisa
+> corrigir lá dentro do AllBook."*
+
+Daí nasceu **`npm run acervo fichas`**: lê o `ficha.EDITORA` de cada pasta,
+compara com o banco e grava **só o que mudou**. Não toca em capa, capítulo,
+duração, sinopse nem id — por isso leva **7 segundos**, contra a reimportação
+completa que copia capa e mede com `ffprobe`.
+
+> *"eu tenho medo de eu esquecer de rodar esse comando."*
+
+🚨 **E essa é a objeção certa: comando que depende de memória humana é comando
+que não roda.** Por isso ele **não** ficou como comando manual. Virou o
+LaunchAgent **`com.allbook.fichas`** (`scripts/sincronizar-fichas.sh`), que
+roda todo dia às 5h30 como a cópia de segurança do banco já faz. O comando na
+mão continua existindo para forçar na hora, mas deixou de ser obrigatório.
+*(Sem `RunAtLoad`, ao contrário do backup: a varredura lê 14 mil arquivos do
+disco externo, e disparar isso a cada login é peso na pior hora. Disco
+desmontado = sai em silêncio; serviço que grita à toa vira barulho ignorado.)*
+
+### O resultado, medido
+
+- **12.766 de 13.917 livros com editora (91,7%)**; dos **12.628 visíveis**,
+  **11.477 (90,9%)**, em **660 casas com perfil**.
+- Os 1.151 que faltam são trabalho do baixalivro — e o `npm run acervo` agora
+  **diz quantos são**, para o tamanho do que falta ser visível.
+- A resposta de `/api/catalogo` manda o **slug** por livro e a lista de nomes à
+  parte (13.917 livros para 692 editoras: repetir o nome engordaria à toa). Com
+  gzip, **492 KB**.
+
+### O que a tela precisou aprender
+
+Ela fora desenhada para dez editoras de meia dúzia de títulos. A maior do
+acervo tem **1.447**:
+
+- **A grade abre com 24 e cresce a pedido** (+48 por toque, dizendo quantos
+  faltam). 1.447 cartões de uma vez congelam a tela antes de a primeira capa
+  aparecer; o botão ainda informa o tamanho do catálogo, coisa que rolagem
+  infinita não faz.
+- **Autores e narradores em ordem de quantidade, não alfabética** — a fileira
+  mostra os primeiros 24, e "os primeiros" tem de querer dizer algo.
+- **Sem `linha` curada**, a apresentação é montada dos números do próprio
+  catálogo ("1.447 títulos no AllBook, sobretudo em…"). Escrever 692 frases sem
+  autor seria a mesma invenção que o arquivo antigo já proibia.
+- **"Outras editoras" agora prefere quem publica o mesmo gênero** — com 692
+  casas, as seis maiores apareceriam no rodapé de todo perfil.
+
+### Dois defeitos achados só ao olhar a tela pronta
+
+1. **"livro ou narração nova de Editora."** — `BotaoDeAcompanhar` cortava
+   `nome.split(" ")[0]` para todo mundo. Serve para pessoa; para marca, decapita
+   o nome. Agora só `tipo === "pessoa"` vira primeiro nome.
+2. **"1447 títulos"**, sem ponto de milhar. Numa editora de mil títulos, isso
+   parece código, não texto.
+
+### O que ficou de fora, e por quê
+
+- **A busca não acha editora.** Ela roda só no navegador e existe para oferecer
+  a produção da narração quando o catálogo não tem o título (§4.18) — mexer
+  nela por causa das editoras é risco sem pedido.
+- **Não há tela "todas as editoras".** As 692 se alcançam pela ficha do livro e
+  pelo rodapé de cada perfil. Uma vitrine de editoras é decisão de descoberta,
+  não de dado, e ele não pediu.
+

@@ -116,6 +116,20 @@ export interface Book {
    * importada, que vem em inglês e fica de reserva.
    */
   sinopse?: string;
+  /**
+   * O **slug** da editora que publicou o livro (31/08, §4.148).
+   *
+   * É slug, e não nome, porque é assim que a resposta do servidor o manda —
+   * 13.917 livros para 692 editoras, e repetir o nome em cada um engordaria o
+   * catálogo à toa. O nome de tela sai de `publisherNames`, logo abaixo, ou —
+   * melhor ainda — de `publisherOfBook()` em `lib/publishers.ts`, que já
+   * devolve a editora inteira.
+   *
+   * ⚠️ **Falta em ~11% dos livros.** Nem toda ficha do acervo traz editora, e
+   * quem desenha tela precisa esconder a linha quando ela não existe, em vez
+   * de escrever "Editora desconhecida".
+   */
+  publisher?: string;
 }
 
 /**
@@ -203,6 +217,21 @@ export const catalog: Book[] = [];
  */
 export const genres: { label: Genre; gradient: string }[] = [];
 
+/**
+ * Editora → nome de tela (`mk-editora` → "MK Editora").
+ *
+ * ⚠️ **Preenchido em `carregarCatalogo()` sem nunca trocar de referência**,
+ * pela mesma razão do `catalog`: quem importou este Map continua com o mesmo
+ * objeto na mão. Um `publisherNames = novoMap` deixaria os importadores
+ * segurando o mapa velho, vazio, **sem erro nenhum**.
+ *
+ * Quem quer a editora de um livro raramente quer só o nome — use
+ * `publisherOfBook()` de `lib/publishers.ts`, que devolve também os livros
+ * dela. Este mapa existe para o caso simples e para o próprio `publishers.ts`
+ * se montar.
+ */
+export const publisherNames = new Map<string, string>();
+
 /** Os ids que têm capa de verdade — o resto usa a tipográfica gerada. */
 const comCapaReal = new Set<number>();
 
@@ -242,6 +271,7 @@ interface LivroDaApi {
   origem?: string;
   synopsis?: string;
   sinopse?: string;
+  publisher?: string;
 }
 
 /**
@@ -262,11 +292,17 @@ export async function carregarCatalogo(): Promise<void> {
 
     const dados = (await resposta.json()) as {
       generos: { label: string; slug: string; gradient: string }[];
+      editoras?: { slug: string; label: string }[];
       livros: LivroDaApi[];
     };
 
     genres.length = 0;
     genres.push(...dados.generos.map((g) => ({ label: g.label, gradient: g.gradient })));
+
+    // `?? []` e não `dados.editoras` direto: servidor de uma versão anterior
+    // não manda o campo, e o app tem de abrir mesmo assim — só sem editora.
+    publisherNames.clear();
+    for (const editora of dados.editoras ?? []) publisherNames.set(editora.slug, editora.label);
 
     catalog.length = 0;
     comCapaReal.clear();

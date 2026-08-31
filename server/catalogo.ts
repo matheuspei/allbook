@@ -25,7 +25,7 @@ import { and, asc, eq, exists, inArray, isNull, notInArray, or, sql } from "driz
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "./db";
-import { avaliacoes, capitulos, generos, livros, pessoas } from "@shared/schema";
+import { avaliacoes, capitulos, editoras, generos, livros, pessoas } from "@shared/schema";
 
 /**
  * Onde moram as capas dos livros de verdade.
@@ -42,7 +42,7 @@ export const CAPAS_RAIZ =
   process.env.CAPAS_RAIZ ?? `${process.env.HOME}/AllBook-capas`;
 
 /* -------------------------------------------------------------------------- */
-/* A quarentena da vitrine (31/08, §4.141)                                     */
+/* A quarentena da vitrine (31/08, §4.145)                                     */
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -119,6 +119,18 @@ export interface LivroDoCatalogo {
   duracaoSegundos?: number;
   /** A loja de origem; vazio quando o livro é do AllBook Studio. */
   origem?: string;
+  /**
+   * O **slug** da editora que publicou o livro — nunca o nome (31/08, §4.148).
+   *
+   * ⚠️ Mandar o slug e não o nome é medida de tamanho: são 13.917 livros e só
+   * 692 editoras, então o nome viria repetido milhares de vezes. Ele viaja uma
+   * vez só, na lista `editoras` da resposta, e o `lib/books.ts` recompõe os
+   * dois lados. É o mesmo desenho que os gêneros já usam.
+   *
+   * Falta em ~11% dos livros: nem toda ficha do acervo traz editora, e o que
+   * falta continua sendo colhido no baixalivro (ver `script/editoras.ts`).
+   */
+  publisher?: string;
 }
 
 /**
@@ -138,6 +150,14 @@ export interface FichaDoLivro {
 
 export interface RespostaDoCatalogo {
   generos: { label: string; slug: string; gradient: string }[];
+  /**
+   * As editoras com ao menos um livro **visível** — `slug` → nome de tela.
+   *
+   * Vem como lista própria pela razão explicada em `publisher` acima. E é
+   * filtrada pela mesma regra dos gêneros: editora cujos livros estão todos
+   * numa loja escondida viraria um perfil que abre vazio.
+   */
+  editoras: { slug: string; label: string }[];
   livros: LivroDoCatalogo[];
 }
 
@@ -193,7 +213,7 @@ function arredondar(valor: number | null): number | undefined {
 export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
   const visivel = livroVisivel();
 
-  const [linhasDeGenero, linhasDeLivro] = await Promise.all([
+  const [linhasDeGenero, linhasDeEditora, linhasDeLivro] = await Promise.all([
     /* Só gênero que tenha ao menos um livro visível.
      *
      * A Descobrir monta um card por gênero desta lista, e gênero sem livro vira
@@ -212,6 +232,20 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         ),
       )
       .orderBy(asc(generos.ordem)),
+    /* Só editora que tenha ao menos um livro visível — a mesma regra dos
+       gêneros logo acima, e pelo mesmo motivo: perfil que abre vazio. */
+    db
+      .select({ slug: editoras.slug, nome: editoras.nome })
+      .from(editoras)
+      .where(
+        exists(
+          db
+            .select({ um: sql`1` })
+            .from(livros)
+            .where(and(eq(livros.editoraSlug, editoras.slug), visivel)),
+        ),
+      )
+      .orderBy(asc(editoras.nome)),
     db
       .select({
         id: livros.id,
@@ -231,6 +265,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         isbn: livros.isbn,
         duracaoSegundos: livros.duracaoSegundos,
         origem: livros.origemLoja,
+        editora: livros.editoraSlug,
       })
       .from(livros)
       .innerJoin(autor, eq(livros.autorSlug, autor.slug))
@@ -247,6 +282,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
       slug: g.slug,
       gradient: g.gradiente,
     })),
+    editoras: linhasDeEditora.map((e) => ({ slug: e.slug, label: e.nome })),
     // Os `?? undefined` não são enfeite: `JSON.stringify` **omite** `undefined` e
     // **mantém** `null`. Campo que falta some da resposta em vez de chegar como
     // `null` no cliente, onde viraria "ano: null" impresso numa ficha.
@@ -276,6 +312,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         isbn: l.isbn ?? undefined,
         duracaoSegundos: l.duracaoSegundos ?? undefined,
         origem: l.origem ?? undefined,
+        publisher: l.editora ?? undefined,
       }),
     ),
   };
