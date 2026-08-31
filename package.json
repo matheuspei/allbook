@@ -16,6 +16,7 @@
     "estudio": "tsx script/estudio.ts",
     "audio": "tsx script/ingerir-audio.ts",
     "acervo": "tsx script/importar-acervo.ts",
+    "anos": "tsx script/anos.ts",
     "r2:testar": "tsx script/testar-r2.ts"
   },
   "dependencies": {

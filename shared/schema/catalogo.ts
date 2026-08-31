@@ -187,7 +187,48 @@ export const livros = pgTable(
     // livros antigos).
     /** Título no idioma original — é por ele que a busca de capas funciona. */
     tituloOriginal: text("titulo_original"),
+    /**
+     * O ano da **edição em áudio** — a data que a loja anuncia como lançamento
+     * (`titulos.lancamento` do acervo).
+     *
+     * ⚠️ **Não é o ano da obra**, e confundir os dois é fácil: "Mais esperto que
+     * o diabo", texto de 1938, está aqui como 2017 (Tocalivros) e 2026 (Ubook).
+     * O ano do texto é o `anoObra`, logo abaixo.
+     *
+     * 🚨 **No Ubook este campo é a data da COLETA, não do lançamento**: 3.497
+     * dos 4.938 livros de lá caíram em 2026, concentrados nos meses em que o
+     * acervo foi baixado (medido em 31/08). Por isso a ficha do livro **não**
+     * mostra o ano da narração nessa loja — a régua está em
+     * `client/src/lib/anos.ts`, num lugar só.
+     */
     ano: integer("ano"),
+    /**
+     * O ano em que a **obra** foi publicada pela primeira vez — o do texto, não
+     * o da gravação.
+     *
+     * Vem de `ficha.ANO` do `_ficha.json`, escrita pelo **agente do ano** do
+     * `baixalivro`. Ele **só grava o que consegue provar** e recusa sozinho toda
+     * prova que fale em audiolivro, narração ou lançamento em loja
+     * (`ano_confiavel`, em `tools/ano_barato.py`). Por isso aqui não existe
+     * campo de "confiança": o que está gravado é achado; o que não deu para
+     * provar fica **vazio**, e a tela some com a linha.
+     *
+     * ⚠️ **Quem escreve é `npm run anos`** (`script/anos.ts`), e não a
+     * importação do acervo: o agente segue rodando por dias, e reimportar
+     * 13.917 livros para pegar um número seria caro. A importação também não
+     * pode apagá-lo — ela não conhece este campo.
+     */
+    anoObra: integer("ano_obra"),
+    /**
+     * A prova do `anoObra`, como o agente a escreveu: `Wikidata (P577, data de
+     * publicação da obra)`, `sinopse da Audible: …`, `loja da Editora Dialética
+     * (ISBN …)`.
+     *
+     * Guardada porque é ela que separa achado de chute — sem a prova, um ano
+     * errado é indistinguível de um certo, e foi assim que *100 Consejos de
+     * Adiestramiento de Perros* gravou a data do audiolivro como ano da obra.
+     */
+    anoObraFonte: text("ano_obra_fonte"),
     paginas: integer("paginas"),
     isbn: text("isbn"),
     /** A sinopse importada, em inglês. Fica de reserva. */
