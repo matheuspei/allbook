@@ -11,7 +11,16 @@ import {
 import { useState, useEffect, useMemo, useRef } from "react";
 
 import { useTocador } from "@/hooks/use-tocador";
-import { definirVelocidade, livroDoTocador, pausar, posicaoNoLivro, temAudioDeVerdade, tocar } from "@/lib/tocador";
+import {
+  TOCADOR_EVENT,
+  definirVelocidade,
+  elementoDeAudio,
+  livroDoTocador,
+  pausar,
+  posicaoNoLivro,
+  temAudioDeVerdade,
+  tocar,
+} from "@/lib/tocador";
 import BarraDeAcoesDoPlayer from "@/components/BarraDeAcoesDoPlayer";
 import ConversaDoTrecho from "@/components/ConversaDoTrecho";
 import MarcasDaConversa from "@/components/MarcasDaConversa";
@@ -329,6 +338,24 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     const atual = readSettings();
     if (atual.speed !== speed) saveSettings({ ...atual, speed });
   }, [speed]);
+
+  /**
+   * O botão segue o áudio, e não o contrário.
+   *
+   * ⚠️ Existe por causa das **duas abas** (§4.144): quando outra janela assume
+   * a reprodução, esta pausa — e sem isto o botão daqui continuaria desenhando
+   * "pause", mostrando "tocando" em silêncio. Vale também para o fim do livro e
+   * para o autoplay recusado.
+   */
+  useEffect(() => {
+    const aoMudar = () => {
+      if (!temAudioDeVerdade()) return;
+      const tocandoDeVerdade = !elementoDeAudio()?.paused;
+      setIsPlaying((antes) => (antes === tocandoDeVerdade ? antes : tocandoDeVerdade));
+    };
+    window.addEventListener(TOCADOR_EVENT, aoMudar);
+    return () => window.removeEventListener(TOCADOR_EVENT, aoMudar);
+  }, []);
 
   /**
    * 3. A velocidade escolhida no menu chega ao elemento (§4.139).

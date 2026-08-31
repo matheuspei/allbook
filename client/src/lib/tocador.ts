@@ -60,6 +60,63 @@ let geracao = 0;
 
 const estado: Estado = { livroId: null, situacao: "vazio", modo: null, recado: null };
 
+/* -------------------------------------------------------------------------- */
+/* Uma aba de cada vez (31/08, §4.144)                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 🚨 **Duas abas do AllBook tocando ao mesmo tempo é o pior dos mundos**, e foi
+ * o que ele encontrou: começou um livro numa janela, foi tocar noutra, e a
+ * primeira "pausou e voltou para o início".
+ *
+ * A raiz é que as abas dividem o `localStorage` — o "onde parei" é um registro
+ * só. Duas escutas correndo escrevem por cima uma da outra, e o resultado é
+ * imprevisível por natureza: não dá para guardar duas posições diferentes do
+ * mesmo livro no mesmo lugar.
+ *
+ * A saída é a de todo app de áudio (Spotify, Audible, YouTube): **quem aperta
+ * play assume**, e as outras abas pausam — sem perder o lugar delas, que
+ * continua na escuta, não no registro compartilhado.
+ */
+const DONO_KEY = "allbook_tocador_dono";
+/** Identidade desta aba. Vive só na memória: recarregar cria outra, e deve. */
+const ESTA_ABA = Math.random().toString(36).slice(2);
+
+function assumirReproducao() {
+  try {
+    localStorage.setItem(DONO_KEY, JSON.stringify({ aba: ESTA_ABA, em: Date.now() }));
+  } catch {
+    /* sem storage, cada aba toca por sua conta — pior, mas não quebra */
+  }
+}
+
+function souODono(): boolean {
+  try {
+    const cru = localStorage.getItem(DONO_KEY);
+    if (!cru) return true;
+    return (JSON.parse(cru) as { aba?: string }).aba === ESTA_ABA;
+  } catch {
+    return true;
+  }
+}
+
+/*
+ * O aviso entre abas: `storage` só dispara nas OUTRAS abas, que é exatamente
+ * quem precisa ouvir. A aba que assumiu não se pausa sozinha.
+ */
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (evento) => {
+    if (evento.key !== DONO_KEY) return;
+    if (souODono()) return;
+    if (audio && !audio.paused) {
+      // Pausa, mas NÃO mexe na posição: quem voltar para esta aba continua de
+      // onde estava. Zerar aqui era metade da queixa dele.
+      audio.pause();
+      avisar();
+    }
+  });
+}
+
 function avisar() {
   window.dispatchEvent(new CustomEvent(TOCADOR_EVENT));
 }
@@ -268,6 +325,9 @@ export function irPara(segundosNoLivro: number): void {
  */
 export async function tocar(): Promise<boolean> {
   if (!audio) return false;
+  // Assumir ANTES de tocar: se as outras abas só soubessem depois, haveria uma
+  // janela em que duas escutas correriam juntas.
+  assumirReproducao();
   try {
     await audio.play();
     return true;

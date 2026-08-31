@@ -7608,3 +7608,45 @@ gravada de 5 em 5 segundos; abrir a tela em cima dela recuava a escuta alguns
 segundos **a cada vez que a pessoa maximizasse a barrinha**. Agora, se o livro já
 está tocando, a posição inicial vem do tocador — `?t=` e `?chapter=` continuam
 ganhando, porque quem chegou por uma marcação pediu um ponto específico.
+
+---
+
+## 4.144 Duas janelas do AllBook: uma toca, a outra pausa (31/08)
+
+> *"Eu abri duas janelas do AllBook. Deixei um livro reproduzindo numa e, quando
+> fui reproduzir na outra, ele pausa e volta para o início do que foi pausado.
+> Ou seja, ele zerou."*
+
+**Tem motivo, e são dois defeitos somados.**
+
+### 1. O "onde parei" é um registro só, e as abas dividem o `localStorage`
+
+Não existe como guardar duas posições diferentes do mesmo livro no mesmo lugar.
+Duas escutas correndo escrevem por cima uma da outra, e o resultado é
+imprevisível **por natureza** — não é um bug a caçar, é uma disputa a arbitrar.
+
+A saída é a de todo app de áudio (Spotify, Audible, YouTube): **quem aperta play
+assume; as outras pausam.** O tocador grava um dono em `allbook_tocador_dono`
+**antes** de tocar (se avisasse depois, haveria uma janela com duas escutas
+correndo juntas), e as outras abas escutam o evento `storage` — que só dispara
+nas outras, que é exatamente quem precisa ouvir.
+
+⚠️ **A aba que perde a vez pausa, mas NÃO mexe na própria posição.** Zerar ali
+era metade da queixa dele: quem voltar para aquela janela continua de onde
+estava.
+
+### 2. O defeito que eu tinha acabado de criar: gravar sob o livro errado
+
+O `MiniPlayer` guardava a posição usando `readPlayback().bookId` — o id do
+**registro compartilhado**, não o do livro que aquela aba está tocando. Com duas
+janelas em livros diferentes, uma gravava a posição do áudio dela debaixo do
+livro que a outra tinha aberto, e o "onde parei" dos dois virava um só, errado.
+Agora o livro vem de `livroDoTocador()`, e a gravação é ignorada quando os dois
+discordam.
+
+### E o botão passou a seguir o áudio, não o contrário
+
+Player e barrinha escutam `TOCADOR_EVENT` e redesenham conforme o elemento está
+tocando ou não. Sem isso, a aba que perdeu a vez continuaria desenhando "pause"
+— mostrando "tocando" em silêncio, que é a mesma classe de mentira do
+cronômetro sem áudio (§4.139) e dos capítulos sorteados (§4.141).

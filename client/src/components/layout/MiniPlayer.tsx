@@ -169,13 +169,21 @@ export default function MiniPlayer() {
     const audio = elementoDeAudio();
     if (!audio || !temAudioDeVerdade()) return;
     const guardar = () => {
+      /*
+       * ⚠️ **O livro é o do TOCADOR, nunca o do registro compartilhado.**
+       * `readPlayback()` é global e as abas dividem o `localStorage`: usando o
+       * id de lá, uma aba gravava a posição do áudio dela debaixo do livro que
+       * a OUTRA aba tinha aberto — e o "onde parei" dos dois virava um só,
+       * errado. Achado em 31/08 junto com a queixa das duas janelas (§4.144).
+       */
+      const livro = livroDoTocador();
       const atual = readPlayback();
-      if (!atual) return;
+      if (!livro || !atual || atual.bookId !== livro) return;
       const posicao = posicaoNoLivro();
       if (Math.abs(posicao - atual.positionSec) < 5) return;
       savePlayback({
-        bookId: atual.bookId,
-        chapter: chapterAtSec(atual.bookId, posicao),
+        bookId: livro,
+        chapter: chapterAtSec(livro, posicao),
         positionSec: posicao,
         durationSec: atual.durationSec,
       });
