@@ -52,12 +52,42 @@ const LIVROS_POR_VEZ = 24;
 /**
  * Quantas pessoas cabem numa fileira que rola de lado.
  *
- * Não é limite de tela: é limite de sentido. Passadas as primeiras dezenas,
- * ninguém rola uma fileira horizontal até o fim — e como a ordem agora é por
- * quantidade de títulos (ver `publishers.ts`), as que sobram são as de um
- * título só.
+ * Não é limite de tela: é limite de sentido. Ninguém arrasta uma fileira
+ * horizontal cem vezes — e a maior editora do acervo tem **663 autores**
+ * (Editora Dialética) e outra tem **228 narradores** (Storyside). Passado este
+ * número, a lista muda de forma: vira grade, que se percorre de cima para
+ * baixo, que é a rolagem natural do celular.
  */
 const PESSOAS_NA_FILEIRA = 24;
+
+/**
+ * Quantas pessoas a grade aberta mostra de saída.
+ *
+ * Maior que o punhado de livros (24) porque um avatar com nome custa muito
+ * menos que um cartão com capa: cabe mais gente na tela antes de o desenho
+ * pesar.
+ */
+const PESSOAS_POR_VEZ = 60;
+
+/**
+ * O próximo tamanho da lista: **dobra o que já está à vista**, sem passar de
+ * `teto` itens novos de uma vez.
+ *
+ * ⚠️ Passo fixo não escala. Com +48 por toque, os 1.447 títulos da MK Editora
+ * exigiriam **30 toques**, e os 663 autores da Dialética, 11 — chegar ao fim
+ * virava trabalho. Dobrando, os mesmos 1.447 saem em 9 toques e os 663 em 4.
+ *
+ * O `teto` existe porque as duas listas custam coisas diferentes: uma capa é
+ * uma imagem que o navegador vai buscar (240 delas já levam mais de um
+ * segundo), enquanto um avatar é o nome desenhado em CSS. Daí livro ter teto e
+ * pessoa não precisar.
+ */
+function proximoLote(atual: number, teto = Infinity): number {
+  return atual + Math.min(atual, teto);
+}
+
+/** Quantas capas a mais, no máximo, um toque pode mandar montar de uma vez. */
+const TETO_DE_CAPAS_POR_TOQUE = 240;
 export default function PublisherProfile({ params }: { params: { slug: string } }) {
   const publisher = findPublisher(params.slug);
 
@@ -184,7 +214,11 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
         contagem={`${publisher.authors.length} ${publisher.authors.length === 1 ? "autor" : "autores"}`}
         testid="section-publisher-authors"
       >
-        <FileiraDePessoas nomes={publisher.authors.slice(0, PESSOAS_NA_FILEIRA)} />
+        <PessoasDaEditora
+          key={`${publisher.slug}:autores`}
+          nomes={publisher.authors}
+          rotulo={publisher.authors.length === 1 ? "autor" : "autores"}
+        />
       </Secao>
 
       <Secao
@@ -195,7 +229,11 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
         }`}
         testid="section-publisher-narrators"
       >
-        <FileiraDePessoas nomes={publisher.narrators.slice(0, PESSOAS_NA_FILEIRA)} />
+        <PessoasDaEditora
+          key={`${publisher.slug}:narradores`}
+          nomes={publisher.narrators}
+          rotulo={publisher.narrators.length === 1 ? "narrador" : "narradores"}
+        />
       </Secao>
 
       <ProfileComments
@@ -242,6 +280,34 @@ export default function PublisherProfile({ params }: { params: { slug: string } 
 }
 
 /**
+ * O botão largo que abre ou estende uma lista.
+ *
+ * Existe extraído porque três lugares desta tela o usam — a grade de livros e
+ * as duas listas de pessoas — e três cópias da mesma `className` de sete
+ * classes é a receita para uma delas ficar diferente sem ninguém notar.
+ */
+function BotaoDaSecao({
+  onClick,
+  testid,
+  children,
+}: {
+  onClick: () => void;
+  testid: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full rounded-xl bg-white/5 py-3 text-sm font-semibold text-white ring-1 ring-white/10 transition-colors hover:bg-white/10 active:bg-white/15"
+      data-testid={testid}
+    >
+      {children}
+    </button>
+  );
+}
+
+/**
  * A grade de livros da editora, que começa curta e cresce a pedido.
  *
  * 🚨 **A alternativa era travar o celular.** `BookGrid` monta um cartão por
@@ -261,48 +327,128 @@ function GradeQueCresce({ books }: { books: Book[] }) {
     <div className="space-y-4">
       <BookGrid books={visiveis} showAuthor />
       {faltam > 0 && (
-        <button
-          type="button"
-          onClick={() => setMostrando((quantos) => quantos + LIVROS_POR_VEZ * 2)}
-          className="w-full rounded-xl bg-white/5 py-3 text-sm font-semibold text-white ring-1 ring-white/10 transition-colors hover:bg-white/10 active:bg-white/15"
-          data-testid="button-more-publisher-books"
+        <BotaoDaSecao
+          onClick={() => setMostrando((quantos) => proximoLote(quantos, TETO_DE_CAPAS_POR_TOQUE))}
+          testid="button-more-publisher-books"
         >
           Mostrar mais{" "}
-          {faltam === 1 ? "1 título" : `${emNumero(Math.min(faltam, LIVROS_POR_VEZ * 2))} títulos`}
+          {faltam === 1
+            ? "1 título"
+            : `${emNumero(Math.min(faltam, mostrando, TETO_DE_CAPAS_POR_TOQUE))} títulos`}
           <span className="ml-1 text-white/40">
             ({emNumero(visiveis.length)} de {emNumero(books.length)})
           </span>
-        </button>
+        </BotaoDaSecao>
       )}
     </div>
   );
 }
 
 /**
- * Autores ou narradores da editora, cada um levando ao perfil dele.
+ * Autores ou narradores da editora — a fileira que sabe virar lista inteira.
  *
- * Fileira que rola de lado, e não grade: o nome é curto e a lista pode ter
- * quinze pessoas — em grade viraria uma parede que empurra os comentários para
- * fora da tela.
+ * 🚨 **O cabeçalho da seção anuncia o total, então a tela tem de entregar o
+ * total.** A primeira versão cortava em 24 e deixava o "49 autores" escrito
+ * acima: quem arrastava até o fim da fileira não chegava aos outros 25 e não
+ * havia nada dizendo que eles existiam. Número que promete o que a tela não dá
+ * é beco sem saída — e o Matheus achou isso na Camelot Editora no mesmo dia.
+ *
+ * **Duas formas, e a lista escolhe entre elas pelo tamanho:**
+ *
+ * - **até 24, fileira** que rola de lado, como sempre foi. É a maioria absoluta:
+ *   das 660 editoras, só 21 passam disso em autores e 15 em narradores.
+ * - **acima disso, fileira + "Ver os 49 autores"**, que troca a fileira por uma
+ *   **grade**. Fileira horizontal não serve para os extremos reais do acervo —
+ *   663 autores na Editora Dialética, 228 narradores na Storyside: ninguém
+ *   arrasta seiscentas vezes. Grade se percorre de cima para baixo, que é a
+ *   rolagem que o polegar já faz.
+ *
+ * A grade também cresce por partes (60 por vez) e volta a fechar: aberta com
+ * 663 pessoas, ela empurraria os comentários e as outras editoras para longe
+ * demais de quem só queria dar uma olhada.
  */
+function PessoasDaEditora({ nomes, rotulo }: { nomes: string[]; rotulo: string }) {
+  const [aberta, setAberta] = useState(false);
+  const [mostrando, setMostrando] = useState(PESSOAS_POR_VEZ);
+
+  if (nomes.length <= PESSOAS_NA_FILEIRA) return <FileiraDePessoas nomes={nomes} />;
+
+  if (!aberta) {
+    return (
+      <div className="space-y-3">
+        <FileiraDePessoas nomes={nomes.slice(0, PESSOAS_NA_FILEIRA)} />
+        <BotaoDaSecao onClick={() => setAberta(true)} testid={`button-all-${rotulo}`}>
+          Ver {emNumero(nomes.length)} {rotulo}
+        </BotaoDaSecao>
+      </div>
+    );
+  }
+
+  const visiveis = nomes.slice(0, mostrando);
+  const faltam = nomes.length - visiveis.length;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-4 gap-x-3 gap-y-4">
+        {visiveis.map((nome) => (
+          <CartaoDePessoa key={nome} nome={nome} />
+        ))}
+      </div>
+      {faltam > 0 ? (
+        <BotaoDaSecao
+          onClick={() => setMostrando(proximoLote)}
+          testid={`button-more-${rotulo}`}
+        >
+          Mostrar mais {emNumero(Math.min(faltam, mostrando))}
+          <span className="ml-1 text-white/40">
+            ({emNumero(visiveis.length)} de {emNumero(nomes.length)})
+          </span>
+        </BotaoDaSecao>
+      ) : (
+        <BotaoDaSecao
+          onClick={() => {
+            setAberta(false);
+            setMostrando(PESSOAS_POR_VEZ);
+          }}
+          testid={`button-collapse-${rotulo}`}
+        >
+          Recolher
+        </BotaoDaSecao>
+      )}
+    </div>
+  );
+}
+
+/** A fileira que rola de lado — a forma curta, para as listas que cabem nela. */
 function FileiraDePessoas({ nomes }: { nomes: string[] }) {
   return (
     <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
-      {nomes.map((nome) => {
-        const pessoa = findPerson(personSlugOf(nome));
-        return (
-          <Link
-            key={nome}
-            href={`/person/${personSlugOf(nome)}`}
-            className="flex w-20 shrink-0 flex-col items-center gap-2 text-center"
-            data-testid={`link-person-${personSlugOf(nome)}`}
-          >
-            <PersonAvatar name={nome} photo={pessoa?.photo} size="md" />
-            <span className="text-[11px] leading-snug text-white/70 line-clamp-2">{nome}</span>
-          </Link>
-        );
-      })}
+      {nomes.map((nome) => (
+        <CartaoDePessoa key={nome} nome={nome} naFileira />
+      ))}
     </div>
+  );
+}
+
+/**
+ * Uma pessoa, levando ao perfil dela. O mesmo cartão nas duas formas.
+ *
+ * ⚠️ Na fileira ele tem largura fixa e não encolhe (`w-20 shrink-0`); na grade
+ * quem manda na largura é a coluna. Fora isso é o mesmo desenho, de propósito:
+ * o cartão não pode mudar de cara quando a lista muda de forma.
+ */
+function CartaoDePessoa({ nome, naFileira = false }: { nome: string; naFileira?: boolean }) {
+  const slug = personSlugOf(nome);
+  const pessoa = findPerson(slug);
+  return (
+    <Link
+      href={`/person/${slug}`}
+      className={`flex flex-col items-center gap-2 text-center ${naFileira ? "w-20 shrink-0" : ""}`}
+      data-testid={`link-person-${slug}`}
+    >
+      <PersonAvatar name={nome} photo={pessoa?.photo} size="md" />
+      <span className="text-[11px] leading-snug text-white/70 line-clamp-2">{nome}</span>
+    </Link>
   );
 }
 

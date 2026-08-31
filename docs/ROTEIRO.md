@@ -7879,3 +7879,46 @@ acervo tem **1.447**:
   pelo rodapé de cada perfil. Uma vitrine de editoras é decisão de descoberta,
   não de dado, e ele não pediu.
 
+### O teto das pessoas: o número prometia o que a tela não dava (mesmo dia)
+
+Ele achou em minutos, na **Camelot Editora**: o cabeçalho dizia *"49 autores"*
+e a fileira só deixava chegar a 24 — sem nada indicando que os outros 25
+existiam. **Número que promete o que a tela não entrega é beco sem saída**, e
+foi eu quem o criou ao pôr o teto sem pôr a saída.
+
+**A medida antes de decidir:** das 660 editoras, só **21** passam de 24 autores
+e **15** de 24 narradores — mas os extremos são **663 autores** (Editora
+Dialética) e **228 narradores** (Storyside). Isso descartou a correção óbvia
+(tirar o teto): ninguém arrasta uma fileira horizontal seiscentas vezes.
+
+**A lista escolhe a forma pelo tamanho.** Até 24, fileira que rola de lado,
+como sempre. Acima disso, a fileira ganha um **"Ver os 49 autores"** que a
+troca por uma **grade** de quatro colunas — rolagem de cima para baixo, que é a
+que o polegar já faz —, com "Recolher" no fim para a seção não empurrar os
+comentários para longe.
+
+**E um defeito irmão, que ele ainda não tinha visto:** o lote crescia de
+tamanho fixo. Chegar ao fim dos 1.447 títulos da MK Editora custava **30
+toques**. Agora `proximoLote()` **dobra o que já está à vista** — 1.447 em 9
+toques, 663 autores em 4. O teto de 240 por toque vale só para os livros: uma
+capa é imagem que o navegador vai buscar (medido: ~600 ms por lote de 240), um
+avatar é o nome desenhado em CSS.
+
+### Dois defeitos de DADO que a grade revelou (não consertados)
+
+Ver 49 autores lado a lado mostrou o que a fileira de 24 escondia:
+
+1. **176 dos 3.176 autores estão no formato bibliográfico** *"Poe, Edgar
+   Allan"* — e pelo menos 6 são **o mesmo autor duas vezes**: *"de Assis,
+   Machado"* + *"Machado de Assis"*, *"Shakespeare, William"* + *"William
+   Shakespeare"*.
+2. **Nome de editora entrando como autor** — "Livro Falante", "Charles River
+   Editors", "Astral Cultural" têm perfil de pessoa.
+
+⚠️ **Não foram consertados aqui de propósito.** É o mesmo trabalho que as
+editoras deram, com um agravante: **slug de pessoa já é endereço em uso**
+(`/person/…`, o arquivo da foto, quem a pessoa acompanha), então juntar dois
+perfis não é renomear — é decidir qual sobrevive e o que fazer com o outro.
+Merece a sua própria passada, e provavelmente começa no baixalivro, como as
+editoras começaram.
+
