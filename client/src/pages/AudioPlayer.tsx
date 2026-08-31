@@ -1029,7 +1029,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           <DrawerHeader className="text-left">
             <DrawerTitle className="font-display tracking-tight text-white">Capítulos</DrawerTitle>
             <DrawerDescription className="text-white/50">
-              {book.title} • {chapters.length} capítulos
+              {book.title} • {chapters.length} {chapters.length === 1 ? "capítulo" : "capítulos"}
             </DrawerDescription>
           </DrawerHeader>
           <div className="space-y-0.5 overflow-y-auto px-3 pb-8">
@@ -1039,8 +1039,11 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               // capítulos anteriores ficam cheios, o atual mostra o avanço, e os
               // seguintes ficam vazios. A barra cresce animada ao abrir a lista.
               const inicio = chapterStartSec(book.id, ch.id);
-              const ouvido = Math.min(Math.max(currentTime - inicio, 0), ch.durationSec);
-              const pct = (ouvido / ch.durationSec) * 100;
+              // Capítulo sem duração medida (0,7% do acervo) não tem barra:
+              // desenhar uma cheia ou vazia seria afirmar o que não se sabe.
+              const duracao = ch.durationSec ?? 0;
+              const ouvido = Math.min(Math.max(currentTime - inicio, 0), duracao);
+              const pct = duracao > 0 ? (ouvido / duracao) * 100 : 0;
               const concluido = pct >= 99.5;
               const temBarra = isCurrent || pct > 0;
               return (

@@ -7453,3 +7453,57 @@ primeiros contra 275px no quarto.
 `<button>`, e todo `line-clamp` novo. As telas que usam `BookGrid` (categoria,
 coleção, editora, estúdio, perfil de pessoa) foram consertadas de uma vez, por
 ser um componente só.
+
+---
+
+## 4.141 Os capítulos inventados foram apagados (31/08)
+
+Ele testou *"EP02 – Animações – Papricast - Anos 80"*, viu **12 capítulos** na
+tela e foi conferir no baixalivro: o livro tem **1**. E cortou pela raiz o
+argumento de que aquilo era herança tolerável:
+
+> *"Os capítulos inventados já existiam desde o começo porque antigamente isso
+> era só uma maquete. Mas desde que a gente passou a subir os livros, eles já não
+> são mais inventados. O projeto evoluiu, mas isso ficou. Tem que ser apagado."*
+
+**Ele está certo, e o defeito era pior do que parecia.** `lib/chapters.ts`
+sorteava de 8 a 14 capítulos por livro (semente estável, para não mudar entre
+telas) e os batizava "Capítulo 1", "Capítulo 2"… Com 63 maquetes isso era
+cenário; com 13.917 livros reais é **mentira sobre o acervo dele**.
+
+### O gerador saiu. A regra que ficou: o que não veio do banco não aparece.
+
+Medido antes de escolher o caminho:
+
+| loja | capítulos com duração na ficha |
+|---|---|
+| audible | 100% |
+| storytel | 99% |
+| tocalivros | 32% |
+| **ubook** | **0%** |
+
+Número e título, porém, vêm em **100% das fichas**. Então os capítulos passaram
+a entrar na **importação do acervo**, e não só com o áudio — não havia razão
+para 13.916 livros esperarem a ingestão para ter capítulo de verdade.
+
+**A duração que a ficha não traz é MEDIDA, não estimada.** O importador roda
+`ffprobe` nos arquivos (8 em paralelo). Resultado da passada: **13.916 livros
+com capítulos, 75.238 capítulos medidos**, e o acervo fechou com **240.952
+capítulos, 239.368 com duração (99,3%)**. Os 1.584 restantes ficam **sem tempo
+na tela** — `durationSec` é `number | null` de propósito, e melhor não dizer do
+que dizer errado. Foi essa a regra que o gerador violava.
+
+⚠️ **Livro com áudio ingerido não é sobrescrito pela ficha**: ali os capítulos
+foram medidos no arquivo **com a vinheta somada** (§4.129), e trocar pela ficha
+deslocaria toda posição salva de quem já ouviu.
+
+⚠️ **`getChapters` devolve vazio na primeira chamada e dispara o
+carregamento**, avisando por `CHAPTERS_EVENT`. Sem isso, as telas que só contam
+capítulos (clube, marcações, sala) passariam a mostrar "0" — trocar invenção por
+zero seria trocar um erro por outro.
+
+### O outro lado do relato: o livro não tocava
+
+Verdade, e sem defeito: **só um livro tem áudio ingerido** (o 101305, §4.139).
+Livro sem narração não toca — o que ele precisa é aparecer a oferta de pedido,
+não um player mudo. Fica anotado como a próxima costura.

@@ -306,7 +306,7 @@ export function posicaoAgora(sala: SalaAoVivo): number {
 
 /** A duração total do livro em segundos — o fim da transmissão de qualquer sala dele. */
 export function duracaoDoLivroSec(bookId: number): number {
-  return getChapters(bookId).reduce((soma, capitulo) => soma + capitulo.durationSec, 0);
+  return getChapters(bookId).reduce((soma, capitulo) => soma + (capitulo.durationSec ?? 0), 0);
 }
 
 /**
@@ -499,7 +499,7 @@ export function situacaoDaSala(sala: SalaAoVivo): SituacaoDaSala {
 
   const comeco = chapterStartSec(sala.bookId, capitulo);
   const fim = comeco + (atual?.durationSec ?? 0);
-  const totalSec = capitulos.reduce((soma, item) => soma + item.durationSec, 0);
+  const totalSec = capitulos.reduce((soma, item) => soma + (item.durationSec ?? 0), 0);
 
   return {
     posicaoSec,

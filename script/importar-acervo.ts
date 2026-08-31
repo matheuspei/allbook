@@ -30,21 +30,24 @@
  * reversível, o áudio é caro e demorado.
  */
 
-import { execFileSync } from "node:child_process";
+import { execFile as execFileCb, execFileSync } from "node:child_process";
+import { promisify } from "node:util";
 import { copyFile, mkdir, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { basename, join } from "node:path";
 
-import { isNotNull, sql } from "drizzle-orm";
+import { eq, isNotNull, sql } from "drizzle-orm";
 
 import { db } from "../server/db";
 import { CAPAS_RAIZ } from "../server/catalogo";
-import { editoras, generos, livros, pessoas } from "@shared/schema";
+import { capitulos, editoras, generos, livros, pessoas } from "@shared/schema";
 import { carimbosDaFicha } from "./carimbos";
 
 /* -------------------------------------------------------------------------- */
 /* Onde as coisas ficam                                                        */
 /* -------------------------------------------------------------------------- */
+
+const execFile = promisify(execFileCb);
 
 const ACERVO_RAIZ = process.env.ACERVO_RAIZ ?? `${process.env.HOME}/Acervo`;
 const CATALOGO_SQLITE = join(ACERVO_RAIZ, "_catalogo", "catalogo.sqlite");
@@ -346,6 +349,49 @@ async function situacao() {
  * Sem a pasta do "pronto" à mão não dá para saber, e nesse caso ele não entra:
  * "não sei" tem de valer como "ainda não", senão a trava não serve para nada.
  */
+/**
+ * Mede a duração de um arquivo com `ffprobe`. Devolve `null` se não der.
+ *
+ * ⚠️ **Existe porque metade do acervo não traz a duração por capítulo** e a
+ * alternativa seria estimar — que é exatamente o que o gerador de capítulos de
+ * maquete fazia (§4.141). Medido em 31/08: Audible 100% e Storytel 99% trazem
+ * `ms` na ficha; Tocalivros 32%; **Ubook, nenhum**.
+ */
+async function medirComFfprobe(arquivo: string): Promise<number | null> {
+  try {
+    const { stdout } = await execFile("ffprobe", [
+      "-v", "error",
+      "-show_entries", "format=duration",
+      "-of", "csv=p=0",
+      arquivo,
+    ]);
+    const s = Number.parseFloat(stdout.trim());
+    return Number.isFinite(s) && s > 0 ? Math.round(s) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Mede em paralelo, com um teto — 89 mil arquivos de uma vez derruba a máquina. */
+async function medirTodos(
+  caminhos: (string | null)[],
+  aoMedir: (feitos: number) => void,
+): Promise<(number | null)[]> {
+  const resultado: (number | null)[] = new Array(caminhos.length).fill(null);
+  let proximo = 0;
+  let feitos = 0;
+  const trabalhar = async () => {
+    while (proximo < caminhos.length) {
+      const i = proximo++;
+      const c = caminhos[i];
+      resultado[i] = c ? await medirComFfprobe(c) : null;
+      aoMedir(++feitos);
+    }
+  };
+  await Promise.all(Array.from({ length: 8 }, trabalhar));
+  return resultado;
+}
+
 async function passouPelaVinheta(loja: string, pasta: string | null): Promise<boolean> {
   if (!LOJAS_COM_VINHETA.includes(loja)) return true;
   if (!pasta) return false;
@@ -461,6 +507,19 @@ async function importar(limite: number | null) {
 
   let novos = 0;
   let atualizados = 0;
+  let comCapitulos = 0;
+  let medidos = 0;
+
+  /* Quem já tem áudio ingerido — para não sobrescrever capítulo MEDIDO com o
+     que a ficha diz (a medição é melhor, e mexer nela desloca quem já ouviu). */
+  const temAudio = new Set(
+    (
+      await db
+        .select({ id: livros.id })
+        .from(livros)
+        .where(isNotNull(livros.arquivoMestre))
+    ).map((l) => l.id),
+  );
   let semNarrador = 0;
   let comCapa = 0;
   let semCategoria = 0;
@@ -532,11 +591,62 @@ async function importar(limite: number | null) {
       .values(valores)
       .onConflictDoUpdate({ target: livros.id, set: valores });
 
+    /*
+     * Os capítulos DE VERDADE (31/08, §4.141).
+     *
+     * Até 30/08 eles só entravam com o áudio, e enquanto isso a tela mostrava
+     * uma lista **inventada** — herança da época das maquetes, quando não havia
+     * livro real nenhum. Hoje 100% das fichas do acervo trazem número e título
+     * certos, então não há mais desculpa para inventar: entram na importação.
+     *
+     * ⚠️ **Livro com áudio já ingerido é pulado.** Ali os capítulos foram
+     * MEDIDOS no arquivo, com a vinheta somada (§4.129); a ficha é a fonte
+     * pior, e sobrescrever jogaria fora a medição — e deslocaria toda posição
+     * salva de quem já ouviu.
+     */
+    if (carimbos.capitulos.length > 0 && !temAudio.has(id)) {
+      /* O que a ficha não trouxe, o ffprobe mede — nada de estimativa. */
+      if (pasta && carimbos.capitulos.some((c) => c.segundos === null)) {
+        const medidas = await medirTodos(
+          carimbos.capitulos.map((c) => (c.segundos === null && c.arquivo ? join(pasta, c.arquivo) : null)),
+          () => {},
+        );
+        medidas.forEach((seg, i) => {
+          if (seg !== null) {
+            carimbos.capitulos[i].segundos = seg;
+            medidos++;
+          }
+        });
+      }
+      const todasAsDuracoes = carimbos.capitulos.every((c) => c.segundos !== null);
+      let inicio = 0;
+      const linhas = carimbos.capitulos.map((c, i) => {
+        const atual = {
+          livroId: id,
+          numero: i + 1,
+          titulo: c.titulo,
+          // Só há "onde começa" se todos os anteriores tiverem duração; um
+          // buraco no meio faz o resto da conta ser chute.
+          inicioSegundos: todasAsDuracoes ? inicio : null,
+          duracaoSegundos: c.segundos,
+        };
+        inicio += c.segundos ?? 0;
+        return atual;
+      });
+      await db.transaction(async (tx) => {
+        await tx.delete(capitulos).where(eq(capitulos.livroId, id));
+        await tx.insert(capitulos).values(linhas);
+      });
+      comCapitulos++;
+    }
+
     if (idExistente) atualizados++;
     else novos++;
   }
 
   console.log(`  ${novos} livros novos, ${atualizados} atualizados`);
+  console.log(`  ${comCapitulos} com os capítulos da ficha gravados`);
+  if (medidos > 0) console.log(`  ${medidos} capítulos medidos com ffprobe (a ficha não trazia a duração)`);
   console.log(`  ${comCapa} com capa copiada para ${CAPAS_RAIZ}`);
   console.log(`\n  ⚠️  ${semCategoria} chegaram SEM categoria (foram para "Sem gênero")`);
   console.log(`  ⚠️  ${semNarrador} chegaram sem narrador com nome\n`);

@@ -1,15 +1,24 @@
 /**
- * Os capítulos de um livro.
+ * Os capítulos de um livro — **os de verdade, e só eles** (31/08, §4.141).
  *
- * Ainda não há áudio real, então os capítulos são inventados — mas de forma
- * **estável por livro**, não sorteada a cada tela. Antes a página do livro e o
- * player geravam cada um a sua lista aleatória, então discordavam: "Capítulo 3"
- * na ficha não era o mesmo "Capítulo 3" do player. Com uma lista fixa por id, os
- * dois passam a concordar — é isso que faz "começar no capítulo X" e a barra de
- * progresso terem sentido.
+ * 🚨 **Aqui morava um gerador de capítulos falsos.** Ele sorteava de 8 a 14
+ * capítulos por livro, com uma semente estável, e os batizava "Capítulo 1",
+ * "Capítulo 2"… Fazia sentido enquanto o AllBook era maquete e não existia
+ * livro nenhum: era melhor uma lista plausível do que uma tela vazia.
  *
- * Quando existir áudio de verdade, trocar `getChapters` pela lista real do livro
- * (título e duração de cada faixa); o resto do app continua igual.
+ * **Esse tempo acabou.** O acervo entrou com 13.917 livros de verdade, e 100%
+ * das fichas trazem o número e o título certos de cada capítulo — o importador
+ * os grava, e o `npm run audio` os regrava medidos quando o áudio entra. Manter
+ * o sorteio ao lado disso só produzia mentira visível: um livro de 3 capítulos
+ * aparecendo com 12, nomes que não existem, durações que ninguém mediu.
+ *
+ * A regra agora é simples: **o que não veio do banco não aparece.**
+ *
+ * ⚠️ `getChapters` é síncrono e o cache começa vazio. Quem precisa da lista
+ * chama `carregarCapitulos(id)` primeiro e redesenha — é o que o `AudioPlayer`
+ * e o `BookDetails` fazem. Quem só precisa da duração total pode usar
+ * `chaptersTotalSec`, que cai na duração do próprio livro (a que a loja anuncia
+ * ou a que o `ffprobe` mediu) quando a lista ainda não chegou.
  */
 
 import { catalog } from "./books";
@@ -18,149 +27,134 @@ export interface Chapter {
   /** Número do capítulo, começando em 1. */
   id: number;
   title: string;
-  /** Duração do capítulo em segundos. */
-  durationSec: number;
+  /**
+   * Duração do capítulo em segundos, ou `null` quando ninguém a mediu.
+   *
+   * São 1.584 capítulos em 240.952 (0,7%): arquivos que o `ffprobe` não
+   * conseguiu ler. Fica **vazio de propósito** — a lista mostra o capítulo sem
+   * o tempo ao lado, e é melhor não dizer do que dizer errado.
+   */
+  durationSec: number | null;
 }
 
-/** 5h — a mesma reserva que a ficha usa quando o livro não tem páginas. */
-const FALLBACK_MIN = 300;
-
-/**
- * Duração total do livro em segundos.
- *
- * ⚠️ **A duração de verdade vem primeiro desde 21/08** (§4.134.1). O acervo
- * entrega a duração que a loja anuncia, e o `npm run audio` grava a medida por
- * cima quando o arquivo entra — só na falta das duas é que se estima pelas
- * páginas (≈1h a cada 33), que é herança da ficha da Open Library. Sem esta
- * ordem, **todo livro do acervo mostrava "5h 00min"**: nenhum deles tem número
- * de páginas, então todos caíam na reserva.
- *
- * Os capítulos precisam somar exatamente isto, senão a porcentagem de progresso
- * não bate com o tamanho do livro.
- */
-function totalDurationSec(bookId: number): number {
-  const book = catalog.find((item) => item.id === bookId);
-  if (book?.duracaoSegundos) return book.duracaoSegundos;
-  const minutes = book?.pages ? Math.round((book.pages / 33) * 60) : FALLBACK_MIN;
-  return minutes * 60;
-}
-
-/**
- * Gerador pseudoaleatório com semente (mulberry32): a mesma semente devolve
- * sempre a mesma sequência. É o que torna a lista de um livro estável entre
- * telas e entre visitas, sem precisar guardar nada.
- */
-function seeded(seed: number): () => number {
-  return function () {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
+/** Os capítulos que vieram do servidor, por livro. Vazio = ainda não pedimos. */
 const cache = new Map<number, Chapter[]>();
-/** Os livros cujo cache já é a lista medida, e não a estimada. */
-const medidos = new Set<number>();
 
-/** A lista de capítulos de um livro — sempre a mesma para o mesmo id. */
-export function getChapters(bookId: number): Chapter[] {
-  const emCache = cache.get(bookId);
-  if (emCache) return emCache;
-
-  const rand = seeded(bookId * 2654435761);
-  const count = 8 + Math.floor(rand() * 7); // 8 a 14 capítulos
-  const total = totalDurationSec(bookId);
-
-  // Pesos estáveis para os capítulos não ficarem todos do mesmo tamanho.
-  const pesos = Array.from({ length: count }, () => 0.7 + rand() * 0.6);
-  const somaPesos = pesos.reduce((soma, p) => soma + p, 0);
-
-  // Divide a duração total entre os capítulos. Todos menos o último ficam
-  // proporcionais aos pesos; o último absorve a sobra, para a soma bater
-  // EXATAMENTE com a duração do livro (a lista arredonda só na exibição).
-  const chapters: Chapter[] = [];
-  let acumulado = 0;
-  for (let i = 0; i < count; i++) {
-    const durationSec =
-      i < count - 1 ? Math.floor((total * pesos[i]) / somaPesos) : total - acumulado;
-    acumulado += durationSec;
-    chapters.push({ id: i + 1, title: `Capítulo ${i + 1}`, durationSec });
-  }
-
-  cache.set(bookId, chapters);
-  return chapters;
+/**
+ * A duração do livro inteiro, em segundos, segundo o catálogo.
+ *
+ * É a duração **medida** quando há áudio ingerido, e a **anunciada pela loja**
+ * no resto. Livro sem nenhuma das duas devolve 0 — e 0 aqui quer dizer "não
+ * sabemos", não "livro de duração zero": quem divide por isto precisa checar.
+ */
+function duracaoDoLivro(bookId: number): number {
+  return catalog.find((item) => item.id === bookId)?.duracaoSegundos ?? 0;
 }
 
 /**
- * Troca a lista estimada deste livro pelos capítulos **medidos** no áudio
- * (30/08, §4.139).
+ * Traz os capítulos deste livro do servidor e os guarda.
  *
- * O `npm run audio` grava título e duração de cada capítulo lendo o arquivo com
- * o `ffprobe` — 46 capítulos com o nome de verdade, no lugar de "Capítulo 1…12"
- * inventados. Esta função os traz e **sobrescreve o cache**, que é o que faz o
- * resto do arquivo (início, capítulo atual, barra) passar a falar do livro real
- * sem que nada mais mude.
- *
- * ⚠️ **Quem chama precisa redesenhar depois.** `getChapters` é síncrono e o
- * resto do app o usa no corpo dos componentes; trocar o cache não avisa
- * ninguém. O `AudioPlayer` guarda uma "versão" em estado e a incrementa quando
- * isto devolve `true`.
- *
- * Devolve `false` quando o livro não tem áudio ingerido (o normal hoje: 1 de
- * 13.917) — e aí a lista estimada continua valendo, que é melhor do que uma
- * tela sem capítulo nenhum.
+ * Devolve `false` quando o livro não tem capítulo nenhum registrado — e aí a
+ * tela **não mostra lista**, em vez de inventar uma.
  */
 export async function carregarCapitulos(bookId: number): Promise<boolean> {
-  if (medidos.has(bookId)) return true;
+  if (cache.has(bookId)) return cache.get(bookId)!.length > 0;
   try {
     const resposta = await fetch(`/api/catalogo/${bookId}/capitulos`);
     if (!resposta.ok) return false;
     const lista = (await resposta.json()) as Chapter[];
-    if (!Array.isArray(lista) || lista.length === 0) return false;
+    if (!Array.isArray(lista)) return false;
     cache.set(bookId, lista);
-    medidos.add(bookId);
-    return true;
+    return lista.length > 0;
   } catch {
     return false;
   }
 }
 
-/** Este livro já está com os capítulos medidos, e não com os estimados? */
-export function temCapitulosMedidos(bookId: number): boolean {
-  return medidos.has(bookId);
+/**
+ * O evento que avisa que os capítulos de um livro chegaram.
+ *
+ * É o padrão da casa (`allbook:library`, `allbook:playback`…): quem mostra
+ * capítulo escuta e redesenha. Existe porque `getChapters` é síncrono e a
+ * primeira resposta dele é sempre uma lista vazia — sem o aviso, telas como a
+ * do clube ficariam mostrando "0 capítulos" até alguém tocar nelas.
+ */
+export const CHAPTERS_EVENT = "allbook:capitulos";
+
+/** Livros cujo pedido já saiu, para não pedir duas vezes por render. */
+const pedindo = new Set<number>();
+
+/**
+ * A lista de capítulos deste livro.
+ *
+ * ⚠️ **Devolve vazio na primeira chamada e DISPARA o carregamento**: quem
+ * chamar de novo depois do evento `CHAPTERS_EVENT` recebe a lista. Isso troca a
+ * lista inventada de antes por uma espera curta — e espera é honesta, invenção
+ * não era.
+ */
+export function getChapters(bookId: number): Chapter[] {
+  const emCache = cache.get(bookId);
+  if (emCache) return emCache;
+  if (!pedindo.has(bookId)) {
+    pedindo.add(bookId);
+    void carregarCapitulos(bookId).then((veio) => {
+      if (veio) window.dispatchEvent(new CustomEvent(CHAPTERS_EVENT, { detail: { bookId } }));
+    });
+  }
+  return [];
 }
 
-/** Soma da duração de todos os capítulos — a duração total do livro. */
+/** Já sabemos quais são os capítulos deste livro? */
+export function temCapitulos(bookId: number): boolean {
+  return (cache.get(bookId)?.length ?? 0) > 0;
+}
+
+/**
+ * A duração total do livro em segundos.
+ *
+ * Soma dos capítulos quando eles já chegaram; senão, a duração do próprio
+ * livro. As duas são verdade — a segunda é só menos detalhada.
+ */
 export function chaptersTotalSec(bookId: number): number {
-  return getChapters(bookId).reduce((soma, cap) => soma + cap.durationSec, 0);
+  const caps = cache.get(bookId);
+  if (caps && caps.length > 0) {
+    const soma = caps.reduce((total, cap) => total + (cap.durationSec ?? 0), 0);
+    if (soma > 0) return soma;
+  }
+  return duracaoDoLivro(bookId);
 }
 
 /** Em que segundo do livro começa um capítulo (soma dos anteriores). */
 export function chapterStartSec(bookId: number, chapterId: number): number {
   return getChapters(bookId)
     .slice(0, Math.max(0, chapterId - 1))
-    .reduce((soma, cap) => soma + cap.durationSec, 0);
+    .reduce((soma, cap) => soma + (cap.durationSec ?? 0), 0);
 }
 
-/** Qual capítulo cobre uma dada posição em segundos. */
+/**
+ * Qual capítulo cobre uma dada posição em segundos.
+ *
+ * Sem lista carregada devolve 1: a pessoa está em algum lugar do livro, e
+ * "capítulo 1" é o menos errado que se pode dizer sem inventar divisões.
+ */
 export function chapterAtSec(bookId: number, positionSec: number): number {
   const chapters = getChapters(bookId);
+  if (chapters.length === 0) return 1;
   let acumulado = 0;
   for (const cap of chapters) {
-    acumulado += cap.durationSec;
+    acumulado += cap.durationSec ?? 0;
     if (positionSec < acumulado) return cap.id;
   }
   return chapters.length;
 }
 
-/** "18min" — a duração de um capítulo para mostrar na lista. */
-export function formatChapterDuration(durationSec: number): string {
+/** "18min" — a duração de um capítulo. Vazio quando ninguém mediu. */
+export function formatChapterDuration(durationSec: number | null): string {
+  if (!durationSec) return "";
   return `${Math.round(durationSec / 60)}min`;
 }
 
-/** "9h 45min" — a duração total do livro (soma dos capítulos) para o cabeçalho. */
+/** "9h 45min" — a duração total do livro, para o cabeçalho. */
 export function formatBookDuration(totalSec: number): string {
   const minutos = Math.round(totalSec / 60);
   const horas = Math.floor(minutos / 60);

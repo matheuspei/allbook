@@ -72,7 +72,7 @@ export default function ConversaDoCiclo({ clube }: { clube: Clube }) {
              fim do livro no último marco. */
           const fimSec =
             marco.chapter >= capitulos.length
-              ? capitulos.reduce((soma, cap) => soma + cap.durationSec, 0)
+              ? capitulos.reduce((soma, cap) => soma + (cap.durationSec ?? 0), 0)
               : chapterStartSec(bookId, marco.chapter + 1);
           const inicioSec = chapterStartSec(bookId, capInicial);
           const janela = Math.max(1, fimSec - inicioSec);

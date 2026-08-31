@@ -722,7 +722,9 @@ export default function BookDetails({ params }: { params: { id: string } }) {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold font-display" data-testid="heading-chapters">Capítulos</h2>
-            <span className="text-sm text-white/40">{chapters.length} capítulos</span>
+            <span className="text-sm text-white/40">
+              {chapters.length} {chapters.length === 1 ? "capítulo" : "capítulos"}
+            </span>
           </div>
           <div className="rounded-xl overflow-hidden bg-white/5 border border-white/5">
             {(showAllChapters ? chapters : chapters.slice(0, 5)).map((ch) => {
@@ -731,7 +733,8 @@ export default function BookDetails({ params }: { params: { id: string } }) {
                 isCurrent && progresso
                   ? Math.max(0, progresso.positionSec - chapterStartSec(Number(params.id), ch.id))
                   : 0;
-              const pctNoCap = isCurrent ? Math.min(100, (posNoCap / ch.durationSec) * 100) : 0;
+              const pctNoCap =
+                isCurrent && ch.durationSec ? Math.min(100, (posNoCap / ch.durationSec) * 100) : 0;
               return (
                 <button
                   key={ch.id}

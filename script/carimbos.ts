@@ -27,6 +27,16 @@ export function carimboDeVinheta(v: unknown): string | null {
   return `${parte("abertura")}/${parte("fecho")}@${parte("em")}`;
 }
 
+/** Um capítulo como a ficha do acervo o descreve. */
+export interface CapituloDaFicha {
+  numero: number;
+  titulo: string;
+  /** Duração em segundos, quando a ficha a traz (`ms`). */
+  segundos: number | null;
+  /** O nome do arquivo dentro da pasta do livro — é por ele que se mede. */
+  arquivo: string | null;
+}
+
 export interface CarimbosDaFicha {
   /** O `gerado_em` da ficha, como veio (ISO sem fuso). */
   geradoEm: string | null;
@@ -34,9 +44,33 @@ export interface CarimbosDaFicha {
   vinheta: string | null;
   /** A sinopse conferida pelo baixalivro, quando a ficha a traz. */
   sinopse: string | null;
+  /**
+   * Os capítulos **de verdade** — número e título saem em 100% das fichas
+   * (medido em 31/08, §4.141). A duração vem no campo `ms` e só é completa na
+   * Audible e na Storytel.
+   */
+  capitulos: CapituloDaFicha[];
 }
 
-const VAZIO: CarimbosDaFicha = { geradoEm: null, vinheta: null, sinopse: null };
+const VAZIO: CarimbosDaFicha = { geradoEm: null, vinheta: null, sinopse: null, capitulos: [] };
+
+/** Os capítulos da ficha, na ordem, com a duração que houver. */
+function capitulosDe(bruto: unknown): CapituloDaFicha[] {
+  if (!Array.isArray(bruto)) return [];
+  return bruto
+    .map((c, i) => {
+      const d = (c ?? {}) as Record<string, unknown>;
+      const titulo = typeof d.titulo === "string" ? d.titulo.trim() : "";
+      const ms = typeof d.ms === "number" && d.ms > 0 ? d.ms : null;
+      return {
+        numero: typeof d.n === "number" && d.n > 0 ? d.n : i + 1,
+        titulo: titulo || `Capítulo ${i + 1}`,
+        segundos: ms === null ? null : Math.round(ms / 1000),
+        arquivo: typeof d.arquivo === "string" ? d.arquivo : null,
+      };
+    })
+    .sort((a, b) => a.numero - b.numero);
+}
 
 /** Lê o `_ficha.json` de uma pasta do "pronto". Ficha ilegível devolve vazio. */
 export async function carimbosDaFicha(pasta: string | null): Promise<CarimbosDaFicha> {
@@ -50,6 +84,7 @@ export async function carimbosDaFicha(pasta: string | null): Promise<CarimbosDaF
       geradoEm: typeof d?.gerado_em === "string" ? d.gerado_em : null,
       vinheta: carimboDeVinheta(d?.vinheta),
       sinopse: typeof texto === "string" && texto.trim() ? texto.trim() : null,
+      capitulos: capitulosDe(d?.capitulos),
     };
   } catch {
     /* ficha ilegível não impede o livro de entrar — só fica sem carimbo */

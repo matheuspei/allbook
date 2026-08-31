@@ -318,9 +318,24 @@ export const capitulos = pgTable(
       .references(() => livros.id, { onDelete: "cascade" }),
     numero: integer("numero").notNull(),
     titulo: text("titulo").notNull(),
-    /** Onde o capítulo começa dentro do áudio completo, em segundos. */
-    inicioSegundos: integer("inicio_segundos").notNull(),
-    duracaoSegundos: integer("duracao_segundos").notNull(),
+    /**
+     * Onde o capítulo começa dentro do áudio completo, e quanto dura — em
+     * segundos.
+     *
+     * ⚠️ **Podem faltar, e é de propósito** (31/08, §4.141). Os capítulos
+     * passaram a entrar na **importação do acervo**, não só na ingestão do
+     * áudio: 100% das fichas trazem número e título de verdade, mas a duração
+     * de cada um só vem completa da Audible (100%) e da Storytel (99%) — no
+     * Tocalivros são 32% e no Ubook, **nenhuma**.
+     *
+     * Vazio quer dizer *"ainda não medimos"*, e a tela mostra o capítulo sem
+     * tempo. O que **não** se faz é preencher com estimativa: era exatamente
+     * isso que o gerador de capítulos de maquete fazia, e foi por isso que ele
+     * saiu. Quem preenche depois é `npm run audio` (mede com ffprobe ao ingerir)
+     * ou `npm run acervo medir-capitulos`.
+     */
+    inicioSegundos: integer("inicio_segundos"),
+    duracaoSegundos: integer("duracao_segundos"),
   },
   (t) => [unique("capitulos_livro_numero").on(t.livroId, t.numero)],
 );
