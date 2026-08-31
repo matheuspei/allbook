@@ -17,7 +17,7 @@
  * prazo e ainda dá para resolver.
  */
 
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import {
   capituloDaRoda,
   diasAte,
@@ -53,7 +53,7 @@ export function avisosDeClube(): AvisoDeClube[] {
 
 function avisosDoClube(clube: Clube): AvisoDeClube[] {
   const avisos: AvisoDeClube[] = [];
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const livro = livroPorId(clube.ciclo.bookId);
 
   /*
    * Marco: só avisa quem está **atrasado**. Quem já passou do capítulo

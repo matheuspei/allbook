@@ -27,7 +27,7 @@
  * desenho. É a mesma honestidade dos capítulos inventados em `chapters.ts`.
  */
 
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { chapterAtSec, getChapters } from "@/lib/chapters";
 import { community } from "@/lib/community";
 import { readPlaybackList } from "@/lib/playback";
@@ -755,7 +755,7 @@ export function meusClubes(): Clube[] {
 export function clubesParaDescobrir(): Clube[] {
   const generosOuvidos = new Set<string>(
     readPlaybackList()
-      .map((item) => catalog.find((book) => book.id === item.bookId)?.genre)
+      .map((item) => livroPorId(item.bookId)?.genre)
       .filter((genero): genero is NonNullable<typeof genero> => genero !== undefined),
   );
 
@@ -865,7 +865,7 @@ export function buscarClubes(clubes: Clube[], texto: string, topico?: string): C
     if (topico && clube.genero !== topico) return false;
     if (!termo) return true;
 
-    const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+    const livro = livroPorId(clube.ciclo.bookId);
     const palheiro = normalizar(
       `${clube.nome} ${clube.descricao} ${clube.genero} ${livro?.title ?? ""} ${livro?.author ?? ""}`,
     );
@@ -1382,7 +1382,7 @@ export function criarClube(dados: {
   aoVivo?: boolean;
 }): Clube {
   const estado = readEstado();
-  const livro = catalog.find((book) => book.id === dados.bookId);
+  const livro = livroPorId(dados.bookId);
 
   const clube: Clube = {
     id: `meu-${Date.now()}`,

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { ChevronDown, Lock, MessageCircle, Pause, Play, Radio, Send, X } from "lucide-react";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { avatarDeLeitor, findMember } from "@/lib/community";
 import { dataCurta, EU } from "@/lib/clubes";
 import { readProfile } from "@/lib/profile";
@@ -110,7 +110,7 @@ export default function SalaAoVivo({ params }: { params: { id: string } }) {
     );
   }
 
-  const book = catalog.find((item) => item.id === sala.bookId);
+  const book = livroPorId(sala.bookId);
 
   /*
    * **Sessão marcada antes da hora não é sala — é um combinado.** Mostrar o
@@ -635,7 +635,7 @@ function ChatDaSala({
  */
 function AntesDaHora({ sala, onVersao }: { sala: Sala; onVersao: () => void }) {
   const [, navigate] = useLocation();
-  const book = catalog.find((item) => item.id === sala.bookId);
+  const book = livroPorId(sala.bookId);
   const anfitriao = findMember(sala.anfitriao);
   const confirmados = sala.confirmados ?? [];
   const euVou = euConfirmei(sala);

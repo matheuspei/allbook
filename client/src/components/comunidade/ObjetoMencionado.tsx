@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { AudioLines, Play, Users } from "lucide-react";
 
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { clubePorId } from "@/lib/clubes";
 import { findPerson } from "@/lib/people";
 import { postPorId, type ObjetoDoPost } from "@/lib/posts";
@@ -120,7 +120,7 @@ export function resumoDoObjeto(objeto: ObjetoDoPost | undefined):
   if (!objeto) return undefined;
 
   if (objeto.tipo === "livro") {
-    const livro = catalog.find((item) => item.id === objeto.bookId);
+    const livro = livroPorId(objeto.bookId);
     return livro
       ? {
           capa: livro.cover,
@@ -134,7 +134,7 @@ export function resumoDoObjeto(objeto: ObjetoDoPost | undefined):
   }
 
   if (objeto.tipo === "trecho") {
-    const livro = catalog.find((item) => item.id === objeto.citacao.bookId);
+    const livro = livroPorId(objeto.citacao.bookId);
     return {
       capa: livro?.cover,
       icone: <AudioLines className="h-4 w-4" />,
@@ -148,7 +148,7 @@ export function resumoDoObjeto(objeto: ObjetoDoPost | undefined):
   if (objeto.tipo === "clube") {
     const clube = clubePorId(objeto.clubeId);
     if (!clube) return undefined;
-    const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+    const livro = livroPorId(clube.ciclo.bookId);
     return {
       capa: livro?.cover,
       icone: <Users className="h-4 w-4" />,

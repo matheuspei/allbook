@@ -28,7 +28,7 @@ import Compositor from "@/components/comunidade/Compositor";
 import { SETTINGS_EVENT, readSettings } from "@/lib/settings";
 import FolhaDeEditarPerfil from "@/components/perfil/FolhaDeEditarPerfil";
 import { SEGUIDORES_EVENT, meusSeguidores, pedidosPendentes } from "@/lib/seguidores";
-import { catalog, type Book } from "@/lib/books";
+import { type Book, livroPorId } from "@/lib/books";
 
 /**
  * Perfil (`/profile`) — **a sua página**, a mesma que os outros veem.
@@ -174,7 +174,7 @@ export default function Profile() {
   // do topo — a capa desfocada também entrega o que está tocando.
   const livroTocando =
     privacidade.mostrarOuvindoAgora && tocando
-      ? catalog.find((b) => b.id === tocando.bookId)
+      ? livroPorId(tocando.bookId)
       : undefined;
   const desde = resumo ? ouvindoDesde(resumo) : null;
 

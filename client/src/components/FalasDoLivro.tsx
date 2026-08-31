@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { ChevronRight, Headphones, MessageSquare } from "lucide-react";
 
 import { CapaDoTopico } from "@/components/forum/Pecas";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { commentsForBook } from "@/lib/comments";
 import { topicosDoLivro } from "@/lib/grupos";
 
@@ -81,7 +81,7 @@ export default function FalasDoLivro({ bookId }: { bookId: number }) {
             grupos:
           </p>
           {debates.map((topico) => {
-            const livro = catalog.find((item) => item.id === topico.bookId);
+            const livro = topico.bookId ? livroPorId(topico.bookId) : undefined;
             return (
               <Link
                 key={topico.id}

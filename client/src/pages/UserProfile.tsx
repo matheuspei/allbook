@@ -11,7 +11,7 @@ import { postsDe } from "@/lib/posts";
 import { clubesDe, estreiaEmTexto, meusClubes, vagasRestantes, type Clube } from "@/lib/clubes";
 import { convidar, podeConvidarPara, simularResposta } from "@/lib/convites";
 import { useToast } from "@/hooks/use-toast";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { findMember, recommendationsOf, avatarDeLeitor } from "@/lib/community";
 import { meuSlug } from "@/lib/profile";
 import { isFollowing, toggleFollow } from "@/lib/following";
@@ -118,7 +118,7 @@ export default function UserProfile() {
   const selos = melhoresConquistas(getAchievementsByIds(member.achievementIds));
   // O que a pessoa está ouvindo agora — o mesmo bloco vivo da sua página.
   const ouvindo = member.ouvindoAgora
-    ? catalog.find((book) => book.id === member.ouvindoAgora?.bookId)
+    ? livroPorId(member.ouvindoAgora?.bookId)
     : undefined;
   // A capa do que ela está ouvindo dá o fundo do topo; sem nada tocando, a
   // recomendação mais recente — o retrato dela é o que ela anda fazendo.
@@ -425,7 +425,7 @@ function FolhaDeConvite({
           {clubes.map((clube) => {
             const jaEnviei = enviados.includes(clube.id);
             const { pode, motivo } = podeConvidarPara(clube.id, slug);
-            const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+            const livro = livroPorId(clube.ciclo.bookId);
             const vagas = vagasRestantes(clube);
 
             return (

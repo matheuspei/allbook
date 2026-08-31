@@ -29,8 +29,7 @@ import {
   minutosEstimados,
   type Book,
   type Genre,
-  porNota,
-} from "@/lib/books";
+  porNota, livroPorId,} from "@/lib/books";
 import { LIBRARY_EVENT, libraryBooks, readDownloads, removeDownload } from "@/lib/library";
 import {
   CONCLUIDO_PERCENT,
@@ -161,7 +160,7 @@ function montarAcervo(): ItemAcervo[] {
   }
 
   for (const id of readDownloads()) {
-    const book = catalog.find((livro) => livro.id === id);
+    const book = livroPorId(id);
     // Download não guarda data. Cadeia vazia ordena por último, o que é
     // justamente onde um livro só baixado deve ficar em "recentes".
     if (book) registrar(book, "").baixado = true;

@@ -4,7 +4,7 @@ import { AtSign, HelpCircle, Send, X } from "lucide-react";
 import AnexarTrecho from "@/components/AnexarTrecho";
 import CampoComMencao from "@/components/comunidade/CampoComMencao";
 import { useToast } from "@/hooks/use-toast";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { type Citacao } from "@/lib/citacoes";
 import { clubePorId } from "@/lib/clubes";
 import { findPerson } from "@/lib/people";
@@ -268,7 +268,7 @@ function Avatar({ perfil }: { perfil: { name: string; photo?: string } }) {
  * clicável; só o cartão sai.
  */
 function AnexoDeLivro({ bookId, onTirar }: { bookId: number; onTirar: () => void }) {
-  const livro = catalog.find((item) => item.id === bookId);
+  const livro = livroPorId(bookId);
   if (!livro) return null;
 
   return (
@@ -291,7 +291,7 @@ function AnexoDeLivro({ bookId, onTirar }: { bookId: number; onTirar: () => void
 function AnexoDeClube({ clubeId, onTirar }: { clubeId: string; onTirar: () => void }) {
   const clube = clubePorId(clubeId);
   if (!clube) return null;
-  const daVez = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const daVez = livroPorId(clube.ciclo.bookId);
 
   return (
     <div className="relative" data-testid="anexo-de-clube">

@@ -24,7 +24,7 @@
  * mecanismo, não três parecidos.
  */
 
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { chapterAtSec } from "@/lib/chapters";
 import { formatarPosicao } from "@/lib/sala";
 
@@ -98,7 +98,7 @@ export function linkDaCitacao(citacao: Citacao): string {
 
 /** O livro citado, resolvido — `undefined` se o id não existe mais. */
 export function livroDaCitacao(citacao: Citacao) {
-  return catalog.find((item) => item.id === citacao.bookId);
+  return livroPorId(citacao.bookId);
 }
 
 /**

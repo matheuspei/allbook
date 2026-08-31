@@ -8083,3 +8083,70 @@ Online"* como autor de *O Pequeno Príncipe*, id 108024, que é claramente sujo 
 341 com os três iguais e 5.014 sem autor nenhum. O lugar certo do conserto é a
 **importação**: livro cujo autor é igual à editora quase nunca tem autor de
 verdade ali.
+
+## 4.151 Uma ficha por OBRA: a vitrine deixa de repetir o mesmo livro (31/08)
+
+Ele cobrou a decisão de 26/07 (§4.30) com dois casos na mão: *"eu olhei aqui no
+caso dos livros de Niccolò Machiavelli, e você tem três livros de A Arte da
+Guerra e três livros de O Príncipe. Se a gente está falando do mesmo livro e só
+mudam os narradores, a gente deveria só ter dois livros aqui e não três"*.
+
+A §4.147 tinha feito só metade: a **ficha** já listava as vozes, mas a
+**vitrine** continuava com um cartão por gravação, porque juntar ali é mexer no
+`catalog` que 62 arquivos leem.
+
+### O desenho: `catalog` vira a vitrine, e as gravações ficam ao lado
+
+- **`lib/obras.ts`** (novo) — a heurística de "que entradas são a mesma obra".
+  Não conhece tela nenhuma: recebe livros, devolve grupos. Usado pelo `books.ts`
+  (vitrine) e pelo `narrations.ts` (vozes), para não existirem duas respostas
+  diferentes para a mesma pergunta.
+- **`catalog` passa a ter um representante por obra.** As outras gravações
+  continuam inteiras em `livroPorId()` e `irmasDaObra()`.
+- **A ficha de uma gravação irmã redireciona** para a ficha da obra, já com
+  aquela voz escolhida no seletor (`replace`, para o "voltar" não pingar).
+
+🚨 **A armadilha que isso cria, e que custou a maior parte do trabalho:**
+`catalog.find((b) => b.id === X)` estava em **85 lugares**, e passaria a não
+achar as gravações que não representam a obra — biblioteca, progresso, marcação
+e link antigo apontariam para o vazio **sem erro nenhum**. Todos foram trocados
+por `livroPorId()`, que procura em todas as gravações; `catalog` ficou só para
+quem varre a vitrine. É a mesma classe de quebra silenciosa que o CLAUDE.md já
+descreve para o `catalog` que não troca de referência.
+
+### As três regras que faltavam, achadas nos casos dele
+
+1. **Corte do título pelo nome do autor.** *"A Arte da Guerra - Maquiavel"* (28
+   caracteres) e *"O Príncipe - Maquiavel"* (22) eram curtos demais para a régua
+   de 48 caracteres, e ficavam fora do grupo. Agora, quando o que vem depois do
+   separador **é o nome do autor**, corta em qualquer tamanho.
+2. **O representante prefere o nome de autor mais completo.** Com "Maquiavel"
+   representando *O Príncipe* e "Nicolau Maquiavel" representando *A Arte da
+   Guerra*, o mesmo homem virava **dois perfis de pessoa**, com um livro cada —
+   `lib/people.ts` deriva as pessoas do que a vitrine mostra.
+3. **O representante prefere quem tem autor que identifica.** É o que tira
+   *"Escrito por Glycon Luiz"* da ficha de *O Pequeno Príncipe* (§4.150): a
+   ficha da obra passou a ser a do Saint-Exupéry, com a voz do Glycon como uma
+   das seis opções. **O problema do autor sujo se resolveu sozinho** para todo
+   livro que tenha uma irmã com o autor certo.
+
+### Medido depois
+
+| | antes | depois |
+|---|---|---|
+| cartões na vitrine | 12.628 | **10.521** |
+| perfil de Nicolau Maquiavel | 3 *A Arte da Guerra* + 3 *O Príncipe* | **1 + 1** |
+| *A Arte da Guerra* | 3 fichas | 1 ficha, 2 vozes |
+| *O Príncipe* | 5 fichas | 1 ficha, 3 vozes |
+| *O Pequeno Príncipe* | 10 fichas | 1 ficha, 6 vozes |
+
+⚠️ **De onde vêm os 2.107 cartões que sumiram:** ~900 são gravações da mesma
+obra (a mesma voz repetida em duas lojas, ou vozes diferentes), e **1.194 são
+livros do Ubook sem autor e sem narrador** — a loja não credita ninguém, e cada
+um deles tinha uma irmã com crédito na Storytel ou no Tocalivros. Conferi 12
+sorteados, um a um: são todos o mesmo livro.
+
+⚠️ **O que a heurística NÃO faz, e é decisão:** não junta obras cujo autor está
+escrito de formas incompatíveis ("Editora Online" no lugar do autor), nem títulos
+diferentes da mesma obra ("O Príncipe" × "El Príncipe"). O conserto desses casos
+é na **importação**, com o dado da ficha — não em mais heurística de tela.

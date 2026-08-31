@@ -14,7 +14,7 @@
  * mostrar esta lista para os outros.
  */
 
-import { catalog, type Book } from "@/lib/books";
+import { type Book, livroPorId } from "@/lib/books";
 
 const STORAGE_KEY = "allbook_recommendations";
 
@@ -67,7 +67,7 @@ export function readRecommendationIds(): number[] {
 /** Os livros recomendados + o motivo, resolvidos pelo catálogo e sem ids órfãos. */
 export function readRecommendations(): { book: Book; note: string }[] {
   return readRecommendationItems().flatMap((item) => {
-    const book = catalog.find((b) => b.id === item.id);
+    const book = livroPorId(item.id);
     return book ? [{ book, note: item.note }] : [];
   });
 }

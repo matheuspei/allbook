@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { avatarDeLeitor, findMember } from "@/lib/community";
 import { EU } from "@/lib/clubes";
 import { SALA_AO_VIVO_EVENT, salasAoVivo } from "@/lib/salaAoVivo";
@@ -41,7 +41,7 @@ export default function SalasComoStories() {
       <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-1">
         {agora.map((sala) => {
           const anfitriao = findMember(sala.anfitriao);
-          const book = catalog.find((item) => item.id === sala.bookId);
+          const book = livroPorId(sala.bookId);
           return (
             <Link
               key={sala.id}

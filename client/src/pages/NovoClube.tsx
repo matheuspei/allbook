@@ -5,7 +5,7 @@ import { Check, Search } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import EditorDeMarcos from "@/components/clube/EditorDeMarcos";
 import { useToast } from "@/hooks/use-toast";
-import { catalog } from "@/lib/books";
+import { catalog, livroPorId} from "@/lib/books";
 import { getChapters } from "@/lib/chapters";
 import {
   criarClube,
@@ -61,7 +61,7 @@ export default function NovoClube() {
     partida do que um campo vazio.
   */
   const busca_url = new URLSearchParams(useSearch());
-  const livroDaUrl = catalog.find((item) => item.id === Number(busca_url.get("livro")));
+  const livroDaUrl = livroPorId(Number(busca_url.get("livro")));
 
   const [nome, setNome] = useState(livroDaUrl ? `Clube de ${livroDaUrl.title}` : "");
   const [descricao, setDescricao] = useState("");
@@ -82,7 +82,7 @@ export default function NovoClube() {
         .slice(0, 6)
     : [];
 
-  const escolhido = bookId !== null ? catalog.find((livro) => livro.id === bookId) : undefined;
+  const escolhido = bookId !== null ? livroPorId(bookId) : undefined;
   const totalCapitulos = bookId !== null ? getChapters(bookId).length : 0;
   const duracaoEmDias = diasEntre(inicio, fim);
 

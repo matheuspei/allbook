@@ -13,8 +13,7 @@ import {
   tituloDeVitrine,
   type Book,
   type Genre,
-  porNota,
-} from "@/lib/books";
+  porNota, livroPorId,} from "@/lib/books";
 import FimDaLista from "@/components/FimDaLista";
 import { collections, homeRows, getBooksForCollection } from "@/lib/collections";
 import GenreIcon from "@/components/GenreIcon";
@@ -218,7 +217,7 @@ function HeroBillboard() {
       setSinopses(
         Object.fromEntries(
           ids.map((id) => {
-            const livro = catalog.find((item) => item.id === id);
+            const livro = livroPorId(id);
             return [id, livro?.sinopse ?? livro?.synopsis];
           }),
         ),

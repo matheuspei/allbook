@@ -4,7 +4,7 @@ import { Link, useLocation } from "wouter";
 import { CalendarRange, Eye, Lock, MessageCircleQuestion, Plus, Shield, Trash2, Undo2, UserMinus, Users, Vote, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
-import { catalog } from "@/lib/books";
+import { catalog, livroPorId} from "@/lib/books";
 import EditorDeMarcos from "@/components/clube/EditorDeMarcos";
 import {
   AlertDialog,
@@ -379,7 +379,7 @@ function VotacaoDoModerador({ clube }: { clube: ClubeTipo }) {
       {escolhidos.length > 0 && (
         <div className="mb-2.5 space-y-1.5" data-testid="opcoes-escolhidas">
           {escolhidos.map((id) => {
-            const livro = catalog.find((item) => item.id === id);
+            const livro = livroPorId(id);
             if (!livro) return null;
             return (
               <div

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { X } from "lucide-react";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { getChapters } from "@/lib/chapters";
 import { dataCurta, hojeIso, somarDiasIso, type Clube } from "@/lib/clubes";
 import { abrirSala } from "@/lib/salaAoVivo";
@@ -35,7 +35,7 @@ export default function MarcarSessao({
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  const book = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const book = livroPorId(clube.ciclo.bookId);
   const capitulos = getChapters(clube.ciclo.bookId);
 
   const [data, setData] = useState(() => somarDiasIso(hojeIso(), 1));

@@ -5,7 +5,7 @@ import { MessageSquare } from "lucide-react";
 import NovoTopico from "@/components/forum/NovoTopico";
 import { AvatarDoForum, Bloco, CapaDoTopico, LinkDoForum } from "@/components/forum/Pecas";
 import { useToast } from "@/hooks/use-toast";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { haQuantoTempo } from "@/lib/forumVitrine";
 import { forumNaTela, possoCriar, souModerador } from "@/lib/forum";
 import {
@@ -118,7 +118,7 @@ export function LinhaDeTopico({
   onMudar?: () => void;
 }) {
   const { toast } = useToast();
-  const livro = topico.bookId ? catalog.find((item) => item.id === topico.bookId) : undefined;
+  const livro = topico.bookId ? livroPorId(topico.bookId) : undefined;
   const modero = souModerador(topico.grupoId);
   const ultima = topico.ultimaFala;
 

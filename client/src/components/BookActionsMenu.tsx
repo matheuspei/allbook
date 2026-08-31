@@ -12,7 +12,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useToast } from "@/hooks/use-toast";
-import { catalog, findGenreBySlug, slugify } from "@/lib/books";
+import { findGenreBySlug, slugify, livroPorId } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { isRecommended as estaRecomendado, toggleRecommendation } from "@/lib/recommendations";
 import {
@@ -92,7 +92,7 @@ export default function BookActionsMenu({
   // trabalham com o id em número.
   const id = String(bookId);
   const idNumerico = Number(bookId);
-  const book = catalog.find((item) => String(item.id) === id);
+  const book = livroPorId(Number(id));
 
   const [isAdded, setIsAdded] = useState(() => isInLibrary(idNumerico));
   const [isDownloaded, setIsDownloaded] = useState(() => estaBaixado(idNumerico));

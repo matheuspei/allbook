@@ -23,6 +23,7 @@
  */
 
 import { capaTipografica } from "./coverFallback";
+import { agruparEmObras, representanteDaObra } from "./obras";
 
 /**
  * O gênero do livro.
@@ -248,6 +249,56 @@ export const publisherNames = new Map<string, string>();
 /** Os ids que têm capa de verdade — o resto usa a tipográfica gerada. */
 const comCapaReal = new Set<number>();
 
+/* -------------------------------------------------------------------------- */
+/* As gravações por trás da vitrine (31/08, §4.151)                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * **Todas** as gravações, por id — inclusive as que não representam a obra na
+ * vitrine.
+ *
+ * 🚨 `catalog` mostra **uma por obra**; este mapa tem as 12.628. Quem procura
+ * um livro por id que veio do usuário (biblioteca, progresso, marcação, um link
+ * antigo) tem de usar `livroPorId()`, e não `catalog.find()`: o id salvo pode
+ * ser o da gravação que ficou de fora da vitrine, e o livro sumiria da tela sem
+ * erro nenhum.
+ */
+const porId = new Map<number, Book>();
+
+/** id de qualquer gravação → todas as gravações daquela obra, ela incluída. */
+const irmasPorId = new Map<number, Book[]>();
+
+/** Os ids que estão em `catalog` — um por obra. */
+const representantes = new Set<number>();
+
+/** O livro de qualquer id, seja ele o representante da obra ou não. */
+export function livroPorId(id: number): Book | undefined {
+  return porId.get(id);
+}
+
+/**
+ * As gravações da mesma obra (a do id incluída), ou uma lista de um só quando
+ * o livro não tem irmãs.
+ *
+ * É daqui que sai o seletor de vozes da ficha e do player (`lib/narrations.ts`).
+ */
+export function irmasDaObra(id: number): Book[] {
+  const grupo = irmasPorId.get(id);
+  if (grupo) return grupo;
+  const livro = porId.get(id);
+  return livro ? [livro] : [];
+}
+
+/**
+ * A gravação que representa a obra na vitrine — para uma tela que recebeu o id
+ * de uma irmã e precisa mostrar a ficha da obra.
+ */
+export function representanteDe(id: number): Book | undefined {
+  const grupo = irmasPorId.get(id);
+  if (!grupo) return porId.get(id);
+  return grupo.find((livro) => representantes.has(livro.id)) ?? grupo[0];
+}
+
 /** O catálogo já foi carregado? Serve para o aviso de tela vazia, e para teste. */
 export let catalogoCarregado = false;
 
@@ -320,6 +371,10 @@ export async function carregarCatalogo(): Promise<void> {
 
     catalog.length = 0;
     comCapaReal.clear();
+    porId.clear();
+    irmasPorId.clear();
+
+    const gravacoes: Book[] = [];
     for (const livro of dados.livros) {
       // A capa local (empacotada) vence a do servidor enquanto existir; na
       // falta das duas, uma capa tipográfica PRÓPRIA do livro — título e autor
@@ -328,11 +383,37 @@ export async function carregarCatalogo(): Promise<void> {
       const capa = capasPorId[livro.id] ?? livro.cover ?? null;
       if (capa) comCapaReal.add(livro.id);
 
-      catalog.push({
+      const book: Book = {
         ...livro,
         cover: capa ?? capaTipografica(livro.title, livro.author, livro.genre),
-      });
+      };
+      gravacoes.push(book);
+      porId.set(book.id, book);
     }
+
+    /* ---- Uma ficha por OBRA (31/08, §4.151) ------------------------------
+     *
+     * O acervo entrega uma entrada por GRAVAÇÃO — *A Arte da Guerra* de
+     * Maquiavel chega três vezes, *O Príncipe* cinco —, e a vitrine mostrava um
+     * cartão para cada. A partir daqui, `catalog` tem **um representante por
+     * obra**; as outras gravações continuam inteiras e acessíveis por
+     * `livroPorId()` e `irmasDaObra()`, que é o que o seletor de vozes lê.
+     *
+     * 🚨 **Tela que procura livro por um id VINDO DO USUÁRIO** (biblioteca,
+     * progresso, marcações, estatísticas) **não pode mais usar
+     * `catalog.find()`**: o id salvo pode ser o de uma gravação que não é a
+     * representante, e o livro sumiria da tela sem erro nenhum. Para isso
+     * existe `livroPorId()`.                                                */
+    representantes.clear();
+    for (const grupo of agruparEmObras(gravacoes)) {
+      for (const gravacao of grupo) irmasPorId.set(gravacao.id, grupo);
+      const representante = representanteDaObra(grupo, (livro) => comCapaReal.has(livro.id));
+      representantes.add(representante.id);
+      catalog.push(representante);
+    }
+    // De volta à ordem de id, que é como o servidor entrega e como as telas
+    // que cortam "os primeiros N" sempre viram o catálogo.
+    catalog.sort((a, b) => a.id - b.id);
 
     catalogoCarregado = true;
   } catch (erro) {
@@ -359,7 +440,9 @@ export async function carregarCatalogo(): Promise<void> {
  */
 export async function carregarSinopses(ids: number[]): Promise<void> {
   const faltando = ids.filter((id) => {
-    const livro = catalog.find((item) => item.id === id);
+    // `porId` e não `catalog`: a ficha aberta pode ser a de uma gravação que
+    // não representa a obra na vitrine (§4.151), e a sinopse dela não chegaria.
+    const livro = porId.get(id);
     return livro && livro.sinopse === undefined && livro.synopsis === undefined;
   });
   if (faltando.length === 0) return;
@@ -374,7 +457,7 @@ export async function carregarSinopses(ids: number[]): Promise<void> {
     }[];
 
     for (const ficha of fichas) {
-      const livro = catalog.find((item) => item.id === ficha.id);
+      const livro = porId.get(ficha.id);
       if (!livro) continue;
       livro.sinopse = ficha.sinopse;
       livro.synopsis = ficha.synopsis;
@@ -482,8 +565,12 @@ export function temCapaReal(book: Book): boolean {
 
 /** Busca livros por id, mantendo a ordem pedida e ignorando ids inexistentes. */
 export function getBooksByIds(ids: number[]): Book[] {
+  // ⚠️ `porId` e não `catalog`: os ids aqui vêm da biblioteca, do progresso e
+  // das recomendações da pessoa, e podem apontar para uma gravação que não é a
+  // representante da obra (§4.151). Procurando na vitrine, o livro salvo
+  // simplesmente não apareceria.
   return ids
-    .map((id) => catalog.find((book) => book.id === id))
+    .map((id) => porId.get(id))
     .filter((book): book is Book => book !== undefined);
 }
 

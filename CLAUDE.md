@@ -100,6 +100,18 @@ gêneros também passou a devolver só gênero com ao menos um livro visível**,
 senão 22 categorias que só a Audible usa virariam cards abrindo em grade vazia
 na Descobrir.
 
+🚨 **`catalog` é a VITRINE: um livro por obra, não por gravação** (31/08,
+§4.151). O acervo traz a mesma obra várias vezes (*O Príncipe* tem 5 gravações,
+*O Pequeno Príncipe* 10) e `lib/obras.ts` as agrupa; a vitrine mostra um
+representante e o seletor de vozes mostra o resto.
+
+⚠️ **Procurando livro por um id que veio do USUÁRIO — biblioteca, progresso,
+marcação, um link — use `livroPorId(id)`, nunca `catalog.find()`.** O id salvo
+pode ser o de uma gravação que não representa a obra, e ela não está em
+`catalog`: o livro sumiria da tela sem erro nenhum. `irmasDaObra(id)` dá todas
+as gravações; `representanteDe(id)`, a que a vitrine mostra (a ficha usa isso
+para redirecionar).
+
 ⚠️ **`catalog` nunca troca de referência** — nasce `[]` e é preenchido com
 `push`. Um `catalog = novoArray` deixaria os 62 importadores segurando o array
 velho, vazio, **sem erro nenhum**.

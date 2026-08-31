@@ -15,7 +15,7 @@ import {
   LinkDoForum,
   PaginaDoForum,
 } from "@/components/forum/Pecas";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { type Citacao } from "@/lib/citacoes";
 import { useToast } from "@/hooks/use-toast";
 import { readProfile } from "@/lib/profile";
@@ -357,7 +357,7 @@ function CapaDoFio({
   const [editando, setEditando] = useState(false);
   const [rascunho, setRascunho] = useState<CapaDeTopico>({});
 
-  const livro = topico.bookId ? catalog.find((item) => item.id === topico.bookId) : undefined;
+  const livro = topico.bookId ? livroPorId(topico.bookId) : undefined;
   const temCapa = Boolean(topico.imagem || livro);
 
   function abrir() {

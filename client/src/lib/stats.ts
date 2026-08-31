@@ -14,7 +14,7 @@
  */
 
 import type { DadosDeConquista } from "@/lib/achievements";
-import { catalog, minutosEstimados, type Book, type Genre } from "@/lib/books";
+import { minutosEstimados, type Book, type Genre, livroPorId } from "@/lib/books";
 import { readFollowing } from "@/lib/following";
 import { readLibrary } from "@/lib/library";
 import { readMyComments } from "@/lib/myComments";
@@ -241,7 +241,7 @@ export function lerResumoDoPeriodo(diario: Diario, dias = 30, hoje = new Date())
   const candidatos = Array.from(porLivroSec.entries())
     .sort((a, b) => b[1] - a[1])
     .flatMap(([bookId, sec]) => {
-      const book = catalog.find((item) => item.id === bookId);
+      const book = livroPorId(bookId);
       if (!book) return [];
 
       // 5h quando o livro não tem número de páginas — a mesma reserva da ficha.
@@ -259,7 +259,7 @@ export function lerResumoDoPeriodo(diario: Diario, dias = 30, hoje = new Date())
   const terminados = Object.entries(readConcluidos())
     .filter(([, quando]) => quando.slice(0, 10) >= inicioISO)
     .flatMap(([id]) => {
-      const book = catalog.find((item) => item.id === Number(id));
+      const book = livroPorId(Number(id));
       return book ? [book] : [];
     });
 
@@ -308,7 +308,7 @@ export function generosMaisOuvidos(diario: Diario): FatiaDeGenero[] {
   let total = 0;
 
   for (const { bookId, sec } of porLivro(diario)) {
-    const livro = catalog.find((item) => item.id === bookId);
+    const livro = livroPorId(bookId);
     if (!livro) continue;
     soma.set(livro.genre, (soma.get(livro.genre) ?? 0) + sec);
     total += sec;
@@ -340,7 +340,7 @@ export function pessoaMaisOuvida(
   const soma = new Map<string, { sec: number; livros: Set<number> }>();
 
   for (const { bookId, sec } of porLivro(diario)) {
-    const livro = catalog.find((item) => item.id === bookId);
+    const livro = livroPorId(bookId);
     if (!livro) continue;
     const nome = livro[campo];
     const atual = soma.get(nome) ?? { sec: 0, livros: new Set<number>() };

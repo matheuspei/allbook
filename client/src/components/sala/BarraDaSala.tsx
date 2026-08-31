@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { X } from "lucide-react";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { findMember } from "@/lib/community";
 import {
   minhaSalaAberta,
@@ -51,7 +51,7 @@ export default function BarraDaSala() {
 
   if (!sala) return null;
 
-  const book = catalog.find((item) => item.id === sala.bookId);
+  const book = livroPorId(sala.bookId);
   const anfitriao = findMember(sala.anfitriao);
   const situacao = situacaoDaSala(sala);
   const euMando = souAnfitriao(sala);

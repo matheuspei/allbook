@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { achievements, unlockedCountFor } from "@/lib/achievements";
-import { catalog, slugify } from "@/lib/books";
+import { slugify, livroPorId } from "@/lib/books";
 import { readFollowing } from "@/lib/following";
 import {
   GOAL_EVENT,
@@ -236,7 +236,7 @@ export default function Statistics() {
     const livros = Object.entries(dia.livros)
       .sort((a, b) => b[1] - a[1])
       .flatMap(([id]) => {
-        const livro = catalog.find((item) => item.id === Number(id));
+        const livro = livroPorId(Number(id));
         return livro ? [livro.title] : [];
       })
       .slice(0, 2);
@@ -288,7 +288,7 @@ export default function Statistics() {
     return readPlaybackList()
       .filter((item) => playbackPercent(item) >= CONCLUIDO_PERCENT)
       .flatMap((item) => {
-        const livro = catalog.find((b) => b.id === item.bookId);
+        const livro = livroPorId(item.bookId);
         return livro ? [livro] : [];
       });
   }, [resumo]);
@@ -306,7 +306,7 @@ export default function Statistics() {
     if (!resumo) return [];
     return porLivro(resumo.diario)
       .flatMap(({ bookId, sec }) => {
-        const livro = catalog.find((item) => item.id === bookId);
+        const livro = livroPorId(bookId);
         return livro ? [{ livro, sec }] : [];
       })
       .slice(0, 3);

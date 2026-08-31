@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Check, Vote } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { comecarCiclo, prazoEmTexto, souDono, type Clube } from "@/lib/clubes";
 import {
   apuracao,
@@ -82,7 +82,7 @@ export default function VotacaoDoClube({ clube }: { clube: Clube }) {
 
       <div className="space-y-2">
         {resultado.map((opcao) => {
-          const livro = catalog.find((item) => item.id === opcao.bookId);
+          const livro = livroPorId(opcao.bookId);
           if (!livro) return null;
           const escolhido = meu === opcao.bookId;
           const proporcao = totalDeVotos > 0 ? (opcao.votos / totalDeVotos) * 100 : 0;
@@ -151,7 +151,7 @@ export default function VotacaoDoClube({ clube }: { clube: Clube }) {
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {empatados.map((bookId) => {
-                  const livro = catalog.find((item) => item.id === bookId);
+                  const livro = livroPorId(bookId);
                   return (
                     <button
                       key={bookId}
@@ -174,7 +174,7 @@ export default function VotacaoDoClube({ clube }: { clube: Clube }) {
           <button
             onClick={() => {
               const escolhido = desempate ?? vencedor(votacao);
-              const livro = catalog.find((item) => item.id === escolhido);
+              const livro = livroPorId(escolhido);
               /* O derrotado é lido **antes** de encerrar: depois disso a votação
                  some e o seu voto já não pode ser comparado com nada. */
               const perdido = meuLivroDerrotado(votacao, escolhido);
@@ -219,7 +219,7 @@ export function ConviteDeFundarClube({
   quantos: number;
   onFechar: () => void;
 }) {
-  const livro = catalog.find((item) => item.id === bookId);
+  const livro = livroPorId(bookId);
   if (!livro) return null;
 
   return (

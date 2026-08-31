@@ -11,7 +11,7 @@ import PautaNoClube from "@/components/clube/PautaNoClube";
 import RodadaDoClube from "@/components/clube/RodadaDoClube";
 import VotacaoDoClube from "@/components/clube/VotacaoDoClube";
 import { useToast } from "@/hooks/use-toast";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import {
   CLUBES_EVENT,
   clubeCheio,
@@ -769,7 +769,7 @@ function EstanteDoClube({ clube }: { clube: ClubeTipo }) {
 
       <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
         {clube.estante.map((item) => {
-          const livro = catalog.find((book) => book.id === item.bookId);
+          const livro = livroPorId(item.bookId);
           if (!livro) return null;
           return (
             <Link

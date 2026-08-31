@@ -14,7 +14,7 @@ import {
   LinkDoForum,
   PaginaDoForum,
 } from "@/components/forum/Pecas";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { capaDaComunidade, configDo, forumNaTela, possoCriar, possoLer } from "@/lib/forum";
 import { haQuantoTempo, movimentoDe } from "@/lib/forumVitrine";
 import { GRUPOS_EVENT, topicosDa, type TopicoNaTela } from "@/lib/grupos";
@@ -92,7 +92,7 @@ export default function TopicosDaComunidade() {
     if (termo) {
       lista = lista.filter((topico) => {
         const livro = topico.bookId
-          ? catalog.find((item) => item.id === topico.bookId)
+          ? livroPorId(topico.bookId)
           : undefined;
         return (
           topico.titulo.toLowerCase().includes(termo) ||
@@ -365,7 +365,7 @@ export default function TopicosDaComunidade() {
  * dois por página, de propósito: o que dá destaque é ser exceção.
  */
 function CartaoDeDestaque({ topico, emoji }: { topico: TopicoNaTela; emoji?: string }) {
-  const livro = topico.bookId ? catalog.find((item) => item.id === topico.bookId) : undefined;
+  const livro = topico.bookId ? livroPorId(topico.bookId) : undefined;
 
   return (
     <Link

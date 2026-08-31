@@ -2,7 +2,7 @@ import { Link, useParams } from "wouter";
 import { CalendarClock, Users } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { clubesDe, diasAte, estreiaEmTexto, estaComecando, prazoEmTexto } from "@/lib/clubes";
 import { findMember } from "@/lib/community";
 
@@ -47,7 +47,7 @@ export default function ClubesDaPessoa() {
         ) : (
           <div className="space-y-2.5">
             {clubes.map((clube) => {
-              const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+              const livro = livroPorId(clube.ciclo.bookId);
               /* **A próxima etapa, não a primeira.** A primeira versão mostrava
                  `marcos[0]` e dizia "cap. 3 há 5 dias" — um prazo que já passou,
                  que é informação morta. O que interessa a quem olha de fora é

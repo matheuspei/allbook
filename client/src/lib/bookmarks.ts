@@ -13,7 +13,7 @@
  * toda escrita avisa a tela por um evento de `window`.
  */
 
-import { catalog, type Book } from "@/lib/books";
+import { type Book, livroPorId } from "@/lib/books";
 
 const KEY = "allbook_bookmarks";
 
@@ -163,7 +163,7 @@ export function bookmarksByBook(): LivroComMarcacoes[] {
 
   return Array.from(porLivro.entries())
     .flatMap(([bookId, marcacoes]) => {
-      const book = catalog.find((item) => item.id === bookId);
+      const book = livroPorId(bookId);
       if (!book) return [];
       const ordenadas = marcacoes.slice().sort((a, b) => a.positionSec - b.positionSec);
       return [

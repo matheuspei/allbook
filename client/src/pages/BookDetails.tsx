@@ -16,6 +16,8 @@ import {
   duracaoEstimada,
   notaHistoria,
   notaNarracao,
+  livroPorId,
+  representanteDe,
 } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { anoDaNarracao, anoDaObra } from "@/lib/anos";
@@ -28,7 +30,7 @@ import AvaliacoesDoLivro from "@/components/AvaliacoesDoLivro";
 import FaixaDoClubeNoLivro from "@/components/clube/FaixaDoClubeNoLivro";
 import AvaliarLivro from "@/components/AvaliarLivro";
 import SeletorDeNarracao from "@/components/SeletorDeNarracao";
-import { NARRATIONS_EVENT, chosenNarration } from "@/lib/narrations";
+import { NARRATIONS_EVENT, chooseNarration, chosenNarration, narrationsOf } from "@/lib/narrations";
 import { notaDaComunidade, MINIMO_PARA_MEDIA, RATINGS_EVENT } from "@/lib/ratings";
 import PersonAvatar from "@/components/PersonAvatar";
 import { motion } from "framer-motion";
@@ -292,7 +294,7 @@ function OrigemDaNota({ bookId }: { bookId: number }) {
  * existe e chama-se Título do Livro" (§4.134).
  */
 function buildFromCatalog(id: string) {
-  const entry = catalog.find((b) => String(b.id) === id);
+  const entry = livroPorId(Number(id));
   if (!entry) return null;
 
   return {
@@ -342,6 +344,25 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     // A lista mora em lib/library.ts — a mesma fonte da Biblioteca e do Perfil.
     setIsAdded(isInLibrary(Number(params.id)));
   }, [params.id]);
+
+  /**
+   * **Uma ficha por obra** (31/08, §4.151): quem chega pelo id de outra
+   * gravação da mesma obra — um link antigo, um livro na biblioteca, a
+   * narração que a vitrine não representa — cai na ficha da obra, já com
+   * aquela voz escolhida no seletor.
+   *
+   * ⚠️ `replace` e não `push`: sem isso o "voltar" traria a pessoa de volta
+   * para o id que redireciona, e ela ficaria presa num pingue-pongue.
+   */
+  useEffect(() => {
+    const daObra = representanteDe(Number(params.id));
+    if (!daObra || daObra.id === Number(params.id)) return;
+    const narracao = narrationsOf({ id: daObra.id, narrator: daObra.narrator }).find(
+      (opcao) => opcao.bookId === Number(params.id),
+    );
+    if (narracao) chooseNarration(daObra.id, narracao.id);
+    setLocation(`/book/${daObra.id}`, { replace: true });
+  }, [params.id, setLocation]);
 
   /**
    * A sinopse deste livro, buscada sob demanda (§4.134.2).

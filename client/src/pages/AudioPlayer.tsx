@@ -41,7 +41,7 @@ import MarcacoesDoLivro from "@/components/MarcacoesDoLivro";
 import HistoricoDoLivro from "@/components/HistoricoDoLivro";
 import { ListaDeNarracoes } from "@/components/SeletorDeNarracao";
 import { NARRATIONS_EVENT, chosenNarration, hasChoiceOfNarration } from "@/lib/narrations";
-import { catalog } from "@/lib/books";
+import { catalog, livroPorId} from "@/lib/books";
 import AnotarMarcacao from "@/components/AnotarMarcacao";
 // `Bookmark` já é o ícone do lucide aqui em cima — o tipo entra com outro nome.
 import {
@@ -102,10 +102,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * valendo e cai no último livro ouvido.
    */
   const book = (() => {
-    const fromRoute = catalog.find((item) => item.id === Number(params.id));
+    const fromRoute = livroPorId(Number(params.id));
     if (fromRoute) return fromRoute;
     const saved = readPlayback();
-    const fromSaved = saved && catalog.find((item) => item.id === saved.bookId);
+    const fromSaved = saved && livroPorId(saved.bookId);
     return fromSaved || catalog[0];
   })();
 

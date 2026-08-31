@@ -15,7 +15,7 @@ import {
   papelDoAlvo,
   type Alvo,
 } from "@/lib/acompanhando";
-import { catalog, porNota} from "@/lib/books";
+import { catalog, porNota, livroPorId} from "@/lib/books";
 import { libraryBooks } from "@/lib/library";
 import { findPerson } from "@/lib/people";
 import { personSlugOf, publisherOfBook } from "@/lib/publishers";
@@ -69,7 +69,7 @@ export default function Acompanhando() {
 
                 <div className="space-y-2">
                   {novidades.map((item) => {
-                    const livro = catalog.find((book) => book.id === item.bookId);
+                    const livro = livroPorId(item.bookId);
                     return (
                       <Link
                         key={item.id}

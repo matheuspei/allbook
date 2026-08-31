@@ -24,7 +24,7 @@ import {
 } from "@/lib/avisosDeCurtida";
 import { minhasNovidades, nomeDoAlvo } from "@/lib/acompanhando";
 import { avisosDeClube } from "@/lib/avisosDeClube";
-import { catalog, getBooksByIds } from "@/lib/books";
+import { getBooksByIds, livroPorId } from "@/lib/books";
 import { CLUBES_EVENT, clubePorId, estreiaEmTexto } from "@/lib/clubes";
 import {
   CONVITES_EVENT,
@@ -738,7 +738,7 @@ function Cartao({
   onAbrir: (aviso: Aviso) => void;
 }) {
   const Icone = aviso.icone;
-  const livro = aviso.bookId ? catalog.find((item) => item.id === aviso.bookId) : undefined;
+  const livro = aviso.bookId ? livroPorId(aviso.bookId) : undefined;
 
   return (
     <button

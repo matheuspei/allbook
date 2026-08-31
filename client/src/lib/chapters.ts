@@ -21,7 +21,7 @@
  * ou a que o `ffprobe` mediu) quando a lista ainda não chegou.
  */
 
-import { catalog } from "./books";
+import { livroPorId } from "@/lib/books";
 
 export interface Chapter {
   /** Número do capítulo, começando em 1. */
@@ -48,7 +48,7 @@ const cache = new Map<number, Chapter[]>();
  * sabemos", não "livro de duração zero": quem divide por isto precisa checar.
  */
 function duracaoDoLivro(bookId: number): number {
-  return catalog.find((item) => item.id === bookId)?.duracaoSegundos ?? 0;
+  return livroPorId(bookId)?.duracaoSegundos ?? 0;
 }
 
 /**

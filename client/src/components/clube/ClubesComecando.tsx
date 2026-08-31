@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { CalendarPlus, ChevronRight, Users } from "lucide-react";
 
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import {
   CLUBES_EVENT,
   clubesComecando,
@@ -65,7 +65,7 @@ export default function ClubesComecando({
 
       <div className="space-y-2.5">
         {clubes.slice(0, limite).map((clube) => {
-          const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+          const livro = livroPorId(clube.ciclo.bookId);
           const dentro = souMembro(clube);
 
           return (

@@ -3,7 +3,7 @@ import { Link } from "wouter";
 
 import { AvatarDoForum, Bloco, BotaoDoForum, CAMPO, LinkDoForum } from "@/components/forum/Pecas";
 import { useToast } from "@/hooks/use-toast";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import {
   EU,
   clubeCheio,
@@ -688,7 +688,7 @@ function ClubeDoEvento({ clubeId }: { clubeId: string }) {
 
   const membro = souMembro(clube);
   const cheio = clubeCheio(clube);
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const livro = livroPorId(clube.ciclo.bookId);
 
   return (
     <div

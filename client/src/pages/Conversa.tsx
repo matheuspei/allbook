@@ -4,7 +4,7 @@ import { ChevronRight } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import SalaDoLivro from "@/components/SalaDoLivro";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { readReactions, type Reactions } from "@/lib/reactions";
 
 /**
@@ -27,7 +27,7 @@ import { readReactions, type Reactions } from "@/lib/reactions";
 export default function Conversa() {
   const params = useParams<{ id: string }>();
   const bookId = Number(params.id);
-  const book = catalog.find((item) => item.id === bookId);
+  const book = livroPorId(bookId);
 
   // O mesmo padrão da ficha: as curtidas moram no estado da tela para a lista
   // redesenhar na hora, e são lidas do armazenamento na abertura.

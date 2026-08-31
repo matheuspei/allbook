@@ -18,7 +18,7 @@
  * para ninguém perder a lista que já tinha ao atualizar o app.
  */
 
-import { catalog, type Book } from "@/lib/books";
+import { type Book, livroPorId } from "@/lib/books";
 
 const LIBRARY_KEY = "allbook_library";
 const DOWNLOADS_KEY = "allbook_downloads";
@@ -93,7 +93,7 @@ function writeLibrary(items: LibraryItem[]): void {
  */
 export function libraryBooks(): { book: Book; addedAt: string }[] {
   return readLibrary().flatMap((item) => {
-    const book = catalog.find((b) => b.id === item.id);
+    const book = livroPorId(item.id);
     return book ? [{ book, addedAt: item.addedAt }] : [];
   });
 }
@@ -147,7 +147,7 @@ function writeDownloads(ids: number[]): void {
 /** Os livros baixados, resolvidos pelo catálogo e sem ids órfãos. */
 export function downloadedBooks(): Book[] {
   return readDownloads().flatMap((id) => {
-    const book = catalog.find((b) => b.id === id);
+    const book = livroPorId(id);
     return book ? [book] : [];
   });
 }

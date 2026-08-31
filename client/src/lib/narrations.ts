@@ -31,17 +31,18 @@
  * do grupo vira uma opção. O agrupamento está descrito em `obterIndice()`, com
  * as três armadilhas que o dado sujo das lojas impõe.
  *
- * ⚠️ **Isto é meia solução, e a metade que falta é a vitrine.** As irmãs
- * continuam aparecendo como cartões separados na Início e na busca — juntá-las
- * lá é trabalho de `/api/catalogo`, e a decisão de qual delas é a ficha única
- * está descrita no §4.147 do ROTEIRO.
+ * **A vitrine também já junta** (31/08, §4.151): `catalog` tem um representante
+ * por obra, e as outras gravações vivem em `irmasDaObra()`. Este arquivo lê
+ * dali — a heurística de "que livros são a mesma obra" mora em `lib/obras.ts`,
+ * usada pelos dois.
  *
  * A escolha fica no `localStorage`, por livro. A tabela `narracao_escolhida` já
  * existe no banco, mas nada a usa ainda — a chave também não está na lista de
  * `lib/sincronizacao.ts`, então a escolha ainda não sobe para a conta.
  */
 
-import { catalog, type Book } from "@/lib/books";
+import { irmasDaObra, livroPorId, type Book } from "@/lib/books";
+import { SEM_NOME, chaveDePessoa } from "@/lib/obras";
 import { narratorKind, type NarratorKind } from "@/lib/studio";
 
 /**
@@ -92,223 +93,17 @@ export interface Narration {
 }
 
 /* -------------------------------------------------------------------------- */
-/* O índice das obras — como as irmãs se acham                                 */
+/* Quem é a mesma voz                                                          */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * ⚠️ **A heurística de "que livros são a mesma obra" mora em `lib/obras.ts`**
+ * desde 31/08 (§4.151), porque o `books.ts` passou a precisar dela para montar
+ * a vitrine com uma ficha por obra. Aqui ficou só o que é de narração.
+ */
 
 function semAcento(texto: string): string {
   return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
-function normalizar(texto: string): string {
-  return semAcento(texto)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-/**
- * O nome de pessoa como chave, com as palavras ordenadas.
- *
- * ⚠️ Não é capricho: as lojas gravam o mesmo nome de duas formas —
- * "Wallace D. Wattles" na Audible e "Wattles, Wallace D." na Storytel. Ordenado,
- * os dois viram a mesma chave; comparado direto, o mesmo narrador apareceria
- * como duas vozes diferentes na lista.
- */
-function chaveDePessoa(nome: string): string {
-  return normalizar(nome).split(" ").filter(Boolean).sort().join(" ");
-}
-
-/** Nomes que a loja usa quando não sabe quem narra — não são uma voz. */
-const SEM_NOME = new Set([
-  "",
-  "narrador nao informado",
-  "informado nao narrador",
-  "autor desconhecido",
-  "desconhecido",
-  "nao informado",
-  "informado nao",
-  "narrators various",
-  "various narrators",
-  "ia",
-]);
-
-/* -------------------------------------------------------------------------- */
-/* O título da obra, e o pedaço que a loja pendurou nele                       */
-/* -------------------------------------------------------------------------- */
-
-/** Os separadores que a loja usa para pendurar subtítulo e adorno no título. */
-const SEPARADORES = [": ", " – ", " — ", " - "];
-
-/**
- * Parte o título em **obra** e **adorno**.
- *
- * ⚠️ **Corta no separador que aparece PRIMEIRO no texto, não no primeiro da
- * lista** — e essa diferença decidiu um caso real. *"O pequeno príncipe -
- * Áudiolivro: Na voz de Glycon Luiz"* tem os dois: procurando `": "` antes,
- * a obra virava *"O pequeno príncipe - Áudiolivro"* e o livro não encontrava as
- * outras narrações. (`tituloDeVitrine()` em `books.ts` tem a mesma ordem fixa;
- * lá o efeito é só estético, aqui muda o agrupamento.)
- *
- * O limite de 48 caracteres e o `i >= 8` são os da vitrine, e pela mesma razão:
- * título curto com dois-pontos costuma ser parte do nome (*Duna: Messias*).
- */
-function partirTitulo(book: Book): { obra: string; adorno: string } {
-  const titulo = book.title;
-  if (!book.subtitle && titulo.length > 48) {
-    const cortes = SEPARADORES.map((s) => titulo.indexOf(s)).filter((i) => i >= 8);
-    if (cortes.length > 0) {
-      const corte = Math.min(...cortes);
-      return { obra: normalizar(titulo.slice(0, corte)), adorno: normalizar(titulo.slice(corte)) };
-    }
-  }
-  return { obra: normalizar(titulo), adorno: "" };
-}
-
-/** Partículas que não identificam ninguém — "de", "da", "van"… */
-const PARTICULAS = new Set(["de", "da", "do", "dos", "das", "e", "van", "von", "del", "la", "le", "of"]);
-
-function palavrasDoNome(nome: string): Set<string> {
-  return new Set(normalizar(nome).split(" ").filter((p) => p && !PARTICULAS.has(p)));
-}
-
-/**
- * Dois nomes de autor são a mesma pessoa?
- *
- * Um tem de conter o outro, e o que os dois compartilham precisa ter ao menos 4
- * letras. É o que junta **"Saint Exupery"** com **"Antoine de Saint-Exupéry"**
- * e "Machado" com "Machado de Assis", sem juntar "Silva" com "Souza".
- */
-function mesmoAutor(a: Set<string>, b: Set<string>): boolean {
-  const comuns = [...a].filter((p) => b.has(p));
-  if (comuns.length === 0) return false;
-  const contido = [...a].every((p) => b.has(p)) || [...b].every((p) => a.has(p));
-  return contido && comuns.some((p) => p.length >= 4);
-}
-
-/**
- * Este "autor" não serve para identificar a obra?
- *
- * Dois casos, e **só** estes dois:
- *
- * 1. **Não veio autor nenhum** — 5.014 livros, quase todos do Ubook.
- * 2. **O nome do "autor" está no adorno do título** — *"O pequeno príncipe -
- *    Áudiolivro: Na voz de Glycon Luiz"*, com "Glycon Luiz" no campo autor. Quem
- *    a loja pôs ali é o narrador, e o Matheus achou este caso na mão.
- *
- * 🚨 **Autor igual ao narrador NÃO entra na lista**, e a tentação é grande: são
- * 1.916 livros. Mas autor que narra o próprio livro é o normal do audiolivro
- * independente, não um erro. Tratá-los como "sem autor" fez *Imitadores de
- * Deus*, do Ap. Miguel Ângelo, ser engolido pelo *Imitadores de Deus* do Charles
- * Spurgeon — dois livros diferentes com o mesmo nome.
- */
-function autorNaoIdentifica(book: Book, adorno: string): boolean {
-  const palavras = palavrasDoNome(book.author);
-  if (palavras.size === 0 || SEM_NOME.has(chaveDePessoa(book.author))) return true;
-  if (!MARCAS_DE_NARRACAO.some((marca) => adorno.includes(marca))) return false;
-  const noAdorno = adorno.split(" ");
-  return [...palavras].every((p) => noAdorno.includes(p));
-}
-
-/**
- * Expressões que denunciam que o nome pendurado no título é de **quem lê**.
- *
- * 🚨 **Sem elas a regra estraga 17 livros para consertar 1.** A primeira versão
- * só exigia que o nome do autor aparecesse no adorno — e aí *"Machado passional:
- * A face íntima de Machado de Assis"*, *"Mascarada: (A Eterna Coleção de Barbara
- * Cartland 54)"* e outros 15 perdiam o autor **correto**, porque a obra fala do
- * próprio autor. Exigindo "na voz de" / "narrado por", sobra exatamente o caso
- * que é: hoje, 1 livro em 13.917.
- */
-const MARCAS_DE_NARRACAO = [
-  "na voz de",
-  "narrado por",
-  "narracao de",
-  "lido por",
-  "interpretado por",
-  "voz de",
-];
-
-/**
- * Título específico o bastante para carregar sozinho a identidade da obra.
- *
- * Serve de trava para a anexação abaixo: sem ela, todo livro sem autor chamado
- * *"Liderança"* entraria no grupo de qualquer outro *"Liderança"*.
- */
-function tituloDistintivo(obra: string): boolean {
-  const palavras = obra.split(" ").filter((p) => p && !PARTICULAS.has(p) && !["o", "a", "os", "as", "um", "uma", "no", "na"].includes(p));
-  return obra.length >= 10 && palavras.length >= 2;
-}
-
-let indice: Map<number, Book[]> | null = null;
-let tamanhoDoCatalogoNoIndice = -1;
-
-/**
- * As irmãs de cada livro (id → o grupo inteiro, ele incluído), calculadas uma
- * vez só.
- *
- * ⚠️ O catálogo **nasce vazio e se enche depois** (`carregarCatalogo()`), e
- * `catalog` nunca troca de referência — por isso o índice se refaz quando o
- * tamanho muda, em vez de ser montado na carga do módulo. Sem isso, um índice
- * construído cedo demais ficaria vazio para sempre, sem erro nenhum.
- *
- * **Como um grupo se forma**, dentro de cada título de obra:
- *
- * 1. quem tem autor de verdade forma os grupos, fundindo os nomes que
- *    `mesmoAutor()` reconhece como a mesma pessoa;
- * 2. quem não tem autor utilizável é **anexado ao maior** desses grupos — e só
- *    se ele for maior que todos os outros e o título for distintivo. Empate
- *    entre dois autores homônimos deixa o órfão de fora, que é o certo:
- *    ninguém sabe de quem ele é.
- */
-function obterIndice(): Map<number, Book[]> {
-  if (indice && tamanhoDoCatalogoNoIndice === catalog.length) return indice;
-
-  const porTitulo = new Map<string, { livro: Book; adorno: string }[]>();
-  for (const livro of catalog) {
-    const { obra, adorno } = partirTitulo(livro);
-    const lista = porTitulo.get(obra);
-    if (lista) lista.push({ livro, adorno });
-    else porTitulo.set(obra, [{ livro, adorno }]);
-  }
-
-  const novo = new Map<number, Book[]>();
-  for (const [obra, entradas] of porTitulo) {
-    const grupos: { autor: Set<string>; livros: Book[] }[] = [];
-    const orfaos: Book[] = [];
-
-    for (const { livro, adorno } of entradas) {
-      if (autorNaoIdentifica(livro, adorno)) {
-        orfaos.push(livro);
-        continue;
-      }
-      const palavras = palavrasDoNome(livro.author);
-      const grupo = grupos.find((g) => mesmoAutor(palavras, g.autor));
-      if (grupo) {
-        for (const p of palavras) grupo.autor.add(p);
-        grupo.livros.push(livro);
-      } else {
-        grupos.push({ autor: palavras, livros: [livro] });
-      }
-    }
-
-    if (orfaos.length > 0) {
-      const ordenados = [...grupos].sort((a, b) => b.livros.length - a.livros.length);
-      const dominante =
-        ordenados.length > 0 &&
-        tituloDistintivo(obra) &&
-        (ordenados.length === 1 || ordenados[0].livros.length > ordenados[1].livros.length);
-      if (dominante) ordenados[0].livros.push(...orfaos);
-      else grupos.push({ autor: new Set(), livros: orfaos });
-    }
-
-    for (const grupo of grupos) {
-      for (const livro of grupo.livros) novo.set(livro.id, grupo.livros);
-    }
-  }
-
-  indice = novo;
-  tamanhoDoCatalogoNoIndice = catalog.length;
-  return novo;
 }
 
 function slugDoNome(nome: string): string {
@@ -345,7 +140,7 @@ function comoNarracao(livro: Book, origem: Narration["origem"]): Narration {
  * forma de distingui-las.
  */
 export function narrationsOf(book: LivroComNarrador): Narration[] {
-  const noCatalogo = catalog.find((livro) => livro.id === book.id);
+  const noCatalogo = livroPorId(book.id);
 
   // Livro que não está no catálogo (uma ficha montada à mão, um id antigo):
   // ele é a única narração que se pode afirmar que existe.
@@ -363,7 +158,7 @@ export function narrationsOf(book: LivroComNarrador): Narration[] {
     ];
   }
 
-  const irmas = obterIndice().get(noCatalogo.id) ?? [noCatalogo];
+  const irmas = irmasDaObra(noCatalogo.id);
 
   const porVoz = new Map<string, Book>();
   for (const irma of irmas) {
@@ -389,7 +184,6 @@ export function narrationsOf(book: LivroComNarrador): Narration[] {
   return lista;
 }
 
-/** A voz de uma entrada, com todos os "não informado" caindo no mesmo balde. */
 /** A chave de quem NÃO tem nome de narrador — todos caem no mesmo balde. */
 const SEM_VOZ = "(sem nome)";
 

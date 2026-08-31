@@ -18,7 +18,7 @@
  * nunca tinha ouvido nada.
  */
 
-import { catalog, type Book } from "@/lib/books";
+import { catalog, type Book, livroPorId} from "@/lib/books";
 import { registrarAudicao } from "@/lib/listening";
 
 const PROGRESS_KEY = "allbook_playback";
@@ -272,7 +272,7 @@ export function hideMiniPlayer(): void {
 export function playbackBook(): Book | null {
   const playback = readPlayback();
   if (!playback) return null;
-  return catalog.find((book) => book.id === playback.bookId) ?? null;
+  return livroPorId(playback.bookId) ?? null;
 }
 
 /**
@@ -281,7 +281,7 @@ export function playbackBook(): Book | null {
  */
 export function playbackEntries(): { book: Book; playback: Playback; percent: number }[] {
   return readPlaybackList().flatMap((playback) => {
-    const book = catalog.find((item) => item.id === playback.bookId);
+    const book = livroPorId(playback.bookId);
     return book ? [{ book, playback, percent: playbackPercent(playback) }] : [];
   });
 }

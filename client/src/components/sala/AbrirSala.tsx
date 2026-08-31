@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { CalendarDays, Globe, Lock, X } from "lucide-react";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { meusClubes } from "@/lib/clubes";
 import { avatarDeLeitor, findMember, type CommunityMember } from "@/lib/community";
 import { readFollowing } from "@/lib/following";
@@ -34,7 +34,7 @@ export default function AbrirSala({
   const [clubeId, setClubeId] = useState<string | undefined>(undefined);
   const [escolhidos, setEscolhidos] = useState<string[]>([]);
 
-  const book = catalog.find((item) => item.id === bookId);
+  const book = livroPorId(bookId);
   const clubes = meusClubes();
   const gente = readFollowing()
     .map((slug) => findMember(slug))

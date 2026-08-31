@@ -7,7 +7,7 @@ import ComentariosDoPost from "@/components/comunidade/ComentariosDoPost";
 import PostCitado from "@/components/comunidade/PostCitado";
 import TextoDoPost from "@/components/comunidade/TextoDoPost";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
-import { catalog, slugify } from "@/lib/books";
+import { slugify, livroPorId } from "@/lib/books";
 import { EU, clubePorId, corDoMembro, nomeDoMembro, souDono, vagasRestantes, type Clube } from "@/lib/clubes";
 import { findMember, fotoDoMembro, avatarDeLeitor } from "@/lib/community";
 import { findPerson } from "@/lib/people";
@@ -463,7 +463,7 @@ function EditarOTexto({ post, onPronto }: { post: Post; onPronto: () => void }) 
  * narrador desde sempre — não usá-la aqui era jogar fora o que existe.
  */
 function CapaDoLivro({ bookId }: { bookId: number }) {
-  const livro = catalog.find((item) => item.id === bookId);
+  const livro = livroPorId(bookId);
   if (!livro) return null;
 
   return (
@@ -636,7 +636,7 @@ function CartaoDePessoa({ slug }: { slug: string }) {
 export function CartaoDoClube({ clubeId }: { clubeId: string }) {
   const clube = clubePorId(clubeId);
   if (!clube) return null;
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const livro = livroPorId(clube.ciclo.bookId);
   const vagas = vagasRestantes(clube);
 
   /*

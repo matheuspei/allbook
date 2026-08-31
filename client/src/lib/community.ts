@@ -10,7 +10,7 @@
  * As recomendações usam ids que existem no catálogo — nada de capa quebrada.
  */
 
-import { catalog, type Book } from "@/lib/books";
+import { type Book, livroPorId } from "@/lib/books";
 
 /**
  * **A foto de cada leitor** (31/07).
@@ -317,7 +317,7 @@ export function recommendationsOf(member: CommunityMember): { book: Book; note: 
   return [...member.recommendations]
     .sort((a, b) => b.date.localeCompare(a.date))
     .flatMap((item) => {
-      const book = catalog.find((b) => b.id === item.bookId);
+      const book = livroPorId(item.bookId);
       return book ? [{ book, note: item.note ?? "" }] : [];
     });
 }

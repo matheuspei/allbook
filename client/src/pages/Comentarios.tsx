@@ -2,7 +2,7 @@ import { Link, useParams } from "wouter";
 
 import PageHeader from "@/components/PageHeader";
 import { ItemDoFeed } from "@/components/ItemDoFeed";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { findMember } from "@/lib/community";
 import { muralDe } from "@/lib/mural";
 import { readMyComments } from "@/lib/myComments";
@@ -141,7 +141,7 @@ function alvoDoComentario(item: {
   publisherSlug?: string;
 }): { capa?: string; rotulo: string; href: string } | undefined {
   if (item.bookId !== undefined) {
-    const livro = catalog.find((book) => book.id === item.bookId);
+    const livro = livroPorId(item.bookId);
     return livro
       ? { capa: livro.cover, rotulo: livro.title, href: `/book/${livro.id}/conversa` }
       : undefined;

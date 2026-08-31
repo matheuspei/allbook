@@ -35,7 +35,7 @@
  */
 
 import { criarCitacao, type Citacao } from "@/lib/citacoes";
-import { catalog } from "@/lib/books";
+import { catalog, livroPorId} from "@/lib/books";
 import { readMeusPosts, apagarPost as apagarPostDoMural, MAX_POST, type MeuPost } from "@/lib/mural";
 import { people } from "@/lib/people";
 import { todosOsClubes } from "@/lib/clubes";
@@ -575,7 +575,7 @@ export function candidatosDeMencao(termo: string, limite = 6): CandidatoDeMencao
     const alvo = semAcento(clube.nome);
     const onde = alvo.indexOf(busca);
     if (onde === -1) continue;
-    const daVez = catalog.find((livro) => livro.id === clube.ciclo.bookId);
+    const daVez = livroPorId(clube.ciclo.bookId);
     achados.push({
       peso: onde === 0 ? 0 : 2,
       item: {

@@ -3,7 +3,7 @@ import { ImagePlus, Search, X } from "lucide-react";
 
 import { CAMPO, CapaDoTopico, LinkDoForum } from "@/components/forum/Pecas";
 import { useToast } from "@/hooks/use-toast";
-import { catalog } from "@/lib/books";
+import { catalog, livroPorId} from "@/lib/books";
 import { encolherImagem } from "@/lib/forum";
 import { type CapaDeTopico } from "@/lib/grupos";
 
@@ -38,7 +38,7 @@ export default function EscolherCapa({
   const [buscando, setBuscando] = useState(false);
   const [busca, setBusca] = useState("");
 
-  const livro = capa.bookId ? catalog.find((item) => item.id === capa.bookId) : undefined;
+  const livro = capa.bookId ? livroPorId(capa.bookId) : undefined;
   const temCapa = Boolean(capa.imagem || capa.bookId);
 
   /* Seis resultados bastam: quem procura um livro digita o nome, e uma grade

@@ -25,7 +25,7 @@
  * alguém, ele passa a ser só de quem você segue (mais você).
  */
 
-import { catalog, type Book } from "@/lib/books";
+import { catalog, type Book, livroPorId} from "@/lib/books";
 import { clubePorId } from "@/lib/clubes";
 import { comments, ehAvaliacao } from "@/lib/comments";
 import { community, type CommunityMember } from "@/lib/community";
@@ -151,7 +151,7 @@ function autorDoMembro(member: CommunityMember): AutorDoMural {
   return { nome: member.name, slug: member.slug, cor: member.color, souEu: false };
 }
 function livro(bookId: number): Book | undefined {
-  return catalog.find((book) => book.id === bookId);
+  return livroPorId(bookId);
 }
 
 /**

@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { CalendarDays, MessageSquare, Plus, Users } from "lucide-react";
 
-import { catalog, type Book } from "@/lib/books";
+import { type Book, livroPorId } from "@/lib/books";
 import { getChapters } from "@/lib/chapters";
 import {
   capituloDaRoda,
@@ -69,7 +69,7 @@ export function Secao({ titulo, children }: { titulo: string; children: React.Re
  * Linha fina em vez de cartão gordo é o que deixa caber 5 numa dobra.
  */
 export function LinhaDeAgenda({ clube }: { clube: Clube }) {
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const livro = livroPorId(clube.ciclo.bookId);
   const estreia = estaComecando(clube);
   const data = estreia ? clube.ciclo.inicio : clube.ciclo.encontro;
   const cor = estreia
@@ -115,7 +115,7 @@ export function LinhaDeAgenda({ clube }: { clube: Clube }) {
  * em que ninguém começou seria uma barra vazia fingindo informação.
  */
 export function CartaoDoSeuClube({ clube }: { clube: Clube }) {
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const livro = livroPorId(clube.ciclo.bookId);
   const totalCapitulos = getChapters(clube.ciclo.bookId).length;
   const estreia = estaComecando(clube);
   const seu = meuCapitulo(clube);
@@ -202,7 +202,7 @@ export function CartaoDoSeuClube({ clube }: { clube: Clube }) {
  * livro tem texto no rodapé — tarja ali era letra sobre letra.
  */
 export function CartaoDeEstreia({ clube }: { clube: Clube }) {
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const livro = livroPorId(clube.ciclo.bookId);
   if (!livro) return null;
 
   return (
@@ -226,7 +226,7 @@ export function CartaoDeEstreia({ clube }: { clube: Clube }) {
 
 /** Clube que já está rolando — mostra o que se ganha ao entrar. */
 export function CartaoParaDescobrir({ clube }: { clube: Clube }) {
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId) as Book | undefined;
+  const livro = livroPorId(clube.ciclo.bookId) as Book | undefined;
   const mensagens = totalDoMural(clube.id);
 
   return (
@@ -286,7 +286,7 @@ export function CartaoParaDescobrir({ clube }: { clube: Clube }) {
  */
 export function CartaoComMotivo({ sugestao }: { sugestao: ClubeComMotivo }) {
   const { clube, motivo } = sugestao;
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const livro = livroPorId(clube.ciclo.bookId);
 
   return (
     <Link

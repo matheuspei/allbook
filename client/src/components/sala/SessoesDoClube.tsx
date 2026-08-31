@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { CalendarPlus, Radio } from "lucide-react";
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import { avatarDeLeitor, findMember } from "@/lib/community";
 import { type Clube } from "@/lib/clubes";
 import { abrirSala, salasDoClube, situacaoDaSala } from "@/lib/salaAoVivo";
@@ -91,7 +91,7 @@ export default function SessoesDoClube({
       {agora.map((sala) => {
         const situacao = situacaoDaSala(sala);
         const anfitriao = findMember(sala.anfitriao);
-        const book = catalog.find((item) => item.id === sala.bookId);
+        const book = livroPorId(sala.bookId);
 
         return (
           <Link

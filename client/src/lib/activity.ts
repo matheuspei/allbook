@@ -12,7 +12,7 @@
  * comunidade cresceu, e aí a conversa é outra.
  */
 
-import { catalog, type Book } from "@/lib/books";
+import { type Book, livroPorId } from "@/lib/books";
 import { comments, type Comment } from "@/lib/comments";
 import { community, findMember, type CommunityMember } from "@/lib/community";
 import { readFollowing } from "@/lib/following";
@@ -53,7 +53,7 @@ export function activityFeed(limit = 40): ActivityEvent[] {
     if (!member) continue; // seguia alguém que sumiu do esqueleto
 
     for (const item of member.recommendations) {
-      const book = catalog.find((entry) => entry.id === item.bookId);
+      const book = livroPorId(item.bookId);
       if (!book) continue;
       const key = `${slug}-${item.bookId}`;
       porPessoaELivro.set(key, {
@@ -73,7 +73,7 @@ export function activityFeed(limit = 40): ActivityEvent[] {
     if (comment.parentId) continue;
     if (!following.includes(comment.authorSlug)) continue;
     const member = findMember(comment.authorSlug);
-    const book = catalog.find((entry) => entry.id === comment.bookId);
+    const book = comment.bookId ? livroPorId(comment.bookId) : undefined;
     if (!member || !book) continue;
 
     const key = `${comment.authorSlug}-${comment.bookId}`;
@@ -123,7 +123,7 @@ export function suggestions(libraryIds: number[], limit = 4): Suggestion[] {
 
   const myGenres = new Set(
     libraryIds
-      .map((id) => catalog.find((book) => book.id === id)?.genre)
+      .map((id) => livroPorId(id)?.genre)
       .filter((genre) => genre !== undefined),
   );
 
@@ -144,7 +144,7 @@ export function suggestions(libraryIds: number[], limit = 4): Suggestion[] {
       ? meusLivros.find((item) => item.bookId === member.ouvindoAgora?.bookId)
       : undefined;
     if (mesmoLivro && member.ouvindoAgora) {
-      const livro = catalog.find((book) => book.id === mesmoLivro.bookId);
+      const livro = livroPorId(mesmoLivro.bookId);
       const delta = member.ouvindoAgora.chapter - mesmoLivro.chapter;
       const posicao =
         delta > 0
@@ -229,7 +229,7 @@ export interface AudicaoDeAgora {
 export function ouvindoAgoraNaComunidade(): AudicaoDeAgora[] {
   return community.flatMap((member) => {
     if (!member.ouvindoAgora) return [];
-    const book = catalog.find((entry) => entry.id === member.ouvindoAgora?.bookId);
+    const book = livroPorId(member.ouvindoAgora?.bookId);
     return book ? [{ member, book, chapter: member.ouvindoAgora.chapter }] : [];
   });
 }
@@ -243,7 +243,7 @@ export function ouvindoAgoraNaComunidade(): AudicaoDeAgora[] {
 
 function recommendedBooks(member: CommunityMember): Book[] {
   return member.recommendations
-    .map((item) => catalog.find((book) => book.id === item.bookId))
+    .map((item) => livroPorId(item.bookId))
     .filter((book): book is Book => book !== undefined);
 }
 

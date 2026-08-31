@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Calendar, Headphones, Lock } from "lucide-react";
 
-import { catalog } from "@/lib/books";
+import { livroPorId } from "@/lib/books";
 import {
   capituloCombinado,
   dataCurta,
@@ -30,7 +30,7 @@ import { savePlaying } from "@/lib/playback";
  * mensagem, e é o que os clubes de verdade combinam entre si.
  */
 export default function CartaoDoCiclo({ clube }: { clube: Clube }) {
-  const livro = catalog.find((item) => item.id === clube.ciclo.bookId);
+  const livro = livroPorId(clube.ciclo.bookId);
   if (!livro) return null;
 
   const meu = meuCapitulo(clube);

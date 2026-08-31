@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Check, Search, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
-import { catalog, genres, type Genre } from "@/lib/books";
+import { catalog, genres, type Genre, livroPorId} from "@/lib/books";
 import {
   readRecommendationItems,
   setRecommendationNote,
@@ -85,7 +85,7 @@ export default function RecommendationsEdit() {
           </h2>
           <div className="space-y-3">
             {items.map((item) => {
-              const book = catalog.find((b) => b.id === item.id);
+              const book = livroPorId(item.id);
               if (!book) return null;
               return (
                 <div key={item.id} className="flex gap-3" data-testid={`rec-note-${item.id}`}>
