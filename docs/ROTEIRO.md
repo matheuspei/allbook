@@ -7975,6 +7975,24 @@ vezes quiser: grava apenas o que mudou.
   `npm run acervo importar` desfaria em silêncio, e a ordenação da Home depende
   dele. Enquanto a trava não entrar no importador, o filtro é de exibição.
 
+**O ano é da OBRA, e por isso ele se espalha** (acrescentado no mesmo dia, depois
+de ele abrir *A Arte da Guerra* e ver só o ano do áudio). O mesmo texto tem uma
+ficha por loja — o Maquiavel tem cinco —, e o agente prova o ano em uma ou duas
+delas. Como 1520 é o ano do **texto**, as irmãs herdam: `npm run anos` casa por
+**título normalizado + autor** e copia. Rendeu 115 livros de imediato, e cresce
+junto com o agente, porque cada ano provado se espalha pelas edições.
+
+- **O nome do autor sai do título antes de comparar** — a Storytel vende *A Arte
+  da Guerra - Maquiavel* e a Tocalivros, *A Arte da Guerra*. Sem essa limpeza,
+  mesma obra, chaves diferentes.
+- **Herdado nunca vira fonte de outro herdado**, e a prova guarda a origem
+  (`herdado do livro 108233 · Wikidata…`) — ano errado que se espalhasse sem
+  rastro seria impossível de desfazer.
+- **Irmãs que discordam resolvem pelo menor** (o Maquiavel tem 1520 e 1521, de
+  provas diferentes): o que se procura é a primeira publicação.
+- ⚠️ **Casa só o título inteiro.** *Mais esperto que o diabo* e *Mais esperto que
+  o diabo para concurseiros* são livros diferentes, e é o sufixo que os separa.
+
 ⚠️ **A ligação até a tela ficou pendente por coordenação, não por técnica:** o
 caminho passa por `server/catalogo.ts`, `client/src/lib/books.ts` e
 `BookDetails.tsx`, os três na mão da janela A na tarefa das editoras (§4.148).

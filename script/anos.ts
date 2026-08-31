@@ -2,7 +2,8 @@
  * O ano da OBRA sai da ficha do acervo e entra no catálogo (31/08).
  *
  *     npm run anos          — a situação: quantos anos existem lá e aqui
- *     npm run anos gravar   — lê as fichas e grava o que faltar
+ *     npm run anos gravar   — lê as fichas, grava o que faltar e espalha
+ *                             o ano entre as edições da mesma obra
  *
  * ⚠️ **`npm run` engole `--flags`** (armadilha da §4.127) — argumentos são
  * posicionais, sem traço nenhum.
@@ -24,6 +25,23 @@
  * veio da origem não aparece. Quem decide se um ano é provável é o agente, que
  * recusa sozinho toda prova que fale em audiolivro, narração ou lançamento em
  * loja.
+ *
+ * ## O ano é da OBRA, não da edição — por isso ele se espalha
+ *
+ * O mesmo texto aparece uma vez por loja: *A Arte da Guerra*, de Maquiavel, tem
+ * cinco fichas no acervo, e o agente provou o ano em duas. Como 1521 é o ano do
+ * **texto**, as outras três não precisam ser provadas de novo — herdam.
+ *
+ * O casamento é **título normalizado + autor**, os dois: só o título juntaria a
+ * *Arte da Guerra* de Sun Tzu com a de Maquiavel. Título com sufixo ("- Adaptado
+ * infanto-juvenil", "(resumo)") não casa, e é o certo — pode ser outro texto.
+ *
+ * ⚠️ **Herdado nunca vira fonte de outro herdado**, e a prova diz de onde veio
+ * (`herdado do livro 108233 · Wikidata (P577…)`). Sem isso, um ano errado se
+ * espalharia sem deixar rastro de origem.
+ *
+ * ⚠️ **Edições que discordam** (o Maquiavel tem 1520 e 1521, de provas
+ * diferentes) resolvem pelo **menor**: o que se procura é a primeira publicação.
  */
 
 import { readFile } from "node:fs/promises";
@@ -133,7 +151,10 @@ async function situacao() {
     console.log(`    ${loja.padEnd(12)} ${String(tem).padStart(5)} / ${String(quantos).padStart(5)}  ${pct}%`);
   }
 
-  if (aGravar.length) console.log(`\n  Para gravar:  npm run anos gravar\n`);
+  const herdar = await calcularHerancas();
+  console.log(`\n  Edições irmãs esperando herdar o ano   ${herdar.length}`);
+
+  if (aGravar.length || herdar.length) console.log(`\n  Para gravar:  npm run anos gravar\n`);
   else console.log(`\n  Nada a fazer — o banco já tem tudo o que as fichas provam.\n`);
 }
 
@@ -145,7 +166,8 @@ async function gravar() {
   );
 
   if (!mudaram.length) {
-    console.log("\n  Nada a gravar — o banco já tem tudo o que as fichas provam.\n");
+    console.log("\n  Nada a gravar das fichas — o banco já tem tudo o que elas provam.");
+    await espalhar();
     return;
   }
 
@@ -169,7 +191,104 @@ async function gravar() {
     console.log(`    ${l.ficha.ano}  ${l.titulo.slice(0, 60)}`);
     console.log(`          ${(l.ficha.fonte ?? "sem prova anotada").slice(0, 90)}`);
   }
+  await espalhar();
+}
+
+/** A segunda fase: as edições irmãs herdam o ano já provado. */
+async function espalhar() {
+  const herdar = await calcularHerancas();
+  if (!herdar.length) {
+    console.log("\n  Nenhuma edição irmã para herdar ano.\n");
+    return;
+  }
+
+  console.log(`\n  Espalhando o ano para ${herdar.length} edições da mesma obra…`);
+  await db.transaction(async (tx) => {
+    for (const l of herdar) {
+      await tx
+        .update(livros)
+        .set({ anoObra: l.ano, anoObraFonte: l.fonte })
+        .where(sql`${livros.id} = ${l.id}`);
+    }
+  });
+  for (const l of herdar.slice(0, 5)) {
+    console.log(`    ${l.ano}  ${l.titulo.slice(0, 60)}`);
+    console.log(`          ${l.fonte.slice(0, 90)}`);
+  }
   console.log();
+}
+
+/* -------------------------------------------------------------------------- */
+/* Espalhar o ano entre as edições da mesma obra                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * "A Arte da Guerra - Maquiavel" → `nicolau-maquiavel::aartedaguerra`.
+ *
+ * ⚠️ **O nome do autor sai do título** antes da comparação: a Storytel vende
+ * *A Arte da Guerra - Maquiavel* e a Tocalivros, *A Arte da Guerra* — mesma
+ * obra, chaves diferentes sem esta limpeza. Só pedaços de 4 letras ou mais, para
+ * "de", "da" e iniciais não comerem parte do título.
+ */
+function chaveDaObra(titulo: string, autorSlug: string): string {
+  const semAcento = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  let t = semAcento(titulo).replace(/[^a-z0-9]/g, "");
+  for (const pedaco of autorSlug.split("-")) {
+    if (pedaco.length >= 4) t = t.split(semAcento(pedaco)).join("");
+  }
+  return `${autorSlug}::${t}`;
+}
+
+/** O prefixo que marca um ano herdado — e o que impede a herança em cadeia. */
+const MARCA_DE_HERANCA = "herdado do livro ";
+
+interface ParaHerdar {
+  id: number;
+  titulo: string;
+  ano: number;
+  fonte: string;
+}
+
+/**
+ * Quem ainda não tem ano e tem uma edição irmã com ano **provado na própria
+ * ficha**. Discordância entre irmãs resolve pelo ano menor.
+ */
+async function calcularHerancas(): Promise<ParaHerdar[]> {
+  const todos = await db
+    .select({
+      id: livros.id,
+      titulo: livros.titulo,
+      autor: livros.autorSlug,
+      anoObra: livros.anoObra,
+      fonte: livros.anoObraFonte,
+    })
+    .from(livros);
+
+  /* Só quem tem prova própria entra como doador. */
+  const doador = new Map<string, { id: number; ano: number; fonte: string }>();
+  for (const l of todos) {
+    if (l.anoObra === null) continue;
+    if ((l.fonte ?? "").startsWith(MARCA_DE_HERANCA)) continue;
+    const chave = chaveDaObra(l.titulo, l.autor);
+    const atual = doador.get(chave);
+    if (!atual || l.anoObra < atual.ano) {
+      doador.set(chave, { id: l.id, ano: l.anoObra, fonte: l.fonte ?? "sem prova anotada" });
+    }
+  }
+
+  const herdar: ParaHerdar[] = [];
+  for (const l of todos) {
+    if (l.anoObra !== null) continue;
+    const de = doador.get(chaveDaObra(l.titulo, l.autor));
+    if (!de) continue;
+    herdar.push({
+      id: l.id,
+      titulo: l.titulo,
+      ano: de.ano,
+      fonte: `${MARCA_DE_HERANCA}${de.id} · ${de.fonte}`.slice(0, 300),
+    });
+  }
+  return herdar;
 }
 
 async function principal() {
