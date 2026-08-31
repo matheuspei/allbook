@@ -3,6 +3,20 @@ import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
 
+/*
+ * ⚠️ **`z-[200]`, e não o `z-50` do shadcn** (31/08, §4.140).
+ *
+ * O player em tela cheia é `fixed inset-0 z-[100]` (`AudioPlayer.tsx`). Com
+ * `z-50`, esta camada nascia **atrás dele**: a gaveta de capítulos abria com os
+ * 46 nomes dentro, invisível, e como o painel do player não captura o toque, o
+ * toque seguinte atravessava e caía num item da lista — o app "pulava de
+ * capítulo" sozinho, que foi como o defeito apareceu para o Matheus.
+ *
+ * O `toast.tsx` já tinha subido para `z-[300]` por esta mesma razão, e ninguém
+ * reparou que as gavetas e os diálogos continuavam embaixo. A escada do app
+ * hoje: painéis até 170, **sobreposições em 200**, aviso de toast em 300.
+ */
+
 const Drawer = ({
   shouldScaleBackground = true,
   ...props
@@ -26,7 +40,7 @@ const DrawerOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/80", className)}
+    className={cn("fixed inset-0 z-[200] bg-black/80", className)}
     {...props}
   />
 ))
@@ -41,7 +55,7 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 z-[200] mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
         className
       )}
       {...props}

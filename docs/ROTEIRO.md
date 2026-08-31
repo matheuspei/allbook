@@ -7308,3 +7308,49 @@ Pelo log do servidor: `GET /api/audio/101305/lista.m3u8 200` seguido de
 está **pausado**, e quase sempre porque nenhum navegador deixa uma página tocar
 sozinha sem um toque da pessoa (o `play()` recusado cai no `catch` e volta o
 botão para "pausado", de propósito).
+
+---
+
+## 4.140 A gaveta que abria atrás do player (31/08)
+
+Ele relatou: *"clico no ícone de capítulos, ele não me mostra os capítulos nem
+os nomes, ele simplesmente pula para outro capítulo"*.
+
+**Os dois sintomas eram o mesmo defeito.** A gaveta abria — conferido no DOM:
+`data-state="open"`, 46 itens, os nomes certos lá dentro. Só que o player em
+tela cheia é `fixed inset-0 z-[100]` (`AudioPlayer.tsx:553`) e o `DrawerContent`
+do shadcn vinha com `z-50`: **a gaveta nascia atrás do player**, invisível. E
+como o painel do player não captura o toque, o toque seguinte — o dele, achando
+que o botão não tinha funcionado — atravessava e caía num item da lista
+invisível. Daí "pula para outro capítulo": era ele escolhendo um capítulo sem
+poder ver qual.
+
+**O aviso já estava escrito na casa, num vizinho.** O `ui/toast.tsx` carrega um
+comentário dizendo que subiu para `z-[300]` *porque o tocador é `fixed inset-0
+z-[100]`*. Quem consertou o toast não olhou os outros; gaveta, diálogo e menu
+continuaram embaixo.
+
+**Conserto:** `z-[200]` no `drawer`, no `alert-dialog` e no `dropdown-menu` —
+os três que o player abre por cima de si. Ficou uma escada explícita, com o
+porquê escrito nos três arquivos:
+
+| camada | quem |
+|---|---|
+| até 170 | painéis de tela cheia (o player é 100) |
+| **200** | **sobreposições: gaveta, diálogo, menu** |
+| 300 | o aviso de toast, que fica acima de tudo |
+
+### A armadilha do teste, que quase me fez dar o caso por encerrado
+
+Meus cliques pelo navegador **não surtiam efeito nenhum** — a janela do Chrome
+sem foco engole eventos. Cliquei duas vezes em botões diferentes, nada abriu, e
+por um momento pareceu que o bug era "nenhuma gaveta abre". O que separou uma
+coisa da outra foi disparar o clique por dentro da página e **medir o DOM** em
+vez de olhar a captura: `data-state`, contagem de itens, `elementFromPoint`.
+
+E há uma segunda camada de engano: a captura mostrava o player intacto mesmo com
+a gaveta aberta, o que eu quase creditei à mesma falta de foco. A prova que
+separou as duas hipóteses foi pintar um retângulo verde na página: **ele
+apareceu**, logo a tela pintava — e o que não pintava era só a gaveta, atrás do
+player. Quando a captura e o DOM discordam, **um marcador visível decide qual
+dos dois está mentindo.**
