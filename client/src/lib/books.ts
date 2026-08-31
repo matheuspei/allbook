@@ -89,6 +89,19 @@ export interface Book {
   /** Título no idioma original — é por ele que a busca de capas funciona. */
   originalTitle?: string;
   year?: number;
+  /**
+   * O ano em que a **obra** foi publicada pela primeira vez — o do texto, não o
+   * da gravação (31/08, §4.149).
+   *
+   * ⚠️ **`year` é outra coisa**: é a data que a loja anuncia para a edição em
+   * áudio, e em algumas lojas ela nem isso é. Quem for mostrar ano numa tela usa
+   * `anoDaObra()` e `anoDaNarracao()` de `lib/anos.ts`, nunca os campos crus.
+   *
+   * Falta na maioria dos livros e vai faltar por um bom tempo: só entra quando o
+   * agente do `baixalivro` consegue **provar** o ano. Tela que o mostre esconde
+   * a linha quando ele não existe.
+   */
+  anoObra?: number;
   pages?: number;
   isbn?: string;
   /**
@@ -256,6 +269,7 @@ interface LivroDaApi {
   performance?: number;
   originalTitle?: string;
   year?: number;
+  anoObra?: number;
   pages?: number;
   isbn?: string;
   /**

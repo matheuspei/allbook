@@ -113,7 +113,10 @@ export interface LivroDoCatalogo {
   story?: number;
   performance?: number;
   originalTitle?: string;
+  /** O ano da **edição em áudio** — o que a loja anuncia. Ver `lib/anos.ts`. */
   year?: number;
+  /** O ano em que a **obra** foi publicada pela primeira vez (§4.149). */
+  anoObra?: number;
   pages?: number;
   isbn?: string;
   duracaoSegundos?: number;
@@ -261,6 +264,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         notaNarracao: notasPorLivro.narracao,
         tituloOriginal: livros.tituloOriginal,
         ano: livros.ano,
+        anoObra: livros.anoObra,
         paginas: livros.paginas,
         isbn: livros.isbn,
         duracaoSegundos: livros.duracaoSegundos,
@@ -308,6 +312,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         genre: l.genero,
         originalTitle: l.tituloOriginal ?? undefined,
         year: l.ano ?? undefined,
+        anoObra: l.anoObra ?? undefined,
         pages: l.paginas ?? undefined,
         isbn: l.isbn ?? undefined,
         duracaoSegundos: l.duracaoSegundos ?? undefined,

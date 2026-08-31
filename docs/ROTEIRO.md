@@ -7922,3 +7922,61 @@ perfis não é renomear — é decidir qual sobrevive e o que fazer com o outro.
 Merece a sua própria passada, e provavelmente começa no baixalivro, como as
 editoras começaram.
 
+## 4.149 Os dois anos do livro: o da obra e o da narração (31/08)
+
+Ele pediu que a ficha mostrasse **duas datas diferentes** — o ano em que a obra
+foi escrita e o ano em que aquela narração foi gravada —, sabendo de antemão que
+para muitos livros falta uma delas, ou as duas.
+
+**O que a apuração achou, e muda o pedido:** o campo `livros.ano`, que existe
+desde a importação do acervo, **não é o ano da obra**. Ele vem de
+`titulos.lancamento` do `catalogo.sqlite`, que é a data que a **loja** anuncia.
+*Mais esperto que o diabo*, texto de 1938, está gravado como **2017**
+(Tocalivros) e **2026** (Ubook).
+
+🚨 **E no Ubook essa data é a da COLETA, não a do lançamento:** 3.497 dos 4.938
+livros de lá caíram em 2026, concentrados em maio, junho e julho — os meses em
+que o acervo foi baixado. Medido em 31/08 no `catalogo.sqlite`. Por isso o ano
+da narração **não aparece na ficha dos livros dessa loja**: mostrar seria mentir
+em 71% deles. A régua fica num lugar só, em `client/src/lib/anos.ts`.
+
+**O ano da obra já existe, e é confiável.** O agente do ano do `baixalivro`
+(`tools/ano_barato.py`) escreve `ANO` e `ANO_ORIGEM` no `_ficha.json` e **só
+grava o que consegue provar**: a função `ano_confiavel` recusa sozinha toda
+prova que fale em audiolivro, narração, locução ou lançamento em loja. Por isso
+**não existe campo de "confiança" no AllBook** — o que está gravado é achado, e
+o que não deu para provar fica vazio e a tela some com a linha, como nos
+capítulos (§4.141). Em 31/08 eram **1.151 livros** de 13.917; o agente segue
+rodando.
+
+**As duas colunas novas** de `livros` são `ano_obra` e `ano_obra_fonte`. A
+segunda guarda a prova como o agente a escreveu (`Wikidata (P577…)`, `sinopse da
+Audible: …`, `loja da Editora Dialética (ISBN …)`), porque **sem a prova um ano
+errado é indistinguível de um certo** — foi assim que um livro gravou a data do
+audiolivro como ano da obra, no `baixalivro`.
+
+**Quem escreve é um script próprio, `npm run anos`** (`script/anos.ts`), e não a
+importação do acervo. O agente vai achar anos por dias; reimportar 13.917 livros
+— com capa, capítulos e sinopse — a cada leva seria caro e arriscado à toa. O
+script lê só o `_ficha.json`, toca só duas colunas, e é seguro rodar quantas
+vezes quiser: grava apenas o que mudou.
+
+**O que foi rejeitado:**
+
+- **Usar o `ano` que já existe como se fosse o da obra.** É a confusão que criou
+  o problema; ele continua sendo o ano da edição em áudio, e está documentado
+  como tal no `shared/schema/catalogo.ts`.
+- **Estimar o ano da obra** (pela morte do autor, pelo domínio público, pelo ano
+  mais antigo entre as edições). Foi o defeito de origem dos capítulos
+  inventados; ano estimado numa ficha é indistinguível de ano apurado.
+- **Uma terceira coluna com o "ano do áudio já filtrado".** Seriam três colunas
+  de ano no banco para dois conceitos; a régua do Ubook mora na exibição.
+- **Apagar o `ano` dos livros do Ubook.** Seria conserto de dado que a próxima
+  `npm run acervo importar` desfaria em silêncio, e a ordenação da Home depende
+  dele. Enquanto a trava não entrar no importador, o filtro é de exibição.
+
+⚠️ **A ligação até a tela ficou pendente por coordenação, não por técnica:** o
+caminho passa por `server/catalogo.ts`, `client/src/lib/books.ts` e
+`BookDetails.tsx`, os três na mão da janela A na tarefa das editoras (§4.148).
+O desenho está na folha `client/public/_anos-do-livro-C.html`, com três lugares
+possíveis para os dois anos.

@@ -18,6 +18,7 @@ import {
   notaNarracao,
 } from "@/lib/books";
 import { findPerson } from "@/lib/people";
+import { anoDaNarracao, anoDaObra } from "@/lib/anos";
 import { publisherOfBook } from "@/lib/publishers";
 import { STUDIO_NAME, narratorKind } from "@/lib/studio";
 import PublisherMark from "@/components/PublisherMark";
@@ -308,6 +309,13 @@ function buildFromCatalog(id: string) {
     // curada não tem as duas, e os ajudantes caem no `rating` — repetir um
     // número verdadeiro é melhor do que estampar dois inventados.
     origem: entry.origem,
+    // ⚠️ Os dois anos precisam ser copiados **um a um**, como todo o resto:
+    // este objeto é montado campo a campo, e campo que não está aqui não
+    // existe na ficha. `anoDaObra()` e `anoDaNarracao()` aceitam qualquer
+    // objeto com os campos opcionais, então esquecer um deles não dá erro de
+    // tipo nenhum — some da tela em silêncio, e foi o que aconteceu (§4.149).
+    year: entry.year,
+    anoObra: entry.anoObra,
     story: notaHistoria(entry),
     performance: notaNarracao(entry),
     // A sinopse curada em PT-BR vence a importada (§4.104): a da Open Library
@@ -416,6 +424,12 @@ export default function BookDetails({ params }: { params: { id: string } }) {
     () => formatBookDuration(chaptersTotalSec(Number(params.id))),
     [params.id, versaoDosCapitulos],
   );
+
+  /* Os dois anos do livro (§4.149). Quem decide se cada um pode ser mostrado é
+     `lib/anos.ts` — no Ubook a data da loja é a da coleta, e lá o ano da
+     narração não aparece. Faltando, a peça inteira some da linha. */
+  const anoDaEscrita = anoDaObra(book);
+  const anoDaGravacao = anoDaNarracao(book);
 
   // Onde a pessoa parou neste livro (se já começou). Alimenta o cartão de
   // progresso no topo e o destaque do capítulo atual na lista.
@@ -580,7 +594,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               {book.subtitle}
             </p>
           )}
-          <div className="flex items-center gap-3 text-sm text-white/70">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/70">
             {/* Sem nota, sem estrela. O acervo chega sem avaliação, e o que
                 ficava aqui era uma estrela vermelha sozinha, sem número ao
                 lado (§4.134.1). O "(128)" que a acompanhava era número escrito
@@ -601,6 +615,28 @@ export default function BookDetails({ params }: { params: { id: string } }) {
             </div>
             <span>•</span>
             <LinkDoGenero genero={book.genre} />
+            {/* Os dois anos do livro (§4.149): o do TEXTO e o desta gravação.
+                Entram aqui, e não num bloco novo, porque a idade da obra é a
+                primeira coisa que se quer saber num clássico — e esta linha já
+                existia. Cada um some sozinho quando falta: nada de "ano
+                desconhecido".
+
+                ⚠️ **Os dois vão dentro de UM `span`**, e não soltos na linha:
+                com quatro itens a linha quebra no celular, e solto o "•" ficava
+                pendurado no fim de uma linha com o ano na seguinte. Assim a
+                quebra cai antes do par, que desce inteiro. */}
+            {(anoDaEscrita !== undefined || anoDaGravacao !== undefined) && (
+              <span className="flex items-center gap-3 whitespace-nowrap">
+                <span>•</span>
+                {anoDaEscrita !== undefined && (
+                  <span data-testid="text-ano-obra">obra de {anoDaEscrita}</span>
+                )}
+                {anoDaEscrita !== undefined && anoDaGravacao !== undefined && <span>•</span>}
+                {anoDaGravacao !== undefined && (
+                  <span data-testid="text-ano-narracao">áudio de {anoDaGravacao}</span>
+                )}
+              </span>
+            )}
           </div>
         </div>
       </div>
