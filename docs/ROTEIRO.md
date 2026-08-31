@@ -7507,3 +7507,62 @@ zero seria trocar um erro por outro.
 Verdade, e sem defeito: **só um livro tem áudio ingerido** (o 101305, §4.139).
 Livro sem narração não toca — o que ele precisa é aparecer a oferta de pedido,
 não um player mudo. Fica anotado como a próxima costura.
+
+---
+
+## 4.142 O acervo toca sem ser copiado — 13.917 livros de uma vez (31/08)
+
+Ele reclamou de um livro que não tocava e cobrou o essencial: *"precisam ser
+tocados os livros que tem aqui"*. E quando eu disse "não cabe no disco", ele
+respondeu com a pergunta certa: *"A gente já tem os livros no SSD. É só espelhar
+o que está nos livros baixados. Não estou entendendo por que tanta dificuldade."*
+
+**Ele tinha razão, e o "não cabe" era sobre outra coisa.** Medido: o acervo tem
+**1,34 TB e 29.319 horas**; convertido para HLS a 64 kbps daria **840 GB ao lado
+do que já existe**, num disco com **179 GB livres**. O que não cabe é a *segunda
+cópia* — tocar o que já está lá não custa byte nenhum.
+
+### A decisão de rumo: HLS é formato de ENTREGA REMOTA, não de teste local
+
+Ele foi explícito: *"o HLS só deveria existir quando a gente subisse isso para a
+nuvem, porque até então a gente está fazendo só teste"*. Fica assim:
+
+| modo | quando | onde mora o áudio |
+|---|---|---|
+| `acervo` | agora, e para todo livro baixado | no acervo, como veio |
+| `hls` | quando o livro for para a nuvem | convertido pelo `npm run audio` |
+
+**O que entrou:**
+
+- `livros.pastaAcervo` e `capitulos.arquivo` — onde cada arquivo está. ⚠️ O
+  nome do arquivo **nunca vem do pedido**: sai do banco e passa por `basename`
+  antes de virar caminho.
+- `GET /api/audio/:id/situacao` — responde `hls`, `acervo` ou `sem-narracao`,
+  que são três telas diferentes.
+- `GET /api/audio/:id/capitulo/:n` — entrega o arquivo do acervo, com sessão,
+  com o limite de rajada e **com `Range`** (é ele que faz arrastar a barra
+  funcionar; sem resposta parcial o navegador rebaixa a busca a baixar tudo).
+- `use-tocador.ts` reescrito para os dois modos. ⚠️ **A tradução é o coração
+  dele:** no `hls`, `audio.currentTime` é a posição no livro; no `acervo`, é a
+  posição **dentro do capítulo**. `posicaoNoLivro()` e `irPara()` traduzem nas
+  duas direções — sem isso, cada tela que mexe no tempo (barra, ±30s, retomada,
+  citação) precisaria conhecer a diferença, e uma delas esqueceria.
+
+**Resultado: 13.917 livros tocáveis**, zero byte copiado, zero conversão.
+
+### O que foi apagado a pedido dele
+
+Os 150 MB do livro de teste (§4.139) saíram: 79 MB de entrega HLS e 70 MB da
+cópia do mestre. O original no acervo ficou intacto (70 MB, 48 arquivos). ⚠️
+**`npm run audio remover` leva junto os capítulos e a duração do banco** — não é
+bug, é o desfazer completo da ingestão; a reimportação os devolve.
+
+### ⚠️ Os "capítulos de mentira" que não eram
+
+No mesmo relato ele apontou *"A Mentira Perfeita"* com 35 capítulos chamados
+"Capítulo 1", "Capítulo 2"… como prova de que a invenção continuava. **Não era.**
+A ficha do acervo tem exatamente 35, os arquivos MP3 na pasta se chamam assim, e
+as durações batem com a tela (capítulo 3: 1.230.315 ms na ficha, "21min" na
+tela). É um thriller cujos capítulos não têm título próprio — a Storytel os
+numera. Nome genérico **vindo da fonte** é dado; nome genérico **sorteado** era o
+defeito da §4.141, e esse morreu.

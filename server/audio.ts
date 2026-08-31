@@ -37,10 +37,14 @@
  * isso não tem solução e a §4.34 já dizia. O objetivo é a cópia em escala.
  */
 
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
+import path from "node:path";
+
 import type { Express, NextFunction, Request, Response } from "express";
 import { and, eq, sql } from "drizzle-orm";
 
-import { audioAcessos, livros, type Conta } from "@shared/schema";
+import { audioAcessos, capitulos, livros, type Conta } from "@shared/schema";
 import { armazenamento, chaveDaLista, prefixoDaEntrega } from "./armazenamento";
 import { db } from "./db";
 
@@ -114,6 +118,16 @@ setInterval(() => {
 /* -------------------------------------------------------------------------- */
 /* Defesa 1: sessão                                                            */
 /* -------------------------------------------------------------------------- */
+
+/** O tipo MIME pela extensão — o acervo tem mp3, m4a, m4b e ogg. */
+function tipoPeloNome(nome: string): string {
+  const ext = path.extname(nome).toLowerCase();
+  if (ext === ".m4a" || ext === ".m4b" || ext === ".aac") return "audio/mp4";
+  if (ext === ".ogg" || ext === ".opus") return "audio/ogg";
+  if (ext === ".wav") return "audio/wav";
+  if (ext === ".flac") return "audio/flac";
+  return "audio/mpeg";
+}
 
 function exigirConta(req: Request, res: Response, next: NextFunction) {
   if (!req.user) return res.status(401).json({ erro: "Entre na sua conta para ouvir." });
@@ -280,6 +294,114 @@ export function registrarAudio(app: Express) {
     // A lista é de quem pediu e não deve ficar em cache compartilhado nenhum.
     res.setHeader("Cache-Control", "private, no-store");
     return res.send(reescrita);
+  });
+
+  /**
+   * **Como este livro pode ser ouvido** (31/08, §4.142).
+   *
+   * Três respostas possíveis, e a tela precisa das três separadas:
+   * - `hls` — foi ingerido pelo `npm run audio`, toca em segmentos;
+   * - `acervo` — não foi ingerido, mas os arquivos estão no acervo e o servidor
+   *   os serve capítulo a capítulo;
+   * - `sem-narracao` — não há áudio, e o certo é oferecer o pedido.
+   *
+   * 🚨 **O modo `acervo` existe porque converter o acervo não cabe.** São 1,34
+   * TB e 29.319 horas; em HLS a 64 kbps dariam **840 GB ao lado**, num disco com
+   * 179 GB livres. A conversão continua valendo para o que for para a nuvem —
+   * ela é formato de ENTREGA REMOTA, e enquanto se testa na própria máquina
+   * duplicar o acervo é trabalho e disco jogados fora.
+   */
+  app.get("/api/audio/:livroId/situacao", exigirConta, async (req, res) => {
+    const livroId = Number(req.params.livroId);
+    if (!Number.isInteger(livroId)) return res.status(400).json({ erro: "livro inválido" });
+
+    const [livro] = await db
+      .select({ mestre: livros.arquivoMestre, pasta: livros.pastaAcervo })
+      .from(livros)
+      .where(eq(livros.id, livroId))
+      .limit(1);
+
+    if (!livro) return res.status(404).json({ erro: "livro não encontrado", podePedir: true });
+    if (livro.mestre !== null) return res.json({ modo: "hls" });
+
+    if (livro.pasta) {
+      const [{ quantos }] = await db
+        .select({ quantos: sql<number>`count(*) filter (where arquivo is not null)::int` })
+        .from(capitulos)
+        .where(eq(capitulos.livroId, livroId));
+      if (quantos > 0) return res.json({ modo: "acervo", capitulos: quantos });
+    }
+
+    return res.status(404).json({ erro: "Este livro ainda não tem narração.", podePedir: true });
+  });
+
+  /**
+   * Um capítulo, servido **direto do acervo** — sem cópia e sem conversão.
+   *
+   * ⚠️ **O nome do arquivo nunca vem do pedido.** Ele é lido do banco e passa
+   * por `basename` antes de virar caminho: sem isso, um `numero` qualquer não
+   * ajudaria, mas um dia alguém passaria o nome pela URL e abriria a porta para
+   * ler fora da pasta do livro.
+   *
+   * Suporta `Range` porque é ele que faz arrastar a barra funcionar — sem
+   * resposta parcial, o navegador rebaixa a busca a "baixar tudo de novo".
+   */
+  app.get("/api/audio/:livroId/capitulo/:numero", exigirConta, async (req, res) => {
+    const livroId = Number(req.params.livroId);
+    const numero = Number(req.params.numero);
+    if (!Number.isInteger(livroId) || !Number.isInteger(numero) || numero < 1) {
+      return res.status(400).json({ erro: "pedido inválido" });
+    }
+
+    if (passouDaRajada(contaDe(req))) {
+      return res.status(429).json({
+        erro: "Muitos pedidos em pouco tempo. Espere um minuto.",
+        limite: "pedacos-por-minuto",
+      });
+    }
+
+    const [linha] = await db
+      .select({ pasta: livros.pastaAcervo, arquivo: capitulos.arquivo })
+      .from(capitulos)
+      .innerJoin(livros, eq(livros.id, capitulos.livroId))
+      .where(and(eq(capitulos.livroId, livroId), eq(capitulos.numero, numero)))
+      .limit(1);
+
+    if (!linha?.pasta || !linha.arquivo) {
+      return res.status(404).json({ erro: "capítulo não encontrado" });
+    }
+
+    const caminho = path.join(linha.pasta, path.basename(linha.arquivo));
+    const info = await stat(caminho).catch(() => null);
+    if (!info?.isFile()) {
+      return res.status(404).json({
+        erro: "O arquivo deste capítulo não está no acervo.",
+        caminho: path.basename(linha.arquivo),
+      });
+    }
+
+    res.setHeader("Content-Type", tipoPeloNome(linha.arquivo));
+    res.setHeader("Accept-Ranges", "bytes");
+    // Privado: a permissão é de quem pediu, e o arquivo não muda.
+    res.setHeader("Cache-Control", "private, max-age=3600");
+
+    const range = req.headers.range;
+    const pedaco = range ? /bytes=(\d*)-(\d*)/.exec(range) : null;
+    if (pedaco) {
+      const inicio = pedaco[1] ? Number(pedaco[1]) : 0;
+      const fim = pedaco[2] ? Number(pedaco[2]) : info.size - 1;
+      if (inicio >= info.size || fim >= info.size || inicio > fim) {
+        res.setHeader("Content-Range", `bytes */${info.size}`);
+        return res.status(416).end();
+      }
+      res.status(206);
+      res.setHeader("Content-Range", `bytes ${inicio}-${fim}/${info.size}`);
+      res.setHeader("Content-Length", String(fim - inicio + 1));
+      return createReadStream(caminho, { start: inicio, end: fim }).pipe(res);
+    }
+
+    res.setHeader("Content-Length", String(info.size));
+    return createReadStream(caminho).pipe(res);
   });
 
   /**

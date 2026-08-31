@@ -577,6 +577,8 @@ async function importar(limite: number | null) {
       duracaoSegundos: linha.minutos ? linha.minutos * 60 : null,
       origemLoja: linha.loja,
       origemId: linha.loja_id,
+      // Onde o áudio já está, para o servidor tocá-lo sem converter (§4.142).
+      pastaAcervo: pasta,
       // Os carimbos da sincronização. ⚠️ `vinhetaIngerida` NÃO entra aqui: quem
       // a escreve é o `npm run audio`, e como este `set` reescreve o que
       // listar, incluí-la apagaria a cada importação o registro de com que
@@ -629,6 +631,7 @@ async function importar(limite: number | null) {
           // buraco no meio faz o resto da conta ser chute.
           inicioSegundos: todasAsDuracoes ? inicio : null,
           duracaoSegundos: c.segundos,
+          arquivo: c.arquivo,
         };
         inicio += c.segundos ?? 0;
         return atual;

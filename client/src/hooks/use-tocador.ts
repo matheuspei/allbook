@@ -1,100 +1,108 @@
 /**
- * O tocador de verdade — o que faz o AllBook sair som (30/08, §4.139).
+ * O tocador — o que faz o AllBook sair som (30/08 §4.139, reescrito em 31/08
+ * §4.142).
  *
- * Até hoje o player era um **cronômetro**: um `setInterval` somava 1s por
- * segundo em `currentTime`, a barra andava, o capítulo virava, e não havia
- * áudio nenhum. A entrega existia no servidor desde 08/08 (§4.130) e nenhuma
- * tela a pedia.
+ * ## Dois modos, e o segundo é o que faz o acervo tocar hoje
  *
- * ## O que este hook faz, e o que ele NÃO faz
+ * - **`hls`** — o livro passou pelo `npm run audio`: virou segmentos de ~6s e
+ *   toca como um fluxo só. É o formato de **entrega remota**, para quando o
+ *   áudio subir para a nuvem.
+ * - **`acervo`** — o livro **não** foi convertido, e não precisa: os arquivos
+ *   já estão no SSD, um por capítulo, e o servidor os entrega assim. Foi o que
+ *   destravou os 13.917 livros: converter o acervo inteiro daria **840 GB ao
+ *   lado dos 1,34 TB que já existem**, num disco com 179 GB livres.
  *
- * Ele cuida do **elemento de áudio**: descobre se o livro tem narração, liga o
- * HLS, e devolve o elemento pronto. Quem manda em play/pause, posição e
- * velocidade continua sendo o `AudioPlayer` — este hook não conhece a tela.
+ * ## O que muda entre os dois, e por que este arquivo existe
  *
- * ⚠️ **O cronômetro NÃO foi removido, e não pode ser.** Dos 13.917 livros do
- * acervo, **um** tem áudio ingerido hoje. Tirar o relógio deixaria o player de
- * todos os outros parado, mudo e sem barra andando — pior do que está. Enquanto
- * `temAudio` for falso, o player segue no cronômetro; quando for verdadeiro,
- * quem dá a hora é o elemento.
+ * No `hls` o elemento toca o livro inteiro: `audio.currentTime` **é** a posição
+ * no livro. No `acervo` cada capítulo é um arquivo, e `currentTime` é a posição
+ * **dentro do capítulo** — a posição no livro é `início do capítulo +
+ * currentTime`, e passar de capítulo significa trocar o `src`.
  *
- * ## Por que HLS e não um arquivo só
- *
- * O servidor entrega o livro em pedaços de ~6s e **confere a sessão a cada
- * pedaço** (§4.130) — é assim que o acervo não sai pela porta. Um `<audio
- * src="livro.mp3">` seria o arquivo inteiro exposto num endereço.
- *
- * ⚠️ **O Safari toca HLS sozinho e o hls.js não funciona nele** — no iPhone
- * (que é o alvo do app) o caminho é `audio.src = <a lista>` e pronto. Nos
- * outros navegadores é o hls.js que traduz. Os dois caminhos estão aqui, e é
- * `Hls.isSupported()` que escolhe.
+ * ⚠️ **Toda a tela continua falando em "segundo do livro".** É este hook que
+ * traduz, nas duas direções (`posicaoNoLivro` e `irPara`); sem isso, cada tela
+ * que mexe no tempo — barra, ±30s, retomar, citação — precisaria conhecer a
+ * diferença, e uma delas esqueceria.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 
+import type { Chapter } from "@/lib/chapters";
+
+export type ModoDoTocador = "hls" | "acervo";
+
 export type SituacaoDoTocador =
-  /** Ainda perguntando ao servidor. */
   | "carregando"
-  /** Há narração e o elemento está pronto. */
   | "pronto"
-  /** O livro não tem narração ingerida — é o caso de quase todo o acervo. */
+  /** O livro não tem narração — a tela deve oferecer o pedido, não um player mudo. */
   | "sem-narracao"
-  /** Precisa entrar na conta para ouvir (§4.130: ouvir exige sessão). */
   | "precisa-entrar"
-  /** Bateu o limite de livros por dia. */
   | "limite-do-dia"
-  /** Deu errado de um jeito que a tela precisa contar. */
   | "erro";
 
 export interface Tocador {
-  /** O elemento de áudio, ou `null` enquanto não há narração. */
   audio: HTMLAudioElement | null;
   situacao: SituacaoDoTocador;
-  /** Mensagem do servidor, quando há uma para mostrar. */
+  modo: ModoDoTocador | null;
   recado: string | null;
-  /** Atalho: dá para contar com o elemento para marcar a hora? */
   temAudio: boolean;
+  /** Onde a escuta está, em segundos **do livro**. */
+  posicaoNoLivro: () => number;
+  /** Leva a escuta para um segundo **do livro**, trocando de capítulo se preciso. */
+  irPara: (segundosNoLivro: number) => void;
 }
 
-export function useTocador(livroId: number): Tocador {
+/** Em que capítulo cai um segundo do livro, e quanto sobra dentro dele. */
+function ondeCai(capitulos: Chapter[], segundos: number): { indice: number; dentro: number } {
+  let acumulado = 0;
+  for (let i = 0; i < capitulos.length; i++) {
+    const dura = capitulos[i].durationSec ?? 0;
+    if (segundos < acumulado + dura || i === capitulos.length - 1) {
+      return { indice: i, dentro: Math.max(0, segundos - acumulado) };
+    }
+    acumulado += dura;
+  }
+  return { indice: 0, dentro: 0 };
+}
+
+/** Em que segundo do livro começa o capítulo de índice `i`. */
+function comecoDe(capitulos: Chapter[], i: number): number {
+  return capitulos.slice(0, i).reduce((soma, c) => soma + (c.durationSec ?? 0), 0);
+}
+
+export function useTocador(livroId: number, capitulos: Chapter[]): Tocador {
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [situacao, setSituacao] = useState<SituacaoDoTocador>("carregando");
+  const [modo, setModo] = useState<ModoDoTocador | null>(null);
+  const [recado, setRecado] = useState<string | null>(null);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const [situacao, setSituacao] = useState<SituacaoDoTocador>("carregando");
-  const [recado, setRecado] = useState<string | null>(null);
+  /** Qual capítulo está carregado no elemento, no modo `acervo`. */
+  const capituloRef = useRef(0);
+  /** A lista mais recente, para os callbacks não fecharem sobre uma antiga. */
+  const capitulosRef = useRef<Chapter[]>(capitulos);
+  capitulosRef.current = capitulos;
 
   useEffect(() => {
     let vivo = true;
-    const lista = `/api/audio/${livroId}/lista.m3u8`;
 
     async function ligar() {
       setSituacao("carregando");
       setRecado(null);
 
-      /*
-       * Pergunta ANTES de montar o HLS. Sem isto, o hls.js receberia um JSON de
-       * erro no lugar da lista e diria "manifesto inválido" — mensagem que não
-       * ajuda ninguém a entender que o livro só não tem narração ainda.
-       */
       let resposta: Response;
       try {
         /*
-         * ⚠️ **`include`, e não `same-origin`.** A primeira versão usou
-         * `same-origin` e o servidor devolveu **401 em tudo** — o cookie de
-         * sessão não ia junto. O `lib/auth.ts` já avisava disso desde 08/08,
-         * com estas palavras: "sem ele o navegador não manda o cookie de
-         * sessão". A casa inteira usa `include`; este fetch é que era o
-         * forasteiro.
-         *
-         * ⚠️ **`cache: "no-store"` pelo mesmo motivo prático:** enquanto o
-         * `same-origin` estava lá, o navegador guardou o **401** e passou a
-         * respondê-lo do cache — o pedido não saía mais, o servidor não
-         * registrava nada, e o conserto parecia não ter funcionado. A lista é
-         * privada e por sessão (o servidor manda `private, no-store`); guardar
-         * a resposta nunca foi certo.
+         * ⚠️ `include` e `no-store`, as duas armadilhas da §4.139: com
+         * `same-origin` o cookie de sessão não vai (401 em tudo), e sem
+         * `no-store` o navegador guarda esse 401 e o pedido para de sair.
          */
-        resposta = await fetch(lista, { credentials: "include", cache: "no-store" });
+        resposta = await fetch(`/api/audio/${livroId}/situacao`, {
+          credentials: "include",
+          cache: "no-store",
+        });
       } catch {
         if (vivo) setSituacao("erro");
         return;
@@ -112,35 +120,37 @@ export function useTocador(livroId: number): Tocador {
         return;
       }
 
+      const dados = (await resposta.json()) as { modo?: ModoDoTocador };
+      if (!vivo) return;
+
       const elemento = new Audio();
       elemento.preload = "auto";
       audioRef.current = elemento;
+      capituloRef.current = 0;
 
-      if (Hls.isSupported()) {
-        const hls = new Hls({
-          // A lista já vem inteira do servidor e o livro não muda enquanto toca.
-          xhrSetup: (xhr) => {
-            xhr.withCredentials = true;
-          },
-        });
-        hlsRef.current = hls;
-        hls.loadSource(lista);
-        hls.attachMedia(elemento);
-        hls.on(Hls.Events.ERROR, (_evento, dados) => {
-          // Só o que é fatal vira estado: o hls.js se recupera sozinho de falha
-          // de um pedaço, e transformar isso em tela de erro faria o livro
-          // "quebrar" por causa de um segundo de rede ruim.
-          if (dados.fatal && vivo) {
-            setSituacao("erro");
-            setRecado("A narração parou de chegar. Tente de novo.");
-          }
-        });
+      if (dados.modo === "hls") {
+        const lista = `/api/audio/${livroId}/lista.m3u8`;
+        if (Hls.isSupported()) {
+          const hls = new Hls({ xhrSetup: (xhr) => { xhr.withCredentials = true; } });
+          hlsRef.current = hls;
+          hls.loadSource(lista);
+          hls.attachMedia(elemento);
+          hls.on(Hls.Events.ERROR, (_e, d) => {
+            if (d.fatal && vivo) {
+              setSituacao("erro");
+              setRecado("A narração parou de chegar. Tente de novo.");
+            }
+          });
+        } else {
+          elemento.src = lista; // Safari toca HLS sozinho
+        }
+        setModo("hls");
       } else {
-        // Safari: HLS nativo.
-        elemento.src = lista;
+        // Modo acervo: começa no primeiro capítulo; quem manda depois é `irPara`.
+        elemento.src = `/api/audio/${livroId}/capitulo/1`;
+        setModo("acervo");
       }
 
-      if (!vivo) return;
       setAudio(elemento);
       setSituacao("pronto");
     }
@@ -159,13 +169,72 @@ export function useTocador(livroId: number): Tocador {
       }
       audioRef.current = null;
       setAudio(null);
+      setModo(null);
     };
   }, [livroId]);
+
+  /**
+   * No modo `acervo`, virar de capítulo é trocar o arquivo — e o `<audio>`
+   * esquece que estava tocando. Guardar isso aqui é o que faz o livro seguir
+   * sozinho de um capítulo para o outro.
+   */
+  useEffect(() => {
+    const elemento = audio;
+    if (!elemento || modo !== "acervo") return;
+    const aoAcabar = () => {
+      const proximo = capituloRef.current + 1;
+      if (proximo >= capitulosRef.current.length) return;
+      capituloRef.current = proximo;
+      elemento.src = `/api/audio/${livroId}/capitulo/${proximo + 1}`;
+      void elemento.play().catch(() => {});
+    };
+    elemento.addEventListener("ended", aoAcabar);
+    return () => elemento.removeEventListener("ended", aoAcabar);
+  }, [audio, modo, livroId]);
+
+  const posicaoNoLivro = useCallback(() => {
+    const elemento = audioRef.current;
+    if (!elemento) return 0;
+    if (modo !== "acervo") return elemento.currentTime;
+    return comecoDe(capitulosRef.current, capituloRef.current) + elemento.currentTime;
+  }, [modo]);
+
+  const irPara = useCallback(
+    (segundosNoLivro: number) => {
+      const elemento = audioRef.current;
+      if (!elemento) return;
+      if (modo !== "acervo") {
+        elemento.currentTime = segundosNoLivro;
+        return;
+      }
+      const { indice, dentro } = ondeCai(capitulosRef.current, segundosNoLivro);
+      if (indice !== capituloRef.current) {
+        const tocava = !elemento.paused;
+        capituloRef.current = indice;
+        elemento.src = `/api/audio/${livroId}/capitulo/${indice + 1}`;
+        // O `src` novo só aceita posição depois de ter metadados.
+        elemento.addEventListener(
+          "loadedmetadata",
+          () => {
+            elemento.currentTime = dentro;
+            if (tocava) void elemento.play().catch(() => {});
+          },
+          { once: true },
+        );
+        return;
+      }
+      if (Math.abs(elemento.currentTime - dentro) > 1.5) elemento.currentTime = dentro;
+    },
+    [modo, livroId],
+  );
 
   return {
     audio,
     situacao,
+    modo,
     recado,
     temAudio: situacao === "pronto",
+    posicaoNoLivro,
+    irPara,
   };
 }

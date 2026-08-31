@@ -195,7 +195,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * tiver — e é o caso de 13.916 dos 13.917 livros hoje —, quem marca a hora
    * continua sendo o cronômetro logo abaixo.
    */
-  const tocador = useTocador(book.id);
+  const tocador = useTocador(book.id, chapters);
 
   /**
    * O cronômetro: a barra andando **sem áudio nenhum**.
@@ -229,7 +229,8 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     const audio = tocador.audio;
     if (!audio) return;
     const aoAndar = () => {
-      const agora = audio.currentTime;
+      // `posicaoNoLivro` traduz: no modo acervo, `currentTime` é do capítulo.
+      const agora = tocador.posicaoNoLivro();
       if (limiteDaCitacao !== null && agora >= limiteDaCitacao) {
         audio.pause();
         setIsPlaying(false);
@@ -241,7 +242,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     };
     audio.addEventListener("timeupdate", aoAndar);
     return () => audio.removeEventListener("timeupdate", aoAndar);
-  }, [tocador.audio, limiteDaCitacao]);
+  }, [tocador.audio, limiteDaCitacao, tocador.posicaoNoLivro]);
 
   /**
    * 2. Play e pause.
@@ -274,12 +275,12 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     if (!audio) return;
     const irPara = () => {
       const alvo = posicaoDesejada.current;
-      if (Math.abs(audio.currentTime - alvo) > 1.5) audio.currentTime = alvo;
+      if (Math.abs(tocador.posicaoNoLivro() - alvo) > 1.5) tocador.irPara(alvo);
     };
     if (audio.readyState > 0) irPara();
     else audio.addEventListener("loadedmetadata", irPara, { once: true });
     return () => audio.removeEventListener("loadedmetadata", irPara);
-  }, [currentTime, tocador.audio]);
+  }, [currentTime, tocador.audio, tocador.irPara, tocador.posicaoNoLivro]);
 
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.floor(Math.abs(seconds));

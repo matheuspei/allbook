@@ -242,6 +242,20 @@ export const livros = pgTable(
     origemLoja: text("origem_loja"),
     origemId: text("origem_id"),
 
+    /**
+     * A pasta deste livro dentro do acervo do `baixalivro` (31/08, §4.142).
+     *
+     * 🚨 **É o que permite o app TOCAR sem duplicar o acervo.** A ingestão do
+     * `npm run audio` converte o livro em segmentos HLS — e o acervo inteiro
+     * convertido daria **840 GB ao lado dos 1,34 TB que já existem**, num SSD
+     * com 179 GB livres. Guardando a pasta, o servidor lê o MP3 que já está
+     * lá e serve o capítulo pedido; nada é copiado, nada é convertido, e os
+     * 13.917 livros tocam.
+     *
+     * Vazio nos livros que não vieram do acervo.
+     */
+    pastaAcervo: text("pasta_acervo"),
+
     /* ---- Os carimbos da sincronização (30/08, §4.138) --------------------- */
 
     /**
@@ -336,6 +350,14 @@ export const capitulos = pgTable(
      */
     inicioSegundos: integer("inicio_segundos"),
     duracaoSegundos: integer("duracao_segundos"),
+    /**
+     * O nome do arquivo deste capítulo dentro de `livros.pastaAcervo`.
+     *
+     * ⚠️ **Só o nome, nunca o caminho completo** — é o que impede que um
+     * pedido possa apontar para fora da pasta do livro. Quem monta o caminho é
+     * o servidor, juntando `pastaAcervo` + este nome.
+     */
+    arquivo: text("arquivo"),
   },
   (t) => [unique("capitulos_livro_numero").on(t.livroId, t.numero)],
 );

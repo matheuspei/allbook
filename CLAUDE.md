@@ -122,6 +122,31 @@ e não por arrumação: as listas apontavam para os ids das maquetes, e um livro
 real que calhasse de receber o id 7 apareceria em "Só na AllBook" **por acaso**.
 A estrutura (slug, rótulo, gradiente, descrição) ficou.
 
+### O acervo TOCA sem ser copiado (31/08, §4.142)
+
+**Dois modos, e o padrão hoje é o segundo:**
+
+- **`hls`** — o livro passou pelo `npm run audio`: virou segmentos de ~6s. É
+  formato de **entrega remota**, para quando o áudio subir para a nuvem.
+- **`acervo`** — o servidor entrega o arquivo que já está no SSD, capítulo a
+  capítulo (`livros.pastaAcervo` + `capitulos.arquivo`). **13.917 livros tocam
+  assim, com zero byte copiado.**
+
+🚨 **Converter o acervo não cabe:** são 1,34 TB e 29.319 h; em HLS dariam **840
+GB ao lado**, e há 179 GB livres. Enquanto se testa na própria máquina,
+converter é trabalho e disco jogados fora — decisão dele, 31/08.
+
+- `GET /api/audio/:id/situacao` → `hls` | `acervo` | `sem-narracao` (três telas
+  diferentes) · `GET /api/audio/:id/capitulo/:n` → o arquivo, com sessão e
+  `Range`.
+- ⚠️ **O nome do arquivo nunca vem do pedido** — sai do banco e passa por
+  `basename` antes de virar caminho.
+- ⚠️ **`hooks/use-tocador.ts` traduz a posição.** No `hls`, `currentTime` é o
+  segundo do livro; no `acervo`, é o segundo **do capítulo**. Use
+  `posicaoNoLivro()` e `irPara()` — nunca `audio.currentTime` direto.
+- ⚠️ **`npm run audio remover` apaga os capítulos e a duração do banco** (é o
+  desfazer completo); a reimportação os devolve.
+
 ### Os capítulos são REAIS — o gerador de maquete foi apagado (31/08, §4.141)
 
 🚨 **`lib/chapters.ts` já teve um gerador que sorteava de 8 a 14 capítulos por
