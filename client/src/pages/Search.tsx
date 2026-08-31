@@ -112,7 +112,11 @@ function EmAltaRow({ books }: { books: Book[] }) {
               type="button"
               onClick={() => setLocation(`/book/${book.id}`)}
               aria-label={`${position}º lugar: ${book.title}, de ${book.author}`}
-              className="group shrink-0 snap-start w-[118px] text-left"
+              /* `flex flex-col` pela mesma razão do `BookGrid` (§4.142): o item
+                 flex é esticado até a altura do vizinho mais alto, e o conteúdo
+                 de um `<button>` é centralizado verticalmente pelo navegador —
+                 daí uma capa descer em relação à outra. */
+              className="group flex shrink-0 snap-start w-[118px] flex-col text-left"
               data-testid={`card-em-alta-${book.id}`}
             >
               <div
@@ -144,7 +148,7 @@ function EmAltaRow({ books }: { books: Book[] }) {
                 frase, e parágrafo não é. `min-h` reserva as duas linhas do título
                 para as notas alinharem entre cartões.
               */}
-              <span className="mt-2 block min-h-[35px] text-[13px] font-medium leading-snug text-white line-clamp-2">
+              <span className="mt-2 h-[35px] text-[13px] font-medium leading-snug text-white line-clamp-2">
                 {book.title}
               </span>
               <span className="mt-0.5 block truncate text-[11px] text-white/50">{book.author}</span>

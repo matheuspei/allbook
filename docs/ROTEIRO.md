@@ -7404,3 +7404,52 @@ próxima sincronização.
 explícito dele) e o `script/importar-acervo.ts` — a Audible segue sendo
 importada e atualizada normalmente, só não aparece. Assim, quando as vinhetas e
 as capas ficarem prontas, o que volta já está em dia.
+
+## 4.142 As capas desalinhadas: um `block` anulava o corte do título (31/08)
+
+Ele mandou a captura da fileira **"Narrou"**, no perfil do narrador: *"essa
+diferença de altura das capas dos livros graças aos títulos muito longos… a
+gente precisaria que essas capas ficassem uniformes"*. Na imagem, a primeira
+capa no topo e as duas vizinhas afundadas no meio do cartão, com um título de
+dez linhas embaixo.
+
+**Eram dois defeitos empilhados, e o primeiro é o achado.**
+
+### 1. `block` e `line-clamp-2` na mesma classe: o corte não existe
+
+O `BookGrid` **já pedia** `line-clamp-2` desde sempre — só que ao lado de
+`block`, na mesma `className`. O `line-clamp` do Tailwind funciona ligando
+`display: -webkit-box`; o `block` sobrescreve esse `display` e **o corte deixa
+de acontecer, sem erro nenhum**. Medido no app antes do conserto: o título de
+*365 Hábitos Simples e Poderosos: Amor, Espiritualidade…* ocupava **165px** de
+altura (10 linhas) com `-webkit-line-clamp: 2` computado e ativo.
+
+🚨 **A regra, porque isto vai se repetir:** `line-clamp-*` **define o
+`display`**. Qualquer utilitário de display na mesma classe (`block`, `flex`,
+`inline-block`) o desliga em silêncio. Varridos os 6 lugares do app onde os dois
+apareciam juntos — `BookGrid`, a fileira "Em alta" da busca e quatro cartões de
+`Comunidades` —, todos sem `block` agora. O `truncate` **não** tem esse problema
+(ele não mexe em `display`), o que ajuda a não desconfiar do certo.
+
+### 2. `<button>` centraliza o próprio conteúdo quando é esticado
+
+Mesmo com o título curto, as capas não alinhariam: numa `grid`, a célula é
+esticada até a altura da mais alta, e o navegador **centraliza verticalmente o
+conteúdo de um `<button>`** (não de uma `div`, nem de um `<a>` — só de botão).
+Era isso que empurrava a 2ª e a 3ª capa para baixo. Conserto: `flex flex-col` no
+próprio botão, aplicado nos três cartões-botão de livro do app (`BookGrid`,
+"Em alta" da busca, a grade de `RecommendationsEdit`).
+
+**O terceiro item, de graça:** o `BookGrid` mostrava `livro.title` cru; agora
+passa por `tituloDeVitrine()` como o resto da vitrine (§4.137), e a altura do
+título virou fixa (`h-[32px]`) em vez de mínima — com o clamp funcionando, duas
+linhas é o teto, e fixar é o que garante cartões idênticos.
+
+**Medido depois, na mesma tela (22 livros):** uma única altura de cartão (225px)
+e as três capas de cada fileira começando no mesmo pixel. Antes: 358px nos três
+primeiros contra 275px no quarto.
+
+⚠️ **Onde isto ainda pode aparecer:** todo cartão que mistura capa e título em
+`<button>`, e todo `line-clamp` novo. As telas que usam `BookGrid` (categoria,
+coleção, editora, estúdio, perfil de pessoa) foram consertadas de uma vez, por
+ser um componente só.

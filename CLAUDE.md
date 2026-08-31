@@ -122,6 +122,23 @@ e não por arrumação: as listas apontavam para os ids das maquetes, e um livro
 real que calhasse de receber o id 7 apareceria em "Só na AllBook" **por acaso**.
 A estrutura (slug, rótulo, gradiente, descrição) ficou.
 
+### Os capítulos são REAIS — o gerador de maquete foi apagado (31/08, §4.141)
+
+🚨 **`lib/chapters.ts` já teve um gerador que sorteava de 8 a 14 capítulos por
+livro** ("Capítulo 1", "Capítulo 2"…). Fazia sentido enquanto o app era maquete;
+com o acervo dentro, punha **12 capítulos num livro que tem 3**. Ele saiu, e a
+regra agora é uma só: **o que não veio do banco não aparece.**
+
+- Os capítulos entram na **importação do acervo** (`npm run acervo importar`),
+  não só com o áudio: **100% das fichas** trazem número e título certos.
+- A **duração** de cada capítulo vem na ficha só da Audible (100%) e da Storytel
+  (99%) — Tocalivros 32%, **Ubook 0%**. O que falta o importador **mede com
+  `ffprobe`**; estimar está proibido, era o defeito de origem.
+- ⚠️ **Livro com áudio ingerido não é sobrescrito**: ali os capítulos foram
+  medidos com a vinheta somada, e trocar pela ficha deslocaria quem já ouviu.
+- ⚠️ `getChapters` devolve **vazio na primeira chamada** e dispara o
+  carregamento; quem mostra capítulo escuta `CHAPTERS_EVENT` e redesenha.
+
 ### Os carimbos que ligam o acervo ao app (30/08, §4.138)
 
 O acervo do `baixalivro` continua sendo corrigido (fichas, anos, vinhetas)
@@ -330,6 +347,18 @@ esmaecido — se tudo virasse vermelho cheio, a tela viraria semáforo.
 simétricos: o papel tem pouco espaço acima dele e o grafite tem muito. Quando uma
 peça "some" no claro, a pergunta não é *quanta* opacidade falta — é **em que
 direção** ela deveria se afastar do fundo.
+
+🚨 **`line-clamp-*` define o `display` — nunca escreva `block` ao lado dele**
+(31/08, §4.142). O corte por linhas do Tailwind funciona ligando
+`display: -webkit-box`; um `block`, `flex` ou `inline-block` na mesma
+`className` o desliga **em silêncio**, e o título cresce sem limite. Foi o que
+esticou a grade de capas do perfil de pessoa com um título de 10 linhas. O
+`truncate` não sofre disso (não mexe em `display`).
+
+⚠️ **Cartão de livro que é `<button>` leva `flex flex-col`.** O navegador
+centraliza verticalmente o conteúdo de um botão esticado — e numa grade todas as
+células são esticadas até a mais alta —, então a capa do vizinho desce sozinha.
+`div` e `<a>` não têm o problema.
 
 Antes de criar tela nova, olhar `Home.tsx` e `BookDetails.tsx` para manter a
 mesma cara — e não acrescentar biblioteca de UI nova.

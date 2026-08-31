@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { Star } from "lucide-react";
-import type { Book } from "@/lib/books";
+import { tituloDeVitrine, type Book } from "@/lib/books";
 
 /**
  * Grade de capas com título e nota, usada nos perfis de pessoa e na tela de
@@ -26,15 +26,29 @@ export default function BookGrid({
           type="button"
           onClick={() => navegar(`/book/${livro.id}`)}
           aria-label={`${livro.title}, de ${livro.author}`}
-          className="group text-left"
+          /* `flex flex-col` não é enfeite: a célula do grid estica todos os
+             cartões até a altura do mais alto, e o conteúdo de um `<button>` é
+             centralizado verticalmente pelo navegador. Era isso que fazia a
+             segunda e a terceira capa DESCEREM enquanto a primeira ficava no
+             topo (§4.142). Em coluna, tudo começa em cima. */
+          className="group flex flex-col text-left"
           data-testid={`card-grid-book-${livro.id}`}
         >
           <div className="relative aspect-[3/4] overflow-hidden rounded-xl shadow-lg shadow-black/40 ring-1 ring-white/10 transition-transform duration-200 group-hover:scale-[1.04] group-active:scale-[0.98]">
             <img src={livro.cover} alt="" className="h-full w-full object-cover" />
           </div>
 
-          <span className="mt-2 block min-h-[32px] text-[12px] font-medium leading-snug text-white line-clamp-2">
-            {livro.title}
+          {/* ⚠️ **Sem `block` aqui, e isso é o conserto.** O `line-clamp-2` do
+              Tailwind funciona ligando `display: -webkit-box`; um `block` na
+              mesma classe o sobrescreve e o corte **deixa de existir, calado**
+              — o título de 10 linhas que esticou esta grade tinha o clamp
+              declarado o tempo todo (§4.142).
+
+              `tituloDeVitrine` tira o subtítulo colado pela loja; o clamp
+              segura o que sobrar. Os dois, sempre: 1.147 títulos longos não têm
+              separador nenhum para cortar. */}
+          <span className="mt-2 h-[32px] text-[12px] font-medium leading-snug text-white line-clamp-2">
+            {tituloDeVitrine(livro)}
           </span>
 
           {showAuthor && (

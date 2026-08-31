@@ -361,7 +361,7 @@ export default function Comunidades() {
                       data-testid={`minha-${grupo.id}`}
                     >
                       <RostoDaComunidade grupo={grupo} lado={56} className="mx-auto" />
-                      <span className="mt-1.5 block text-[10.5px] leading-tight text-white/70 line-clamp-2">
+                      <span className="mt-1.5 text-[10.5px] leading-tight text-white/70 line-clamp-2">
                         {grupo.nome}
                       </span>
                     </Link>
@@ -641,7 +641,7 @@ function CartaoDeComunidade({ grupo, nota }: { grupo: Grupo; nota?: string }) {
       <span className="flex items-center gap-2.5">
         <RostoDaComunidade grupo={grupo} lado={44} />
         <span className="min-w-0 flex-1">
-          <span className="block text-[14px] font-bold leading-tight line-clamp-2">
+          <span className="text-[14px] font-bold leading-tight line-clamp-2">
             {grupo.nome}
           </span>
           <span className="mt-0.5 block truncate whitespace-nowrap text-[11px] text-white/40">
@@ -651,7 +651,7 @@ function CartaoDeComunidade({ grupo, nota }: { grupo: Grupo; nota?: string }) {
         </span>
         <BotaoDeEntrar grupo={grupo} />
       </span>
-      <span className="mt-2.5 block text-[12px] leading-snug text-white/55 line-clamp-2">
+      <span className="mt-2.5 text-[12px] leading-snug text-white/55 line-clamp-2">
         {grupo.descricao}
       </span>
       {nota && <span className="mt-1.5 block text-[11px] font-medium text-primary">{nota}</span>}
@@ -682,7 +682,7 @@ function LinhaDeComunidade({ grupo }: { grupo: Grupo }) {
           {topicos === 1 ? "tópico" : "tópicos"}
           {cat && ` · ${iconeDaCategoria(cat)} ${cat}`}
         </span>
-        <span className="mt-1 block text-[12px] leading-snug text-white/55 line-clamp-2">
+        <span className="mt-1 text-[12px] leading-snug text-white/55 line-clamp-2">
           {grupo.descricao}
         </span>
       </span>
