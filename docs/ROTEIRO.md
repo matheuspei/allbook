@@ -7980,3 +7980,88 @@ caminho passa por `server/catalogo.ts`, `client/src/lib/books.ts` e
 `BookDetails.tsx`, os três na mão da janela A na tarefa das editoras (§4.148).
 O desenho está na folha `client/public/_anos-do-livro-C.html`, com três lugares
 possíveis para os dois anos.
+
+## 4.150 O progresso é por NARRAÇÃO — e o Pequeno Príncipe que ficou de fora (31/08)
+
+Duas coisas dele, na mesma conversa.
+
+### A decisão: progresso por narração, e a pergunta está encerrada
+
+Ele mesmo derrubou a ideia de guardar a posição por obra: *"seria legal que o
+progresso fosse por livro, mas isso não dá certo (…) você tem um que pode durar
+8 horas e outro 6 horas e meia. Se a pessoa tiver no meio de um livro, não é
+necessariamente o meio de outro"*.
+
+**Está certo, e não há solução barata.** Mapear a posição de uma gravação para
+outra exigiria alinhar os dois áudios (mesmo texto, ritmos diferentes) — é
+trabalho de sincronização de fala, caro e ainda assim aproximado. Levar em
+percentagem seria pior: 50% de uma leitura integral não é 50% de uma resumida, e
+a pessoa cairia num ponto que nunca ouviu **achando** que era onde parou.
+
+**Então:** a posição continua sendo por `livro_id`, que hoje é por gravação — a
+tabela `progresso` já é assim, e o que muda é que isso deixou de ser
+provisório. A ficha unificada mostrará "você está em 3h12 da narração de Bruno
+Linhares"; trocar de voz começa aquela do zero, e é o comportamento honesto.
+⚠️ **Não gastar tempo procurando conversão entre narrações** — decisão dele:
+*"talvez nem vale a pena achar uma solução para isso"*.
+
+### O livro que não entrou no grupo — e o dado sujo por trás
+
+Ele mandou o ISBN **9798318458521**. É o `storytel/11835367`, id **102924**:
+*"O pequeno príncipe - Áudiolivro: Na voz de Glycon Luiz"*, com **Glycon Luiz no
+campo autor, no campo narrador e no campo editora** — sendo que o autor é
+Saint-Exupéry. Ele estava fora do grupo das outras narrações.
+
+**Três defeitos de agrupamento, os três consertados em `lib/narrations.ts`:**
+
+1. 🚨 **O corte do título olhava a lista de separadores, não o texto.** O título
+   tem `" - "` na posição 18 e `": "` na 31; como `": "` vinha antes na lista, a
+   obra virava *"O pequeno príncipe - Áudiolivro"*. Agora corta no separador que
+   **aparece primeiro**. (`tituloDeVitrine()` em `books.ts` tem a mesma ordem
+   fixa; lá é só estético.)
+2. **"Saint Exupery" e "Antoine de Saint-Exupéry" eram autores diferentes.**
+   Agora um nome contido no outro, com ao menos uma palavra de 4+ letras em
+   comum, é a mesma pessoa. Isso trouxe o id 105874 (Tocalivros) para o grupo.
+3. **O "autor" que na verdade é o narrador.** Quando o adorno do título diz
+   *"na voz de X"* / *"narrado por X"* e o campo autor é X, o autor não
+   identifica a obra — o livro é anexado ao maior grupo daquele título.
+
+⚠️ **A regra 3 quase saiu larga demais, e a versão larga estragava mais do que
+consertava.** A primeira tentativa só exigia o nome do autor em qualquer lugar
+do adorno: pegava 18 livros, dos quais **17 tinham o autor certo** — *"Machado
+passional: A face íntima de Machado de Assis"*, *"Mascarada: (A Eterna Coleção
+de Barbara Cartland 54)"*, *"Onde bateu a luz: A autobiografia de Philip
+Yancey"*. Obra que fala do próprio autor tem o nome dele no subtítulo, e isso
+não é erro. Com a marca de narração exigida, sobra 1 livro em 13.917 — o dele.
+
+⚠️ **Autor igual ao narrador NÃO virou sinal de erro**, e a tentação era grande
+(1.916 livros). Autor que narra o próprio livro é o normal do audiolivro
+independente. Tratá-los como "sem autor" fez *Imitadores de Deus*, do Ap. Miguel
+Ângelo, ser engolido pelo *Imitadores de Deus*, do Charles Spurgeon — dois
+livros diferentes de mesmo nome. A anexação, por isso, exige **um grupo
+dominante** (maior que todos os outros) e um **título distintivo** (10+
+caracteres e 2+ palavras que não sejam artigo): *"Liderança"* nunca anexa.
+
+**Medido depois:** o Pequeno Príncipe passou de 8 para **10 entradas e 6 vozes**
+(Glycon Luiz, Bruno Linhares, Mateus Prado, Marcelo Tas, Fabio Porchat e Quirino
+Filho), e o app inteiro foi de 134 para **145 obras com escolha real de voz**,
+em 423 fichas.
+
+⚠️ **Entrada sem narrador nomeado deixou de virar opção.** São 5 mil livros (o
+Ubook não credita quem narra) e quase sempre a mesma gravação da irmã nomeada,
+só sem crédito — o seletor ficaria cheio de linhas "Narrador não informado"
+entre as quais ninguém escolhe.
+
+### O que ficou por fazer: o autor errado continua na ficha
+
+A ficha do 102924 ainda diz **"Escrito por Glycon Luiz"**, porque isso é o dado
+do banco, copiado da loja. O agrupamento já sabe que o autor da obra é
+Saint-Exupéry, mas corrigir o que a ficha mostra é `lib/books.ts` +
+`BookDetails.tsx`, **declarados pela janela A** (editoras) neste momento.
+
+**Números para quem for consertar:** 1.916 livros com autor igual ao narrador
+(a maioria legítima), **768 com autor igual à editora** — o caso do *"Editora
+Online"* como autor de *O Pequeno Príncipe*, id 108024, que é claramente sujo —,
+341 com os três iguais e 5.014 sem autor nenhum. O lugar certo do conserto é a
+**importação**: livro cujo autor é igual à editora quase nunca tem autor de
+verdade ali.
