@@ -30,7 +30,7 @@ export default function BookGrid({
              cartões até a altura do mais alto, e o conteúdo de um `<button>` é
              centralizado verticalmente pelo navegador. Era isso que fazia a
              segunda e a terceira capa DESCEREM enquanto a primeira ficava no
-             topo (§4.142). Em coluna, tudo começa em cima. */
+             topo (§4.146). Em coluna, tudo começa em cima. */
           className="group flex flex-col text-left"
           data-testid={`card-grid-book-${livro.id}`}
         >
@@ -42,7 +42,7 @@ export default function BookGrid({
               Tailwind funciona ligando `display: -webkit-box`; um `block` na
               mesma classe o sobrescreve e o corte **deixa de existir, calado**
               — o título de 10 linhas que esticou esta grade tinha o clamp
-              declarado o tempo todo (§4.142).
+              declarado o tempo todo (§4.146).
 
               `tituloDeVitrine` tira o subtítulo colado pela loja; o clamp
               segura o que sobrar. Os dois, sempre: 1.147 títulos longos não têm

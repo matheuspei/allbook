@@ -184,7 +184,7 @@ export default function RecommendationsEdit() {
                 <button
                   key={book.id}
                   onClick={() => toggle(book.id)}
-                  /* `flex flex-col` pela mesma razão do `BookGrid` (§4.142):
+                  /* `flex flex-col` pela mesma razão do `BookGrid` (§4.146):
                      a célula do grid estica o botão até a altura do vizinho de
                      título mais alto, e o navegador centraliza o conteúdo de um
                      `<button>` — a capa desceria em relação à do lado. */

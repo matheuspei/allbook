@@ -112,7 +112,7 @@ function EmAltaRow({ books }: { books: Book[] }) {
               type="button"
               onClick={() => setLocation(`/book/${book.id}`)}
               aria-label={`${position}º lugar: ${book.title}, de ${book.author}`}
-              /* `flex flex-col` pela mesma razão do `BookGrid` (§4.142): o item
+              /* `flex flex-col` pela mesma razão do `BookGrid` (§4.146): o item
                  flex é esticado até a altura do vizinho mais alto, e o conteúdo
                  de um `<button>` é centralizado verticalmente pelo navegador —
                  daí uma capa descer em relação à outra. */

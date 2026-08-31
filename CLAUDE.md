@@ -91,7 +91,7 @@ entrar. Hoje o banco tem **13.917 livros** vindos do `baixalivro`, dos quais
 **12.628 aparecem no app**.
 
 🚨 **A diferença é a Audible, e ela está ESCONDIDA, não apagada** (31/08,
-§4.141). Os 1.289 livros dela continuam no banco com id, ficha e capa; quem os
+§4.145). Os 1.289 livros dela continuam no banco com id, ficha e capa; quem os
 tira da vitrine é a lista `LOJAS_FORA_DA_VITRINE` em `server/catalogo.ts`,
 aplicada **só na leitura**. O motivo é temporário e é nosso: falta colar a
 vinheta e conferir as capas. **Para trazê-los de volta**, apague `audible` da
@@ -116,6 +116,13 @@ buscava capa e ficha na Open Library para a lista de maquetes; o segundo levava
 o array literal para dentro do banco. Os dois dependiam de um array que deixou
 de existir, e por isso hoje só quebrariam. Precisa de um deles?
 `git show a4885cf~1:script/importar-catalogo.ts > /tmp/x.ts`.
+
+🚨 **Funcionalidade presa a id de maquete morre calada — já aconteceu três
+vezes.** Os capítulos inventados (§4.141), as editoras da ficha e o **seletor de
+narração** (§4.147) apontavam para os ids 1, 7, 101, 102… das 63 maquetes
+apagadas em 21/08. Com o acervo começando no id 100.000, cada um passou a
+devolver lista vazia **sem erro nenhum**, e o botão simplesmente não apareceu.
+Achou uma tela que "não faz nada"? Antes de reescrevê-la, veja de onde ela lê.
 
 ⚠️ **Toda a curadoria de `lib/collections.ts` foi esvaziada** (`bookIds: []`),
 e não por arrumação: as listas apontavam para os ids das maquetes, e um livro
@@ -374,7 +381,7 @@ peça "some" no claro, a pergunta não é *quanta* opacidade falta — é **em q
 direção** ela deveria se afastar do fundo.
 
 🚨 **`line-clamp-*` define o `display` — nunca escreva `block` ao lado dele**
-(31/08, §4.142). O corte por linhas do Tailwind funciona ligando
+(31/08, §4.146). O corte por linhas do Tailwind funciona ligando
 `display: -webkit-box`; um `block`, `flex` ou `inline-block` na mesma
 `className` o desliga **em silêncio**, e o título cresce sem limite. Foi o que
 esticou a grade de capas do perfil de pessoa com um título de 10 linhas. O

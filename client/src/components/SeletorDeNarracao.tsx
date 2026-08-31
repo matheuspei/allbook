@@ -137,7 +137,15 @@ function OpcaoDeNarracao({
 }) {
   // O timbre da voz é o que faz a escolha ser informada, e não uma aposta entre
   // dois nomes desconhecidos. Mesma frase que aparece no perfil da voz.
+  // ⚠️ Só as vozes do Studio têm timbre escrito; narrador humano do acervo não
+  // tem, e é por isso que a duração passou a aparecer na linha de cima.
   const timbre = findVoice(narracao.slug)?.timbre;
+
+  const duracao = narracao.duracaoSegundos
+    ? `${Math.floor(Math.round(narracao.duracaoSegundos / 60) / 60)}h ${String(
+        Math.round(narracao.duracaoSegundos / 60) % 60,
+      ).padStart(2, "0")}min`
+    : undefined;
 
   return (
     <button
@@ -161,9 +169,23 @@ function OpcaoDeNarracao({
           >
             {narracao.name}
           </span>
-          <span className="shrink-0 rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] text-white/45">
-            {narracao.origem === "principal" ? "Narração original" : "Produzida a pedido"}
-          </span>
+          {/*
+            ⚠️ **O selo é só para a narração que nasceu de um pedido** (31/08,
+            §4.147). Enquanto as narrações vinham de um dicionário fictício, uma
+            era "original" e as outras "a pedido"; com as do acervo, TODAS são
+            originais — e um selo repetido em cada linha vira ruído que não
+            ajuda a escolher. O que ajuda é a **duração**: é ela que separa a
+            leitura integral da versão resumida da mesma obra.
+          */}
+          {narracao.origem === "pedido" ? (
+            <span className="shrink-0 rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] text-white/45">
+              Produzida a pedido
+            </span>
+          ) : (
+            duracao && (
+              <span className="shrink-0 text-[11px] tabular-nums text-white/40">{duracao}</span>
+            )
+          )}
         </span>
         {timbre && (
           <span className="mt-0.5 block text-[11px] leading-snug text-white/40">{timbre}</span>

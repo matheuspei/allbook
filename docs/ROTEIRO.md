@@ -7355,107 +7355,6 @@ apareceu**, logo a tela pintava — e o que não pintava era só a gaveta, atrá
 player. Quando a captura e o DOM discordam, **um marcador visível decide qual
 dos dois está mentindo.**
 
-## 4.141 A Audible sai da vitrine sem sair do banco (31/08)
-
-Ele pediu: *"tira os livros que foram baixados da Audible do AllBook… como eles
-não têm áudio ainda, deixa lá no baixalivro mesmo, no acervo — quando a gente
-consertar as capas e as vinhetas, aí a gente pode colocar"*. E, no meio do
-trabalho, o recorte que decidiu tudo: *"a gente vai subir de novo, então não
-precisa fazer uma coisa irreversível… é só porque eu quero trabalhar no AllBook
-de uma forma mais limpa"*.
-
-**Esconder, não apagar.** Eu havia começado pelo caminho destrutivo — apagar as
-1.289 linhas de `livros`, mais as 781 pessoas, 139 editoras e 22 gêneros que
-ficariam órfãos, e mover as capas para uma quarentena. Ele interrompeu a tempo,
-e tinha razão:
-
-- **O id do livro é a única coisa que não se recupera.** Reimportar recria a
-  ficha e recopia a capa, mas o `id` é gerado na importação (`max(id) + 1`) —
-  os mesmos livros voltariam com números diferentes, e id de livro é o que
-  amarra biblioteca, progresso, marcações e o nome do arquivo de capa.
-- **A ausência deles é temporária e por causa nossa, não deles.** Falta colar a
-  vinheta (a Audible ficou de fora daquela passada de propósito, §4.134) e
-  conferir as capas. Apagar por uma pendência de duas etapas nossas seria
-  cobrar a reimportação inteira por nada.
-
-**O que ficou:** uma lista `LOJAS_FORA_DA_VITRINE` em `server/catalogo.ts`, com
-`audible` dentro, aplicada na leitura do catálogo. Nada foi apagado — os 1.289
-livros continuam no banco, com ficha, capa e id. Para trazê-los de volta:
-apagar a palavra da lista (ou `LOJAS_FORA_DA_VITRINE=` no `.env`) e reiniciar o
-servidor. **Medido depois:** 12.628 livros na vitrine (eram 13.917), nenhum com
-`origem: "audible"`.
-
-**Os gêneros foram junto, e essa parte é achado.** A tela Descobrir monta um
-card por gênero da resposta, e as 22 categorias que só a Audible usa
-("Ciência e Engenharia", "Erótica"…) virariam cards abrindo em grade vazia.
-Agora a lista de gêneros só traz **gênero com ao menos um livro visível** — o
-que de quebra varreu 6 cards vazios que já existiam desde as maquetes. Foram de
-49 para 21.
-
-⚠️ **Duas metades que a consulta precisa ter.** `origem_loja not in ('audible')`
-é **nulo**, não verdadeiro, quando a coluna é nula — e livro do AllBook Studio
-nasce sem loja. Sem o `is null` do outro lado, esconder uma loja esconderia
-junto todo livro nascido de um pedido. E o filtro mora só na **leitura**: o
-`idsValidos()` de `server/dados.ts` continua enxergando o banco inteiro, senão
-o progresso que ele já tem em três livros da Audible seria descartado na
-próxima sincronização.
-
-**O que NÃO foi mexido, de propósito:** o acervo do `baixalivro` (pedido
-explícito dele) e o `script/importar-acervo.ts` — a Audible segue sendo
-importada e atualizada normalmente, só não aparece. Assim, quando as vinhetas e
-as capas ficarem prontas, o que volta já está em dia.
-
-## 4.142 As capas desalinhadas: um `block` anulava o corte do título (31/08)
-
-Ele mandou a captura da fileira **"Narrou"**, no perfil do narrador: *"essa
-diferença de altura das capas dos livros graças aos títulos muito longos… a
-gente precisaria que essas capas ficassem uniformes"*. Na imagem, a primeira
-capa no topo e as duas vizinhas afundadas no meio do cartão, com um título de
-dez linhas embaixo.
-
-**Eram dois defeitos empilhados, e o primeiro é o achado.**
-
-### 1. `block` e `line-clamp-2` na mesma classe: o corte não existe
-
-O `BookGrid` **já pedia** `line-clamp-2` desde sempre — só que ao lado de
-`block`, na mesma `className`. O `line-clamp` do Tailwind funciona ligando
-`display: -webkit-box`; o `block` sobrescreve esse `display` e **o corte deixa
-de acontecer, sem erro nenhum**. Medido no app antes do conserto: o título de
-*365 Hábitos Simples e Poderosos: Amor, Espiritualidade…* ocupava **165px** de
-altura (10 linhas) com `-webkit-line-clamp: 2` computado e ativo.
-
-🚨 **A regra, porque isto vai se repetir:** `line-clamp-*` **define o
-`display`**. Qualquer utilitário de display na mesma classe (`block`, `flex`,
-`inline-block`) o desliga em silêncio. Varridos os 6 lugares do app onde os dois
-apareciam juntos — `BookGrid`, a fileira "Em alta" da busca e quatro cartões de
-`Comunidades` —, todos sem `block` agora. O `truncate` **não** tem esse problema
-(ele não mexe em `display`), o que ajuda a não desconfiar do certo.
-
-### 2. `<button>` centraliza o próprio conteúdo quando é esticado
-
-Mesmo com o título curto, as capas não alinhariam: numa `grid`, a célula é
-esticada até a altura da mais alta, e o navegador **centraliza verticalmente o
-conteúdo de um `<button>`** (não de uma `div`, nem de um `<a>` — só de botão).
-Era isso que empurrava a 2ª e a 3ª capa para baixo. Conserto: `flex flex-col` no
-próprio botão, aplicado nos três cartões-botão de livro do app (`BookGrid`,
-"Em alta" da busca, a grade de `RecommendationsEdit`).
-
-**O terceiro item, de graça:** o `BookGrid` mostrava `livro.title` cru; agora
-passa por `tituloDeVitrine()` como o resto da vitrine (§4.137), e a altura do
-título virou fixa (`h-[32px]`) em vez de mínima — com o clamp funcionando, duas
-linhas é o teto, e fixar é o que garante cartões idênticos.
-
-**Medido depois, na mesma tela (22 livros):** uma única altura de cartão (225px)
-e as três capas de cada fileira começando no mesmo pixel. Antes: 358px nos três
-primeiros contra 275px no quarto.
-
-⚠️ **Onde isto ainda pode aparecer:** todo cartão que mistura capa e título em
-`<button>`, e todo `line-clamp` novo. As telas que usam `BookGrid` (categoria,
-coleção, editora, estúdio, perfil de pessoa) foram consertadas de uma vez, por
-ser um componente só.
-
----
-
 ## 4.141 Os capítulos inventados foram apagados (31/08)
 
 Ele testou *"EP02 – Animações – Papricast - Anos 80"*, viu **12 capítulos** na
@@ -7650,3 +7549,178 @@ Player e barrinha escutam `TOCADOR_EVENT` e redesenham conforme o elemento está
 tocando ou não. Sem isso, a aba que perdeu a vez continuaria desenhando "pause"
 — mostrando "tocando" em silêncio, que é a mesma classe de mentira do
 cronômetro sem áudio (§4.139) e dos capítulos sorteados (§4.141).
+
+## 4.145 A Audible sai da vitrine sem sair do banco (31/08)
+
+Ele pediu: *"tira os livros que foram baixados da Audible do AllBook… como eles
+não têm áudio ainda, deixa lá no baixalivro mesmo, no acervo — quando a gente
+consertar as capas e as vinhetas, aí a gente pode colocar"*. E, no meio do
+trabalho, o recorte que decidiu tudo: *"a gente vai subir de novo, então não
+precisa fazer uma coisa irreversível… é só porque eu quero trabalhar no AllBook
+de uma forma mais limpa"*.
+
+**Esconder, não apagar.** Eu havia começado pelo caminho destrutivo — apagar as
+1.289 linhas de `livros`, mais as 781 pessoas, 139 editoras e 22 gêneros que
+ficariam órfãos, e mover as capas para uma quarentena. Ele interrompeu a tempo,
+e tinha razão:
+
+- **O id do livro é a única coisa que não se recupera.** Reimportar recria a
+  ficha e recopia a capa, mas o `id` é gerado na importação (`max(id) + 1`) —
+  os mesmos livros voltariam com números diferentes, e id de livro é o que
+  amarra biblioteca, progresso, marcações e o nome do arquivo de capa.
+- **A ausência deles é temporária e por causa nossa, não deles.** Falta colar a
+  vinheta (a Audible ficou de fora daquela passada de propósito, §4.134) e
+  conferir as capas. Apagar por uma pendência de duas etapas nossas seria
+  cobrar a reimportação inteira por nada.
+
+**O que ficou:** uma lista `LOJAS_FORA_DA_VITRINE` em `server/catalogo.ts`, com
+`audible` dentro, aplicada na leitura do catálogo. Nada foi apagado — os 1.289
+livros continuam no banco, com ficha, capa e id. Para trazê-los de volta:
+apagar a palavra da lista (ou `LOJAS_FORA_DA_VITRINE=` no `.env`) e reiniciar o
+servidor. **Medido depois:** 12.628 livros na vitrine (eram 13.917), nenhum com
+`origem: "audible"`.
+
+**Os gêneros foram junto, e essa parte é achado.** A tela Descobrir monta um
+card por gênero da resposta, e as 22 categorias que só a Audible usa
+("Ciência e Engenharia", "Erótica"…) virariam cards abrindo em grade vazia.
+Agora a lista de gêneros só traz **gênero com ao menos um livro visível** — o
+que de quebra varreu 6 cards vazios que já existiam desde as maquetes. Foram de
+49 para 21.
+
+⚠️ **Duas metades que a consulta precisa ter.** `origem_loja not in ('audible')`
+é **nulo**, não verdadeiro, quando a coluna é nula — e livro do AllBook Studio
+nasce sem loja. Sem o `is null` do outro lado, esconder uma loja esconderia
+junto todo livro nascido de um pedido. E o filtro mora só na **leitura**: o
+`idsValidos()` de `server/dados.ts` continua enxergando o banco inteiro, senão
+o progresso que ele já tem em três livros da Audible seria descartado na
+próxima sincronização.
+
+**O que NÃO foi mexido, de propósito:** o acervo do `baixalivro` (pedido
+explícito dele) e o `script/importar-acervo.ts` — a Audible segue sendo
+importada e atualizada normalmente, só não aparece. Assim, quando as vinhetas e
+as capas ficarem prontas, o que volta já está em dia.
+
+## 4.146 As capas desalinhadas: um `block` anulava o corte do título (31/08)
+
+Ele mandou a captura da fileira **"Narrou"**, no perfil do narrador: *"essa
+diferença de altura das capas dos livros graças aos títulos muito longos… a
+gente precisaria que essas capas ficassem uniformes"*. Na imagem, a primeira
+capa no topo e as duas vizinhas afundadas no meio do cartão, com um título de
+dez linhas embaixo.
+
+**Eram dois defeitos empilhados, e o primeiro é o achado.**
+
+### 1. `block` e `line-clamp-2` na mesma classe: o corte não existe
+
+O `BookGrid` **já pedia** `line-clamp-2` desde sempre — só que ao lado de
+`block`, na mesma `className`. O `line-clamp` do Tailwind funciona ligando
+`display: -webkit-box`; o `block` sobrescreve esse `display` e **o corte deixa
+de acontecer, sem erro nenhum**. Medido no app antes do conserto: o título de
+*365 Hábitos Simples e Poderosos: Amor, Espiritualidade…* ocupava **165px** de
+altura (10 linhas) com `-webkit-line-clamp: 2` computado e ativo.
+
+🚨 **A regra, porque isto vai se repetir:** `line-clamp-*` **define o
+`display`**. Qualquer utilitário de display na mesma classe (`block`, `flex`,
+`inline-block`) o desliga em silêncio. Varridos os 6 lugares do app onde os dois
+apareciam juntos — `BookGrid`, a fileira "Em alta" da busca e quatro cartões de
+`Comunidades` —, todos sem `block` agora. O `truncate` **não** tem esse problema
+(ele não mexe em `display`), o que ajuda a não desconfiar do certo.
+
+### 2. `<button>` centraliza o próprio conteúdo quando é esticado
+
+Mesmo com o título curto, as capas não alinhariam: numa `grid`, a célula é
+esticada até a altura da mais alta, e o navegador **centraliza verticalmente o
+conteúdo de um `<button>`** (não de uma `div`, nem de um `<a>` — só de botão).
+Era isso que empurrava a 2ª e a 3ª capa para baixo. Conserto: `flex flex-col` no
+próprio botão, aplicado nos três cartões-botão de livro do app (`BookGrid`,
+"Em alta" da busca, a grade de `RecommendationsEdit`).
+
+**O terceiro item, de graça:** o `BookGrid` mostrava `livro.title` cru; agora
+passa por `tituloDeVitrine()` como o resto da vitrine (§4.137), e a altura do
+título virou fixa (`h-[32px]`) em vez de mínima — com o clamp funcionando, duas
+linhas é o teto, e fixar é o que garante cartões idênticos.
+
+**Medido depois, na mesma tela (22 livros):** uma única altura de cartão (225px)
+e as três capas de cada fileira começando no mesmo pixel. Antes: 358px nos três
+primeiros contra 275px no quarto.
+
+⚠️ **Onde isto ainda pode aparecer:** todo cartão que mistura capa e título em
+`<button>`, e todo `line-clamp` novo. As telas que usam `BookGrid` (categoria,
+coleção, editora, estúdio, perfil de pessoa) foram consertadas de uma vez, por
+ser um componente só.
+
+---
+
+## 4.147 O seletor de narração estava morto — e as narrações existiam (31/08)
+
+Ele relatou: *"quando um mesmo livro é narrado por duas pessoas, você deveria
+ter só uma ficha desse livro e, naquela ficha, poderia escolher quem você quer
+ouvir. Hoje em dia não existe essa possibilidade (…) desde o começo do projeto
+a gente tinha decidido que teria um ícone para clicar e escolher"*.
+
+Ele tinha razão duas vezes: a decisão é de **26/07 (§4.30)** e o seletor foi
+construído — `components/SeletorDeNarracao.tsx`, usado na ficha e na gaveta do
+player, com foto, timbre e marcação da voz atual. **Nada disso aparecia.**
+
+🚨 **A causa: o seletor estava ligado a dados que foram apagados.** As narrações
+extras eram um dicionário escrito à mão em `lib/narrations.ts` —
+`{7: ["diogo-serrano"], 102: [...], 105: [...]}` —, e 7, 102 e 105 são ids das
+**63 maquetes apagadas em 21/08** (§4.134). O acervo real começa no id 100.000,
+então `narrationsOf()` passou a devolver sempre uma opção só e
+`hasChoiceOfNarration()` sempre `false`. **O componente nunca renderizou.** É o
+mesmo estrago da §4.141 (capítulos inventados) e da tarefa das editoras da
+janela A, e o padrão merece nome: *funcionalidade viva presa a id de maquete
+morre calada quando o acervo entra.*
+
+### O levantamento que motivou o conserto
+
+Antes disso ele havia pedido a conta dos repetidos. Medido nas 14.575 cópias do
+acervo (com a Audible), por **título de vitrine + autor**, e separando o que a
+duração e o narrador provam:
+
+| | grupos | entradas a mais |
+|---|---|---|
+| **mesma gravação repetida** (a mesma voz em duas lojas) | 697 | **960** (6,6%) |
+| **mesma obra, narração diferente** (é o caso do seletor) | 369 | 548 |
+
+- No **banco do AllBook** (13.917): 655 grupos, **901 entradas repetidas**.
+- No **que o app mostra hoje** (12.628, sem Audible): 447 grupos, **652**.
+- **A Audible acrescenta 249 repetições** — 19% dos 1.289 livros dela já estão
+  no app por outra loja. É um argumento a mais para ela voltar só depois da
+  unificação (§4.145).
+- Dentro da Audible mesma há só 8 repetições: o problema é entre lojas.
+
+⚠️ **A duração manda na comparação.** *1984* aparece com 612, 721 e 768 minutos:
+são três gravações, não três cópias. Onde as duas entradas anunciam duração e
+ela difere, são narrações diferentes **mesmo com o mesmo narrador** (versão
+integral × resumida). Onde a duração falta — o Tocalivros não a manda em
+nenhum dos 3.268 —, a prova é o narrador.
+
+### O que foi feito agora
+
+`lib/narrations.ts` deixou de ter dado fictício: as narrações saem do **próprio
+catálogo**. Mesma chave do levantamento (título de vitrine + autor), e dentro do
+grupo **uma opção por voz** — a mesma gravação em duas lojas colapsa numa linha
+só, e os cinco mil "Narrador não informado" colapsam todos num, senão o seletor
+ofereceria duas opções com o mesmo rótulo.
+
+**Medido depois:** **134 obras** do app já mostram o seletor, envolvendo **331
+fichas**. *Dom Casmurro* tem 4 vozes; *Memórias Póstumas*, 6. No lugar do selo
+"Narração original" — que agora seria repetido em toda linha, porque nada do
+acervo é a pedido — aparece a **duração de cada gravação**, que é o que
+realmente separa uma leitura integral de uma resumida.
+
+### O que falta, e por que não foi feito junto
+
+1. **Uma ficha só na vitrine.** As irmãs continuam sendo cartões separados na
+   Início e na busca — juntá-las é `/api/catalogo`, e `server/catalogo.ts` e
+   `lib/books.ts` estão declarados pela janela A (editoras) neste momento.
+2. **Tocar a narração escolhida.** `Narration.bookId` já aponta para o livro
+   daquela gravação, mas o player ainda chama `useTocador(book.id)`. Trocar isso
+   mexe no player recém-entregue (§4.143) e levanta uma pergunta que ninguém
+   respondeu: **o progresso é por livro ou por narração?** Trocar de voz no meio
+   e cair no minuto 200 de outra gravação seria pior que não trocar. Hoje o
+   custo de esperar é zero: 1 dos 13.917 livros tem áudio ingerido.
+3. **A escolha não sobe para a conta.** `allbook_narration_choice` não está na
+   lista `CHAVES` de `lib/sincronizacao.ts`, e a tabela `narracao_escolhida`
+   segue vazia.
