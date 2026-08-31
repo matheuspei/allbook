@@ -21,7 +21,7 @@
  */
 
 import type { Express } from "express";
-import { asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, exists, inArray, isNull, notInArray, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "./db";
@@ -40,6 +40,54 @@ import { avaliacoes, capitulos, generos, livros, pessoas } from "@shared/schema"
  */
 export const CAPAS_RAIZ =
   process.env.CAPAS_RAIZ ?? `${process.env.HOME}/AllBook-capas`;
+
+/* -------------------------------------------------------------------------- */
+/* A quarentena da vitrine (31/08, §4.141)                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Lojas do acervo cujos livros **ficam guardados no banco e fora do app**.
+ *
+ * 🚨 **Não é apagar: é esconder, e a diferença é o ponto.** Os 1.289 livros da
+ * Audible continuam com `id`, capa e ficha no banco, porque eles vão voltar —
+ * o que falta neles é etapa nossa, não deles: a vinheta ainda não foi colada
+ * (a Audible ficou de fora daquela passada de propósito, ver
+ * `script/importar-acervo.ts`) e as capas ainda vão ser conferidas. Apagar
+ * custaria a reimportação inteira e, pior, **daria ids novos a todos eles** —
+ * e id de livro é o que amarra biblioteca, progresso e marcações de quem já
+ * ouviu.
+ *
+ * Escondidos, eles somem de tudo de uma vez: a vitrine, a busca, as grades de
+ * gênero e os destaques da Início leem todos do mesmo `/api/catalogo`.
+ *
+ * **Para trazer a Audible de volta:** apague `"audible"` da lista abaixo (ou
+ * ponha `LOJAS_FORA_DA_VITRINE=` vazio no `.env`) e reinicie o servidor com
+ * `zsh scripts/servidor-servico.sh reiniciar`. Nada mais precisa ser feito —
+ * nenhum dado foi perdido no caminho.
+ */
+export const LOJAS_FORA_DA_VITRINE = (
+  process.env.LOJAS_FORA_DA_VITRINE ?? "audible"
+)
+  .split(",")
+  .map((loja) => loja.trim().toLowerCase())
+  .filter(Boolean);
+
+/**
+ * A condição "este livro pode aparecer", ou `undefined` quando não há loja
+ * escondida nenhuma (e aí a consulta sai sem `where`, como antes).
+ *
+ * ⚠️ O `isNull` não é excesso de cuidado: em SQL, `origem_loja not in
+ * ('audible')` é **nulo** — não verdadeiro — quando a coluna é nula, e livro do
+ * AllBook Studio nasce sem loja. Sem esta metade, esconder uma loja esconderia
+ * junto todo livro gravado por pedido.
+ */
+function livroVisivel() {
+  if (LOJAS_FORA_DA_VITRINE.length === 0) return undefined;
+  return or(
+    isNull(livros.origemLoja),
+    notInArray(livros.origemLoja, LOJAS_FORA_DA_VITRINE),
+  );
+}
 
 /** O que a rota devolve por livro — o mesmo desenho da interface `Book`. */
 export interface LivroDoCatalogo {
@@ -143,8 +191,27 @@ function arredondar(valor: number | null): number | undefined {
 }
 
 export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
+  const visivel = livroVisivel();
+
   const [linhasDeGenero, linhasDeLivro] = await Promise.all([
-    db.select().from(generos).orderBy(asc(generos.ordem)),
+    /* Só gênero que tenha ao menos um livro visível.
+     *
+     * A Descobrir monta um card por gênero desta lista, e gênero sem livro vira
+     * card que abre numa grade vazia. Isso já valia para 6 gêneros restados das
+     * maquetes; esconder a Audible criaria mais 22, porque as categorias dela
+     * (`Ciência e Engenharia`, `Erótica`…) não aparecem em nenhuma outra loja. */
+    db
+      .select()
+      .from(generos)
+      .where(
+        exists(
+          db
+            .select({ um: sql`1` })
+            .from(livros)
+            .where(and(eq(livros.generoSlug, generos.slug), visivel)),
+        ),
+      )
+      .orderBy(asc(generos.ordem)),
     db
       .select({
         id: livros.id,
@@ -170,6 +237,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
       .innerJoin(narrador, eq(livros.narradorSlug, narrador.slug))
       .innerJoin(generos, eq(livros.generoSlug, generos.slug))
       .leftJoin(notasPorLivro, eq(notasPorLivro.livroId, livros.id))
+      .where(visivel)
       .orderBy(asc(livros.id)),
   ]);
 

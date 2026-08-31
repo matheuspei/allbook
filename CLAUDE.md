@@ -86,9 +86,19 @@ onde entrar. Hoje:
   `~/AllBook-capas`), **fora do repositório** — milhares de imagens não entram
   no git, pela mesma razão do áudio-mestre.
 
-🚨 **O catálogo está VAZIO de propósito.** As 63 maquetes foram apagadas
-(código, capas, banco) para o acervo real entrar — 13.932 narrações já baixadas
-pelo `baixalivro` esperando ingestão. Tela vazia aqui não é bug.
+🚨 **As 63 maquetes foram apagadas** (código, capas, banco) para o acervo real
+entrar. Hoje o banco tem **13.917 livros** vindos do `baixalivro`, dos quais
+**12.628 aparecem no app**.
+
+🚨 **A diferença é a Audible, e ela está ESCONDIDA, não apagada** (31/08,
+§4.141). Os 1.289 livros dela continuam no banco com id, ficha e capa; quem os
+tira da vitrine é a lista `LOJAS_FORA_DA_VITRINE` em `server/catalogo.ts`,
+aplicada **só na leitura**. O motivo é temporário e é nosso: falta colar a
+vinheta e conferir as capas. **Para trazê-los de volta**, apague `audible` da
+lista e reinicie o servidor — nada precisa ser reimportado. ⚠️ **A lista de
+gêneros também passou a devolver só gênero com ao menos um livro visível**,
+senão 22 categorias que só a Audible usa virariam cards abrindo em grade vazia
+na Descobrir.
 
 ⚠️ **`catalog` nunca troca de referência** — nasce `[]` e é preenchido com
 `push`. Um `catalog = novoArray` deixaria os 62 importadores segurando o array

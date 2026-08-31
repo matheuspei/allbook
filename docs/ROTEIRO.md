@@ -7354,3 +7354,53 @@ separou as duas hipóteses foi pintar um retângulo verde na página: **ele
 apareceu**, logo a tela pintava — e o que não pintava era só a gaveta, atrás do
 player. Quando a captura e o DOM discordam, **um marcador visível decide qual
 dos dois está mentindo.**
+
+## 4.141 A Audible sai da vitrine sem sair do banco (31/08)
+
+Ele pediu: *"tira os livros que foram baixados da Audible do AllBook… como eles
+não têm áudio ainda, deixa lá no baixalivro mesmo, no acervo — quando a gente
+consertar as capas e as vinhetas, aí a gente pode colocar"*. E, no meio do
+trabalho, o recorte que decidiu tudo: *"a gente vai subir de novo, então não
+precisa fazer uma coisa irreversível… é só porque eu quero trabalhar no AllBook
+de uma forma mais limpa"*.
+
+**Esconder, não apagar.** Eu havia começado pelo caminho destrutivo — apagar as
+1.289 linhas de `livros`, mais as 781 pessoas, 139 editoras e 22 gêneros que
+ficariam órfãos, e mover as capas para uma quarentena. Ele interrompeu a tempo,
+e tinha razão:
+
+- **O id do livro é a única coisa que não se recupera.** Reimportar recria a
+  ficha e recopia a capa, mas o `id` é gerado na importação (`max(id) + 1`) —
+  os mesmos livros voltariam com números diferentes, e id de livro é o que
+  amarra biblioteca, progresso, marcações e o nome do arquivo de capa.
+- **A ausência deles é temporária e por causa nossa, não deles.** Falta colar a
+  vinheta (a Audible ficou de fora daquela passada de propósito, §4.134) e
+  conferir as capas. Apagar por uma pendência de duas etapas nossas seria
+  cobrar a reimportação inteira por nada.
+
+**O que ficou:** uma lista `LOJAS_FORA_DA_VITRINE` em `server/catalogo.ts`, com
+`audible` dentro, aplicada na leitura do catálogo. Nada foi apagado — os 1.289
+livros continuam no banco, com ficha, capa e id. Para trazê-los de volta:
+apagar a palavra da lista (ou `LOJAS_FORA_DA_VITRINE=` no `.env`) e reiniciar o
+servidor. **Medido depois:** 12.628 livros na vitrine (eram 13.917), nenhum com
+`origem: "audible"`.
+
+**Os gêneros foram junto, e essa parte é achado.** A tela Descobrir monta um
+card por gênero da resposta, e as 22 categorias que só a Audible usa
+("Ciência e Engenharia", "Erótica"…) virariam cards abrindo em grade vazia.
+Agora a lista de gêneros só traz **gênero com ao menos um livro visível** — o
+que de quebra varreu 6 cards vazios que já existiam desde as maquetes. Foram de
+49 para 21.
+
+⚠️ **Duas metades que a consulta precisa ter.** `origem_loja not in ('audible')`
+é **nulo**, não verdadeiro, quando a coluna é nula — e livro do AllBook Studio
+nasce sem loja. Sem o `is null` do outro lado, esconder uma loja esconderia
+junto todo livro nascido de um pedido. E o filtro mora só na **leitura**: o
+`idsValidos()` de `server/dados.ts` continua enxergando o banco inteiro, senão
+o progresso que ele já tem em três livros da Audible seria descartado na
+próxima sincronização.
+
+**O que NÃO foi mexido, de propósito:** o acervo do `baixalivro` (pedido
+explícito dele) e o `script/importar-acervo.ts` — a Audible segue sendo
+importada e atualizada normalmente, só não aparece. Assim, quando as vinhetas e
+as capas ficarem prontas, o que volta já está em dia.
