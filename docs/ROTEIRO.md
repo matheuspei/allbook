@@ -7566,3 +7566,45 @@ as durações batem com a tela (capítulo 3: 1.230.315 ms na ficha, "21min" na
 tela). É um thriller cujos capítulos não têm título próprio — a Storytel os
 numera. Nome genérico **vindo da fonte** é dado; nome genérico **sorteado** era o
 defeito da §4.141, e esse morreu.
+
+---
+
+## 4.143 O tocador saiu de dentro da tela (31/08)
+
+Assim que o som começou a sair, ele achou os dois defeitos que faltavam:
+
+> *"Quando ele está tocando, a gente minimiza e o play é pausado. E o que é pior:
+> se eu tiver ouvido 5 minutos e clico no play minimizado, ele volta para o
+> início."*
+
+**Um defeito só, e de arquitetura.** O elemento de áudio nascia dentro de um
+`useEffect` do `AudioPlayer` (§4.142). Minimizar significa desmontar aquela
+tela — o cleanup rodava e **o som morria junto**. A barrinha, que só escrevia
+"tocando" no `localStorage`, então mostrava um play mudo; e ao apertá-lo, a tela
+do player criava um elemento **novo**, do zero, jogando fora os minutos ouvidos.
+
+### O conserto: o áudio é do MÓDULO, não da tela
+
+`lib/tocador.ts` (novo) guarda **um** `HTMLAudioElement`, o livro aberto, o modo
+e os capítulos. Ele atravessa navegação, minimização e troca de tela; só troca
+de conteúdo quando o livro muda. `hooks/use-tocador.ts` virou uma casca que
+**assina** as mudanças e redesenha — e **não tem cleanup que solte o áudio**, que
+é literalmente a linha que faltava.
+
+- `abrirLivro(id, capitulos)` **não faz nada se o livro já é o mesmo** — é isso
+  que permite player e barrinha chamarem à vontade sem reiniciar a escuta.
+- O `MiniPlayer` passou a **mandar no tocador**, não só no espelho: o botão dá
+  play/pause de verdade, o cronômetro dele só roda quando **não** há áudio (com
+  áudio, somar 5s por cima faria a posição correr o dobro), e a posição salva
+  passa a vir do elemento.
+- A barrinha também **prepara o tocador sozinha**: quem recarrega a página e
+  aperta play ali não tem a tela do player montada para abrir o livro.
+- O botão da barrinha **reflete o tocador**: áudio que pausa sozinho (fim do
+  livro, rede caindo, autoplay recusado) tem de aparecer no desenho, senão a
+  barra volta a dizer "tocando" em silêncio.
+
+⚠️ **Reabrir o player não puxa mais a escuta para trás.** A posição salva só é
+gravada de 5 em 5 segundos; abrir a tela em cima dela recuava a escuta alguns
+segundos **a cada vez que a pessoa maximizasse a barrinha**. Agora, se o livro já
+está tocando, a posição inicial vem do tocador — `?t=` e `?chapter=` continuam
+ganhando, porque quem chegou por uma marcação pediu um ponto específico.

@@ -11,6 +11,7 @@ import {
 import { useState, useEffect, useMemo, useRef } from "react";
 
 import { useTocador } from "@/hooks/use-tocador";
+import { definirVelocidade, livroDoTocador, pausar, posicaoNoLivro, temAudioDeVerdade, tocar } from "@/lib/tocador";
 import BarraDeAcoesDoPlayer from "@/components/BarraDeAcoesDoPlayer";
 import ConversaDoTrecho from "@/components/ConversaDoTrecho";
 import MarcasDaConversa from "@/components/MarcasDaConversa";
@@ -158,9 +159,25 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     return Number.isFinite(n) && n > 0 ? Math.min(n, durationSeconds) : null;
   })();
 
+  /**
+   * Onde a escuta começa ao abrir esta tela.
+   *
+   * ⚠️ **Se o livro JÁ está tocando, quem manda é o tocador** (31/08, §4.143).
+   * A posição salva só é atualizada de 5 em 5 segundos; reabrir o player em
+   * cima dela puxaria a escuta alguns segundos para trás toda vez que a pessoa
+   * maximizasse a barrinha — um solavanco pequeno, mas a cada volta.
+   *
+   * `?t=` e `?chapter=` continuam ganhando: quem chegou por uma marcação ou por
+   * uma citação pediu um ponto específico.
+   */
+  const jaTocandoEste = livroDoTocador() === book.id && temAudioDeVerdade();
   const initialPosition =
     timeParam ??
-    (chapterParam ? chapterStartSec(book.id, chapterParam) : savedForThisBook?.positionSec ?? 0);
+    (chapterParam
+      ? chapterStartSec(book.id, chapterParam)
+      : jaTocandoEste
+        ? posicaoNoLivro()
+        : savedForThisBook?.positionSec ?? 0);
 
   const [currentTime, setCurrentTime] = useState(initialPosition);
 
@@ -252,10 +269,9 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * voltando para "pausado", para ela apertar.
    */
   useEffect(() => {
-    const audio = tocador.audio;
-    if (!audio) return;
-    if (isPlaying) void audio.play().catch(() => setIsPlaying(false));
-    else audio.pause();
+    if (!tocador.audio) return;
+    if (isPlaying) void tocar().then((deu) => { if (!deu) setIsPlaying(false); });
+    else pausar();
   }, [isPlaying, tocador.audio]);
 
   /**
@@ -322,7 +338,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * não compilava.
    */
   useEffect(() => {
-    if (tocador.audio) tocador.audio.playbackRate = speed;
+    definirVelocidade(speed);
   }, [speed, tocador.audio]);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showTimerMenu, setShowTimerMenu] = useState(false);

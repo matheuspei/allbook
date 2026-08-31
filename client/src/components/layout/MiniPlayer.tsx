@@ -14,7 +14,17 @@ import {
   savePlayback,
   savePlaying,
 } from "@/lib/playback";
-import { chapterAtSec } from "@/lib/chapters";
+import { CHAPTERS_EVENT, chapterAtSec, getChapters } from "@/lib/chapters";
+import {
+  TOCADOR_EVENT,
+  abrirLivro,
+  livroDoTocador,
+  elementoDeAudio,
+  pausar,
+  posicaoNoLivro,
+  temAudioDeVerdade,
+  tocar,
+} from "@/lib/tocador";
 
 /**
  * A barrinha do player, flutuando acima do menu inferior.
@@ -89,6 +99,9 @@ export default function MiniPlayer() {
    */
   useEffect(() => {
     if (!isPlaying || !visible || location.startsWith("/player")) return;
+    /* Com áudio de verdade quem dá a hora é o elemento — somar 5s por cima
+       faria a posição correr o dobro e o livro "pular" ao reabrir (§4.143). */
+    if (temAudioDeVerdade()) return;
 
     const relogio = setInterval(() => {
       const atual = readPlayback();
@@ -103,6 +116,72 @@ export default function MiniPlayer() {
     }, 5000);
 
     return () => clearInterval(relogio);
+  }, [isPlaying, visible, location]);
+
+  /**
+   * A barrinha prepara o tocador sozinha.
+   *
+   * Sem isto, quem recarregasse a página e apertasse play aqui não ouviria
+   * nada: o tocador só era aberto pela tela do player, e ela não está montada.
+   * `abrirLivro` não faz nada quando o livro já é o mesmo, então isto é barato
+   * e pode rodar a cada mudança.
+   */
+  useEffect(() => {
+    const livro = playback?.bookId;
+    if (!livro || livroDoTocador() === livro) return;
+    void abrirLivro(livro, getChapters(livro));
+  }, [playback?.bookId]);
+
+  /* Os capítulos chegam depois do primeiro desenho; quando chegam, o tocador
+     precisa deles para traduzir posição (§4.142). */
+  useEffect(() => {
+    const aoChegar = () => {
+      const livro = playback?.bookId;
+      if (livro) void abrirLivro(livro, getChapters(livro));
+    };
+    window.addEventListener(CHAPTERS_EVENT, aoChegar);
+    return () => window.removeEventListener(CHAPTERS_EVENT, aoChegar);
+  }, [playback?.bookId]);
+
+  /**
+   * O botão da barrinha reflete o tocador, não um palpite.
+   *
+   * Quando o áudio pausa por conta própria — fim do livro, rede caindo, o
+   * navegador recusando o autoplay — o desenho tem de acompanhar, senão a barra
+   * mostra "tocando" em silêncio, que foi exatamente a queixa dele.
+   */
+  useEffect(() => {
+    const aoMudar = () => {
+      if (!temAudioDeVerdade()) return;
+      const tocandoDeVerdade = !elementoDeAudio()?.paused;
+      if (tocandoDeVerdade !== (readPlaying() ?? false)) savePlaying(tocandoDeVerdade);
+    };
+    window.addEventListener(TOCADOR_EVENT, aoMudar);
+    return () => window.removeEventListener(TOCADOR_EVENT, aoMudar);
+  }, []);
+
+  /**
+   * Com áudio de verdade, é o elemento que dita a posição guardada — inclusive
+   * fora do player. Sem isto, minimizar congelaria o "onde parei" no último
+   * segundo que a tela do player chegou a ver.
+   */
+  useEffect(() => {
+    const audio = elementoDeAudio();
+    if (!audio || !temAudioDeVerdade()) return;
+    const guardar = () => {
+      const atual = readPlayback();
+      if (!atual) return;
+      const posicao = posicaoNoLivro();
+      if (Math.abs(posicao - atual.positionSec) < 5) return;
+      savePlayback({
+        bookId: atual.bookId,
+        chapter: chapterAtSec(atual.bookId, posicao),
+        positionSec: posicao,
+        durationSec: atual.durationSec,
+      });
+    };
+    audio.addEventListener("timeupdate", guardar);
+    return () => audio.removeEventListener("timeupdate", guardar);
   }, [isPlaying, visible, location]);
 
   // Na tela cheia do player a barra não faz sentido: o player já está aberto.
@@ -194,7 +273,21 @@ export default function MiniPlayer() {
 
           <div className="flex items-center gap-0.5 shrink-0">
             <button
-              onClick={() => savePlaying(!isPlaying)}
+              onClick={() => {
+                /*
+                 * ⚠️ **Manda no tocador, não só no espelho** (31/08, §4.143).
+                 * Antes isto só gravava "tocando" no `localStorage`; o áudio
+                 * ficava por conta de um elemento que a tela do player tinha
+                 * criado — e que morria ao minimizar. Resultado: a barrinha
+                 * dizia "tocando" em silêncio, e apertar play ali recomeçava o
+                 * livro do zero.
+                 */
+                const querTocar = !isPlaying;
+                savePlaying(querTocar);
+                if (!temAudioDeVerdade()) return;
+                if (querTocar) void tocar().then((deu) => { if (!deu) savePlaying(false); });
+                else pausar();
+              }}
               className="p-2 text-white hover:text-primary transition-colors"
               aria-label={isPlaying ? "Pausar" : "Reproduzir"}
               data-testid="button-mini-player-play"
