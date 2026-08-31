@@ -645,10 +645,17 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
           </div>
 
           {/* O selo saiu de CIMA da arte (§4.104): a fita diagonal cobria a
-              capa. Fora da imagem, como a ficha do livro já faz. */}
-          <span className="-my-1 rounded-md bg-primary/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
-            AllBook Original
-          </span>
+              capa. Fora da imagem, como a ficha do livro já faz.
+
+              🚨 E ele só aparece no que o ESTÚDIO gravou — livro sem `origem`
+              de loja. A ficha (`BookDetails`) ganhou essa condição em §4.134.1,
+              mas aqui o selo tinha ficado solto: com o acervo real dentro, o
+              tocador carimbava "AllBook Original" nos 13.917 livros de fora. */}
+          {!book.origem && (
+            <span className="-my-1 rounded-md bg-primary/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+              AllBook Original
+            </span>
+          )}
 
           {/* Título e autor — clicáveis, levam à página do livro. Antes o único
               caminho para os detalhes era o menu "Mais" > "Detalhes do título",
