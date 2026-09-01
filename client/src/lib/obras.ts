@@ -141,6 +141,20 @@ function adornoEhOAutor(adorno: string, autor: string): boolean {
   return palavras.every((p) => doAutor.has(p));
 }
 
+/**
+ * O adorno é descartável — não muda de que obra se trata?
+ *
+ * Vazio, o nome do autor repetido ("A Arte da Guerra - Maquiavel") ou a marca
+ * de quem lê ("na voz de Glycon Luiz"). Tudo o mais — "Temp 2. Ep 6", "Volume
+ * II", "sons de bosque de bambu" — é conteúdo próprio, e separa episódios de
+ * uma série que compartilham o começo do título.
+ */
+function adornoDescartavel(adorno: string, autor: string): boolean {
+  if (!adorno) return true;
+  if (adornoEhOAutor(adorno, autor)) return true;
+  return MARCAS_DE_NARRACAO.some((marca) => adorno.includes(marca));
+}
+
 /* -------------------------------------------------------------------------- */
 /* Quem é a mesma pessoa, e quem não identifica ninguém                        */
 /* -------------------------------------------------------------------------- */
@@ -235,9 +249,22 @@ export function agruparEmObras(livros: Book[]): Book[][] {
   };
   for (const livro of livros) {
     const { obra, adorno } = partirTitulo(livro);
-    guardar(obra, { livro, adorno });
+    /* 🚨 **A partição pelo adorno impede que uma SÉRIE vire um livro só.**
+     * "Leia a Bula - Temp 2. Ep 6: O Significado da Vida" e os outros 14
+     * episódios têm todos a mesma obra curta ("leia a bula"); sem esta trava
+     * viravam **uma ficha e 14 gravações**, e o podcast sumia da vitrine. O
+     * mesmo acontecia com as 13 faixas da "Coleção Sons Relaxantes".
+     *
+     * A régua: adorno **descartável** (vazio, o nome do autor, ou "na voz de
+     * fulano") entra no núcleo da obra; adorno com conteúdo próprio só se junta
+     * a outro **idêntico** — que é a mesma edição vendida em duas lojas.        */
+    const assinatura = adornoDescartavel(adorno, livro.author) ? "" : `#${adorno}`;
+    guardar(obra + assinatura, { livro, adorno });
+    /* A chave do título completo NÃO leva assinatura: ali os dois textos já são
+     * a mesma frase inteira, e é ela que casa o título estragado do Ubook com a
+     * irmã completa da Storytel. */
     const completo = normalizar(`${livro.title} ${livro.subtitle ?? ""}`);
-    if (completo && completo !== obra) guardar(completo, { livro, adorno });
+    if (completo && completo !== obra + assinatura) guardar(completo, { livro, adorno });
   }
 
   const parciais: Book[][] = [];
