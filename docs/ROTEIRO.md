@@ -7992,6 +7992,12 @@ junto com o agente, porque cada ano provado se espalha pelas edições.
   provas diferentes): o que se procura é a primeira publicação.
 - ⚠️ **Casa só o título inteiro.** *Mais esperto que o diabo* e *Mais esperto que
   o diabo para concurseiros* são livros diferentes, e é o sufixo que os separa.
+- 🚨 **Rodar `npm run anos` depois de toda correção de autor ou título.** A chave
+  é feita dos dois, então corrigi-los cria irmãs que antes não casavam: quando a
+  janela A devolveu o autor a 4.944 livros do Ubook (§4.153) e desfez as listas
+  coladas (§4.154), uma passada do comando espalhou o ano para **mais 588
+  edições** — de 1.208 para 1.796 livros com ano na vitrine, sem um único achado
+  novo do agente.
 
 ⚠️ **A ligação até a tela ficou pendente por coordenação, não por técnica:** o
 caminho passa por `server/catalogo.ts`, `client/src/lib/books.ts` e
