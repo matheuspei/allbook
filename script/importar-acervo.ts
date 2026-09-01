@@ -176,6 +176,44 @@ function primeiroNome(lista: string | null): string | null {
 }
 
 /**
+ * Palavras que, sozinhas depois de um " e ", denunciam que ali começou **outro
+ * crédito** e não o resto do mesmo nome.
+ */
+const DEPOIS_DO_E = new Set(["outros", "outro", "outras", "ubook"]);
+
+/**
+ * O primeiro nome de uma lista como o **`_ficha.json` a escreve** (01/09,
+ * §4.153).
+ *
+ * 🚨 **Não dá para reusar `primeiroNome`**: o `catalogo.sqlite` separa por
+ * `" & "` e a ficha separa por vírgula ou pela palavra "e" —
+ * *"Pablo Coitino, Matheus Fernandes e outros"*, *"The Guardian e Ubook"*.
+ *
+ * ⚠️ **O " e " só corta quando o que vem depois é claramente outro crédito**, e
+ * a razão tem nome: *"João Victor Mendes de Gomes e Mendonça"* é **uma pessoa
+ * só**. Cortar em todo " e " a decapitaria sem erro nenhum. Por isso a régua é
+ * o que sobra: duas palavras ou mais é outro autor ("Eliana Sá"), uma palavra
+ * só não é — a não ser que esteja em `DEPOIS_DO_E`.
+ *
+ * ⚠️ **O `\s+` colapsado não é capricho:** a ficha do Ubook traz
+ * *"Ap.  Miguel Ângelo"* com dois espaços em 142 livros e *"Ap. Miguel Ângelo"*
+ * com um em 139. São a mesma pessoa, e o nome de tela sairia dobrado.
+ */
+function primeiroDaFicha(bruto: string | null | undefined): string | null {
+  const limpo = (bruto ?? "").replace(/\s+/g, " ").trim();
+  if (limpo.length < 2) return null;
+
+  const primeiro = limpo.split(/\s*[,;&]\s*/)[0]?.trim() ?? "";
+  const corte = primeiro.match(/^(.+?)\s+e\s+(.+)$/);
+  if (corte) {
+    const resto = corte[2].trim();
+    const outroCredito = DEPOIS_DO_E.has(resto.toLowerCase()) || resto.split(" ").length >= 2;
+    if (outroCredito) return corte[1].trim() || null;
+  }
+  return primeiro.length > 1 ? primeiro : null;
+}
+
+/**
  * Nomes que a loja usa quando **não sabe** quem narra.
  *
  * Vistos no acervo: "various narrators", "narratore sconosciuto" (a Audible
@@ -423,22 +461,38 @@ interface TriagemDaFicha {
   prontoParaEntrar: boolean;
   /** O nome da editora, como a ficha o traz. `null` quando não há. */
   editora: string | null;
+  /**
+   * Autor e narrador **da ficha** — a reserva de quem o `catalogo.sqlite` não
+   * cobre (01/09, §4.153). Ver `pessoasDaFicha` no `importar`.
+   */
+  autor: string | null;
+  narrador: string | null;
 }
+
+const FICHA_VAZIA: TriagemDaFicha = {
+  prontoParaEntrar: false,
+  editora: null,
+  autor: null,
+  narrador: null,
+};
 
 async function triarFicha(loja: string, pasta: string | null): Promise<TriagemDaFicha> {
   const semVinheta = !LOJAS_COM_VINHETA.includes(loja);
-  if (!pasta) return { prontoParaEntrar: semVinheta, editora: null };
+  const nada = { ...FICHA_VAZIA, prontoParaEntrar: semVinheta };
+  if (!pasta) return nada;
   const ficha = join(pasta, "_ficha.json");
-  if (!existsSync(ficha)) return { prontoParaEntrar: semVinheta, editora: null };
+  if (!existsSync(ficha)) return nada;
   try {
     const dados = JSON.parse(await readFile(ficha, "utf8"));
     return {
       prontoParaEntrar: semVinheta || Boolean(dados?.vinheta),
       editora: nomeDeEditora(dados?.ficha?.EDITORA),
+      autor: primeiroDaFicha(dados?.ficha?.AUTOR),
+      narrador: primeiroDaFicha(dados?.ficha?.NARRADOR),
     };
   } catch {
-    /* ficha ilegível: não entra, e não tem editora para dar */
-    return { prontoParaEntrar: semVinheta, editora: null };
+    /* ficha ilegível: não entra, e não tem nada para dar */
+    return nada;
   }
 }
 
@@ -458,9 +512,26 @@ async function importar(limite: number | null) {
   // daqui, e não do `catalogo.sqlite`, porque lá só a Audible a tem — ver
   // `script/editoras.ts`. Ler as duas coisas no mesmo `JSON.parse` é o que
   // evita uma terceira varredura de 14 mil arquivos.
-  console.log(`\n  ${linhas.length} no acervo — conferindo a vinheta e a editora…`);
+  console.log(`\n  ${linhas.length} no acervo — conferindo a vinheta, a editora e as pessoas…`);
   const prontos: LinhaDoAcervo[] = [];
   const editoraDaLinha = new Map<string, string>();
+  /**
+   * Autor e narrador vindos da **ficha**, por livro (01/09, §4.153).
+   *
+   * 🚨 **Só existe porque o `catalogo.sqlite` não cobre o Ubook.** Os 47.153
+   * títulos dele têm `autores` e `narradores` **vazios** — 100% —, e por isso
+   * 4.938 livros entraram aqui como "Autor desconhecido". O nome está no
+   * `_ficha.json` de cada pasta o tempo todo: 4.944 dos 5.014 têm AUTOR e 4.825
+   * têm NARRADOR. É o mesmo defeito da editora (§4.148), no outro campo — o
+   * dado não estava onde a gente olhou.
+   *
+   * ⚠️ **A ficha é RESERVA, não autoridade** — o contrário da editora. Lá a
+   * ficha vence porque o sqlite quase não traz editora; aqui o sqlite traz o
+   * nome de 8.979 livros das outras três lojas, conferido na varredura da loja,
+   * e trocá-lo pelo da ficha seria mexer em quem já está certo para consertar
+   * quem está vazio.
+   */
+  const pessoasDaFicha = new Map<string, { autor: string | null; narrador: string | null }>();
   let barrados = 0;
   for (const linha of linhas) {
     const triagem = await triarFicha(linha.loja, pastaDoPronto(linha));
@@ -468,9 +539,21 @@ async function importar(limite: number | null) {
     else barrados++;
     // A do `catalogo.sqlite` fica de reserva: ela cobre a Audible e não custa
     // nada, mas a ficha vence sempre que existe (é a mais nova e a mais ampla).
+    const chave = `${linha.loja}/${linha.loja_id}`;
     const nome = triagem.editora ?? nomeDeEditora(linha.editora);
-    if (nome) editoraDaLinha.set(`${linha.loja}/${linha.loja_id}`, nome);
+    if (nome) editoraDaLinha.set(chave, nome);
+    if (triagem.autor || triagem.narrador) {
+      pessoasDaFicha.set(chave, { autor: triagem.autor, narrador: triagem.narrador });
+    }
   }
+
+  /** O autor e o narrador do livro: o sqlite manda, a ficha completa. */
+  const autorDoLivro = (linha: LinhaDoAcervo) =>
+    nomeUtil(primeiroNome(linha.autores)) ??
+    nomeUtil(pessoasDaFicha.get(`${linha.loja}/${linha.loja_id}`)?.autor ?? null);
+  const narradorDoLivro = (linha: LinhaDoAcervo) =>
+    nomeUtil(primeiroNome(linha.narradores)) ??
+    nomeUtil(pessoasDaFicha.get(`${linha.loja}/${linha.loja_id}`)?.narrador ?? null);
 
   const aTrabalhar = limite ? prontos.slice(0, limite) : prontos;
   console.log(`  ${prontos.length} prontos · ${barrados} ainda sem vinheta`);
@@ -505,10 +588,7 @@ async function importar(limite: number | null) {
     const genero = generoDaCategoria(linha.categoria);
     generosNovos.set(genero.slug, genero.rotulo);
 
-    for (const nome of [
-      nomeUtil(primeiroNome(linha.autores)),
-      nomeUtil(primeiroNome(linha.narradores)),
-    ]) {
+    for (const nome of [autorDoLivro(linha), narradorDoLivro(linha)]) {
       if (nome) pessoasNovas.set(slugify(nome), nome);
     }
 
@@ -595,8 +675,8 @@ async function importar(limite: number | null) {
     const idExistente = jaImportados.get(chave);
     const id = idExistente ?? proximoId++;
 
-    const autor = nomeUtil(primeiroNome(linha.autores));
-    const narrador = nomeUtil(primeiroNome(linha.narradores));
+    const autor = autorDoLivro(linha);
+    const narrador = narradorDoLivro(linha);
     if (!narrador) semNarrador++;
 
     const genero = generoDaCategoria(linha.categoria);
@@ -754,6 +834,84 @@ async function limparEditorasOrfas() {
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Preenche autor e narrador **onde eles estão vazios** (01/09, §4.153).
+ *
+ * ## Por que existe
+ *
+ * 🚨 **4.938 livros do Ubook entraram como "Autor desconhecido" com o nome do
+ * autor no disco o tempo todo.** O importador lê autor e narrador do
+ * `catalogo.sqlite`, e ali as quatro colunas do Ubook vêm vazias nos 47.153
+ * títulos — 100%. O `_ficha.json` de cada pasta traz os dois: 4.944 dos 5.014
+ * têm AUTOR, 4.825 têm NARRADOR. É o mesmo defeito da editora (§4.148), no
+ * outro campo, e com a mesma lição: **antes de dar um dado por perdido, olhe
+ * onde ele está.**
+ *
+ * ## A régua, e por que ela é estreita
+ *
+ * ⚠️ **Só escreve sobre o vazio** — `autor-desconhecido` e
+ * `narrador-nao-informado`, os dois slugs de reserva. Nome que já está lá veio
+ * da varredura da loja e não se toca: sobrescrever 13.917 livros para consertar
+ * 5.000 é trocar um problema conhecido por um desconhecido, e mexeria no nome
+ * pelo qual o perfil de gente já é endereçado.
+ *
+ * ⚠️ **Ele não desfaz.** Livro que perdeu o autor na ficha continua com o que
+ * tem aqui — ao contrário da editora, que é apagada quando some da ficha. A
+ * diferença é o custo do erro: editora errada é uma linha na ficha do livro;
+ * autor apagado tira o livro do perfil de quem o escreveu.
+ */
+async function preencherPessoasVazias(
+  noBanco: Map<string, { id: number; autor: string; narrador: string }>,
+  daFicha: Map<number, { autor: string | null; narrador: string | null }>,
+) {
+  const pessoasNovas = new Map<string, string>();
+  const autorPorSlug = new Map<string, number[]>();
+  const narradorPorSlug = new Map<string, number[]>();
+
+  for (const aqui of noBanco.values()) {
+    const ficha = daFicha.get(aqui.id);
+    if (!ficha) continue;
+
+    const autor = aqui.autor === "autor-desconhecido" ? nomeUtil(ficha.autor) : null;
+    if (autor) {
+      const slug = slugify(autor);
+      pessoasNovas.set(slug, autor);
+      (autorPorSlug.get(slug) ?? autorPorSlug.set(slug, []).get(slug)!).push(aqui.id);
+    }
+
+    const narrador = aqui.narrador === "narrador-nao-informado" ? nomeUtil(ficha.narrador) : null;
+    if (narrador) {
+      const slug = slugify(narrador);
+      pessoasNovas.set(slug, narrador);
+      (narradorPorSlug.get(slug) ?? narradorPorSlug.set(slug, []).get(slug)!).push(aqui.id);
+    }
+  }
+
+  if (pessoasNovas.size === 0) return;
+
+  // As pessoas primeiro: os livros as referenciam por chave estrangeira.
+  await db
+    .insert(pessoas)
+    .values([...pessoasNovas].map(([slug, nome]) => ({ slug, nome })))
+    .onConflictDoNothing();
+
+  let comAutor = 0;
+  for (const [slug, ids] of autorPorSlug) {
+    await db.update(livros).set({ autorSlug: slug }).where(inArray(livros.id, ids));
+    comAutor += ids.length;
+  }
+  let comNarrador = 0;
+  for (const [slug, ids] of narradorPorSlug) {
+    await db.update(livros).set({ narradorSlug: slug }).where(inArray(livros.id, ids));
+    comNarrador += ids.length;
+  }
+
+  console.log(`\n  Pessoas (§4.153)`);
+  console.log(`    ${comAutor} livros ganharam autor, vindo do _ficha.json`);
+  console.log(`    ${comNarrador} ganharam narrador`);
+  console.log(`    ${pessoasNovas.size} nomes distintos envolvidos`);
+}
+
+/**
  * Reconcilia a **editora** de todo livro já importado, direto das fichas do
  * acervo (31/08, §4.148).
  *
@@ -785,20 +943,33 @@ async function reconciliarFichas() {
   }
 
   const linhas = consultar<LinhaDoAcervo>(CONSULTA).filter((l) => l.titulo?.trim());
-  console.log(`\n  ${linhas.length} no acervo — lendo a editora de cada ficha…`);
+  console.log(`\n  ${linhas.length} no acervo — lendo a editora e as pessoas de cada ficha…`);
 
-  /* O que o AllBook tem hoje: id e editora de cada livro vindo de loja. */
-  const noBanco = new Map<string, { id: number; editora: string | null }>();
+  /* O que o AllBook tem hoje, de cada livro vindo de loja. */
+  const noBanco = new Map<string, { id: number; editora: string | null; autor: string; narrador: string }>();
   for (const l of await db
-    .select({ id: livros.id, loja: livros.origemLoja, origemId: livros.origemId, editora: livros.editoraSlug })
+    .select({
+      id: livros.id,
+      loja: livros.origemLoja,
+      origemId: livros.origemId,
+      editora: livros.editoraSlug,
+      autor: livros.autorSlug,
+      narrador: livros.narradorSlug,
+    })
     .from(livros)
     .where(isNotNull(livros.origemLoja))) {
-    noBanco.set(`${l.loja}/${l.origemId}`, { id: l.id, editora: l.editora });
+    noBanco.set(`${l.loja}/${l.origemId}`, {
+      id: l.id,
+      editora: l.editora,
+      autor: l.autor,
+      narrador: l.narrador,
+    });
   }
 
   /* O que as fichas dizem agora. Só interessa livro que já entrou: reconciliar
      não é importar — quem ainda não está aqui entra pelo `importar`. */
   const nomePorLivro = new Map<number, string>();
+  const pessoaPorLivro = new Map<number, { autor: string | null; narrador: string | null }>();
   let semFicha = 0;
   for (const linha of linhas) {
     const aqui = noBanco.get(`${linha.loja}/${linha.loja_id}`);
@@ -807,7 +978,15 @@ async function reconciliarFichas() {
     const nome = triagem.editora ?? nomeDeEditora(linha.editora);
     if (nome) nomePorLivro.set(aqui.id, nome);
     else semFicha++;
+    /* A ficha só completa o que o `catalogo.sqlite` deixou vazio — a mesma
+       reserva do `importar`. Aqui a régua é o que está no banco: ver
+       `preencherPessoasVazias`. */
+    if (triagem.autor || triagem.narrador) {
+      pessoaPorLivro.set(aqui.id, { autor: triagem.autor, narrador: triagem.narrador });
+    }
   }
+
+  await preencherPessoasVazias(noBanco, pessoaPorLivro);
 
   /* 🚨 Aqui `jaNoBanco` vem CHEIO, ao contrário da importação: slug em uso não
      se troca (é endereço de perfil e é por ele que o app guarda quem a pessoa

@@ -8217,3 +8217,74 @@ aplicado por leitura sobre o banco — mesmo padrão de `LOJAS_FORA_DA_VITRINE`
 (§4.145). Reimportar o acervo não atropela, e apagar a linha desfaz.
 
 A folha de decisão é `client/public/_autor-que-falta-A.html`.
+
+## 4.153 O autor do Ubook estava no disco o tempo todo (01/09)
+
+**5.014 livros diziam "Autor desconhecido" — hoje são 70.** O Matheus olhou o
+número na folha da §4.152 e perguntou a coisa certa: *"é isso tudo mesmo?"*. O
+número era; a **causa que eu tinha escrito, não**. Eu havia dito "o Ubook não
+manda autor". O Ubook manda.
+
+- **O `catalogo.sqlite` do acervo** — a varredura das lojas — traz `autores` e
+  `narradores` **vazios nos 47.153 títulos do Ubook**, 100% deles. (Audible 0
+  sem autor, Tocalivros 0, Storytel 252.)
+- **O `_ficha.json` de cada pasta do "pronto"** traz os dois, sempre: dos 5.014
+  livros sem autor, **4.944 tinham AUTOR na ficha e 4.825 tinham NARRADOR**. Só
+  2 não tinham nenhum dos dois.
+- O importador lia só o sqlite. **O dado não estava onde a gente olhou** — é o
+  mesmo defeito da editora (§4.148), no outro campo, na mesma semana.
+
+🚨 **A regra que isso confirma, e que já vinha da §4.152: campo vazio não é
+prova de dado inexistente.** Duas vezes seguidas o AllBook deu por perdido um
+dado que estava a um `JSON.parse` de distância. Antes de escrever "não
+informado" numa tela, **abra a ficha**.
+
+### O que foi feito
+
+`triarFicha()` passou a devolver também `autor` e `narrador`, no mesmo
+`JSON.parse` que já lia a editora — nenhuma varredura nova dos 15 mil arquivos.
+`preencherPessoasVazias()` é o alvo novo do `npm run acervo fichas`, e portanto
+já roda no LaunchAgent `com.allbook.fichas` às 5h30.
+
+| | antes | depois |
+|---|---|---|
+| autor = "Autor desconhecido" | 5.014 | **70** |
+| narrador = "Narrador não informado" | 5.016 | **237** |
+| autor = nome da editora | 819 | 1.082 |
+
+⚠️ **A última linha subiu de propósito e é honesto dizer:** entre os 4.944 nomes
+que entraram há editora (Max Editorial 178, NarraKids 24). Eles não apareciam
+porque o campo estava vazio; agora aparecem e caem na decisão da §4.152. O saldo
+é 5.833 → 1.152 livros com o campo do autor errado.
+
+### As três armadilhas, todas apuradas em dado real
+
+- ⚠️ **A ficha é RESERVA, não autoridade** — o contrário da editora. Lá a ficha
+  vence porque o sqlite quase não a traz; aqui o sqlite traz o nome de 8.979
+  livros das outras três lojas, conferido na varredura da loja. Sobrescrever
+  seria mexer em quem está certo para consertar quem está vazio. A régua no
+  `reconciliar` é o slug de reserva (`autor-desconhecido`), não o nome.
+- ⚠️ **A ficha separa lista de outro jeito.** O sqlite usa `" & "`; a ficha usa
+  vírgula ou a palavra "e" — *"Pablo Coitino, Matheus Fernandes e outros"*,
+  *"The Guardian e Ubook"*. Por isso `primeiroDaFicha()` existe ao lado de
+  `primeiroNome()`. **O " e " só corta quando o que sobra é claramente outro
+  crédito** (duas palavras, ou "outros"/"ubook"): *"João Victor Mendes de Gomes
+  e Mendonça"* é **uma pessoa só**, e cortar em todo " e " a decapitaria.
+- ⚠️ **Espaço duplo dobra a pessoa.** A ficha do Ubook traz *"Ap.  Miguel
+  Ângelo"* em 142 livros e *"Ap. Miguel Ângelo"* em 139. O `slugify` colapsa e
+  salva o dia, mas o nome de tela sairia com o espaço de quem chegou primeiro —
+  daí o `\s+` colapsado antes de tudo.
+
+⚠️ **Não desfaz.** Livro que perder o autor na ficha continua com o que tem
+aqui, ao contrário da editora, que é apagada quando some. A diferença é o custo
+do erro: editora errada é uma linha na ficha; autor apagado tira o livro do
+perfil de quem o escreveu.
+
+### O que ficou na mesa
+
+**"Voz Artificial" (412) e "Voz Sintética" (164) viraram narradores com perfil**,
+e "Diversos" (135) virou autor e narrador. Não os mandei para
+`NARRADOR_DESCONHECIDO` de propósito: seria **apagar** a informação de que a
+narração é sintética, exatamente o erro que a §4.152 acabou de corrigir. O lugar
+certo dela é provavelmente um selo na ficha ("narração sintética") — decisão
+dele, e entra na mesma folha dos nomes que não são gente.

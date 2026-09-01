@@ -223,6 +223,31 @@ capítulos (§4.141) e do seletor de narração (§4.147). A regra: **tela que "
 faz nada", veja de onde ela lê.** Aqui a lista curada apontava para os ids das
 63 maquetes apagadas e devolvia `undefined` para os 13.917 livros, calada.
 
+### O autor e o narrador também vêm do `_ficha.json` (01/09, §4.153)
+
+🚨 **O `catalogo.sqlite` do acervo manda os 47.153 títulos do Ubook com `autores`
+e `narradores` VAZIOS** — 100% deles —, e por isso 5.014 livros do AllBook
+diziam "Autor desconhecido". O nome estava no **`_ficha.json` de cada pasta** o
+tempo todo: 4.944 tinham AUTOR, 4.825 tinham NARRADOR. Hoje sobram **70 sem
+autor e 237 sem narrador**.
+
+**A regra que isso deixa: campo vazio não é prova de dado inexistente.** Duas
+vezes em uma semana (editora §4.148, pessoas §4.153) o app deu por perdido um
+dado que estava a um `JSON.parse` de distância. Antes de escrever "não
+informado" numa tela, abra a ficha.
+
+- **`npm run acervo fichas`** faz os dois de uma vez (editora + pessoas), em 10s,
+  e já é o alvo do LaunchAgent `com.allbook.fichas` das 5h30.
+- ⚠️ **Aqui a ficha é RESERVA, não autoridade** — o contrário da editora. Ela só
+  preenche o slug de reserva (`autor-desconhecido` / `narrador-nao-informado`);
+  nome que veio da varredura da loja não se toca.
+- ⚠️ **`primeiroDaFicha()` não é `primeiroNome()`**: o sqlite separa por `" & "`,
+  a ficha por vírgula ou pela palavra "e". E **o " e " só corta quando o que
+  sobra é outro crédito** — *"João Victor Mendes de Gomes e Mendonça"* é uma
+  pessoa só.
+- ⚠️ **Colapse `\s+` antes de comparar nome:** *"Ap.  Miguel Ângelo"* (142
+  livros) e *"Ap. Miguel Ângelo"* (139) são a mesma pessoa.
+
 ### Os carimbos que ligam o acervo ao app (30/08, §4.138)
 
 O acervo do `baixalivro` continua sendo corrigido (fichas, anos, vinhetas)
