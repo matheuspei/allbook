@@ -8477,3 +8477,81 @@ A janela B conferiu no disco — a loja não deu nome, o arquivo se chama
 `… - 01 - chapter 01.mp3`. E herdar o nome da gravação irmã foi **descartado**
 (B/C): exigiria as durações batendo, e a §4.155 achou ficha da Storytel com
 duração errada.
+
+## 4.157 A vitrine depois da limpeza: a trava que faltava (01/09)
+
+A §4.156 (janela A) devolveu acento e pontuação a 4.393 títulos e gênero a
+8.204 livros. Isso mudou o chão do agrupamento por obra, e o `lib/obras.ts`
+precisou de três ajustes — dois deles conserto de defeito **meu**.
+
+### 1. O título estragado escondia a irmã boa
+
+O Ubook entregava o título sem acento, sem pontuação e em minúsculas.
+*"100% Vendedor: Motivação em vendas…"* chegava como *"100 vendedor motivacao
+em vendas…"* — **sem os dois-pontos**. Sem separador não há corte, a chave da
+obra vira o título inteiro, e ele não encontrava a irmã da Storytel, que é
+justamente a que tem título, gênero e capítulos de verdade.
+
+Cada livro passou a entrar por **duas chaves**: o título da obra (cortado) e o
+**título completo normalizado** — onde a diferença de acento e pontuação já
+sumiu. Os grupos que compartilham qualquer livro se fundem no fim.
+
+### 2. 🚨 Série não é livro repetido — e eu tinha juntado 15 episódios
+
+Com os autores que a §4.153 devolveu a 4.944 livros, o agrupamento passou a
+achar parentesco onde não havia: os **15 episódios** de *"Leia a Bula - Temp 2.
+Ep 6: O Significado da Vida"* viraram **uma ficha com 15 gravações**, e o
+podcast sumiu da vitrine. As **13 faixas** da *"Coleção Sons Relaxantes - sons
+de bosque de bambu"* também.
+
+Todos compartilham a obra curta, porque o corte é no primeiro separador. A trava:
+**o pedaço cortado decide**. Adorno *descartável* (vazio, o nome do autor, ou
+"na voz de fulano") entra no núcleo da obra; adorno com **conteúdo próprio** só
+se junta a outro **idêntico** — que é a mesma edição vendida em duas lojas.
+Depois disso, "Leia a Bula" voltou a ter 24 fichas para 24 gravações.
+
+### 3. O *Title Case* ganhando da gravação mais completa
+
+O critério de "título mais rico", criado para o representante não ser a versão
+estragada, premiava **maiúscula no meio** — e o Ubook escreve *"Motivação Em
+Vendas Para Vencer O Mercado"*, contra o *"Motivação em vendas para vencer o
+mercado"* da Storytel. O Ubook virava o representante e trazia junto os
+capítulos *"chapter 01"*: a gravação dele não tem nome de capítulo nenhum.
+
+Riqueza passou a contar **só acento e pontuação**, e a gravação que **anuncia
+duração** vem antes da de título mais curto — é sinal de ficha mais completa, e
+na prática é a que traz capítulo com nome.
+
+### A varredura que o Matheus pediu, e o que ela achou
+
+Ele mandou o *"100% Vendedor"* com três defeitos e pediu conta do acervo
+inteiro. Varridas as **13.932 fichas**:
+
+| defeito | livros | tem conserto? |
+|---|---|---|
+| título sem acento/pontuação | **4.372** (4.370 do Ubook) | sim — §4.156 recuperou 4.393 |
+| sem gênero, com categoria na ficha | **8.219** | sim — §4.156 levou 8.204 |
+| capítulos com nome genérico | **6.149** + 919 parciais | **não** |
+
+⚠️ **Os capítulos não têm conserto, e é decisão registrar isso.** Conferi os
+arquivos no disco: quando a ficha diz *"chapter 01"*, o mp3 também se chama
+*"… - 01 - chapter 01.mp3"*. **A loja não deu nome nenhum** — não há o que
+importar. Herdar os nomes da irmã foi considerado e **descartado**: exigiria o
+mesmo número de capítulos *e* as durações batendo, e a janela C achou no mesmo
+dia uma ficha da Storytel com duração errada (§4.155). O que resolve na prática
+é o agrupamento: quando existe irmã com nomes, é ela que representa a obra — foi
+o que aconteceu com o livro dele.
+
+**Medido no fim:** 12.628 gravações → **10.358 fichas** na vitrine, e **393
+obras com mais de uma voz** (eram 145 antes das correções da A).
+
+### O que ficou aberto para ele decidir
+
+**A Descobrir tem 89 gêneros, e pelo menos 12 famílias são a mesma prateleira
+com nomes diferentes:** "Religião e Espiritualidade" (1.183) × "Religião" (953)
+× "Religião & Espiritualidade" (507) × "Espiritualidade" (359); "Biografias e
+Memórias" × "Biografias"; "Literatura e Ficção" × "Ficção" × "Literatura";
+"Juvenil" × "Kids" × "Juvenil e Jovens Adultos"; "Saúde e Bem-Estar" × "Saúde &
+Bem Estar". Cada loja batiza do seu jeito, e juntar exige **escolher qual nome
+sobrevive** — isso é desenho de vitrine, não importação, e por isso nem a janela
+A nem eu fizemos sozinhos.
