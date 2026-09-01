@@ -60,6 +60,21 @@ let geracao = 0;
 
 const estado: Estado = { livroId: null, situacao: "vazio", modo: null, recado: null };
 
+/**
+ * 🚨 **Verdadeira só durante a virada de capítulo** (01/09, §4.155).
+ *
+ * No modo `acervo` cada capítulo é um arquivo, então virar é trocar o `src` — e
+ * um elemento que acabou de trocar de `src` fica **pausado** por alguns
+ * milissegundos, até o arquivo novo carregar. A tela espelha esse `paused`: via
+ * "pausado", mandava `pausar()` de volta, e esse `pause()` **abortava** o
+ * `play()` do capítulo novo (`AbortError: interrupted by a call to pause()`).
+ * O livro parava no começo de cada capítulo, que era a queixa dele.
+ *
+ * Enquanto ela está de pé, `estaTocando()` responde **"tocando"** — porque é o
+ * que está acontecendo, do ponto de vista de quem ouve.
+ */
+let virandoDeCapitulo = false;
+
 /* -------------------------------------------------------------------------- */
 /* Uma aba de cada vez (31/08, §4.144)                                         */
 /* -------------------------------------------------------------------------- */
@@ -238,10 +253,44 @@ export async function abrirLivro(livroId: number, lista: Chapter[]): Promise<voi
   elemento.addEventListener("ended", () => {
     if (estado.modo !== "acervo") return;
     const proximo = capituloAtual + 1;
-    if (proximo >= capitulos.length) return;
+    if (proximo >= capitulos.length) {
+      avisar(); // fim do livro: a tela precisa saber que parou
+      return;
+    }
     capituloAtual = proximo;
+
+    /* A bandeira sobe ANTES do `src` novo e só cai quando o áudio volta a
+       correr: é ela que impede a tela de mandar pausar no meio da troca. */
+    virandoDeCapitulo = true;
+    avisar(); // o rótulo do capítulo muda na hora, sem esperar o som
+
     elemento.src = `/api/audio/${estado.livroId}/capitulo/${proximo + 1}`;
-    void elemento.play().catch(() => {});
+
+    const acabou = () => {
+      if (!virandoDeCapitulo) return;
+      virandoDeCapitulo = false;
+      avisar();
+    };
+    /* Rede de segurança: se o arquivo novo nunca carregar, a bandeira não pode
+       ficar de pé para sempre, senão o botão mostraria "tocando" em silêncio. */
+    setTimeout(acabou, 15000);
+
+    void elemento
+      .play()
+      .then(acabou)
+      .catch(() => {
+        /* Trocar o `src` dispara um `load()`, e um `play()` pedido no mesmo
+           instante pode ser abortado por ele. A segunda tentativa — já com o
+           arquivo pronto — é a que vale. */
+        elemento.addEventListener(
+          "canplay",
+          () => {
+            void elemento.play().catch(() => {});
+            acabou();
+          },
+          { once: true },
+        );
+      });
   });
   elemento.addEventListener("play", avisar);
   elemento.addEventListener("pause", avisar);
@@ -275,7 +324,14 @@ export function temAudioDeVerdade(): boolean {
   return estado.situacao === "pronto" && audio !== null;
 }
 
+/**
+ * ⚠️ **Quem quer saber se o livro está correndo pergunta AQUI**, e não a
+ * `elementoDeAudio()?.paused`: no meio da virada de capítulo o elemento está
+ * pausado por um instante, e quem lê o elemento cru conclui que a pessoa
+ * pausou. Foi assim que a tela matava a virada (§4.155).
+ */
 export function estaTocando(): boolean {
+  if (virandoDeCapitulo) return true;
   return audio !== null && !audio.paused;
 }
 

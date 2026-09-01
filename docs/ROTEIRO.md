@@ -8359,3 +8359,50 @@ na maioria, os nomes colados que se desfizeram. Não apaguei: `pessoas` é
 referenciada por `comentarios`, `mencoes`, `posts` e `pedidos`, e órfã não
 aparece em tela nenhuma (o `people.ts` deriva do catálogo). Limpar é para quando
 alguém conferir essas quatro tabelas.
+
+## 4.155 O livro parava no começo de cada capítulo (01/09)
+
+Queixa dele: no fim de um capítulo o player "pula para o próximo e pausa". No
+acervo isso acontece a cada poucos minutos — o *A igreja que Jesus sonhou* tem
+capítulos de 21 segundos.
+
+**Não era o tocador: era a tela desfazendo o que o tocador fazia.** Medido no
+navegador, com `play()` e `pause()` instrumentados:
+
+```
+pause     capitulo/1  t=26.1        ← o fim natural do arquivo
+play()    capitulo/2                ← o tocador vira o capítulo
+PAUSE() chamado por: pausar (tocador.ts) ← AudioPlayer.tsx
+play() REJEITOU: AbortError - interrupted by a call to pause()
+```
+
+O ciclo: virar de capítulo no modo `acervo` é **trocar o `src`**, e um elemento
+que acabou de trocar de `src` fica `paused` por alguns milissegundos. O efeito
+"o botão segue o áudio" (§4.144) lia `elementoDeAudio()?.paused` **cru**,
+concluía que a pessoa tinha pausado, e o efeito de play/pause mandava
+`pausar()` de volta — matando o `play()` do capítulo novo.
+
+**O conserto tem dois lados, e os dois importam:**
+
+- **`lib/tocador.ts` ganhou a bandeira `virandoDeCapitulo`**, de pé só durante a
+  troca. Enquanto ela está levantada, `estaTocando()` responde **"tocando"** —
+  porque é o que está acontecendo para quem ouve. Cai quando o áudio volta a
+  correr, com rede de segurança de 15s para nunca ficar presa.
+- ⚠️ **Quem quer saber se o livro corre pergunta a `estaTocando()`**, nunca a
+  `elementoDeAudio()?.paused`. O elemento cru mente durante a virada, e essa
+  mentira dura o suficiente para o React agir sobre ela.
+- O `ended` também **avisa** agora (`TOCADOR_EVENT`): antes o rótulo do capítulo
+  só mudava quando o som já estava correndo.
+- E o `play()` tem **segunda chance no `canplay`**: trocar o `src` dispara um
+  `load()` que pode abortar um `play()` pedido no mesmo instante.
+
+**No mesmo passo, a pastilha do player passou a mostrar o NOME do capítulo**
+("Dedicatória") em vez de "Capítulo 2". A lista de capítulos já mostrava o nome
+desde que os capítulos passaram a vir do banco (§4.141); a pastilha ficou para
+trás — e em livro com créditos e dedicatória o número nem sequer é o número do
+texto.
+
+⚠️ **Apurado de passagem, e ainda em aberto:** a duração do capítulo no banco
+diverge da do arquivo (21s contra 26,05s no capítulo 1 desse livro, vindos da
+ficha da Storytel). Como a posição no livro é a soma das durações do banco, a
+diferença **se acumula** capítulo a capítulo. Não foi mexido aqui.

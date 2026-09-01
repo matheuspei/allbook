@@ -14,7 +14,7 @@ import { useTocador } from "@/hooks/use-tocador";
 import {
   TOCADOR_EVENT,
   definirVelocidade,
-  elementoDeAudio,
+  estaTocando,
   livroDoTocador,
   pausar,
   posicaoNoLivro,
@@ -350,7 +350,11 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   useEffect(() => {
     const aoMudar = () => {
       if (!temAudioDeVerdade()) return;
-      const tocandoDeVerdade = !elementoDeAudio()?.paused;
+      /* ⚠️ `estaTocando()`, e não `elementoDeAudio()?.paused`: durante a virada
+         de capítulo o elemento fica pausado por um instante enquanto troca de
+         arquivo, e ler o elemento cru fazia esta tela concluir "pausou" e
+         mandar `pausar()` de volta — matando a virada (§4.155). */
+      const tocandoDeVerdade = estaTocando();
       setIsPlaying((antes) => (antes === tocandoDeVerdade ? antes : tocandoDeVerdade));
     };
     window.addEventListener(TOCADOR_EVENT, aoMudar);
@@ -705,7 +709,16 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             data-testid="button-chapters"
           >
             <ListMusic className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-base">Capítulo {currentChapter}</span>
+            {/* O nome do capítulo, que é como a pessoa o reconhece: "Dedicatória",
+                "Conclusão", "Capitulo 3 - Por que a igreja existe?". A lista de
+                capítulos já mostrava o nome; aqui dizia só "Capítulo 2", que em
+                livro com prólogo e créditos nem sequer é o número certo do
+                texto. `truncate` porque título de capítulo do acervo passa de 50
+                caracteres — e o número volta como reserva quando a ficha não
+                trouxe nome. */}
+            <span className="max-w-[15rem] truncate font-semibold text-base">
+              {chapters[currentChapter - 1]?.title || `Capítulo ${currentChapter}`}
+            </span>
             <ChevronDown className="w-4 h-4 opacity-60" />
           </button>
 
