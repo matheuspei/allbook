@@ -156,12 +156,45 @@ export const livros = pgTable(
      */
     subtitulo: text("subtitulo"),
 
+    /**
+     * O autor **principal** — o primeiro da lista. Continua sendo o que
+     * endereça o perfil e o que agrupa a obra.
+     *
+     * ⚠️ **Não é "o autor": é o primeiro de `autores`.** Ver logo abaixo.
+     */
     autorSlug: text("autor_slug")
       .notNull()
       .references(() => pessoas.slug),
     narradorSlug: text("narrador_slug")
       .notNull()
       .references(() => pessoas.slug),
+
+    /**
+     * **Todos** os autores e todos os narradores, na ordem da fonte, separados
+     * por `" & "` (01/09, §4.154).
+     *
+     * 🚨 **Existem porque o AllBook jogava os demais fora, calado.** O acervo
+     * entrega listas — *"Alessandra Klimiont e João Bidu"*, *"Paola Molinari,
+     * Clayton Heringer, Juscelino Filho"* — e o importador ficava com o
+     * primeiro nome. São **1.387 livros com mais de um autor e 1.112 com mais
+     * de um narrador**: 8% a 10% do acervo com um crédito apagado sem erro
+     * nenhum. O Matheus achou pelo ouvido, num horóscopo do João Bidu que a
+     * tela dizia ser narrado só pela Alessandra.
+     *
+     * ⚠️ **Por que texto e não tabela de junção.** O consumidor é o
+     * `/api/catalogo`, que monta 13.917 livros de uma vez; uma junção de ~30
+     * mil linhas a cada leitura pagaria caro por um dado que é **uma lista
+     * ordenada e sempre lida inteira**. `autorSlug` continua ali para o índice,
+     * o perfil e o agrupamento.
+     *
+     * ⚠️ **`" & "` é o separador canônico** — o mesmo do `catalogo.sqlite`. A
+     * ficha do "pronto" usa vírgula e a palavra "e"; quem traduz é
+     * `listaDaFicha()` em `script/importar-acervo.ts`, num lugar só.
+     *
+     * Vazio quando há um nome só: aí `autores` é `null` e vale o `autorSlug`.
+     */
+    autores: text("autores"),
+    narradores: text("narradores"),
     /** Pode faltar: nem todo livro foi atribuído a uma editora. */
     editoraSlug: text("editora_slug").references(() => editoras.slug),
     generoSlug: text("genero_slug")

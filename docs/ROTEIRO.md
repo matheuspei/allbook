@@ -8288,3 +8288,74 @@ e "Diversos" (135) virou autor e narrador. Não os mandei para
 narração é sintética, exatamente o erro que a §4.152 acabou de corrigir. O lugar
 certo dela é provavelmente um selo na ficha ("narração sintética") — decisão
 dele, e entra na mesma folha dos nomes que não são gente.
+
+## 4.154 Todos os nomes, não só o primeiro (01/09)
+
+**O Matheus achou pelo ouvido.** *Horóscopo mensal por João Bidu — julho*
+aparecia "narrado por Alessandra Klimiont", e a voz do áudio é de homem:
+*"não foi ela que narrou esses livros, e esse perfil está errado"*. Estava.
+A ficha do acervo diz, inteira: **`NARRADOR: "Alessandra Klimiont e João Bidu"`**.
+São dois. O AllBook guardava um.
+
+🚨 **`primeiroNome()` ficava com o primeiro da lista, e isso nunca foi só uma
+dívida anotada — era um crédito apagado da tela.** São **1.213 livros com mais
+de um autor e 1.110 com mais de um narrador**, ~8% do acervo.
+
+### O segundo defeito, achado procurando o primeiro
+
+🚨 **Quando a loja separava por vírgula, os nomes eram COLADOS numa pessoa só.**
+`primeiroNome` só conhecia `" & "`, então *"Paola Molinari, Clayton Heringer,
+Juscelino Filho"* virou **uma** pessoa, com slug, perfil e avatar, narrando 11
+livros. Eram **290 "pessoas" com vírgula no nome** no banco.
+
+⚠️ **E a armadilha que quase me fez estragar tudo: na Storytel a vírgula é
+INVERSÃO, não lista.** *"Poe, Edgar Allan"*, *"Wattles, Wallace D."*, *"de
+Assis, Machado"*. Cortar na vírgula sem olhar a loja criaria as pessoas "Poe" e
+"Edgar Allan", e o livro sairia do perfil do Edgar Allan Poe sem erro nenhum.
+
+**A régua é por LOJA**, medida nos 15.157 títulos do acervo — não é palpite:
+
+| loja | vírgula | `" & "` |
+|---|---|---|
+| audible | **lista** (340 autores, 194 narradores) | quase nunca (1) |
+| tocalivros | **lista** (237 e 247) | quase nunca (1) |
+| ubook (só a ficha) | **lista** | não usa |
+| **storytel** | 🚨 **inversão** (18 e 1) | **lista** (267 e 338) |
+
+### O que foi feito
+
+- **`livros.autores` e `livros.narradores`** — a lista inteira, na ordem da
+  fonte, separada por `" & "`. `autorSlug` continua sendo o **principal** (o
+  primeiro): é o índice, o endereço do perfil e o que agrupa a obra.
+  ⚠️ **Texto e não tabela de junção** de propósito: o consumidor é o
+  `/api/catalogo`, que monta 13.917 livros de uma vez, e a lista é sempre lida
+  inteira.
+- **`partirCreditos()` num lugar só**, com a loja como parâmetro. Também tira da
+  lista quem está lá em **outro papel** (`" - tradutor"`, `" - editor"`: ~380
+  créditos) e as palavras que não nomeiam ninguém ("Elenco", "Convidados").
+- **`trocarOSlug()`** — o slug principal muda em **dois casos e só dois**: ele é
+  a reserva (`autor-desconhecido`), ou o que está lá é uma lista colada. Fora
+  isso, nome não se toca: é endereço.
+- **`autoresDe(book)` / `narradoresDe(book)`** em `books.ts`, e é **isto** que
+  tela de crédito usa. `book.author` é o primeiro, não "o autor".
+- **`people.ts` conta todos** — antes, Clayton Heringer e Juscelino Filho não
+  existiam como pessoa. A ficha mostra **uma linha por pessoa**, cada uma com
+  avatar e link.
+
+⚠️ **Os co-narradores só aparecem quando a narração escolhida é a DESTE livro.**
+Trocada a voz no seletor (§4.151), quem narra é outra gravação; listar os
+companheiros desta ao lado do nome daquela juntaria elencos diferentes.
+
+🚨 **A armadilha da §4.149 me pegou de novo, no mesmo arquivo:** `buildFromCatalog`
+(`BookDetails.tsx`) monta a ficha **campo a campo**, e `authors`/`narrators` não
+estavam lá. Tudo certo no banco e na API, e a tela mostrando um nome só, **sem
+erro de tipo**. Terceiro campo a cair nisso — o comentário no código agora cita
+os dois casos.
+
+### Fica na mesa
+
+**1.584 pessoas ficaram órfãs** (nenhum livro as aponta como principal) — são,
+na maioria, os nomes colados que se desfizeram. Não apaguei: `pessoas` é
+referenciada por `comentarios`, `mencoes`, `posts` e `pedidos`, e órfã não
+aparece em tela nenhuma (o `people.ts` deriva do catálogo). Limpar é para quando
+alguém conferir essas quatro tabelas.

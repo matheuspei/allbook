@@ -51,12 +51,33 @@ export interface Book {
    * `tituloDeVitrine()` continua existindo.
    */
   subtitle?: string;
+  /**
+   * O autor **principal** — o primeiro da lista, e o que endereça o perfil.
+   *
+   * ⚠️ **Não é "o autor", é o primeiro deles.** Quem escreve tela de crédito
+   * usa `autoresDe(book)`, não este campo: 1.213 livros têm mais de um.
+   */
   author: string;
   /**
    * Quem narra o audiolivro. O elenco é pequeno e recorrente de propósito: um
    * narrador com um título só teria um perfil sem nada para mostrar.
+   *
+   * ⚠️ Mesma ressalva do `author`: é o **primeiro**. Use `narradoresDe(book)`.
    */
   narrator: string;
+  /**
+   * Todos os autores e todos os narradores, na ordem da fonte (01/09, §4.154).
+   *
+   * 🚨 **Existem porque o AllBook jogava os demais fora, calado.** O Matheus
+   * achou pelo ouvido: *Horóscopo mensal por João Bidu* aparecia narrado só por
+   * "Alessandra Klimiont", e a ficha do acervo diz *"Alessandra Klimiont e João
+   * Bidu"* — a voz do horóscopo é de homem.
+   *
+   * ⚠️ **Vêm só quando há mais de um nome.** Não invente `authors` de um
+   * elemento no cliente: use `autoresDe(book)`, que resolve os dois casos.
+   */
+  authors?: string[];
+  narrators?: string[];
   cover: string;
   /**
    * A nota geral, de 0 a 5.
@@ -313,6 +334,8 @@ interface LivroDaApi {
   subtitle?: string;
   author: string;
   narrator: string;
+  authors?: string[];
+  narrators?: string[];
   cover: string | null;
   rating?: number;
   genre: string;
@@ -576,6 +599,26 @@ export function getBooksByIds(ids: number[]): Book[] {
 
 export function getBooksByGenre(genre: Genre): Book[] {
   return catalog.filter((book) => book.genre === genre);
+}
+
+/**
+ * **Todos** os autores do livro, na ordem da fonte (01/09, §4.154).
+ *
+ * 🚨 **Use isto, e não `book.author`, em qualquer tela de crédito.** O
+ * `author` é só o **primeiro** — ele existe para endereçar o perfil e agrupar a
+ * obra. Mostrar só ele apaga o co-autor da tela, que foi como o *Horóscopo do
+ * João Bidu* passou a ser "narrado por Alessandra Klimiont" e mais ninguém.
+ *
+ * Devolve sempre ao menos um nome, e nunca `authors` cru: a lista só chega do
+ * servidor quando há mais de um.
+ */
+export function autoresDe(book: Book): string[] {
+  return book.authors && book.authors.length > 0 ? book.authors : [book.author];
+}
+
+/** Todos os narradores do livro. Mesma regra de `autoresDe`. */
+export function narradoresDe(book: Book): string[] {
+  return book.narrators && book.narrators.length > 0 ? book.narrators : [book.narrator];
 }
 
 /**

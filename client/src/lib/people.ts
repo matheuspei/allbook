@@ -1,4 +1,4 @@
-import { catalog, notaHistoria, notaNarracao, slugify, type Book, type Genre, porNota, mediaDeNotas} from "./books";
+import { catalog, notaHistoria, notaNarracao, slugify, type Book, type Genre, porNota, mediaDeNotas, autoresDe, narradoresDe } from "./books";
 
 // Reexportado por conveniência: quem lida com pessoas costuma precisar do slug,
 // mas a função em si mora em `books.ts` para não criar ciclo entre os módulos.
@@ -100,14 +100,21 @@ function construirRegistro(): Map<string, Person> {
     return pessoa;
   }
 
+  /* 🚨 **TODOS os autores e TODOS os narradores** (01/09, §4.154), e não só o
+     primeiro. Antes, *Aventuras do Príncipe* — narrado por Paola Molinari,
+     Clayton Heringer e Juscelino Filho — só aparecia no perfil da Paola, e os
+     outros dois nem existiam como pessoa. */
   for (const livro of catalog) {
-    const autor = garantir(livro.author);
-    autor.wrote.push(livro);
-    if (!autor.roles.includes("author")) autor.roles.push("author");
-
-    const narrador = garantir(livro.narrator);
-    narrador.narrated.push(livro);
-    if (!narrador.roles.includes("narrator")) narrador.roles.push("narrator");
+    for (const nome of autoresDe(livro)) {
+      const autor = garantir(nome);
+      autor.wrote.push(livro);
+      if (!autor.roles.includes("author")) autor.roles.push("author");
+    }
+    for (const nome of narradoresDe(livro)) {
+      const narrador = garantir(nome);
+      narrador.narrated.push(livro);
+      if (!narrador.roles.includes("narrator")) narrador.roles.push("narrator");
+    }
   }
 
   // `Array.from` em vez de espalhar o iterador: o alvo do tsconfig é anterior
@@ -156,11 +163,11 @@ export function findPerson(slug: string): Person | undefined {
 }
 
 export function getBooksByAuthor(name: string): Book[] {
-  return ordenarPorNota(catalog.filter((livro) => livro.author === name));
+  return ordenarPorNota(catalog.filter((livro) => autoresDe(livro).includes(name)));
 }
 
 export function getBooksByNarrator(name: string): Book[] {
-  return ordenarPorNota(catalog.filter((livro) => livro.narrator === name));
+  return ordenarPorNota(catalog.filter((livro) => narradoresDe(livro).includes(name)));
 }
 
 /** Rótulo em português para os papéis, na ordem em que devem ser exibidos. */

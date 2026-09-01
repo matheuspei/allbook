@@ -102,8 +102,19 @@ export interface LivroDoCatalogo {
    * cobrindo a capa (§4.137).
    */
   subtitle?: string;
+  /** O autor **principal** — o primeiro da lista. Ver `authors`. */
   author: string;
   narrator: string;
+  /**
+   * **Todos** os autores e narradores, na ordem da fonte (01/09, §4.154).
+   *
+   * ⚠️ **Só vêm quando há mais de um** — 1.213 livros têm mais de um autor e
+   * 1.110 mais de um narrador; nos outros 12 mil o campo some da resposta e
+   * vale o `author`. É o que impede a resposta de dobrar de tamanho para
+   * repetir um nome que já está ali.
+   */
+  authors?: string[];
+  narrators?: string[];
   /** Endereço da capa servida por `/capas/…`, ou `null` para a tipográfica. */
   cover: string | null;
   /** Falta quando o livro ainda não tem avaliação — e é o caso de todo livro
@@ -256,6 +267,8 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         subtitulo: livros.subtitulo,
         autor: autor.nome,
         narrador: narrador.nome,
+        autores: livros.autores,
+        narradores: livros.narradores,
         capa: livros.capa,
         genero: generos.rotulo,
         quantasNotas: notasPorLivro.quantas,
@@ -297,6 +310,10 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         subtitle: l.subtitulo ?? undefined,
         author: l.autor,
         narrator: l.narrador,
+        // O banco guarda a lista como texto separado por `" & "` (§4.154) —
+        // um lugar só decide o separador, e é o importador.
+        ...(l.autores ? { authors: l.autores.split(" & ") } : {}),
+        ...(l.narradores ? { narrators: l.narradores.split(" & ") } : {}),
         // A capa vem como NOME de arquivo no banco (`7.jpg`); quem monta o
         // endereço é aqui, para o cliente não precisar saber onde ela mora.
         cover: l.capa ? `/capas/${l.capa}` : null,

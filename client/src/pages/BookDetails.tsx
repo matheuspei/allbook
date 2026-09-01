@@ -18,6 +18,8 @@ import {
   notaNarracao,
   livroPorId,
   representanteDe,
+  autoresDe,
+  narradoresDe,
 } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { anoDaNarracao, anoDaObra } from "@/lib/anos";
@@ -95,7 +97,8 @@ function PessoaDoLivro({
   nome,
   testid,
 }: {
-  papel: string;
+  /** Falta na segunda pessoa em diante — o rótulo já está na linha de cima. */
+  papel?: string;
   nome: string;
   testid: string;
 }) {
@@ -106,7 +109,9 @@ function PessoaDoLivro({
     <>
       <PersonAvatar name={nome} photo={pessoa?.photo} size="sm" />
       <span className="min-w-0 flex-1">
-        <span className="block text-[10px] uppercase tracking-widest text-white/40">{papel}</span>
+        {papel && (
+          <span className="block text-[10px] uppercase tracking-widest text-white/40">{papel}</span>
+        )}
         <span className="block truncate text-sm font-semibold text-white" data-testid={testid}>
           {nome}
         </span>
@@ -304,6 +309,13 @@ function buildFromCatalog(id: string) {
     subtitle: entry.subtitle,
     author: entry.author,
     narrator: entry.narrator,
+    // ⚠️ **As listas também têm de ser copiadas uma a uma** (01/09, §4.154), e
+    // esquecê-las não dá erro de tipo: `autoresDe()` cai no `author` sozinho e
+    // a ficha volta a mostrar só o primeiro nome, calada. Foi exatamente o que
+    // aconteceu na primeira tentativa — a mesma armadilha dos dois anos, aqui
+    // embaixo.
+    authors: entry.authors,
+    narrators: entry.narrators,
     cover: entry.cover,
     rating: entry.rating,
     genre: entry.genre,
@@ -669,8 +681,35 @@ export default function BookDetails({ params }: { params: { id: string } }) {
           ROTEIRO 4.30). O seletor vem logo abaixo e só existe quando há escolha.
         */}
         <div className="grid gap-2 py-2">
-          <PessoaDoLivro papel="Escrito por" nome={book.author} testid="text-author" />
-          <PessoaDoLivro papel="Narrado por" nome={narracao.name} testid="text-narrator" />
+          {/*
+            🚨 **Uma linha por pessoa** (01/09, §4.154). 1.213 livros têm mais de
+            um autor e 1.110 mais de um narrador, e a ficha mostrava só o
+            primeiro: *Aventuras do Príncipe* dizia "Paola Molinari" e sumia com
+            o Clayton Heringer e o Juscelino Filho.
+
+            ⚠️ **Os co-narradores só aparecem quando a narração escolhida é a
+            DESTE livro.** Trocando de voz no seletor, quem narra é outra
+            gravação — listar os companheiros desta ao lado do nome daquela
+            juntaria elencos de gravações diferentes.
+          */}
+          {autoresDe(book).map((nome, i) => (
+            <PessoaDoLivro
+              key={nome}
+              papel={i === 0 ? "Escrito por" : undefined}
+              nome={nome}
+              testid={i === 0 ? "text-author" : `text-author-${i}`}
+            />
+          ))}
+          {(narracao.name === book.narrator ? narradoresDe(book) : [narracao.name]).map(
+            (nome, i) => (
+              <PessoaDoLivro
+                key={nome}
+                papel={i === 0 ? "Narrado por" : undefined}
+                nome={nome}
+                testid={i === 0 ? "text-narrator" : `text-narrator-${i}`}
+              />
+            ),
+          )}
           <SeletorDeNarracao book={{ id: book.id, narrator: book.narrator }} />
           <EditoraDoLivro bookId={Number(params.id)} />
           <EstudioDoLivro narrador={narracao.name} />

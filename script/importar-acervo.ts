@@ -161,56 +161,130 @@ function slugify(texto: string): string {
 }
 
 /**
- * O primeiro nome de uma lista separada por `" & "`.
- *
- * ⚠️ **O AllBook guarda UM autor e UM narrador por livro**, e o acervo entrega
- * listas. Ficar com o primeiro é perda de informação conhecida — está anotado no
- * ROTEIRO como dívida. O lugar certo para os demais é a tabela `narracoes`, que
- * a janela B vai ligar; até lá, inventar um esquema paralelo aqui seria criar a
- * segunda fonte de verdade que este trabalho todo está desfazendo.
- */
-function primeiroNome(lista: string | null): string | null {
-  if (!lista) return null;
-  const nome = lista.split(/\s*&\s*/)[0]?.trim();
-  return nome && nome.length > 1 ? nome : null;
-}
-
-/**
  * Palavras que, sozinhas depois de um " e ", denunciam que ali começou **outro
  * crédito** e não o resto do mesmo nome.
  */
 const DEPOIS_DO_E = new Set(["outros", "outro", "outras", "ubook"]);
 
 /**
- * O primeiro nome de uma lista como o **`_ficha.json` a escreve** (01/09,
- * §4.153).
+ * 🚨 **Cada loja escreve a lista de um jeito** (apurado em 01/09, §4.154, sobre
+ * os 15.157 títulos do acervo — não é palpite):
  *
- * 🚨 **Não dá para reusar `primeiroNome`**: o `catalogo.sqlite` separa por
- * `" & "` e a ficha separa por vírgula ou pela palavra "e" —
- * *"Pablo Coitino, Matheus Fernandes e outros"*, *"The Guardian e Ubook"*.
+ * | loja | vírgula | `" & "` |
+ * |---|---|---|
+ * | audible | **lista** (340 autores, 194 narradores) | quase nunca (1) |
+ * | tocalivros | **lista** (237 e 247) | quase nunca (1) |
+ * | ubook (só a ficha) | **lista** | não usa |
+ * | **storytel** | 🚨 **INVERSÃO, não lista** — *"Poe, Edgar Allan"*, *"Wattles, Wallace D."*, *"de Assis, Machado"* (18 e 1) | **lista** (267 e 338) |
  *
- * ⚠️ **O " e " só corta quando o que vem depois é claramente outro crédito**, e
- * a razão tem nome: *"João Victor Mendes de Gomes e Mendonça"* é **uma pessoa
- * só**. Cortar em todo " e " a decapitaria sem erro nenhum. Por isso a régua é
- * o que sobra: duas palavras ou mais é outro autor ("Eliana Sá"), uma palavra
- * só não é — a não ser que esteja em `DEPOIS_DO_E`.
- *
- * ⚠️ **O `\s+` colapsado não é capricho:** a ficha do Ubook traz
- * *"Ap.  Miguel Ângelo"* com dois espaços em 142 livros e *"Ap. Miguel Ângelo"*
- * com um em 139. São a mesma pessoa, e o nome de tela sairia dobrado.
+ * ⚠️ **É por isso que a vírgula não pode ser separador universal.** Cortar
+ * *"Poe, Edgar Allan"* em dois criaria as pessoas "Poe" e "Edgar Allan" — e o
+ * livro sairia do perfil do Edgar Allan Poe sem erro nenhum. A régua é a loja,
+ * porque a convenção é dela.
  */
-function primeiroDaFicha(bruto: string | null | undefined): string | null {
-  const limpo = (bruto ?? "").replace(/\s+/g, " ").trim();
-  if (limpo.length < 2) return null;
+const LOJA_USA_VIRGULA_COMO_LISTA = (loja: string) => loja !== "storytel";
 
-  const primeiro = limpo.split(/\s*[,;&]\s*/)[0]?.trim() ?? "";
-  const corte = primeiro.match(/^(.+?)\s+e\s+(.+)$/);
-  if (corte) {
-    const resto = corte[2].trim();
-    const outroCredito = DEPOIS_DO_E.has(resto.toLowerCase()) || resto.split(" ").length >= 2;
-    if (outroCredito) return corte[1].trim() || null;
+/**
+ * Papéis que a loja pendura no nome com `" - "`, e que **não são** o autor nem
+ * o narrador: *"Pepita de Leão - tradutor"*, *"Editora Pausa - editor"*. São
+ * ~380 créditos no acervo; entrar na lista poria o tradutor como co-autor.
+ */
+const OUTRO_PAPEL = new Set([
+  "tradutor",
+  "tradutora",
+  "translator",
+  "tradução",
+  "traducao",
+  "übersetzer",
+  "ubersetzer",
+  "organização",
+  "organizacao",
+  "organizador",
+  "editor",
+  "editora",
+  "ilustrador",
+  "ilustradora",
+  "contributor",
+  "colaborador",
+]);
+
+/** Palavras que ocupam lugar de nome sem nomear ninguém, dentro de uma lista. */
+const NAO_NOMEIA_NINGUEM = new Set([
+  "elenco",
+  "convidados",
+  "convidado",
+  "outros",
+  "outras",
+  "e outros",
+]);
+
+/**
+ * Parte um campo de créditos na **lista de nomes**, na ordem da fonte.
+ *
+ * ⚠️ **O " e " só corta quando o que sobra é claramente outro crédito** (duas
+ * palavras, ou uma das de `DEPOIS_DO_E`). *"João Victor Mendes de Gomes e
+ * Mendonça"* é **uma pessoa só**, e cortar em todo " e " a decapitaria sem erro
+ * nenhum.
+ *
+ * ⚠️ **`\s+` colapsado antes de tudo:** a ficha do Ubook traz *"Ap.  Miguel
+ * Ângelo"* em 142 livros e *"Ap. Miguel Ângelo"* em 139 — a mesma pessoa.
+ */
+function partirCreditos(bruto: string | null | undefined, loja: string): string[] {
+  const limpo = (bruto ?? "").replace(/\s+/g, " ").trim();
+  if (limpo.length < 2) return [];
+
+  const separador = LOJA_USA_VIRGULA_COMO_LISTA(loja) ? /\s*[,;&]\s*/ : /\s*[;&]\s*/;
+  const nomes: string[] = [];
+  for (const pedaco of limpo.split(separador)) {
+    // O " e " pode aparecer no meio de qualquer pedaço: "A, B e C".
+    let resto = pedaco.trim();
+    while (resto) {
+      const corte = resto.match(/^(.+?)\s+e\s+(.+)$/);
+      if (!corte) break;
+      const cauda = corte[2].trim();
+      const outroCredito = DEPOIS_DO_E.has(cauda.toLowerCase()) || cauda.split(" ").length >= 2;
+      if (!outroCredito) break;
+      if (corte[1].trim().length > 1) nomes.push(corte[1].trim());
+      resto = cauda;
+    }
+    if (resto.length > 1) nomes.push(resto);
   }
-  return primeiro.length > 1 ? primeiro : null;
+  return nomes;
+}
+
+/**
+ * A lista de créditos de um livro, já limpa (01/09, §4.154).
+ *
+ * O `catalogo.sqlite` manda; a ficha do "pronto" é reserva — a mesma régua da
+ * §4.153, porque o sqlite é a varredura da loja e cobre 8.979 livros das outras
+ * três, enquanto o Ubook chega vazio ali e cheio na ficha.
+ *
+ * Saem da lista: quem não identifica ninguém (`nomeUtil`), quem está lá em
+ * **outro papel** (tradutor, editor) e quem é só a palavra "Elenco". Repetido
+ * também sai — a ficha às vezes traz o mesmo nome duas vezes.
+ */
+function creditos(doSqlite: string | null, daFicha: string | null | undefined, loja: string): string[] {
+  const doBanco = partirCreditos(doSqlite, loja);
+  const bruta = doBanco.length > 0 ? doBanco : partirCreditos(daFicha, loja);
+  const vistos = new Set<string>();
+  const limpa: string[] = [];
+  for (const nome of bruta) {
+    const papel = nome.match(/\s+-\s+(.+)$/);
+    if (papel && OUTRO_PAPEL.has(papel[1].trim().toLowerCase())) continue;
+    if (NAO_NOMEIA_NINGUEM.has(nome.toLowerCase())) continue;
+    const util = nomeUtil(nome);
+    if (!util) continue;
+    const chave = slugify(util);
+    if (!chave || vistos.has(chave)) continue;
+    vistos.add(chave);
+    limpa.push(util);
+  }
+  return limpa;
+}
+
+/** A lista como o banco a guarda: `null` quando há um nome só (ou nenhum). */
+function listaParaOBanco(nomes: string[]): string | null {
+  return nomes.length > 1 ? nomes.join(" & ") : null;
 }
 
 /**
@@ -462,18 +536,22 @@ interface TriagemDaFicha {
   /** O nome da editora, como a ficha o traz. `null` quando não há. */
   editora: string | null;
   /**
-   * Autor e narrador **da ficha** — a reserva de quem o `catalogo.sqlite` não
-   * cobre (01/09, §4.153). Ver `pessoasDaFicha` no `importar`.
+   * Os campos AUTOR e NARRADOR da ficha, **crus** — a reserva de quem o
+   * `catalogo.sqlite` não cobre (01/09, §4.153).
+   *
+   * ⚠️ **Vêm inteiros, sem partir.** Quem parte é `creditos()`, porque a régua
+   * depende da loja (§4.154) e um lugar só é o que impede duas regras
+   * diferentes para a mesma vírgula.
    */
-  autor: string | null;
-  narrador: string | null;
+  autorBruto: string | null;
+  narradorBruto: string | null;
 }
 
 const FICHA_VAZIA: TriagemDaFicha = {
   prontoParaEntrar: false,
   editora: null,
-  autor: null,
-  narrador: null,
+  autorBruto: null,
+  narradorBruto: null,
 };
 
 async function triarFicha(loja: string, pasta: string | null): Promise<TriagemDaFicha> {
@@ -487,8 +565,8 @@ async function triarFicha(loja: string, pasta: string | null): Promise<TriagemDa
     return {
       prontoParaEntrar: semVinheta || Boolean(dados?.vinheta),
       editora: nomeDeEditora(dados?.ficha?.EDITORA),
-      autor: primeiroDaFicha(dados?.ficha?.AUTOR),
-      narrador: primeiroDaFicha(dados?.ficha?.NARRADOR),
+      autorBruto: typeof dados?.ficha?.AUTOR === "string" ? dados.ficha.AUTOR : null,
+      narradorBruto: typeof dados?.ficha?.NARRADOR === "string" ? dados.ficha.NARRADOR : null,
     };
   } catch {
     /* ficha ilegível: não entra, e não tem nada para dar */
@@ -542,18 +620,22 @@ async function importar(limite: number | null) {
     const chave = `${linha.loja}/${linha.loja_id}`;
     const nome = triagem.editora ?? nomeDeEditora(linha.editora);
     if (nome) editoraDaLinha.set(chave, nome);
-    if (triagem.autor || triagem.narrador) {
-      pessoasDaFicha.set(chave, { autor: triagem.autor, narrador: triagem.narrador });
+    if (triagem.autorBruto || triagem.narradorBruto) {
+      pessoasDaFicha.set(chave, { autor: triagem.autorBruto, narrador: triagem.narradorBruto });
     }
   }
 
-  /** O autor e o narrador do livro: o sqlite manda, a ficha completa. */
-  const autorDoLivro = (linha: LinhaDoAcervo) =>
-    nomeUtil(primeiroNome(linha.autores)) ??
-    nomeUtil(pessoasDaFicha.get(`${linha.loja}/${linha.loja_id}`)?.autor ?? null);
-  const narradorDoLivro = (linha: LinhaDoAcervo) =>
-    nomeUtil(primeiroNome(linha.narradores)) ??
-    nomeUtil(pessoasDaFicha.get(`${linha.loja}/${linha.loja_id}`)?.narrador ?? null);
+  /**
+   * Os créditos do livro: o sqlite manda, a ficha completa — e vem a **lista
+   * inteira** (§4.154), não só o primeiro nome.
+   */
+  const creditosDaLinha = (linha: LinhaDoAcervo) => {
+    const ficha = pessoasDaFicha.get(`${linha.loja}/${linha.loja_id}`);
+    return {
+      autores: creditos(linha.autores, ficha?.autor, linha.loja),
+      narradores: creditos(linha.narradores, ficha?.narrador, linha.loja),
+    };
+  };
 
   const aTrabalhar = limite ? prontos.slice(0, limite) : prontos;
   console.log(`  ${prontos.length} prontos · ${barrados} ainda sem vinheta`);
@@ -588,8 +670,9 @@ async function importar(limite: number | null) {
     const genero = generoDaCategoria(linha.categoria);
     generosNovos.set(genero.slug, genero.rotulo);
 
-    for (const nome of [autorDoLivro(linha), narradorDoLivro(linha)]) {
-      if (nome) pessoasNovas.set(slugify(nome), nome);
+    const creditosDele = creditosDaLinha(linha);
+    for (const nome of [...creditosDele.autores, ...creditosDele.narradores]) {
+      pessoasNovas.set(slugify(nome), nome);
     }
 
   }
@@ -675,8 +758,9 @@ async function importar(limite: number | null) {
     const idExistente = jaImportados.get(chave);
     const id = idExistente ?? proximoId++;
 
-    const autor = autorDoLivro(linha);
-    const narrador = narradorDoLivro(linha);
+    const { autores: todosAutores, narradores: todosNarradores } = creditosDaLinha(linha);
+    const autor = todosAutores[0] ?? null;
+    const narrador = todosNarradores[0] ?? null;
     if (!narrador) semNarrador++;
 
     const genero = generoDaCategoria(linha.categoria);
@@ -710,8 +794,12 @@ async function importar(limite: number | null) {
       // cobrindo a capa inteira no billboard (§4.137).
       titulo: linha.titulo!.trim(),
       subtitulo: linha.subtitulo?.trim() || null,
+      // ⚠️ O slug é o **principal** (o primeiro); a lista inteira vai ao lado,
+      // em `autores`/`narradores` (§4.154).
       autorSlug: autor ? slugify(autor) : "autor-desconhecido",
       narradorSlug: narrador ? slugify(narrador) : "narrador-nao-informado",
+      autores: listaParaOBanco(todosAutores),
+      narradores: listaParaOBanco(todosNarradores),
       editoraSlug: editoraDoLivro(chave)?.slug ?? null,
       generoSlug: genero.slug,
       // Sem nota: nenhuma das lojas entrega avaliação (§4.134).
@@ -834,65 +922,134 @@ async function limparEditorasOrfas() {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Preenche autor e narrador **onde eles estão vazios** (01/09, §4.153).
+ * Trocar o slug principal deste livro? **Dois casos, e só estes dois.**
+ *
+ * 1. **O que está lá é a reserva** — `autor-desconhecido` /
+ *    `narrador-nao-informado`. Preencher vazio nunca tira nada de ninguém.
+ * 2. 🚨 **O que está lá é uma LISTA COLADA virando uma pessoa só.** O acervo
+ *    tem 290 "pessoas" com vírgula no nome, e as maiores são listas:
+ *    *"Paola Molinari, Clayton Heringer, Juscelino Filho"* narra 11 livros como
+ *    se fosse **uma** pessoa, com perfil e avatar. Isso entrou porque o
+ *    separador antigo era só `" & "`.
+ *
+ * ⚠️ **Fora esses dois, o nome não se toca** — ele é endereço de perfil e é por
+ * ele que a obra se agrupa.
+ *
+ * ⚠️ **A régua do caso 2 é a mesma `partirCreditos`, com a loja**, e é o que
+ * protege *"Poe, Edgar Allan"*: na Storytel a vírgula é inversão, não lista, e
+ * ali `partirCreditos` devolve **um** nome. Se a régua fosse "tem vírgula", o
+ * Edgar Allan Poe seria partido em dois.
+ */
+function trocarOSlug(
+  slugAtual: string,
+  nomeAtual: string,
+  reserva: string,
+  novos: string[],
+  loja: string,
+): boolean {
+  if (novos.length === 0) return false;
+  if (slugAtual === reserva) return true;
+  if (slugify(novos[0]) === slugAtual) return false;
+  return partirCreditos(nomeAtual, loja).length > 1;
+}
+
+/**
+ * Escreve autor, narrador e a **lista inteira de créditos** de cada livro
+ * (01/09, §§4.153 e 4.154).
  *
  * ## Por que existe
  *
- * 🚨 **4.938 livros do Ubook entraram como "Autor desconhecido" com o nome do
- * autor no disco o tempo todo.** O importador lê autor e narrador do
- * `catalogo.sqlite`, e ali as quatro colunas do Ubook vêm vazias nos 47.153
- * títulos — 100%. O `_ficha.json` de cada pasta traz os dois: 4.944 dos 5.014
- * têm AUTOR, 4.825 têm NARRADOR. É o mesmo defeito da editora (§4.148), no
- * outro campo, e com a mesma lição: **antes de dar um dado por perdido, olhe
- * onde ele está.**
+ * 🚨 **Duas perdas caladas, achadas com um dia de diferença.**
  *
- * ## A régua, e por que ela é estreita
+ * 1. **§4.153** — 4.938 livros do Ubook entraram como "Autor desconhecido" com
+ *    o nome no disco o tempo todo: o importador lia o `catalogo.sqlite`, e ali
+ *    as colunas do Ubook vêm vazias nos 47.153 títulos.
+ * 2. **§4.154** — quem tinha **mais de um** autor ou narrador perdia todos
+ *    menos o primeiro. *"Alessandra Klimiont e João Bidu"* virava só a
+ *    Alessandra, e o Matheus achou pelo ouvido: a voz do horóscopo é de homem.
+ *    São 1.387 livros com mais de um autor e 1.112 com mais de um narrador.
  *
- * ⚠️ **Só escreve sobre o vazio** — `autor-desconhecido` e
- * `narrador-nao-informado`, os dois slugs de reserva. Nome que já está lá veio
- * da varredura da loja e não se toca: sobrescrever 13.917 livros para consertar
- * 5.000 é trocar um problema conhecido por um desconhecido, e mexeria no nome
- * pelo qual o perfil de gente já é endereçado.
+ * ## As duas réguas, e por que são diferentes
  *
- * ⚠️ **Ele não desfaz.** Livro que perdeu o autor na ficha continua com o que
- * tem aqui — ao contrário da editora, que é apagada quando some da ficha. A
- * diferença é o custo do erro: editora errada é uma linha na ficha do livro;
- * autor apagado tira o livro do perfil de quem o escreveu.
+ * ⚠️ **O SLUG só se escreve sobre o vazio.** `autor-desconhecido` e
+ * `narrador-nao-informado` são os dois slugs de reserva; nome que já está lá
+ * veio da varredura da loja e não se toca. Ele é **endereço de perfil** e é por
+ * ele que a obra se agrupa — trocá-lo por conta própria mudaria o que já está
+ * na tela e no que o app guardou.
+ *
+ * ⚠️ **A LISTA se escreve sempre.** Ela é derivada, nasceu vazia em todo mundo
+ * e não endereça nada; recalculá-la a cada passada é o que faz a correção do
+ * baixalivro chegar aqui sem reimportar. Quando há um nome só, ela é `null` — o
+ * `autorSlug` basta.
+ *
+ * ⚠️ **Não desfaz o slug.** Livro que perdeu o autor na ficha continua com o
+ * que tem aqui, ao contrário da editora, que é apagada quando some. Editora
+ * errada é uma linha na ficha; autor apagado tira o livro do perfil de quem o
+ * escreveu.
  */
-async function preencherPessoasVazias(
-  noBanco: Map<string, { id: number; autor: string; narrador: string }>,
-  daFicha: Map<number, { autor: string | null; narrador: string | null }>,
+async function reconciliarCreditos(
+  noBanco: Map<
+    string,
+    {
+      id: number;
+      autor: string;
+      narrador: string;
+      autores: string | null;
+      narradores: string | null;
+      nomeAutor: string;
+      nomeNarrador: string;
+      loja: string;
+    }
+  >,
+  daFonte: Map<number, { autores: string[]; narradores: string[] }>,
 ) {
   const pessoasNovas = new Map<string, string>();
   const autorPorSlug = new Map<string, number[]>();
   const narradorPorSlug = new Map<string, number[]>();
+  const autoresPorLista = new Map<string, number[]>();
+  const narradoresPorLista = new Map<string, number[]>();
+
+  const juntar = (mapa: Map<string, number[]>, chave: string, id: number) =>
+    (mapa.get(chave) ?? mapa.set(chave, []).get(chave)!).push(id);
 
   for (const aqui of noBanco.values()) {
-    const ficha = daFicha.get(aqui.id);
-    if (!ficha) continue;
+    const fonte = daFonte.get(aqui.id);
+    if (!fonte) continue;
 
-    const autor = aqui.autor === "autor-desconhecido" ? nomeUtil(ficha.autor) : null;
-    if (autor) {
-      const slug = slugify(autor);
-      pessoasNovas.set(slug, autor);
-      (autorPorSlug.get(slug) ?? autorPorSlug.set(slug, []).get(slug)!).push(aqui.id);
+    for (const nome of [...fonte.autores, ...fonte.narradores]) {
+      pessoasNovas.set(slugify(nome), nome);
     }
 
-    const narrador = aqui.narrador === "narrador-nao-informado" ? nomeUtil(ficha.narrador) : null;
-    if (narrador) {
-      const slug = slugify(narrador);
-      pessoasNovas.set(slug, narrador);
-      (narradorPorSlug.get(slug) ?? narradorPorSlug.set(slug, []).get(slug)!).push(aqui.id);
+    /* --- o slug principal: reserva, ou lista colada num nome só --- */
+    if (trocarOSlug(aqui.autor, aqui.nomeAutor, "autor-desconhecido", fonte.autores, aqui.loja)) {
+      juntar(autorPorSlug, slugify(fonte.autores[0]), aqui.id);
     }
+    if (
+      trocarOSlug(
+        aqui.narrador,
+        aqui.nomeNarrador,
+        "narrador-nao-informado",
+        fonte.narradores,
+        aqui.loja,
+      )
+    ) {
+      juntar(narradorPorSlug, slugify(fonte.narradores[0]), aqui.id);
+    }
+
+    /* --- a lista: sempre, e agrupada pelo texto para caber em poucos UPDATE --- */
+    const listaA = listaParaOBanco(fonte.autores);
+    if (listaA !== aqui.autores) juntar(autoresPorLista, listaA ?? "", aqui.id);
+    const listaN = listaParaOBanco(fonte.narradores);
+    if (listaN !== aqui.narradores) juntar(narradoresPorLista, listaN ?? "", aqui.id);
   }
 
-  if (pessoasNovas.size === 0) return;
-
   // As pessoas primeiro: os livros as referenciam por chave estrangeira.
-  await db
-    .insert(pessoas)
-    .values([...pessoasNovas].map(([slug, nome]) => ({ slug, nome })))
-    .onConflictDoNothing();
+  if (pessoasNovas.size > 0) {
+    await db
+      .insert(pessoas)
+      .values([...pessoasNovas].map(([slug, nome]) => ({ slug, nome })))
+      .onConflictDoNothing();
+  }
 
   let comAutor = 0;
   for (const [slug, ids] of autorPorSlug) {
@@ -905,10 +1062,22 @@ async function preencherPessoasVazias(
     comNarrador += ids.length;
   }
 
-  console.log(`\n  Pessoas (§4.153)`);
-  console.log(`    ${comAutor} livros ganharam autor, vindo do _ficha.json`);
-  console.log(`    ${comNarrador} ganharam narrador`);
-  console.log(`    ${pessoasNovas.size} nomes distintos envolvidos`);
+  let listasA = 0;
+  for (const [lista, ids] of autoresPorLista) {
+    await db.update(livros).set({ autores: lista || null }).where(inArray(livros.id, ids));
+    if (lista) listasA += ids.length;
+  }
+  let listasN = 0;
+  for (const [lista, ids] of narradoresPorLista) {
+    await db.update(livros).set({ narradores: lista || null }).where(inArray(livros.id, ids));
+    if (lista) listasN += ids.length;
+  }
+
+  if (comAutor + comNarrador + autoresPorLista.size + narradoresPorLista.size === 0) return;
+  console.log(`\n  Pessoas (§§4.153 e 4.154)`);
+  if (comAutor) console.log(`    ${comAutor} livros ganharam autor, vindo do _ficha.json`);
+  if (comNarrador) console.log(`    ${comNarrador} ganharam narrador`);
+  console.log(`    ${listasA} livros com mais de um autor · ${listasN} com mais de um narrador`);
 }
 
 /**
@@ -946,7 +1115,27 @@ async function reconciliarFichas() {
   console.log(`\n  ${linhas.length} no acervo — lendo a editora e as pessoas de cada ficha…`);
 
   /* O que o AllBook tem hoje, de cada livro vindo de loja. */
-  const noBanco = new Map<string, { id: number; editora: string | null; autor: string; narrador: string }>();
+  const noBanco = new Map<
+    string,
+    {
+      id: number;
+      editora: string | null;
+      autor: string;
+      narrador: string;
+      autores: string | null;
+      narradores: string | null;
+      /** Como o nome está escrito hoje — para achar lista colada num nome só. */
+      nomeAutor: string;
+      nomeNarrador: string;
+      loja: string;
+    }
+  >();
+  const nomeDaPessoa = new Map(
+    (await db.select({ slug: pessoas.slug, nome: pessoas.nome }).from(pessoas)).map((p) => [
+      p.slug,
+      p.nome,
+    ]),
+  );
   for (const l of await db
     .select({
       id: livros.id,
@@ -955,6 +1144,8 @@ async function reconciliarFichas() {
       editora: livros.editoraSlug,
       autor: livros.autorSlug,
       narrador: livros.narradorSlug,
+      autores: livros.autores,
+      narradores: livros.narradores,
     })
     .from(livros)
     .where(isNotNull(livros.origemLoja))) {
@@ -963,13 +1154,18 @@ async function reconciliarFichas() {
       editora: l.editora,
       autor: l.autor,
       narrador: l.narrador,
+      autores: l.autores,
+      narradores: l.narradores,
+      nomeAutor: nomeDaPessoa.get(l.autor) ?? "",
+      nomeNarrador: nomeDaPessoa.get(l.narrador) ?? "",
+      loja: l.loja ?? "",
     });
   }
 
   /* O que as fichas dizem agora. Só interessa livro que já entrou: reconciliar
      não é importar — quem ainda não está aqui entra pelo `importar`. */
   const nomePorLivro = new Map<number, string>();
-  const pessoaPorLivro = new Map<number, { autor: string | null; narrador: string | null }>();
+  const creditosPorLivro = new Map<number, { autores: string[]; narradores: string[] }>();
   let semFicha = 0;
   for (const linha of linhas) {
     const aqui = noBanco.get(`${linha.loja}/${linha.loja_id}`);
@@ -978,15 +1174,14 @@ async function reconciliarFichas() {
     const nome = triagem.editora ?? nomeDeEditora(linha.editora);
     if (nome) nomePorLivro.set(aqui.id, nome);
     else semFicha++;
-    /* A ficha só completa o que o `catalogo.sqlite` deixou vazio — a mesma
-       reserva do `importar`. Aqui a régua é o que está no banco: ver
-       `preencherPessoasVazias`. */
-    if (triagem.autor || triagem.narrador) {
-      pessoaPorLivro.set(aqui.id, { autor: triagem.autor, narrador: triagem.narrador });
-    }
+    /* O sqlite manda e a ficha completa — a mesma reserva do `importar`. */
+    creditosPorLivro.set(aqui.id, {
+      autores: creditos(linha.autores, triagem.autorBruto, linha.loja),
+      narradores: creditos(linha.narradores, triagem.narradorBruto, linha.loja),
+    });
   }
 
-  await preencherPessoasVazias(noBanco, pessoaPorLivro);
+  await reconciliarCreditos(noBanco, creditosPorLivro);
 
   /* 🚨 Aqui `jaNoBanco` vem CHEIO, ao contrário da importação: slug em uso não
      se troca (é endereço de perfil e é por ele que o app guarda quem a pessoa

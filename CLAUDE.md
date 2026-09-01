@@ -248,6 +248,28 @@ informado" numa tela, abra a ficha.
 - ⚠️ **Colapse `\s+` antes de comparar nome:** *"Ap.  Miguel Ângelo"* (142
   livros) e *"Ap. Miguel Ângelo"* (139) são a mesma pessoa.
 
+### Um livro pode ter VÁRIOS autores e vários narradores (01/09, §4.154)
+
+🚨 **`book.author` é o PRIMEIRO da lista, não "o autor".** Tela de crédito usa
+**`autoresDe(book)` e `narradoresDe(book)`** (`lib/books.ts`), que devolvem a
+lista inteira. São **1.213 livros com mais de um autor e 1.110 com mais de um
+narrador**; a ficha mostrava só o primeiro, e o Matheus achou pelo ouvido — um
+horóscopo do João Bidu dizia "narrado por Alessandra Klimiont" quando a ficha do
+acervo diz *"Alessandra Klimiont e João Bidu"*.
+
+- O banco guarda `livros.autores` / `livros.narradores` (texto separado por
+  `" & "`), **só quando há mais de um nome**; `autorSlug` continua sendo o
+  principal — é o índice, o endereço do perfil e o que agrupa a obra.
+- 🚨 **A vírgula significa coisas diferentes em cada loja**, apurado nos 15.157
+  títulos: em audible, tocalivros e ubook é **lista**; na **storytel é
+  INVERSÃO** (*"Poe, Edgar Allan"*). Quem sabe disso é `partirCreditos()` em
+  `script/importar-acervo.ts`, e é o único lugar que parte nome.
+- ⚠️ **Nome já gravado não se troca** — só se for a reserva
+  (`autor-desconhecido`) ou uma lista colada numa pessoa só (eram 290).
+- 🚨 **`buildFromCatalog` no `BookDetails.tsx` monta a ficha campo a campo**:
+  campo novo que não for copiado ali **some da tela sem erro de tipo**. Já
+  aconteceu três vezes (anos §4.149, e agora as duas listas).
+
 ### Os carimbos que ligam o acervo ao app (30/08, §4.138)
 
 O acervo do `baixalivro` continua sendo corrigido (fichas, anos, vinhetas)
