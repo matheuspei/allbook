@@ -8150,3 +8150,70 @@ sorteados, um a um: são todos o mesmo livro.
 escrito de formas incompatíveis ("Editora Online" no lugar do autor), nem títulos
 diferentes da mesma obra ("O Príncipe" × "El Príncipe"). O conserto desses casos
 é na **importação**, com o dado da ficha — não em mais heurística de tela.
+
+## 4.152 Apagar o nome errado era jogar fora o nome certo (01/09)
+
+**Rejeitado: a proposta da §4.150 de simplesmente esvaziar o campo.** Eu tinha
+levado ao Matheus uma folha propondo *apagar* o nome da editora que ocupa o
+campo do autor — "Cresça Brasil Editora S.A." em 160 livros, "LIBROTEKA" em 93 —
+deixando "não informado" no lugar. Ele derrubou em uma linha: abriu o site da
+própria Cresça Brasil e achou o autor do primeiro exemplo da folha.
+[*ADI — Agente de Desenvolvimento Infantil*](https://www.crescabrasil.com.br/categoria/standard/5187)
+é **de Sineide Maria Silva**, escrito na página, a um clique. *"É um erro seu não
+ter ido buscar essas coisas individualmente."*
+
+🚨 **A regra que fica: antes de apagar um dado ruim, procure o dado bom.** Campo
+errado e campo vazio parecem iguais na tela, mas não são: o errado ao menos diz
+onde procurar. Apagar é a única operação que fecha a porta.
+
+### O que a busca acha, e o que não acha
+
+- **O site da editora** — a Cresça Brasil publica ficha de 840 cursos, com autor,
+  numa API pública (`apiconsumer.edtech.com.br/.../Course/CourseList`, grupos 1,
+  4, 38, 41, 54). Dos 160 livros dela, **50 ainda estão no site e 21 trazem nome
+  de pessoa**; 29 creditam outra organização e 105 saíram do ar. Baixar e cruzar
+  por título aproximado leva segundos — não precisa de agente nenhum.
+- 🚨 **O próprio acervo é fonte melhor que a internet.** A mesma obra chega
+  várias vezes e quase sempre alguma gravação tem o autor certo: o *Pequeno
+  Príncipe* da Editora Online está sem autor, e **oito gravações irmãs** dizem
+  Antoine de Saint-Exupéry. Vale para 1.242 livros.
+- **Às vezes não há autor**, e aí o vazio é a resposta certa: *Coleção Sons
+  Relaxantes — sons de córrego* é gravação de som ambiente; a LIBROTEKA assina
+  as compilações com o nome da casa e nada mais.
+
+### O tamanho real do buraco (medido em 01/09)
+
+| defeito | livros |
+|---|---|
+| autor = "Autor desconhecido" | **5.014** (4.938 do Ubook) |
+| narrador = "Narrador não informado" | **5.016** |
+| autor = nome da editora | 819 |
+| narrador = nome da editora | 373 |
+
+**36% do acervo não tem autor** — o problema que o Matheus viu (editora no lugar
+de gente) é o *menor* dos dois, e o mesmo conserto serve para os dois.
+
+### Por que continua sem virar regra automática
+
+Rodei a herança de autor no acervo inteiro só para **achar onde ela erra**, e ela
+erra em título genérico: *Inteligência emocional* (curso da Cresça Brasil) casaria
+com outro livro homônimo e ganharia **Gilclér Regina** como autor. Daí a trava:
+título curto e genérico não herda. E o caso que já tinha derrubado a regra
+estrutural continua de pé — **Blake Pierce e LIBROTEKA são idênticos dentro do
+banco** (autor = editora nos dois); só o nome os separa, e quem separa nome é
+gente.
+
+⚠️ **Sendo justo com a §4.151:** para 1.157 dos livros sem autor a vitrine **já
+se vira** — o agrupamento por obra encosta o órfão na obra certa. O que continua
+quebrado é o resto, e é o que justifica mexer no dado: o **perfil do autor não
+lista** esses livros, a busca por autor não os acha, e 92 livros com editora no
+campo do autor viram **cartão repetido na vitrine** (o *Pequeno Príncipe* da
+Editora Online aparece à parte porque, com "Editora Online" no campo, ele não
+entra no grupo).
+
+**Onde a correção mora:** arquivo no código, uma linha por livro, **com a fonte
+junto** (endereço da página, ou os ids das gravações irmãs que concordaram),
+aplicado por leitura sobre o banco — mesmo padrão de `LOJAS_FORA_DA_VITRINE`
+(§4.145). Reimportar o acervo não atropela, e apagar a linha desfaz.
+
+A folha de decisão é `client/public/_autor-que-falta-A.html`.
