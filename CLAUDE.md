@@ -277,6 +277,29 @@ acervo diz *"Alessandra Klimiont e João Bidu"*.
   campo novo que não for copiado ali **some da tela sem erro de tipo**. Já
   aconteceu três vezes (anos §4.149, e agora as duas listas).
 
+### Um livro pode estar em VÁRIOS gêneros (01/09, §4.157)
+
+🚨 **`book.genre` é o TOPO, não "o gênero".** Quem filtra prateleira usa
+**`generosDe(book)`** e `getBooksByGenre()` (`lib/books.ts`), que já contam os
+secundários. A ficha do acervo traz uma **trilha** (*"Religião > Cristianismo"*)
+em **9.158 dos 13.917 livros**, e o AllBook guardava só o topo.
+
+🚨 **É a trilha que costura as lojas.** Os topos discordam — "Religião" (Ubook),
+"Religião & Espiritualidade" (Storytel), "Religião e Espiritualidade" (as outras
+duas) —, mas **"Cristianismo" é o mesmo nas três** e virou o maior gênero do
+app, com 1.497 livros. Ideia do Matheus.
+
+- O banco guarda `livros.generos` (rótulos separados por `" & "`, do mais geral
+  ao mais específico), só quando há mais de um; `genero_slug` é o topo.
+- ⚠️ **Corte de 50 livros** (`MINIMO_DE_LIVROS_NO_GENERO`) para um rótulo virar
+  card: são 792 rótulos distintos no acervo.
+- 🚨 **`NAO_E_GENERO`**: *"Livros"* é a raiz da árvore do Tocalivros (1.477
+  livros) e *"Geral"* é a ausência de sub-gênero — nenhum dos dois é prateleira.
+- 🚨 **Um rótulo por slug, e o do banco vence** — "Religião e espiritualidade" e
+  "Religião e Espiritualidade" viraram dois cards na primeira tentativa.
+- ⚠️ **`server/catalogo.ts` não filtra mais gênero por `exists` no
+  `genero_slug`**: "Cristianismo" não é principal de livro nenhum e sumiria.
+
 ### Os carimbos que ligam o acervo ao app (30/08, §4.138)
 
 O acervo do `baixalivro` continua sendo corrigido (fichas, anos, vinhetas)

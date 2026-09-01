@@ -106,6 +106,11 @@ export interface LivroDoCatalogo {
   author: string;
   narrator: string;
   /**
+   * **Todos** os gêneros do livro, do mais geral ao mais específico (§4.157).
+   * Só vem quando há mais de um; nos outros vale o `genre`.
+   */
+  genres?: string[];
+  /**
    * **Todos** os autores e narradores, na ordem da fonte (01/09, §4.154).
    *
    * ⚠️ **Só vêm quando há mais de um** — 1.213 livros têm mais de um autor e
@@ -228,24 +233,19 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
   const visivel = livroVisivel();
 
   const [linhasDeGenero, linhasDeEditora, linhasDeLivro] = await Promise.all([
-    /* Só gênero que tenha ao menos um livro visível.
+    /* Todos os gêneros; quem não tiver livro visível é cortado depois, em JS.
      *
-     * A Descobrir monta um card por gênero desta lista, e gênero sem livro vira
-     * card que abre numa grade vazia. Isso já valia para 6 gêneros restados das
-     * maquetes; esconder a Audible criaria mais 22, porque as categorias dela
-     * (`Ciência e Engenharia`, `Erótica`…) não aparecem em nenhuma outra loja. */
-    db
-      .select()
-      .from(generos)
-      .where(
-        exists(
-          db
-            .select({ um: sql`1` })
-            .from(livros)
-            .where(and(eq(livros.generoSlug, generos.slug), visivel)),
-        ),
-      )
-      .orderBy(asc(generos.ordem)),
+     * ⚠️ **Deixou de ser um `exists` no `genero_slug`** (01/09, §4.157): desde
+     * que um livro pode estar em vários gêneros, "Cristianismo" existe só
+     * dentro de `livros.generos` e **nenhum livro o tem como principal** — o
+     * `exists` o esconderia, e ele tem 1.534 livros. O corte agora é feito
+     * contra os rótulos que os livros da resposta realmente carregam.
+     *
+     * A regra em si não mudou e vale pelo mesmo motivo: a Descobrir monta um
+     * card por gênero desta lista, e gênero sem livro vira card que abre numa
+     * grade vazia — eram 6 restados das maquetes, e esconder a Audible criaria
+     * mais 22, porque as categorias dela não aparecem em nenhuma outra loja. */
+    db.select().from(generos).orderBy(asc(generos.ordem)),
     /* Só editora que tenha ao menos um livro visível — a mesma regra dos
        gêneros logo acima, e pelo mesmo motivo: perfil que abre vazio. */
     db
@@ -269,6 +269,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         narrador: narrador.nome,
         autores: livros.autores,
         narradores: livros.narradores,
+        generosDoLivro: livros.generos,
         capa: livros.capa,
         genero: generos.rotulo,
         quantasNotas: notasPorLivro.quantas,
@@ -293,12 +294,22 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
       .orderBy(asc(livros.id)),
   ]);
 
+  /* Os rótulos que os livros visíveis realmente carregam — o principal e os da
+     lista. É contra este conjunto que os gêneros são filtrados. */
+  const rotulosEmUso = new Set<string>();
+  for (const l of linhasDeLivro) {
+    rotulosEmUso.add(l.genero);
+    if (l.generosDoLivro) for (const r of l.generosDoLivro.split(" & ")) rotulosEmUso.add(r);
+  }
+
   return {
-    generos: linhasDeGenero.map((g) => ({
-      label: g.rotulo,
-      slug: g.slug,
-      gradient: g.gradiente,
-    })),
+    generos: linhasDeGenero
+      .filter((g) => rotulosEmUso.has(g.rotulo))
+      .map((g) => ({
+        label: g.rotulo,
+        slug: g.slug,
+        gradient: g.gradiente,
+      })),
     editoras: linhasDeEditora.map((e) => ({ slug: e.slug, label: e.nome })),
     // Os `?? undefined` não são enfeite: `JSON.stringify` **omite** `undefined` e
     // **mantém** `null`. Campo que falta some da resposta em vez de chegar como
@@ -314,6 +325,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         // um lugar só decide o separador, e é o importador.
         ...(l.autores ? { authors: l.autores.split(" & ") } : {}),
         ...(l.narradores ? { narrators: l.narradores.split(" & ") } : {}),
+        ...(l.generosDoLivro ? { genres: l.generosDoLivro.split(" & ") } : {}),
         // A capa vem como NOME de arquivo no banco (`7.jpg`); quem monta o
         // endereço é aqui, para o cliente não precisar saber onde ela mora.
         cover: l.capa ? `/capas/${l.capa}` : null,

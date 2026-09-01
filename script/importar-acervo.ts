@@ -308,6 +308,63 @@ function nomeUtil(nome: string | null): string | null {
   return NARRADOR_DESCONHECIDO.includes(nome.toLowerCase()) ? null : nome;
 }
 
+/**
+ * Rótulos que a loja usa como **raiz da árvore ou etiqueta comercial**, e que
+ * não dizem nada sobre o livro (01/09, §4.157).
+ *
+ * 🚨 *"Livros"* é a raiz da árvore do Tocalivros e apareceu em **1.477
+ * livros** — viraria o segundo maior "gênero" da Descobrir, à frente de
+ * Ficção. *"Geral"* é a ausência de sub-gênero, não um sub-gênero. Mesma razão
+ * de `NAO_E_EDITORA` em `script/editoras.ts`: a ausência da coisa não é a
+ * coisa.
+ */
+const NAO_E_GENERO = new Set([
+  "livros",
+  "livro",
+  "livros gratis",
+  "audiolivros",
+  "audiolivro",
+  "ebooks",
+  "ebook",
+  "geral",
+  "outros",
+  "diversos",
+  "varios",
+  "sem categoria",
+  "todos",
+]);
+
+/**
+ * Os rótulos de gênero de uma ficha, do mais geral ao mais específico, sem
+ * repetir (01/09, §4.157).
+ *
+ * As quatro fontes da ficha dizem a mesma coisa com recortes diferentes —
+ * `CATEGORIA_ORIGEM` costuma ser o topo, `categoria_trilha` traz o caminho
+ * inteiro (*"Esoterismo > Horóscopos"*). Juntar as quatro e quebrar no `">"`
+ * dá a lista completa; a ordem preserva a hierarquia da primeira que aparecer.
+ *
+ * ⚠️ **A ordem importa**: o primeiro é o que vira `generoSlug` (o topo), e é
+ * ele que endereça a grade de gênero.
+ */
+function trilhaDeGeneros(fontes: unknown[]): string[] {
+  const vistos = new Set<string>();
+  const lista: string[] = [];
+  for (const fonte of fontes) {
+    const bruto = texto(fonte);
+    if (!bruto) continue;
+    for (const parte of bruto.split(">")) {
+      const rotulo = parte.trim();
+      if (rotulo.length < 2) continue;
+      const chave = slugify(rotulo);
+      if (!chave || chave === SEM_GENERO.slug || vistos.has(chave)) continue;
+      if (NAO_E_GENERO.has(chave.replace(/-/g, " "))) continue;
+      vistos.add(chave);
+      lista.push(rotulo);
+    }
+  }
+  return lista;
+}
+
 /** "Audiolivros Infantis > Ação e Aventura" → "Audiolivros Infantis". */
 function generoDaCategoria(categoria: string | null): { slug: string; rotulo: string } {
   const topo = (categoria ?? "").split(">")[0]?.trim();
@@ -558,6 +615,11 @@ interface TriagemDaFicha {
    */
   titulo: string | null;
   categoria: string | null;
+  /**
+   * **Todos** os rótulos de gênero da ficha, do mais geral ao mais específico,
+   * já quebrados no `">"` (01/09, §4.157). Ver `reconciliarTituloEGenero`.
+   */
+  categorias: string[];
 }
 
 const FICHA_VAZIA: TriagemDaFicha = {
@@ -567,6 +629,7 @@ const FICHA_VAZIA: TriagemDaFicha = {
   narradorBruto: null,
   titulo: null,
   categoria: null,
+  categorias: [],
 };
 
 async function triarFicha(loja: string, pasta: string | null): Promise<TriagemDaFicha> {
@@ -590,6 +653,12 @@ async function triarFicha(loja: string, pasta: string | null): Promise<TriagemDa
         texto(dados?.ficha?.CATEGORIA) ??
         texto(dados?.catalogo_cru?.categoria_trilha) ??
         texto(dados?.catalogo_cru?.categoria),
+      categorias: trilhaDeGeneros([
+        dados?.ficha?.CATEGORIA_ORIGEM,
+        dados?.ficha?.CATEGORIA,
+        dados?.catalogo_cru?.categoria_trilha,
+        dados?.catalogo_cru?.categoria,
+      ]),
     };
   } catch {
     /* ficha ilegível: não entra, e não tem nada para dar */
@@ -1104,41 +1173,48 @@ async function reconciliarCreditos(
 }
 
 /**
- * Acerta o **título** e o **gênero** a partir da ficha do "pronto" (01/09,
- * §4.156). Dois defeitos que o Matheus achou e a janela B varreu.
+ * Acerta o **título** e os **gêneros** a partir da ficha do "pronto" (01/09,
+ * §§4.156 e 4.157). Dois defeitos que o Matheus achou e a janela B varreu.
  *
  * ## 1. O título do Ubook chega sem acento e sem pontuação
  *
  * 🚨 O `catalogo.sqlite` guarda *"Refens do odio"*, *"A revolucao do guarda
  * chuva"*, *"Champs elysees das arabias"*. A ficha do "pronto" tem o texto
  * inteiro: *"Reféns do ódio"*, *"A Revolução do guarda-chuva"*,
- * *"Champs-Élysées das Arábias"*. São **4.372 livros**, todos do Ubook.
+ * *"Champs-Élysées das Arábias"*. São **4.393 livros**, quase todos do Ubook.
  *
  * ⚠️ 🚨 **Trocar direto por `ficha.LIVRO` desfaria a §4.138.** Na Audible e na
- * Storytel a ficha traz **título e subtítulo COLADOS** — o banco tem
- * *"Jornada improvável"* com o subtítulo à parte, e a ficha diz *"Jornada
- * improvável: A escola do RenovaBR, a…"*. Copiar isso traria de volta os 3.033
- * títulos gigantes e o billboard com o título cobrindo a capa (§4.137).
+ * Storytel a ficha traz **título e subtítulo COLADOS** — o banco tem *"Jornada
+ * improvável"* com o subtítulo à parte, e a ficha diz *"Jornada improvável: A
+ * escola do RenovaBR, a…"*. Copiar isso traria de volta os 3.033 títulos
+ * gigantes e o billboard com o título cobrindo a capa (§4.137).
  *
- * **A régua, por isso: só troca quando as duas strings são a MESMA frase sem
- * acento e sem pontuação.** Aí é provadamente o mesmo texto com caracteres
- * melhores. Medido: 4.374 trocas seguras, **596 recusadas — todas Audible, e
- * todas o caso do subtítulo colado.**
+ * **A régua: só troca quando as duas strings são a MESMA frase sem acento e sem
+ * pontuação.** Medido antes de escrever: 4.374 trocas seguras, **596 recusadas,
+ * todas Audible, todas o caso do subtítulo.**
  *
- * ## 2. Metade do acervo estava em "Sem gênero"
+ * ## 2. Metade do acervo em "Sem gênero", e a trilha jogada fora
  *
  * 🚨 **8.206 livros** (59%) caíam em `sem-genero` porque o `catalogo.sqlite`
- * manda a coluna `categoria` **vazia em todo o Ubook e todo o Tocalivros**.
- * A ficha tem: **8.204 desses 8.206**. É o mesmo defeito da editora (§4.148) e
- * do autor (§4.153), no terceiro campo — o dado não estava onde a gente olhou.
+ * manda `categoria` **vazia em todo o Ubook e todo o Tocalivros**. A ficha tem
+ * a de 8.204 deles.
  *
- * ⚠️ **Só preenche o vazio**, como todo o resto: gênero que veio da varredura
- * da loja não se toca. E gênero novo nasce com o cinza sóbrio — cor é decisão
- * de desenho, não de importação.
+ * 🚨 **E a ficha traz uma TRILHA, não um rótulo** — *"Religião > Cristianismo"*,
+ * *"Ficção > Terror"*, *"Infantojuvenil > Infantil - 5 a 8 anos"*. **9.158 dos
+ * 13.917 livros (66%)** têm trilha, e o segundo nível ia todo para o lixo.
+ * Guardá-lo é o que **costura as lojas sem ninguém decidir nada**: os topos
+ * discordam ("Religião" no Ubook, "Religião & Espiritualidade" na Storytel,
+ * "Religião e Espiritualidade" nas outras duas), mas **"Cristianismo" é o mesmo
+ * nas três**, com 1.534 livros.
+ *
+ * ⚠️ **O corte de tamanho não é enfeite:** são **792 rótulos distintos** no
+ * acervo. Sem ele a Descobrir viraria uma parede de prateleira com três livros.
  */
+const MINIMO_DE_LIVROS_NO_GENERO = 50;
+
 async function reconciliarTituloEGenero(
-  noBanco: Map<string, { id: number; titulo: string; genero: string }>,
-  daFicha: Map<number, { titulo: string | null; categoria: string | null }>,
+  noBanco: Map<string, { id: number; titulo: string; genero: string; generos: string | null }>,
+  daFicha: Map<number, { titulo: string | null; categorias: string[] }>,
 ) {
   /** A frase sem acento e sem pontuação — a prova de que é o mesmo texto. */
   const mesmaFrase = (a: string, b: string) => {
@@ -1152,8 +1228,46 @@ async function reconciliarTituloEGenero(
     return cru(a) === cru(b);
   };
 
+  /* --- primeira passada: quantos livros cada rótulo tem --------------------
+     O corte precisa do total, e o total só existe depois de ver todo mundo. */
+  const quantos = new Map<string, number>();
+  const variantes = new Map<string, Map<string, number>>();
+  for (const aqui of noBanco.values()) {
+    for (const rotulo of daFicha.get(aqui.id)?.categorias ?? []) {
+      const slug = slugify(rotulo);
+      quantos.set(slug, (quantos.get(slug) ?? 0) + 1);
+      const dele = variantes.get(slug) ?? variantes.set(slug, new Map()).get(slug)!;
+      dele.set(rotulo, (dele.get(rotulo) ?? 0) + 1);
+    }
+  }
+
+  /**
+   * 🚨 **UM rótulo por slug, e o que já está no banco vence.** Sem isto,
+   * *"Religião e espiritualidade"* e *"Religião e Espiritualidade"* — a mesma
+   * prateleira com um "e" maiúsculo de diferença — viravam **dois cards** na
+   * Descobrir, com 610 e 581 livros. A lista guarda o rótulo canônico, não o
+   * que a loja escreveu.
+   */
+  const rotuloDoSlug = new Map(
+    (await db.select({ slug: generos.slug, rotulo: generos.rotulo }).from(generos)).map((g) => [
+      g.slug,
+      g.rotulo,
+    ]),
+  );
+  for (const [slug, dele] of variantes) {
+    if (rotuloDoSlug.has(slug)) continue;
+    // Sem linha no banco ainda: manda a variante mais frequente.
+    const [melhor] = Array.from(dele.entries()).sort(
+      (a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "pt-BR"),
+    );
+    rotuloDoSlug.set(slug, melhor[0]);
+  }
+  const vale = (slug: string) => (quantos.get(slug) ?? 0) >= MINIMO_DE_LIVROS_NO_GENERO;
+
+  /* --- segunda passada: o que escrever ----------------------------------- */
   const tituloPorTexto = new Map<string, number[]>();
   const generoPorSlug = new Map<string, number[]>();
+  const listaPorTexto = new Map<string, number[]>();
   const generosNovos = new Map<string, string>();
   const juntar = (mapa: Map<string, number[]>, chave: string, id: number) =>
     (mapa.get(chave) ?? mapa.set(chave, []).get(chave)!).push(id);
@@ -1166,13 +1280,21 @@ async function reconciliarTituloEGenero(
       juntar(tituloPorTexto, ficha.titulo, aqui.id);
     }
 
-    if (aqui.genero === SEM_GENERO.slug && ficha.categoria) {
-      const genero = generoDaCategoria(ficha.categoria);
-      if (genero.slug !== SEM_GENERO.slug) {
-        generosNovos.set(genero.slug, genero.rotulo);
-        juntar(generoPorSlug, genero.slug, aqui.id);
-      }
+    // ⚠️ O rótulo guardado é o CANÔNICO do slug, não o que a ficha escreveu.
+    const doLivro = ficha.categorias
+      .filter((r) => vale(slugify(r)))
+      .map((r) => rotuloDoSlug.get(slugify(r))!)
+      .filter((r, i, todos) => todos.indexOf(r) === i);
+    for (const rotulo of doLivro) generosNovos.set(slugify(rotulo), rotulo);
+
+    // O principal só muda quando o que está lá é a reserva — a mesma régua de
+    // nome (§4.154): gênero vindo da varredura da loja não se toca.
+    if (aqui.genero === SEM_GENERO.slug && doLivro[0]) {
+      juntar(generoPorSlug, slugify(doLivro[0]), aqui.id);
     }
+
+    const lista = doLivro.length > 1 ? doLivro.join(" & ") : null;
+    if (lista !== aqui.generos) juntar(listaPorTexto, lista ?? "", aqui.id);
   }
 
   if (generosNovos.size > 0) {
@@ -1186,6 +1308,7 @@ async function reconciliarTituloEGenero(
         [...generosNovos].map(([slug, rotulo]) => ({
           slug,
           rotulo,
+          // Cinza sóbrio: cor de gênero é decisão de desenho, não de importação.
           gradiente: "from-slate-700 to-slate-500",
           ordem: ordem++,
         })),
@@ -1203,12 +1326,20 @@ async function reconciliarTituloEGenero(
     await db.update(livros).set({ generoSlug: slug }).where(inArray(livros.id, ids));
     comGenero += ids.length;
   }
+  let comLista = 0;
+  for (const [lista, ids] of listaPorTexto) {
+    await db.update(livros).set({ generos: lista || null }).where(inArray(livros.id, ids));
+    if (lista) comLista += ids.length;
+  }
 
-  if (titulos + comGenero === 0) return;
-  console.log(`\n  Título e gênero (§4.156)`);
+  if (titulos + comGenero + listaPorTexto.size === 0) return;
+  console.log(`\n  Título e gênero (§§4.156 e 4.157)`);
   if (titulos) console.log(`    ${titulos} títulos recuperaram acento e pontuação`);
   if (comGenero) console.log(`    ${comGenero} livros saíram de "Sem gênero"`);
-  if (generosNovos.size) console.log(`    ${generosNovos.size} gêneros novos criados`);
+  console.log(
+    `    ${comLista} livros com mais de um gênero · ` +
+      `${generosNovos.size} rótulos acima de ${MINIMO_DE_LIVROS_NO_GENERO} livros`,
+  );
 }
 
 /**
@@ -1261,6 +1392,7 @@ async function reconciliarFichas() {
       loja: string;
       titulo: string;
       genero: string;
+      generos: string | null;
     }
   >();
   const nomeDaPessoa = new Map(
@@ -1281,6 +1413,7 @@ async function reconciliarFichas() {
       narradores: livros.narradores,
       titulo: livros.titulo,
       genero: livros.generoSlug,
+      generos: livros.generos,
     })
     .from(livros)
     .where(isNotNull(livros.origemLoja))) {
@@ -1296,6 +1429,7 @@ async function reconciliarFichas() {
       loja: l.loja ?? "",
       titulo: l.titulo,
       genero: l.genero,
+      generos: l.generos,
     });
   }
 
@@ -1303,7 +1437,7 @@ async function reconciliarFichas() {
      não é importar — quem ainda não está aqui entra pelo `importar`. */
   const nomePorLivro = new Map<number, string>();
   const creditosPorLivro = new Map<number, { autores: string[]; narradores: string[] }>();
-  const fichaPorLivro = new Map<number, { titulo: string | null; categoria: string | null }>();
+  const fichaPorLivro = new Map<number, { titulo: string | null; categorias: string[] }>();
   let semFicha = 0;
   for (const linha of linhas) {
     const aqui = noBanco.get(`${linha.loja}/${linha.loja_id}`);
@@ -1317,7 +1451,7 @@ async function reconciliarFichas() {
       autores: creditos(linha.autores, triagem.autorBruto, linha.loja),
       narradores: creditos(linha.narradores, triagem.narradorBruto, linha.loja),
     });
-    fichaPorLivro.set(aqui.id, { titulo: triagem.titulo, categoria: triagem.categoria });
+    fichaPorLivro.set(aqui.id, { titulo: triagem.titulo, categorias: triagem.categorias });
   }
 
   await reconciliarCreditos(noBanco, creditosPorLivro);

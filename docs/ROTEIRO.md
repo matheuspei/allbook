@@ -8555,3 +8555,72 @@ Memórias" × "Biografias"; "Literatura e Ficção" × "Ficção" × "Literatura
 Bem Estar". Cada loja batiza do seu jeito, e juntar exige **escolher qual nome
 sobrevive** — isso é desenho de vitrine, não importação, e por isso nem a janela
 A nem eu fizemos sozinhos.
+
+## 4.157 Um livro em vários gêneros — a ideia dele que valia mais que a minha (01/09)
+
+Levei a ele o problema que a §4.156 abriu: os gêneros foram de 21 para 89 e há
+quatro prateleiras de religião, porque cada loja batiza a mesma coisa de um
+jeito. Eu ia propor uma folha para ele escolher os nomes. Ele respondeu:
+*"O que poderia ser feito nesse caso aqui seria agregar ambos, né? Ou então até
+colocar mais de um em um mesmo livro."*
+
+**A segunda metade da frase era a resposta, e é melhor que a folha.**
+
+### Por que juntar não bastava
+
+Medi de onde vem cada rótulo antes de opinar, e o resultado desmonta a fusão
+automática:
+
+- *"Religião"* (953) e *"Espiritualidade"* (359) são **as duas do Ubook** — ele
+  as usa como prateleiras **distintas, de propósito**. Juntá-las apaga uma
+  distinção que a fonte fez.
+- *"Literatura"* (309) e *"Literatura e Ficção"* (336) convivem **dentro do
+  Tocalivros**. *"Kids"* e *"Juvenil"* convivem dentro da Storytel.
+- Pelo teste estrito (mesma string sem acento e sem "e/&"), só **2 fusões** são
+  provadamente seguras: `Religião & Espiritualidade` → `Religião e
+  Espiritualidade` e `Saúde & Bem Estar` → `Saúde e Bem-Estar`.
+
+E permitir vários gêneros, sozinho, **não tira** os cards parecidos — só espalha
+o livro por eles.
+
+### O que a trilha tinha guardado
+
+🚨 **A ficha do acervo traz uma TRILHA e o AllBook guardava só o topo.**
+*"Religião > Cristianismo"*, *"Ficção > Terror"*, *"Infantojuvenil > Infantil -
+5 a 8 anos"*. **9.158 dos 13.917 livros (66%)** têm trilha; o segundo nível ia
+inteiro para o lixo.
+
+🚨 **E é ele que costura as lojas sem ninguém decidir nada.** Os topos
+discordam, mas o sub-gênero é o mesmo: **Cristianismo passou a ser o maior
+gênero do app, com 1.497 livros, vindo das quatro prateleiras de religião ao
+mesmo tempo.** Quem procura livro cristão acha tudo num card só — sem eu ter
+escolhido nome nenhum, e sem apagar a distinção que cada loja fez.
+
+### As três travas, todas por causa de dado real
+
+- ⚠️ **Corte de 50 livros para virar card.** São **792 rótulos distintos** no
+  acervo; sem corte a Descobrir vira parede de prateleira com três livros. Com
+  50, ficam 76 rótulos novos. É uma constante,
+  `MINIMO_DE_LIVROS_NO_GENERO`.
+- 🚨 **`NAO_E_GENERO`** — *"Livros"* é a **raiz da árvore do Tocalivros** e
+  apareceu em 1.477 livros: viraria o segundo maior "gênero" do app, à frente de
+  Ficção. *"Geral"* é a ausência de sub-gênero. Mesma razão do `NAO_E_EDITORA`:
+  a ausência da coisa não é a coisa.
+- 🚨 **Um rótulo por slug, e o que já está no banco vence.** Na primeira
+  passada *"Religião e espiritualidade"* e *"Religião e Espiritualidade"* — um
+  "e" maiúsculo de diferença — viraram **dois cards**, com 610 e 581 livros. A
+  lista guarda o rótulo canônico, não o que a loja escreveu.
+
+### O que ainda é decisão dele
+
+As quatro prateleiras de topo continuam lá: Religião e Espiritualidade (1.191),
+Religião (958), Religião & Espiritualidade (507), Espiritualidade (372). **Não
+juntei**, pelo motivo medido acima — mas o Cristianismo já as costura por baixo,
+e a urgência caiu. Se ele quiser juntar, é folha: quem batiza o grupo tem de ser
+ele.
+
+⚠️ **`server/catalogo.ts` deixou de filtrar gênero por `exists` no
+`genero_slug`.** Com vários gêneros, *"Cristianismo"* existe só dentro de
+`livros.generos` e **nenhum livro o tem como principal** — o `exists` o
+esconderia. O corte agora é contra os rótulos que os livros da resposta
+carregam.

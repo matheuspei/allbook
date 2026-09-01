@@ -78,6 +78,12 @@ export interface Book {
    */
   authors?: string[];
   narrators?: string[];
+  /**
+   * Todos os gêneros do livro, do mais geral ao mais específico (§4.157) —
+   * *"Religião"* e *"Cristianismo"*. Só chega quando há mais de um; use
+   * `generosDe(book)`, que resolve os dois casos.
+   */
+  genres?: Genre[];
   cover: string;
   /**
    * A nota geral, de 0 a 5.
@@ -336,6 +342,7 @@ interface LivroDaApi {
   narrator: string;
   authors?: string[];
   narrators?: string[];
+  genres?: string[];
   cover: string | null;
   rating?: number;
   genre: string;
@@ -597,8 +604,25 @@ export function getBooksByIds(ids: number[]): Book[] {
     .filter((book): book is Book => book !== undefined);
 }
 
+/**
+ * Os livros de um gênero — **contando os secundários** (01/09, §4.157).
+ *
+ * 🚨 Um livro pode estar em vários gêneros: *"Religião > Cristianismo"*. Se
+ * esta função olhasse só o `genre` (o topo), a grade de **Cristianismo** viria
+ * vazia — nenhum livro o tem como principal, e são 1.534.
+ */
 export function getBooksByGenre(genre: Genre): Book[] {
-  return catalog.filter((book) => book.genre === genre);
+  return catalog.filter((book) => generosDe(book).includes(genre));
+}
+
+/**
+ * **Todos** os gêneros do livro, do mais geral ao mais específico (§4.157).
+ *
+ * ⚠️ `book.genre` é o **topo**, e é ele que a vitrine mostra como rótulo. Quem
+ * filtra ou lista prateleira usa esta função.
+ */
+export function generosDe(book: Book): Genre[] {
+  return book.genres && book.genres.length > 0 ? book.genres : [book.genre];
 }
 
 /**

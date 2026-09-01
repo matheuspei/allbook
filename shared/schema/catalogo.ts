@@ -195,6 +195,29 @@ export const livros = pgTable(
      */
     autores: text("autores"),
     narradores: text("narradores"),
+
+    /**
+     * **Todos** os gêneros do livro, do mais geral para o mais específico,
+     * separados por `" & "` (01/09, §4.157).
+     *
+     * 🚨 **A ficha do acervo traz uma TRILHA e o AllBook guardava só o topo.**
+     * *"Religião > Cristianismo"*, *"Ficção > Terror"*, *"Infantojuvenil >
+     * Infantil - 5 a 8 anos"*: **9.158 dos 13.917 livros** (66%) têm trilha, e
+     * o segundo nível ia todo para o lixo.
+     *
+     * 🚨 **É o que costura as lojas sem ninguém decidir nada.** Cada loja
+     * batiza a prateleira de um jeito — "Religião" (Ubook), "Religião &
+     * Espiritualidade" (Storytel), "Religião e Espiritualidade" (Tocalivros e
+     * Audible) —, mas **"Cristianismo" é o mesmo nas três**, com 1.534 livros.
+     * O leitor encontra o livro pelo sub-gênero mesmo enquanto os topos
+     * discordarem.
+     *
+     * ⚠️ **Só entra rótulo com pelo menos `MINIMO_DE_LIVROS_NO_GENERO` livros**
+     * — são 792 rótulos distintos no acervo, e virar card com 3 livros dá uma
+     * Descobrir de prateleira vazia. `generoSlug` continua sendo o **topo**, e
+     * é ele que endereça a grade de gênero.
+     */
+    generos: text("generos"),
     /** Pode faltar: nem todo livro foi atribuído a uma editora. */
     editoraSlug: text("editora_slug").references(() => editoras.slug),
     generoSlug: text("genero_slug")
