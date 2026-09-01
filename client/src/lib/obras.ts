@@ -338,8 +338,13 @@ export function agruparEmObras(livros: Book[]): Book[][] {
 }
 
 /**
- * Quantos sinais de português de verdade o título carrega: acentos, cedilha,
- * maiúsculas no meio e pontuação (`%`, `:`, `?`, `—`).
+ * Quantos sinais de português de verdade o título carrega: acentos, cedilha e
+ * pontuação (`%`, `:`, `?`, `—`).
+ *
+ * ⚠️ **Maiúsculas no meio NÃO contam, e já contaram.** Elas fariam o *Title
+ * Case* ganhar — "Motivação Em Vendas Para Vencer O Mercado" venceria
+ * "Motivação em vendas para vencer o mercado", que é o português correto e, no
+ * caso real, era também a gravação com os capítulos nomeados.
  *
  * 🚨 **Serve para escolher entre dois textos do MESMO título** — não para
  * comparar obras diferentes. O Ubook manda 4.370 dos seus 4.953 títulos sem
@@ -349,9 +354,8 @@ export function agruparEmObras(livros: Book[]): Book[][] {
  */
 function riquezaDoTitulo(titulo: string): number {
   const acentos = titulo.length - semAcento(titulo).length;
-  const maiusculasNoMeio = (titulo.slice(1).match(/[A-ZÀ-Þ]/g) ?? []).length;
   const pontuacao = (titulo.match(/[%:;,!?()–—"']/g) ?? []).length;
-  return acentos * 2 + maiusculasNoMeio + pontuacao * 2;
+  return acentos + pontuacao;
 }
 
 /**
@@ -388,8 +392,10 @@ export function representanteDaObra(grupo: Book[], temCapaReal: (livro: Book) =>
       // perdeu o `%`, os dois-pontos e todos os acentos. Pelo comprimento, o
       // título estragado representaria a obra.
       -riquezaDoTitulo(livro.title),
-      livro.title.length,
+      // A gravação que anuncia duração vem antes da que não anuncia: é sinal de
+      // ficha mais completa, e na prática é a que também traz capítulo com nome.
       livro.duracaoSegundos ? 0 : 1,
+      livro.title.length,
       livro.id,
     ];
   };
