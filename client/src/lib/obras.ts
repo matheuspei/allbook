@@ -213,15 +213,34 @@ function tituloDistintivo(obra: string): boolean {
  *    ninguém sabe de quem ele é.
  */
 export function agruparEmObras(livros: Book[]): Book[][] {
+  /* ---- Duas chaves de título, e a segunda existe por causa do Ubook -------
+   *
+   * 🚨 **O Ubook entrega o título sem acento, sem pontuação e em minúsculas** —
+   * 4.370 dos 4.953 livros dele. *"100% Vendedor: Motivação em vendas para
+   * vencer o mercado"* chega como *"100 vendedor motivacao em vendas para
+   * vencer o mercado"*, **sem os dois-pontos**. Sem o separador não há corte, a
+   * chave curta vira o título inteiro, e ele não encontrava a irmã da Storytel
+   * — que é justamente a que tem título, gênero e capítulos de verdade.
+   *
+   * Por isso cada livro entra por **duas** chaves: o título da obra (cortado) e
+   * o **título completo normalizado**, onde a diferença de acento e pontuação
+   * já sumiu. Os grupos que compartilharem qualquer livro são fundidos no fim.
+   * ⚠️ Isto NÃO junta *Duna* com *Duna: Messias* — os títulos completos são
+   * diferentes, e a chave curta continua com a régua de 48 caracteres.        */
   const porTitulo = new Map<string, { livro: Book; adorno: string }[]>();
+  const guardar = (chave: string, entrada: { livro: Book; adorno: string }) => {
+    const lista = porTitulo.get(chave);
+    if (lista) lista.push(entrada);
+    else porTitulo.set(chave, [entrada]);
+  };
   for (const livro of livros) {
     const { obra, adorno } = partirTitulo(livro);
-    const lista = porTitulo.get(obra);
-    if (lista) lista.push({ livro, adorno });
-    else porTitulo.set(obra, [{ livro, adorno }]);
+    guardar(obra, { livro, adorno });
+    const completo = normalizar(`${livro.title} ${livro.subtitle ?? ""}`);
+    if (completo && completo !== obra) guardar(completo, { livro, adorno });
   }
 
-  const obras: Book[][] = [];
+  const parciais: Book[][] = [];
   for (const [obra, entradas] of porTitulo) {
     const grupos: { autor: Set<string>; livros: Book[] }[] = [];
     const orfaos: Book[] = [];
@@ -251,9 +270,61 @@ export function agruparEmObras(livros: Book[]): Book[][] {
       else grupos.push({ autor: new Set(), livros: orfaos });
     }
 
-    for (const grupo of grupos) obras.push(grupo.livros);
+    for (const grupo of grupos) parciais.push(grupo.livros);
   }
-  return obras;
+
+  /* ---- Fundir o que as duas chaves acharem em comum --------------------- */
+  const pai = new Map<number, number>();
+  const raiz = (id: number): number => {
+    let atual = id;
+    while (pai.get(atual) !== atual) {
+      const acima = pai.get(atual)!;
+      pai.set(atual, pai.get(acima)!);
+      atual = acima;
+    }
+    return atual;
+  };
+  for (const grupo of parciais) {
+    for (const livro of grupo) if (!pai.has(livro.id)) pai.set(livro.id, livro.id);
+  }
+  for (const grupo of parciais) {
+    for (let i = 1; i < grupo.length; i++) {
+      const a = raiz(grupo[0].id);
+      const b = raiz(grupo[i].id);
+      if (a !== b) pai.set(a, b);
+    }
+  }
+
+  const porRaiz = new Map<number, Book[]>();
+  const jaVisto = new Set<number>();
+  for (const grupo of parciais) {
+    for (const livro of grupo) {
+      if (jaVisto.has(livro.id)) continue;
+      jaVisto.add(livro.id);
+      const r = raiz(livro.id);
+      const lista = porRaiz.get(r);
+      if (lista) lista.push(livro);
+      else porRaiz.set(r, [livro]);
+    }
+  }
+  return [...porRaiz.values()];
+}
+
+/**
+ * Quantos sinais de português de verdade o título carrega: acentos, cedilha,
+ * maiúsculas no meio e pontuação (`%`, `:`, `?`, `—`).
+ *
+ * 🚨 **Serve para escolher entre dois textos do MESMO título** — não para
+ * comparar obras diferentes. O Ubook manda 4.370 dos seus 4.953 títulos sem
+ * acento, sem pontuação e em minúsculas; a mesma obra na Storytel ou no
+ * Tocalivros vem inteira. Sem este critério, a vitrine mostrava a versão
+ * estragada porque ela é, por definição, a mais curta.
+ */
+function riquezaDoTitulo(titulo: string): number {
+  const acentos = titulo.length - semAcento(titulo).length;
+  const maiusculasNoMeio = (titulo.slice(1).match(/[A-ZÀ-Þ]/g) ?? []).length;
+  const pontuacao = (titulo.match(/[%:;,!?()–—"']/g) ?? []).length;
+  return acentos * 2 + maiusculasNoMeio + pontuacao * 2;
 }
 
 /**
@@ -283,6 +354,13 @@ export function representanteDaObra(grupo: Book[], temCapaReal: (livro: Book) =>
       // perfis, cada um com um livro.
       -palavrasDoNome(livro.author).size,
       temCapaReal(livro) ? 0 : 1,
+      // ⚠️ **O título mais RICO ganha do mais curto** — e a ordem entre estes
+      // dois critérios decidiu o caso que o Matheus achou. O Ubook entrega
+      // *"100 vendedor motivacao em vendas..."*, que é **mais curto** que o
+      // *"100% Vendedor: Motivação em vendas..."* da Storytel justamente porque
+      // perdeu o `%`, os dois-pontos e todos os acentos. Pelo comprimento, o
+      // título estragado representaria a obra.
+      -riquezaDoTitulo(livro.title),
       livro.title.length,
       livro.duracaoSegundos ? 0 : 1,
       livro.id,
