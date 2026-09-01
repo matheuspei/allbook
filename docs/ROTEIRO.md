@@ -8412,3 +8412,68 @@ texto.
 diverge da do arquivo (21s contra 26,05s no capítulo 1 desse livro, vindos da
 ficha da Storytel). Como a posição no livro é a soma das durações do banco, a
 diferença **se acumula** capítulo a capítulo. Não foi mexido aqui.
+
+## 4.156 O título sem acento e metade do acervo sem gênero (01/09)
+
+A janela B varreu as 13.932 fichas atrás de três defeitos que o Matheus achou;
+o importador estava na minha mão, então assumi os dois que se consertam.
+**É o mesmo padrão pela quarta vez em três dias: o dado não estava onde a gente
+olhou.** Editora (§4.148), autor (§4.153), e agora título e gênero.
+
+### 1. O título do Ubook chegava sem acento e sem pontuação — 4.393 livros
+
+🚨 O `catalogo.sqlite` guarda *"Refens do odio"*, *"A revolucao do guarda
+chuva"*, *"Champs elysees das arabias"*. A ficha do "pronto" tem o texto
+inteiro: *"Reféns do ódio"*, *"A Revolução do guarda-chuva"*,
+*"Champs-Élysées das Arábias"*.
+
+⚠️ 🚨 **A armadilha que quase desfez a §4.138.** Copiar `ficha.LIVRO` direto
+seria errado: na **Audible e na Storytel a ficha traz título e subtítulo
+COLADOS**. O banco tem *"Jornada improvável"* com o subtítulo à parte; a ficha
+diz *"Jornada improvável: A escola do RenovaBR, a…"*. A cópia direta traria de
+volta os 3.033 títulos gigantes e o billboard com o título cobrindo a capa
+(§4.137).
+
+**A régua: só troca quando as duas strings são a MESMA frase sem acento e sem
+pontuação** — prova de que é o mesmo texto com caracteres melhores. Medido antes
+de escrever: **4.374 trocas seguras, 596 recusadas, e as 596 são todas Audible,
+todas o caso do subtítulo.** A janela B tinha diagnosticado só o lado do Ubook;
+o caso (b) apareceu na conferência.
+
+### 2. 59% do acervo estava em "Sem gênero" — e a ficha sabia
+
+🚨 **8.206 livros** caíam em `sem-genero` porque o `catalogo.sqlite` manda a
+coluna `categoria` **vazia em todo o Ubook e todo o Tocalivros**. A ficha tem a
+categoria de **8.204 desses 8.206**. Depois da passada, a vitrine tem **2**
+livros sem gênero.
+
+A ordem de leitura é `ficha.CATEGORIA_ORIGEM` → `ficha.CATEGORIA` →
+`catalogo_cru.categoria_trilha` → `catalogo_cru.categoria`, e
+`generoDaCategoria()` corta no `">"` para ficar com o topo.
+
+### 🔧 O que isso ABRIU, e é decisão dele
+
+**Os gêneros passaram de 21 para 89 na Descobrir, e há duplicata evidente** —
+cada loja batiza a mesma prateleira de um jeito:
+
+| | |
+|---|---|
+| Religião e Espiritualidade | 1.183 |
+| Religião | 953 |
+| Religião & Espiritualidade | 507 |
+| Espiritualidade | 359 |
+
+O mesmo com *Ficção* × *Literatura e Ficção* × *Literatura*, *Biografias* ×
+*Biografias e Memórias*, *Infantojuvenil* × *Juvenil* × *Kids*.
+
+⚠️ **Não juntei por conta própria, de propósito.** Juntar exige escolher **qual
+nome sobrevive**, e isso é desenho de vitrine, não importação — a mesma linha
+que separa `resolverEditoras` (que junta variantes do mesmo nome próprio) de
+inventar uma taxonomia. Vale uma folha: a estrutura de `chaveDeEditora` serve,
+mas quem batiza o grupo tem de ser ele.
+
+⚠️ **Capítulos genéricos ("chapter 01"), 6.149 livros: não há o que importar.**
+A janela B conferiu no disco — a loja não deu nome, o arquivo se chama
+`… - 01 - chapter 01.mp3`. E herdar o nome da gravação irmã foi **descartado**
+(B/C): exigiria as durações batendo, e a §4.155 achou ficha da Storytel com
+duração errada.

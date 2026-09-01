@@ -315,6 +315,13 @@ function generoDaCategoria(categoria: string | null): { slug: string; rotulo: st
   return { slug: slugify(topo), rotulo: topo };
 }
 
+/** O campo da ficha quando ele é texto de verdade; `null` para o resto. */
+function texto(valor: unknown): string | null {
+  if (typeof valor !== "string") return null;
+  const limpo = valor.replace(/\s+/g, " ").trim();
+  return limpo.length > 0 ? limpo : null;
+}
+
 /** "2007-12-19" → 2007. Ano fora de faixa plausível é descartado. */
 function anoDe(lancamento: string | null): number | null {
   const ano = Number((lancamento ?? "").slice(0, 4));
@@ -545,6 +552,12 @@ interface TriagemDaFicha {
    */
   autorBruto: string | null;
   narradorBruto: string | null;
+  /**
+   * O título e a categoria **da ficha** (01/09, §4.156). Reserva para o que o
+   * `catalogo.sqlite` estraga ou não manda — ver `reconciliarTituloEGenero`.
+   */
+  titulo: string | null;
+  categoria: string | null;
 }
 
 const FICHA_VAZIA: TriagemDaFicha = {
@@ -552,6 +565,8 @@ const FICHA_VAZIA: TriagemDaFicha = {
   editora: null,
   autorBruto: null,
   narradorBruto: null,
+  titulo: null,
+  categoria: null,
 };
 
 async function triarFicha(loja: string, pasta: string | null): Promise<TriagemDaFicha> {
@@ -567,6 +582,14 @@ async function triarFicha(loja: string, pasta: string | null): Promise<TriagemDa
       editora: nomeDeEditora(dados?.ficha?.EDITORA),
       autorBruto: typeof dados?.ficha?.AUTOR === "string" ? dados.ficha.AUTOR : null,
       narradorBruto: typeof dados?.ficha?.NARRADOR === "string" ? dados.ficha.NARRADOR : null,
+      titulo: texto(dados?.ficha?.LIVRO) ?? texto(dados?.catalogo_cru?.titulo),
+      // A trilha primeiro: ela é a mais específica e `generoDaCategoria` já
+      // corta no ">" para ficar com o topo.
+      categoria:
+        texto(dados?.ficha?.CATEGORIA_ORIGEM) ??
+        texto(dados?.ficha?.CATEGORIA) ??
+        texto(dados?.catalogo_cru?.categoria_trilha) ??
+        texto(dados?.catalogo_cru?.categoria),
     };
   } catch {
     /* ficha ilegível: não entra, e não tem nada para dar */
@@ -1081,6 +1104,114 @@ async function reconciliarCreditos(
 }
 
 /**
+ * Acerta o **título** e o **gênero** a partir da ficha do "pronto" (01/09,
+ * §4.156). Dois defeitos que o Matheus achou e a janela B varreu.
+ *
+ * ## 1. O título do Ubook chega sem acento e sem pontuação
+ *
+ * 🚨 O `catalogo.sqlite` guarda *"Refens do odio"*, *"A revolucao do guarda
+ * chuva"*, *"Champs elysees das arabias"*. A ficha do "pronto" tem o texto
+ * inteiro: *"Reféns do ódio"*, *"A Revolução do guarda-chuva"*,
+ * *"Champs-Élysées das Arábias"*. São **4.372 livros**, todos do Ubook.
+ *
+ * ⚠️ 🚨 **Trocar direto por `ficha.LIVRO` desfaria a §4.138.** Na Audible e na
+ * Storytel a ficha traz **título e subtítulo COLADOS** — o banco tem
+ * *"Jornada improvável"* com o subtítulo à parte, e a ficha diz *"Jornada
+ * improvável: A escola do RenovaBR, a…"*. Copiar isso traria de volta os 3.033
+ * títulos gigantes e o billboard com o título cobrindo a capa (§4.137).
+ *
+ * **A régua, por isso: só troca quando as duas strings são a MESMA frase sem
+ * acento e sem pontuação.** Aí é provadamente o mesmo texto com caracteres
+ * melhores. Medido: 4.374 trocas seguras, **596 recusadas — todas Audible, e
+ * todas o caso do subtítulo colado.**
+ *
+ * ## 2. Metade do acervo estava em "Sem gênero"
+ *
+ * 🚨 **8.206 livros** (59%) caíam em `sem-genero` porque o `catalogo.sqlite`
+ * manda a coluna `categoria` **vazia em todo o Ubook e todo o Tocalivros**.
+ * A ficha tem: **8.204 desses 8.206**. É o mesmo defeito da editora (§4.148) e
+ * do autor (§4.153), no terceiro campo — o dado não estava onde a gente olhou.
+ *
+ * ⚠️ **Só preenche o vazio**, como todo o resto: gênero que veio da varredura
+ * da loja não se toca. E gênero novo nasce com o cinza sóbrio — cor é decisão
+ * de desenho, não de importação.
+ */
+async function reconciliarTituloEGenero(
+  noBanco: Map<string, { id: number; titulo: string; genero: string }>,
+  daFicha: Map<number, { titulo: string | null; categoria: string | null }>,
+) {
+  /** A frase sem acento e sem pontuação — a prova de que é o mesmo texto. */
+  const mesmaFrase = (a: string, b: string) => {
+    const cru = (t: string) =>
+      t
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+    return cru(a) === cru(b);
+  };
+
+  const tituloPorTexto = new Map<string, number[]>();
+  const generoPorSlug = new Map<string, number[]>();
+  const generosNovos = new Map<string, string>();
+  const juntar = (mapa: Map<string, number[]>, chave: string, id: number) =>
+    (mapa.get(chave) ?? mapa.set(chave, []).get(chave)!).push(id);
+
+  for (const aqui of noBanco.values()) {
+    const ficha = daFicha.get(aqui.id);
+    if (!ficha) continue;
+
+    if (ficha.titulo && ficha.titulo !== aqui.titulo && mesmaFrase(ficha.titulo, aqui.titulo)) {
+      juntar(tituloPorTexto, ficha.titulo, aqui.id);
+    }
+
+    if (aqui.genero === SEM_GENERO.slug && ficha.categoria) {
+      const genero = generoDaCategoria(ficha.categoria);
+      if (genero.slug !== SEM_GENERO.slug) {
+        generosNovos.set(genero.slug, genero.rotulo);
+        juntar(generoPorSlug, genero.slug, aqui.id);
+      }
+    }
+  }
+
+  if (generosNovos.size > 0) {
+    const [{ ordemMaxima }] = await db
+      .select({ ordemMaxima: sql<number>`coalesce(max(ordem), -1)::int` })
+      .from(generos);
+    let ordem = ordemMaxima + 1;
+    await db
+      .insert(generos)
+      .values(
+        [...generosNovos].map(([slug, rotulo]) => ({
+          slug,
+          rotulo,
+          gradiente: "from-slate-700 to-slate-500",
+          ordem: ordem++,
+        })),
+      )
+      .onConflictDoNothing();
+  }
+
+  let titulos = 0;
+  for (const [titulo, ids] of tituloPorTexto) {
+    await db.update(livros).set({ titulo }).where(inArray(livros.id, ids));
+    titulos += ids.length;
+  }
+  let comGenero = 0;
+  for (const [slug, ids] of generoPorSlug) {
+    await db.update(livros).set({ generoSlug: slug }).where(inArray(livros.id, ids));
+    comGenero += ids.length;
+  }
+
+  if (titulos + comGenero === 0) return;
+  console.log(`\n  Título e gênero (§4.156)`);
+  if (titulos) console.log(`    ${titulos} títulos recuperaram acento e pontuação`);
+  if (comGenero) console.log(`    ${comGenero} livros saíram de "Sem gênero"`);
+  if (generosNovos.size) console.log(`    ${generosNovos.size} gêneros novos criados`);
+}
+
+/**
  * Reconcilia a **editora** de todo livro já importado, direto das fichas do
  * acervo (31/08, §4.148).
  *
@@ -1128,6 +1259,8 @@ async function reconciliarFichas() {
       nomeAutor: string;
       nomeNarrador: string;
       loja: string;
+      titulo: string;
+      genero: string;
     }
   >();
   const nomeDaPessoa = new Map(
@@ -1146,6 +1279,8 @@ async function reconciliarFichas() {
       narrador: livros.narradorSlug,
       autores: livros.autores,
       narradores: livros.narradores,
+      titulo: livros.titulo,
+      genero: livros.generoSlug,
     })
     .from(livros)
     .where(isNotNull(livros.origemLoja))) {
@@ -1159,6 +1294,8 @@ async function reconciliarFichas() {
       nomeAutor: nomeDaPessoa.get(l.autor) ?? "",
       nomeNarrador: nomeDaPessoa.get(l.narrador) ?? "",
       loja: l.loja ?? "",
+      titulo: l.titulo,
+      genero: l.genero,
     });
   }
 
@@ -1166,6 +1303,7 @@ async function reconciliarFichas() {
      não é importar — quem ainda não está aqui entra pelo `importar`. */
   const nomePorLivro = new Map<number, string>();
   const creditosPorLivro = new Map<number, { autores: string[]; narradores: string[] }>();
+  const fichaPorLivro = new Map<number, { titulo: string | null; categoria: string | null }>();
   let semFicha = 0;
   for (const linha of linhas) {
     const aqui = noBanco.get(`${linha.loja}/${linha.loja_id}`);
@@ -1179,9 +1317,11 @@ async function reconciliarFichas() {
       autores: creditos(linha.autores, triagem.autorBruto, linha.loja),
       narradores: creditos(linha.narradores, triagem.narradorBruto, linha.loja),
     });
+    fichaPorLivro.set(aqui.id, { titulo: triagem.titulo, categoria: triagem.categoria });
   }
 
   await reconciliarCreditos(noBanco, creditosPorLivro);
+  await reconciliarTituloEGenero(noBanco, fichaPorLivro);
 
   /* 🚨 Aqui `jaNoBanco` vem CHEIO, ao contrário da importação: slug em uso não
      se troca (é endereço de perfil e é por ele que o app guarda quem a pessoa

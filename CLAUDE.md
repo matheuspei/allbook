@@ -231,10 +231,17 @@ diziam "Autor desconhecido". O nome estava no **`_ficha.json` de cada pasta** o
 tempo todo: 4.944 tinham AUTOR, 4.825 tinham NARRADOR. Hoje sobram **70 sem
 autor e 237 sem narrador**.
 
-**A regra que isso deixa: campo vazio não é prova de dado inexistente.** Duas
-vezes em uma semana (editora §4.148, pessoas §4.153) o app deu por perdido um
-dado que estava a um `JSON.parse` de distância. Antes de escrever "não
-informado" numa tela, abra a ficha.
+**A regra que isso deixa: campo vazio não é prova de dado inexistente.** Quatro
+vezes em três dias (editora §4.148, pessoas §4.153, título e gênero §4.156) o
+app deu por perdido um dado que estava a um `JSON.parse` de distância. Antes de
+escrever "não informado" numa tela, abra a ficha.
+
+⚠️ **Título e gênero (§4.156) entram pela mesma passada.** O `catalogo.sqlite`
+manda o título do Ubook **sem acento e sem pontuação** ("Refens do odio") e a
+`categoria` **vazia em todo o Ubook e todo o Tocalivros** — eram 8.206 livros em
+"Sem gênero", hoje 2. 🚨 **Mas a ficha da Audible e da Storytel traz título e
+subtítulo COLADOS**: por isso o título só é trocado quando as duas strings são a
+mesma frase sem acento — copiar direto desfaria a §4.138.
 
 - **`npm run acervo fichas`** faz os dois de uma vez (editora + pessoas), em 10s,
   e já é o alvo do LaunchAgent `com.allbook.fichas` das 5h30.
