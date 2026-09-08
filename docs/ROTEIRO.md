@@ -6841,6 +6841,51 @@ subestimada. Não foi remedida ainda.
 
 ---
 
+### O nível 2, e a frase que eu escrevi a mais (08/09)
+
+Ele voltou com três capturas do ChatGPT: *"os livros que você não conseguiu me
+entregar, o ChatGPT consegue me entregar de forma rápida e barata"*. E estava
+certo — não sobre o agente, sobre **mim**. Eu tinha escrito na folha do nível 1
+que aqueles livros *"não têm ano em lugar nenhum"*, e para pelo menos três isso
+era falso. O nível 1 não podia achá-los porque **não tem internet**; a frase
+passou do que eu tinha medido.
+
+**O nível 2 nos mesmos 12: achou 6**, todos com fonte citada. O registro de "já
+tentei" fez o que prometia — a rodada nova custou zero, porque os 12 já tinham
+sido vistos por ele.
+
+**Onde batemos com o ChatGPT, e onde não:**
+
+| livro | ChatGPT | nosso nível 2 |
+|---|---|---|
+| Coração Vencido | 1981 | **1981** — os dois viram que é tradução de *Afraid* |
+| Antônio José, o Judeu | **1905 numa aba, 1900 na outra** | 1931 |
+| Ode parnasiana | 1891 (o poema-título) | vazio |
+
+⚠️ **O ChatGPT deu duas respostas diferentes para o mesmo livro, nas capturas que
+ele mesmo mandou.** Não desqualifica nada — é a razão de o nosso agente ser
+obrigado a gravar `ANO_ORIGEM` junto com o ano. Resposta sem fonte não é
+verificável, e num acervo de 13.968 ninguém vai reconferir de memória.
+
+🚨 **O erro do Cthulhu, o padrão mais perigoso da cascata.** Em *Treze lendas dos
+Mythos de Cthulhu* o nível 2 gravou **1928**, citando uma fonte boa: fevereiro de
+1928, *The Call of Cthulhu* na Weird Tales. Só que 1928 é o ano de **um** dos
+treze contos, não da coletânea. **E o nível 1, sem internet, tinha recusado
+exatamente esse ano** — *"o dossiê não prova o ano da coletânea, apenas que a
+entidade Cthulhu foi criada em 1928"*. É o mesmo erro do "Josué = 2002" de 22/08:
+**fonte real sobre a coisa errada**. Ter internet aumenta o acerto *e* o risco, e
+os dois não crescem juntos.
+
+**A trava de ano-do-áudio funcionou** uma vez no lote: *100 Consejos* tentou
+gravar 2021 (a data do audiolivro) e foi recusado sozinho.
+
+⏳ **A decisão que ficou de pé, e não é técnica:** *coletânea moderna de textos
+antigos — que ano entra?* Vazio, o ano do texto que dá título (a leitura do
+ChatGPT para *Ode parnasiana* → 1891), o ano do texto mais antigo, ou o ano em
+que a coletânea foi reunida. Ela decide o Cthulhu, a *Ode parnasiana* e centenas
+de outros. Está na folha `_nivel-2-do-ano-A.html`, junto com o voto livro a livro
+e a pergunta sobre soltar o nível 3 nos 6 que sobraram.
+
 ## 4.137 O título de vitrine: o billboard deixa de mostrar o subtítulo (30/08)
 
 Ele mandou a captura de um destaque da Início em que o título **cobria a capa
