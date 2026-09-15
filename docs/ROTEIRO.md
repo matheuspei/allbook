@@ -6971,6 +6971,38 @@ como obra única (*Contos de Grimm*, 1812). É a leitura conservadora da regra d
 **Conferido antes de deixar rodando:** o ano chega ao `_ficha.json` **e** às tags
 do áudio (5 achados conferidos um a um, ficha e tag batendo).
 
+### A medição da esteira, e um efeito colateral para a ingestão (15/09, madrugada)
+
+**12 linhas paralelas em vez de 4 mudaram a ordem de grandeza:** 2.691
+livros/hora contra ~285. O nível 1 no acervo inteiro cai de **54 horas para ~5**.
+O gargalo nunca foi cota nem CPU — é rede: 6 a 8 requisições por livro, em fila.
+
+**Rendimento do nível 1 no acervo inteiro, medido em 364 livros:** 6 anos (1,6%),
+com **só 37 dos 364 virando pergunta** — 90% pulam de graça, sem dossiê. É
+coerente com os 8% medidos em 22/08 no Tocalivros; a diferença é que ali a
+amostra era sorteada e aqui é a fila inteira, na ordem do alfabeto. Os achados
+são o que se esperaria de uma fonte estruturada: *O príncipe* 1532, *Avalovara*
+1973, *Manifesto do Partido Comunista* 1848, *Vinte mil léguas submarinas* 1869.
+
+🚨 **O EFEITO COLATERAL QUE A INGESTÃO VAI SENTIR: o mesmo livro fica com anos
+DIFERENTES em lojas diferentes.** *A Arte da Guerra*, de Maquiavel, ficou:
+
+```
+audible     1521   [Wikidata] Q610942
+audible     1521   Wikidata (P577)
+ubook       1521   Wikipedia — escrita 1519-1520, impressa em 1521
+tocalivros  1520   [a própria sinopse da loja diz] publicada em 1520
+```
+
+Não é bug: é a **regra 3a** funcionando (a sinopse da loja ganha, porque é prova
+literal que viaja junto do livro). Mas quando o acervo entrar no AllBook, dois
+exemplares do mesmo título vão mostrar 1520 e 1521 na mesma vitrine.
+
+⏳ **Fica em aberto, e é decisão de ingestão, não do agente:** na hora de juntar
+os exemplares num livro só, qual ano manda? O mais frequente entre as lojas, o
+de fonte mais forte (Wikidata acima de sinopse), ou o mais antigo? Registrar aqui
+para não se descobrir isso depois, com o catálogo montado.
+
 ## 4.137 O título de vitrine: o billboard deixa de mostrar o subtítulo (30/08)
 
 Ele mandou a captura de um destaque da Início em que o título **cobria a capa
