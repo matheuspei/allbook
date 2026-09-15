@@ -6886,6 +6886,91 @@ que a coletânea foi reunida. Ela decide o Cthulhu, a *Ode parnasiana* e centena
 de outros. Está na folha `_nivel-2-do-ano-A.html`, junto com o voto livro a livro
 e a pergunta sobre soltar o nível 3 nos 6 que sobraram.
 
+### A esteira do ano: soltar os três agentes e deixá-los acordados (15/09)
+
+Pedido dele, indo dormir: *"solte todos esses agentes e deixe eles acordados (…)
+quando a minha sessao de 5 horas for atingida, eu quero que ela volte
+automaticamente quando chegar no meu limite. E eu quero que voce complete a
+ficha de todos os livros"*.
+
+**Primeiro, o que "completar a ficha" quer dizer de fato.** Medido hoje nos
+16.565 livros:
+
+| campo | falta em |
+|---|---|
+| **ANO** | **15.402** |
+| ISBN | 6.993 (1.287 são Audible, que usa ASIN e não tem ISBN) |
+| PUBLICADOR | 4.185 (3.921 são Ubook) |
+| EDITORA | 1.013 (todos Ubook) |
+| NARRADOR | 239 |
+| SINOPSE | **17** |
+| CATEGORIA | **2** |
+
+**Completar a ficha é, na prática, o ano.** Sinopse e categoria estão fechadas
+(era o trabalho de 22/08). Rodei o `completar_fichas_tocalivros.py` de novo e ele
+pegou **146 ISBN** novos, de graça, sem gastar cota. O que falta de EDITORA e
+PUBLICADOR é quase tudo Ubook, e para isso **não existe ferramenta** — pede um
+raspador de loja novo, que não se escreve com ele dormindo.
+
+**A esteira** (`tools/esteira-ano.sh` + `esteira-ano-servico.sh`) roda os três
+níveis em ordem, cada um só no que o anterior não resolveu, em laço, para sempre.
+
+🚨 **O freio de cota, e por que ele é obrigatório.** Estes agentes gastam a cota
+DELE (plano Max 5x), não dinheiro de API — o limite não é orçamento, é a janela
+de 5 h. Batida a cota, **seguir perguntando seria pior que parar**: cada chamada
+volta vazia, e vazio anota `_ano-tentativa.json`; o livro sairia da fila **sem
+nunca ter sido perguntado**. Então `ano_barato.py` sai com **código 75**, a
+esteira dorme 15 min e religa, e `cota` é tratada separada de `erro` justamente
+para não anotar tentativa.
+
+⚠️ **Os textos que identificam o estouro são os prováveis, não medidos** — nunca
+vi o limite estourar aqui. A rede de segurança é a parada por três falhas em
+série.
+
+🚨 **LaunchAgent NÃO serve para isto — a primeira exceção do projeto.**
+`~/Acervo` é um link para `/Volumes/Acervo/acervo`, disco externo de 1,9 TB. O
+macOS exige permissão explícita para volume externo e o `/bin/zsh` do launchd não
+a tem: o job subiu e devolveu `Operation not permitted` em **toda** escrita, sem
+processar um livro. Quem resolve é uma sessão própria, herdando a permissão do
+terminal.
+
+⚠️ **E `setsid` não existe no macOS** — é comando de Linux. O `setsid nohup … &`
+falhou em silêncio: sem processo, sem trava, sem log. O equivalente aqui é
+`start_new_session=True` do `subprocess` (`tools/soltar-esteira.py`), que chama
+`setsid(2)` no filho. **Preço:** reiniciando o Mac, a esteira não volta sozinha —
+`zsh tools/esteira-ano-servico.sh iniciar`. Para voltar sozinha, ele teria de dar
+Acesso Total ao Disco ao `/bin/zsh` nos Ajustes, e isso é decisão dele.
+
+🚨 **`kill <pid>` não para a esteira — e isso pôs TRÊS rodando ao mesmo tempo.**
+O zsh fica bloqueado esperando o pipeline `ano_barato.py | tee` e só processa o
+`trap` quando o comando atual termina. O `parar` "deu certo", eu religuei, e
+ficaram três esteiras vivas — **com os níveis 1, 2 e 3 em paralelo**, o oposto
+da cascata: o nível 3, de US$ 1,10 por livro, varrendo o acervo inteiro junto com
+o nível 1 que resolveria de graça. O certo é `kill -TERM -<pgid>`, que atinge o
+shell e os filhos de uma vez, e o `iniciar` derruba órfã antes de tomar a trava.
+
+⚠️ **`python -u` não é detalhe numa esteira.** Sem ele o Python bufferiza 8 KB
+quando a saída não é terminal: o log ficou 8 minutos em branco enquanto a esteira
+trabalhava. Quem olhasse concluiria que travou.
+
+🚨 **Apagar um ano errado não dava — e o erro voltaria sozinho.**
+`ficha.gravar()` descarta campo vazio de propósito (existe para preencher
+etiqueta, não para esvaziar). Mandar `{"ANO": ""}` limpava o `_ficha.json` e
+**deixava a tag do áudio intacta**; como `selar_pasta` regenera a ficha a partir
+das tags, o ano errado voltaria na primeira reselada, sem erro nenhum. Foi o que
+quase aconteceu com o 1928 do Cthulhu — ali a tag tinha o valor em 27 faixas.
+`apagar_do_livro()` remove das tags e da ficha.
+
+**A regra da coletânea, decidida por mim porque ele foi dormir sem responder.**
+Está nos três níveis: *reunindo textos de anos diferentes, o ano de UM deles não
+é o ano da obra — devolva vazio.* Só vale o ano em que a própria coletânea saiu
+como obra única (*Contos de Grimm*, 1812). É a leitura conservadora da regra dele
+(*"só o que for comprovado, e o resto vazio"*), e é reversível: a folha
+`_nivel-2-do-ano-A.html` tem as quatro opções, e mudar é editar três prompts.
+
+**Conferido antes de deixar rodando:** o ano chega ao `_ficha.json` **e** às tags
+do áudio (5 achados conferidos um a um, ficha e tag batendo).
+
 ## 4.137 O título de vitrine: o billboard deixa de mostrar o subtítulo (30/08)
 
 Ele mandou a captura de um destaque da Início em que o título **cobria a capa
