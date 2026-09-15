@@ -7003,6 +7003,58 @@ os exemplares num livro só, qual ano manda? O mais frequente entre as lojas, o
 de fonte mais forte (Wikidata acima de sinopse), ou o mais antigo? Registrar aqui
 para não se descobrir isso depois, com o catálogo montado.
 
+### 🚨 O nível 3 é 3× mais barato e 2× mais certeiro do que eu media (15/09)
+
+Ele mandou pular direto ao nível 3 com o nível 1 em 83%, e explicou o porquê:
+*"eu só rodei 12% do semanal, e ele vai zerar hoje às 4h da manhã. Então a gente
+pode utilizar sem problema nenhum, porque eu tenho bastante token ainda"*. Cota
+que não se usa até o reset **se perde** — o argumento é correto e eu tinha
+tratado a cota como orçamento, que ela não é.
+
+**Medido agora em 37 livros, contra a medição de 22/08 em 8:**
+
+| | 22/08 (8 livros) | 15/09 (37 livros) |
+|---|---|---|
+| tokens por livro | 557.000 | **155.000** |
+| custo por livro | US$ 1,104 | **US$ 0,382** |
+| acerto | 50% | **91%** |
+| **custo por ano achado** | **US$ 2,21** | **US$ 0,42** |
+
+🚨 **A medição de 22/08 estava enviesada, e o viés era grande.** Aqueles 8 livros
+eram **as sobras dos níveis 1 e 2** num lote de 12 — por definição, os mais
+difíceis do mundo: o agente cavava sem fim e voltava vazio, e foi de lá que saiu
+o *Momentos Mágicos* de 1,1 milhão de tokens. A fila real do nível 3 são 12.369
+livros **comuns**, e a maioria é livro de loja recente que uma busca resolve em
+duas páginas — *Rei do Orgulho* 2023, *Maneiras de te Odiar* 2024, *Marcada:
+Coven* 2023. **Medir na cauda e projetar para o corpo foi o erro**, e ele custaria
+a decisão inteira: a conta antiga dava US$ 13.600 para esta fila, a real dá
+**US$ 4.725** — com ~11.250 anos achados.
+
+⚠️ **Lição que vale para toda medição deste projeto:** amostra colhida DEPOIS de
+dois filtros não representa a população antes deles. Se a amostra é "o que sobrou
+do funil", ela mede o pior caso, não o caso.
+
+**Duas peças que o paralelo exigiu** (`--so-vistos` e `--direto-ao-3`, em
+`ano_barato.py`), para as duas esteiras não pegarem o mesmo livro:
+
+⚠️ **`--so-vistos 0` — e o `0` é valor VÁLIDO, não "desligado".** Nível 0 quer
+dizer *"o dossiê foi montado e veio vazio, nem cheguei a perguntar"*, e são
+**9.772 dos 12.369**. Tratar 0 como falsy, que é o hábito em Python, deixaria de
+fora 83% da fila — e justamente a parte onde o nível 3 mais serve, porque são os
+livros que nenhuma fonte estruturada conhece. O desligado é `-1`.
+
+⚠️ **`--direto-ao-3`** salta as perguntas dos níveis 1 e 2 mas **monta o dossiê**:
+ele é de graça e o nível 3 lê melhor com ele na mão (foi dossiê vazio que produziu
+a timidez do Grimm em 22/08). Sem essa flag, cada um dos 12.369 refaria a pergunta
+do nível 1 — US$ 106 e horas de rede para reproduzir resposta que já está gravada.
+
+**E o vigia** (`tools/vigia-esteiras.sh`), porque ele saiu por horas: confere as
+duas esteiras a cada 5 min e religa a que caiu. As esteiras já tratam erro, cota e
+sinal; o que elas não tratam é o próprio shell morrer. **Testado derrubando uma de
+propósito com `kill -9` no grupo.** A página `_andamento-do-ano-A.html` se reescreve
+a cada 5 min com progresso, achados e gasto — ler log de 15 mil linhas não é
+relatório.
+
 ## 4.137 O título de vitrine: o billboard deixa de mostrar o subtítulo (30/08)
 
 Ele mandou a captura de um destaque da Início em que o título **cobria a capa
