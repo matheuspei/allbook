@@ -8692,3 +8692,58 @@ vazia** — quem as usa tem de aguentar isso, e é o que faz a linha sumir.
 
 ⚠️ **O seletor de vozes vazava o mesmo texto**: *"Este livro tem 2 narrações.
 Você está com a de Narrador não informado."* Agora a frase para no ponto.
+
+## 4.160 Quem não é gente sai da tabela de pessoas (15/09)
+
+Fecha o que ficou aberto desde 31/08. Duas correções que ele aprovou na folha
+`_autor-que-falta-A.html`, as duas aplicadas por leitura da ficha — o banco do
+acervo não é tocado.
+
+### 1. A editora ocupando o campo de gente — 1.092 → 221 livros
+
+🚨 **`script/pessoas.ts` é uma LISTA CONFERIDA À MÃO, e tem de continuar
+sendo.** A tentação de uma regra estrutural morreu em 31/08, quando ele a
+derrubou e eu achei a contraprova sozinho: **Blake Pierce e LIBROTEKA são
+idênticos dentro do banco** — autor igual à editora nos dois. Um é escritor que
+publica com o próprio nome; o outro é uma casa que assina compilações anônimas.
+**Só o nome os separa.**
+
+São **35 nomes** na lista (Max Editorial 178 livros, Cresça Brasil 160,
+AVANTE EDITORIAL 97, LIBROTEKA 93, Ubook 67, Editora Online 57…) e **18 nomes
+que eu olhei e deixei fora**, anotados em `OLHADOS_E_SAO_GENTE` para ninguém
+"arrumar" depois — incluindo os casos amadores que ele descreveu, em que a
+pessoa escreveu, gravou e publicou sozinha.
+
+⚠️ **O nome não é apagado: é MOVIDO.** Sai de autor/narrador e vira a editora do
+livro quando ele não tem nenhuma. É a §4.152 aplicada — *"antes de apagar o dado
+ruim, procure o bom"* —, e valeu a pena: **os livros com editora foram de 12.766
+para 13.252 (95,2%)**, porque 94 dos 97 da AVANTE EDITORIAL não tinham outra
+fonte de editora além do campo do autor. Depois da troca, a linha some da ficha
+sozinha (§4.159).
+
+### 2. O mesmo escritor com dois perfis — resolvido
+
+*"O perfil é para uma pessoa apenas"*, ele disse, olhando os **três** Machados de
+Assis. Hoje:
+
+| antes | agora |
+|---|---|
+| Machado de Assis 48 · "de Assis, Machado" 1 · "Machado Assis" 1 | **Machado de Assis 145** · "Machado Assis" 1 |
+| Edgar Allan Poe 10 · "Poe, Edgar Allan" 3 | **Edgar Allan Poe 13** |
+| William Shakespeare 9 · "Shakespeare, William" 1 | **William Shakespeare 11** |
+
+Sobrou **1 livro** com vírgula no nome do autor, e é o certo: *"Délia, (Maria
+Benedita Câmara Bormann)"* é pseudônimo com o nome civil entre parênteses, não
+inversão.
+
+⚠️ **`desinverter()` só age com EXATAMENTE uma vírgula e cauda começando por
+letra.** A vírgula significa coisas diferentes por loja (§4.154): na Storytel é
+inversão, nas outras é lista. Aqui a entrada já chega partida por
+`partirCreditos()`, então vírgula que sobrou é inversão.
+
+🚨 **O que NÃO foi feito, de propósito:** *"Machado Assis"* (1 livro) continua
+separado de *"Machado de Assis"* (145). É a mesma pessoa, mas juntar por
+semelhança é outra régua — a de `mesmoAutor()` em `obras.ts`, que existe para
+**agrupar obra**, não para **fundir perfil**. Fundir perfil por parecença
+erraria em homônimo e o erro seria calado. Fica para quando houver caso que
+justifique.

@@ -44,6 +44,7 @@ import { CAPAS_RAIZ } from "../server/catalogo";
 import { capitulos, editoras, generos, livros, pessoas } from "@shared/schema";
 import { carimbosDaFicha } from "./carimbos";
 import { nomeDeEditora, resolverEditoras, type EditoraResolvida } from "./editoras";
+import { NAO_E_PESSOA, desinverter } from "./pessoas";
 
 /* -------------------------------------------------------------------------- */
 /* Onde as coisas ficam                                                        */
@@ -263,23 +264,37 @@ function partirCreditos(bruto: string | null | undefined, loja: string): string[
  * **outro papel** (tradutor, editor) e quem é só a palavra "Elenco". Repetido
  * também sai — a ficha às vezes traz o mesmo nome duas vezes.
  */
-function creditos(doSqlite: string | null, daFicha: string | null | undefined, loja: string): string[] {
+function creditos(
+  doSqlite: string | null,
+  daFicha: string | null | undefined,
+  loja: string,
+): { gente: string[]; organizacoes: string[] } {
   const doBanco = partirCreditos(doSqlite, loja);
   const bruta = doBanco.length > 0 ? doBanco : partirCreditos(daFicha, loja);
   const vistos = new Set<string>();
-  const limpa: string[] = [];
-  for (const nome of bruta) {
-    const papel = nome.match(/\s+-\s+(.+)$/);
+  const gente: string[] = [];
+  const organizacoes: string[] = [];
+  for (const cru of bruta) {
+    const papel = cru.match(/\s+-\s+(.+)$/);
     if (papel && OUTRO_PAPEL.has(papel[1].trim().toLowerCase())) continue;
-    if (NAO_NOMEIA_NINGUEM.has(nome.toLowerCase())) continue;
+    if (NAO_NOMEIA_NINGUEM.has(cru.toLowerCase())) continue;
+
+    // ⚠️ Desvirar ANTES de tudo (§4.160): "Poe, Edgar Allan" e "Edgar Allan
+    // Poe" têm de virar a mesma chave, senão viram dois perfis.
+    const nome = desinverter(cru) ?? cru;
+
     const util = nomeUtil(nome);
     if (!util) continue;
     const chave = slugify(util);
     if (!chave || vistos.has(chave)) continue;
     vistos.add(chave);
-    limpa.push(util);
+
+    // 🚨 Organização não é gente (§4.160) — ela sai daqui e vai para o campo da
+    // editora, em `reconciliarFichas`. Não se perde: muda de lugar.
+    if (NAO_E_PESSOA.has(chave)) organizacoes.push(util);
+    else gente.push(util);
   }
-  return limpa;
+  return { gente, organizacoes };
 }
 
 /** A lista como o banco a guarda: `null` quando há um nome só (ou nenhum). */
@@ -724,8 +739,8 @@ async function importar(limite: number | null) {
   const creditosDaLinha = (linha: LinhaDoAcervo) => {
     const ficha = pessoasDaFicha.get(`${linha.loja}/${linha.loja_id}`);
     return {
-      autores: creditos(linha.autores, ficha?.autor, linha.loja),
-      narradores: creditos(linha.narradores, ficha?.narrador, linha.loja),
+      autores: creditos(linha.autores, ficha?.autor, linha.loja).gente,
+      narradores: creditos(linha.narradores, ficha?.narrador, linha.loja).gente,
     };
   };
 
@@ -1014,35 +1029,48 @@ async function limparEditorasOrfas() {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Trocar o slug principal deste livro? **Dois casos, e só estes dois.**
+ * O slug que este livro **deve** ter no campo principal — ou `null` para não
+ * mexer. **Três casos, e só estes três.**
  *
  * 1. **O que está lá é a reserva** — `autor-desconhecido` /
  *    `narrador-nao-informado`. Preencher vazio nunca tira nada de ninguém.
  * 2. 🚨 **O que está lá é uma LISTA COLADA virando uma pessoa só.** O acervo
- *    tem 290 "pessoas" com vírgula no nome, e as maiores são listas:
- *    *"Paola Molinari, Clayton Heringer, Juscelino Filho"* narra 11 livros como
- *    se fosse **uma** pessoa, com perfil e avatar. Isso entrou porque o
- *    separador antigo era só `" & "`.
+ *    tinha 290 "pessoas" com vírgula no nome, e as maiores eram listas:
+ *    *"Paola Molinari, Clayton Heringer, Juscelino Filho"* narrava 11 livros
+ *    como **uma** pessoa, com perfil e avatar (§4.154).
+ * 3. 🚨 **O que está lá NÃO É GENTE** — está em `NAO_E_PESSOA` (§4.160). Aí o
+ *    campo volta para a reserva e a linha some da ficha (§4.159); o nome não se
+ *    perde porque vira a editora do livro.
+ * 4. 🚨 **O que está lá é o MESMO nome, escrito invertido** — *"Poe, Edgar
+ *    Allan"* com *"Edgar Allan Poe"* já existindo ao lado, cada um com parte da
+ *    obra. O formato direto ganha. *"O perfil é para uma pessoa apenas"*, ele
+ *    disse — e eram três Machados de Assis.
  *
- * ⚠️ **Fora esses dois, o nome não se toca** — ele é endereço de perfil e é por
+ * ⚠️ **Fora esses três, o nome não se toca** — ele é endereço de perfil e é por
  * ele que a obra se agrupa.
  *
- * ⚠️ **A régua do caso 2 é a mesma `partirCreditos`, com a loja**, e é o que
- * protege *"Poe, Edgar Allan"*: na Storytel a vírgula é inversão, não lista, e
- * ali `partirCreditos` devolve **um** nome. Se a régua fosse "tem vírgula", o
- * Edgar Allan Poe seria partido em dois.
+ * ⚠️ **A régua do caso 2 é `partirCreditos` com a LOJA**, e é o que protege
+ * *"Poe, Edgar Allan"*: na Storytel a vírgula é inversão, não lista. Se a régua
+ * fosse "tem vírgula", o Edgar Allan Poe seria partido em dois.
  */
-function trocarOSlug(
+function slugPrincipal(
   slugAtual: string,
   nomeAtual: string,
   reserva: string,
   novos: string[],
   loja: string,
-): boolean {
-  if (novos.length === 0) return false;
-  if (slugAtual === reserva) return true;
-  if (slugify(novos[0]) === slugAtual) return false;
-  return partirCreditos(nomeAtual, loja).length > 1;
+): string | null {
+  // 3. o que está lá não é gente — sai, mesmo sem substituto
+  if (NAO_E_PESSOA.has(slugAtual)) return novos[0] ? slugify(novos[0]) : reserva;
+  if (novos.length === 0) return null;
+  // 1. o que está lá é a reserva
+  if (slugAtual === reserva) return slugify(novos[0]);
+  if (slugify(novos[0]) === slugAtual) return null;
+  // 4. o que está lá é o MESMO nome, escrito invertido (§4.160)
+  const desvirado = desinverter(nomeAtual);
+  if (desvirado && slugify(desvirado) === slugify(novos[0])) return slugify(novos[0]);
+  // 2. o que está lá é uma lista colada
+  return partirCreditos(nomeAtual, loja).length > 1 ? slugify(novos[0]) : null;
 }
 
 /**
@@ -1112,21 +1140,24 @@ async function reconciliarCreditos(
       pessoasNovas.set(slugify(nome), nome);
     }
 
-    /* --- o slug principal: reserva, ou lista colada num nome só --- */
-    if (trocarOSlug(aqui.autor, aqui.nomeAutor, "autor-desconhecido", fonte.autores, aqui.loja)) {
-      juntar(autorPorSlug, slugify(fonte.autores[0]), aqui.id);
-    }
-    if (
-      trocarOSlug(
-        aqui.narrador,
-        aqui.nomeNarrador,
-        "narrador-nao-informado",
-        fonte.narradores,
-        aqui.loja,
-      )
-    ) {
-      juntar(narradorPorSlug, slugify(fonte.narradores[0]), aqui.id);
-    }
+    /* --- o slug principal: reserva, lista colada, ou organização que saiu --- */
+    const autorNovo = slugPrincipal(
+      aqui.autor,
+      aqui.nomeAutor,
+      "autor-desconhecido",
+      fonte.autores,
+      aqui.loja,
+    );
+    if (autorNovo) juntar(autorPorSlug, autorNovo, aqui.id);
+
+    const narradorNovo = slugPrincipal(
+      aqui.narrador,
+      aqui.nomeNarrador,
+      "narrador-nao-informado",
+      fonte.narradores,
+      aqui.loja,
+    );
+    if (narradorNovo) juntar(narradorPorSlug, narradorNovo, aqui.id);
 
     /* --- a lista: sempre, e agrupada pelo texto para caber em poucos UPDATE --- */
     const listaA = listaParaOBanco(fonte.autores);
@@ -1447,10 +1478,15 @@ async function reconciliarFichas() {
     if (nome) nomePorLivro.set(aqui.id, nome);
     else semFicha++;
     /* O sqlite manda e a ficha completa — a mesma reserva do `importar`. */
-    creditosPorLivro.set(aqui.id, {
-      autores: creditos(linha.autores, triagem.autorBruto, linha.loja),
-      narradores: creditos(linha.narradores, triagem.narradorBruto, linha.loja),
-    });
+    const doAutor = creditos(linha.autores, triagem.autorBruto, linha.loja);
+    const doNarrador = creditos(linha.narradores, triagem.narradorBruto, linha.loja);
+    creditosPorLivro.set(aqui.id, { autores: doAutor.gente, narradores: doNarrador.gente });
+    /* 🚨 A organização que saiu do campo de gente vira a EDITORA quando o livro
+       não tem nenhuma (§4.160). É a lição da §4.152: dado errado ainda é dado,
+       e 94 dos 97 livros da "AVANTE EDITORIAL" não têm outra fonte de editora
+       além do campo do autor. */
+    const daPessoa = doAutor.organizacoes[0] ?? doNarrador.organizacoes[0];
+    if (daPessoa && !nomePorLivro.has(aqui.id)) nomePorLivro.set(aqui.id, daPessoa);
     fichaPorLivro.set(aqui.id, { titulo: triagem.titulo, categorias: triagem.categorias });
   }
 
