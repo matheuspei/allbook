@@ -277,7 +277,7 @@ acervo diz *"Alessandra Klimiont e João Bidu"*.
   campo novo que não for copiado ali **some da tela sem erro de tipo**. Já
   aconteceu três vezes (anos §4.149, e agora as duas listas).
 
-### Um livro pode estar em VÁRIOS gêneros (01/09, §4.157)
+### Um livro pode estar em VÁRIOS gêneros (01/09, §4.158)
 
 🚨 **`book.genre` é o TOPO, não "o gênero".** Quem filtra prateleira usa
 **`generosDe(book)`** e `getBooksByGenre()` (`lib/books.ts`), que já contam os

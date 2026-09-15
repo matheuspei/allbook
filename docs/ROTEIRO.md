@@ -8601,7 +8601,7 @@ Bem Estar". Cada loja batiza do seu jeito, e juntar exige **escolher qual nome
 sobrevive** — isso é desenho de vitrine, não importação, e por isso nem a janela
 A nem eu fizemos sozinhos.
 
-## 4.157 Um livro em vários gêneros — a ideia dele que valia mais que a minha (01/09)
+## 4.158 Um livro em vários gêneros — a ideia dele que valia mais que a minha (01/09)
 
 Levei a ele o problema que a §4.156 abriu: os gêneros foram de 21 para 89 e há
 quatro prateleiras de religião, porque cada loja batiza a mesma coisa de um
@@ -8669,3 +8669,26 @@ ele.
 `livros.generos` e **nenhum livro o tem como principal** — o `exists` o
 esconderia. O corte agora é contra os rótulos que os livros da resposta
 carregam.
+
+## 4.159 Campo sem nome não escreve "não informado" — a linha some (01/09)
+
+Decisão dele, olhando a folha `_autor-que-falta-A.html`: *"se a gente não sabe
+quem é o narrador, a gente não coloca o ícone 'não informado'. A gente
+simplesmente deixa oculto, tá? Deixa sem nada."*
+
+A minha proposta mostrava a linha com um "?" cinza e *não informado* em itálico.
+Ele está certo: **é escrever o buraco na tela**. Linha de crédito existe para
+levar a alguém; sem alguém, ela não tem para onde levar.
+
+🚨 **E consertou algo pior, que ninguém tinha visto: "Autor desconhecido" e
+"Narrador não informado" tinham PERFIL DE PESSOA** — com avatar, botão de
+seguir e **70 e 234 livros dentro**. São os dois slugs de reserva do banco,
+escritos para o campo não ficar vazio, e o `people.ts` os tratava como gente
+porque deriva do catálogo sem perguntar nada.
+
+**Onde mora a regra:** `ehGente()` em `lib/books.ts`, e é ela que
+`autoresDe()`/`narradoresDe()` aplicam. ⚠️ **As duas podem devolver lista
+vazia** — quem as usa tem de aguentar isso, e é o que faz a linha sumir.
+
+⚠️ **O seletor de vozes vazava o mesmo texto**: *"Este livro tem 2 narrações.
+Você está com a de Narrador não informado."* Agora a frase para no ponto.

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AudioLines, Check, ChevronDown } from "lucide-react";
 
 import PersonAvatar from "@/components/PersonAvatar";
+import { ehGente } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { findVoice } from "@/lib/studio";
 import {
@@ -62,7 +63,11 @@ export default function SeletorDeNarracao({ book }: { book: LivroComNarrador }) 
         <AudioLines className="h-3.5 w-3.5 shrink-0 text-primary" />
         <span className="min-w-0 flex-1 text-[12px] leading-snug text-white/55">
           Este livro tem <span className="font-semibold text-white/80">{opcoes.length} narrações</span>
-          . Você está com a de {atual.name}.
+          {/* ⚠️ Sem nome de gente, a frase para no ponto (01/09, §4.159): dizer
+              "você está com a de Narrador não informado" é escrever o buraco na
+              tela, e a decisão dele é que campo sem nome simplesmente não
+              aparece. */}
+          {ehGente(atual.name) ? `. Você está com a de ${atual.name}.` : "."}
         </span>
         <ChevronDown
           className={`h-4 w-4 shrink-0 text-white/35 transition-transform duration-200 ${

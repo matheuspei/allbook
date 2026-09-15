@@ -20,6 +20,7 @@ import {
   representanteDe,
   autoresDe,
   narradoresDe,
+  ehGente,
 } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { anoDaNarracao, anoDaObra } from "@/lib/anos";
@@ -341,7 +342,9 @@ function buildFromCatalog(id: string) {
     summary:
       entry.sinopse ??
       entry.synopsis ??
-      `"${entry.title}", de ${entry.author}. A sinopse deste título ainda não foi importada.`,
+      (ehGente(entry.author)
+        ? `"${entry.title}", de ${entry.author}. `
+        : `"${entry.title}". `) + "A sinopse deste título ainda não foi importada.",
     duration: duracaoEstimada(entry.pages) ?? PADROES_DA_FICHA.duration,
   };
 }
@@ -700,16 +703,16 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               testid={i === 0 ? "text-author" : `text-author-${i}`}
             />
           ))}
-          {(narracao.name === book.narrator ? narradoresDe(book) : [narracao.name]).map(
-            (nome, i) => (
+          {(narracao.name === book.narrator ? narradoresDe(book) : [narracao.name])
+            .filter(ehGente)
+            .map((nome, i) => (
               <PessoaDoLivro
                 key={nome}
                 papel={i === 0 ? "Narrado por" : undefined}
                 nome={nome}
                 testid={i === 0 ? "text-narrator" : `text-narrator-${i}`}
               />
-            ),
-          )}
+            ))}
           <SeletorDeNarracao book={{ id: book.id, narrator: book.narrator }} />
           <EditoraDoLivro bookId={Number(params.id)} />
           <EstudioDoLivro narrador={narracao.name} />

@@ -198,7 +198,7 @@ export const livros = pgTable(
 
     /**
      * **Todos** os gêneros do livro, do mais geral para o mais específico,
-     * separados por `" & "` (01/09, §4.157).
+     * separados por `" & "` (01/09, §4.158).
      *
      * 🚨 **A ficha do acervo traz uma TRILHA e o AllBook guardava só o topo.**
      * *"Religião > Cristianismo"*, *"Ficção > Terror"*, *"Infantojuvenil >

@@ -310,7 +310,7 @@ function nomeUtil(nome: string | null): string | null {
 
 /**
  * Rótulos que a loja usa como **raiz da árvore ou etiqueta comercial**, e que
- * não dizem nada sobre o livro (01/09, §4.157).
+ * não dizem nada sobre o livro (01/09, §4.158).
  *
  * 🚨 *"Livros"* é a raiz da árvore do Tocalivros e apareceu em **1.477
  * livros** — viraria o segundo maior "gênero" da Descobrir, à frente de
@@ -336,7 +336,7 @@ const NAO_E_GENERO = new Set([
 
 /**
  * Os rótulos de gênero de uma ficha, do mais geral ao mais específico, sem
- * repetir (01/09, §4.157).
+ * repetir (01/09, §4.158).
  *
  * As quatro fontes da ficha dizem a mesma coisa com recortes diferentes —
  * `CATEGORIA_ORIGEM` costuma ser o topo, `categoria_trilha` traz o caminho
@@ -617,7 +617,7 @@ interface TriagemDaFicha {
   categoria: string | null;
   /**
    * **Todos** os rótulos de gênero da ficha, do mais geral ao mais específico,
-   * já quebrados no `">"` (01/09, §4.157). Ver `reconciliarTituloEGenero`.
+   * já quebrados no `">"` (01/09, §4.158). Ver `reconciliarTituloEGenero`.
    */
   categorias: string[];
 }
@@ -1174,7 +1174,7 @@ async function reconciliarCreditos(
 
 /**
  * Acerta o **título** e os **gêneros** a partir da ficha do "pronto" (01/09,
- * §§4.156 e 4.157). Dois defeitos que o Matheus achou e a janela B varreu.
+ * §§4.156 e 4.158). Dois defeitos que o Matheus achou e a janela B varreu.
  *
  * ## 1. O título do Ubook chega sem acento e sem pontuação
  *
@@ -1333,7 +1333,7 @@ async function reconciliarTituloEGenero(
   }
 
   if (titulos + comGenero + listaPorTexto.size === 0) return;
-  console.log(`\n  Título e gênero (§§4.156 e 4.157)`);
+  console.log(`\n  Título e gênero (§§4.156 e 4.158)`);
   if (titulos) console.log(`    ${titulos} títulos recuperaram acento e pontuação`);
   if (comGenero) console.log(`    ${comGenero} livros saíram de "Sem gênero"`);
   console.log(

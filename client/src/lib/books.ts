@@ -79,7 +79,7 @@ export interface Book {
   authors?: string[];
   narrators?: string[];
   /**
-   * Todos os gêneros do livro, do mais geral ao mais específico (§4.157) —
+   * Todos os gêneros do livro, do mais geral ao mais específico (§4.158) —
    * *"Religião"* e *"Cristianismo"*. Só chega quando há mais de um; use
    * `generosDe(book)`, que resolve os dois casos.
    */
@@ -605,7 +605,7 @@ export function getBooksByIds(ids: number[]): Book[] {
 }
 
 /**
- * Os livros de um gênero — **contando os secundários** (01/09, §4.157).
+ * Os livros de um gênero — **contando os secundários** (01/09, §4.158).
  *
  * 🚨 Um livro pode estar em vários gêneros: *"Religião > Cristianismo"*. Se
  * esta função olhasse só o `genre` (o topo), a grade de **Cristianismo** viria
@@ -616,7 +616,7 @@ export function getBooksByGenre(genre: Genre): Book[] {
 }
 
 /**
- * **Todos** os gêneros do livro, do mais geral ao mais específico (§4.157).
+ * **Todos** os gêneros do livro, do mais geral ao mais específico (§4.158).
  *
  * ⚠️ `book.genre` é o **topo**, e é ele que a vitrine mostra como rótulo. Quem
  * filtra ou lista prateleira usa esta função.
@@ -637,13 +637,46 @@ export function generosDe(book: Book): Genre[] {
  * servidor quando há mais de um.
  */
 export function autoresDe(book: Book): string[] {
-  return book.authors && book.authors.length > 0 ? book.authors : [book.author];
+  const lista = book.authors && book.authors.length > 0 ? book.authors : [book.author];
+  return lista.filter(ehGente);
 }
 
 /** Todos os narradores do livro. Mesma regra de `autoresDe`. */
 export function narradoresDe(book: Book): string[] {
-  return book.narrators && book.narrators.length > 0 ? book.narrators : [book.narrator];
+  const lista = book.narrators && book.narrators.length > 0 ? book.narrators : [book.narrator];
+  return lista.filter(ehGente);
 }
+
+/**
+ * Este nome identifica **alguém**? (01/09, §4.159)
+ *
+ * 🚨 **"Autor desconhecido" e "Narrador não informado" viravam PERFIL** — com
+ * avatar, botão de seguir e 70 e 234 livros dentro. São os dois slugs de
+ * reserva do banco, escritos para o campo não ficar vazio, e nunca foram gente.
+ *
+ * A decisão do Matheus (01/09): **campo sem nome não mostra "não informado" —
+ * a linha some.** *"Se a gente não sabe quem é o narrador, a gente não coloca o
+ * ícone 'não informado'. A gente simplesmente deixa oculto."*
+ *
+ * ⚠️ Por isso `autoresDe`/`narradoresDe` podem devolver **lista vazia**, e quem
+ * as usa tem de aguentar isso — é o que faz a linha sumir em vez de aparecer
+ * escrita em itálico.
+ */
+export function ehGente(nome: string): boolean {
+  const chave = slugify(nome);
+  return chave.length > 0 && !NAO_E_GENTE.has(chave);
+}
+
+/** Os nomes de reserva do banco, e os que as lojas usam no lugar de um nome. */
+const NAO_E_GENTE = new Set([
+  "autor-desconhecido",
+  "narrador-nao-informado",
+  "desconhecido",
+  "nao-informado",
+  "unknown",
+  "various-narrators",
+  "narrators-various",
+]);
 
 /**
  * O título como a **vitrine** deve mostrá-lo: sem o subtítulo.

@@ -106,7 +106,7 @@ export interface LivroDoCatalogo {
   author: string;
   narrator: string;
   /**
-   * **Todos** os gêneros do livro, do mais geral ao mais específico (§4.157).
+   * **Todos** os gêneros do livro, do mais geral ao mais específico (§4.158).
    * Só vem quando há mais de um; nos outros vale o `genre`.
    */
   genres?: string[];
@@ -235,7 +235,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
   const [linhasDeGenero, linhasDeEditora, linhasDeLivro] = await Promise.all([
     /* Todos os gêneros; quem não tiver livro visível é cortado depois, em JS.
      *
-     * ⚠️ **Deixou de ser um `exists` no `genero_slug`** (01/09, §4.157): desde
+     * ⚠️ **Deixou de ser um `exists` no `genero_slug`** (01/09, §4.158): desde
      * que um livro pode estar em vários gêneros, "Cristianismo" existe só
      * dentro de `livros.generos` e **nenhum livro o tem como principal** — o
      * `exists` o esconderia, e ele tem 1.534 livros. O corte agora é feito
