@@ -394,6 +394,12 @@ function texto(valor: unknown): string | null {
   return limpo.length > 0 ? limpo : null;
 }
 
+/** O campo de duração da ficha, em segundos. Zero e lixo viram `null`. */
+function segundos(valor: unknown): number | null {
+  const n = Number(texto(valor) ?? "");
+  return Number.isFinite(n) && n > 0 && n < 400 * 3600 ? Math.round(n) : null;
+}
+
 /** "2007-12-19" → 2007. Ano fora de faixa plausível é descartado. */
 function anoDe(lancamento: string | null): number | null {
   const ano = Number((lancamento ?? "").slice(0, 4));
@@ -631,6 +637,11 @@ interface TriagemDaFicha {
   titulo: string | null;
   categoria: string | null;
   /**
+   * A duração que a ficha anuncia, em segundos (15/09, §4.161). Reserva para o
+   * Ubook e o Tocalivros, que não a mandam no `catalogo.sqlite`.
+   */
+  duracao: number | null;
+  /**
    * **Todos** os rótulos de gênero da ficha, do mais geral ao mais específico,
    * já quebrados no `">"` (01/09, §4.158). Ver `reconciliarTituloEGenero`.
    */
@@ -645,6 +656,7 @@ const FICHA_VAZIA: TriagemDaFicha = {
   titulo: null,
   categoria: null,
   categorias: [],
+  duracao: null,
 };
 
 async function triarFicha(loja: string, pasta: string | null): Promise<TriagemDaFicha> {
@@ -668,6 +680,7 @@ async function triarFicha(loja: string, pasta: string | null): Promise<TriagemDa
         texto(dados?.ficha?.CATEGORIA) ??
         texto(dados?.catalogo_cru?.categoria_trilha) ??
         texto(dados?.catalogo_cru?.categoria),
+      duracao: segundos(dados?.ficha?.DURACAO_LIVRO_S),
       categorias: trilhaDeGeneros([
         dados?.ficha?.CATEGORIA_ORIGEM,
         dados?.ficha?.CATEGORIA,
@@ -1244,8 +1257,11 @@ async function reconciliarCreditos(
 const MINIMO_DE_LIVROS_NO_GENERO = 50;
 
 async function reconciliarTituloEGenero(
-  noBanco: Map<string, { id: number; titulo: string; genero: string; generos: string | null }>,
-  daFicha: Map<number, { titulo: string | null; categorias: string[] }>,
+  noBanco: Map<
+    string,
+    { id: number; titulo: string; genero: string; generos: string | null; duracao: number | null }
+  >,
+  daFicha: Map<number, { titulo: string | null; categorias: string[]; duracao: number | null }>,
 ) {
   /** A frase sem acento e sem pontuação — a prova de que é o mesmo texto. */
   const mesmaFrase = (a: string, b: string) => {
@@ -1297,6 +1313,7 @@ async function reconciliarTituloEGenero(
 
   /* --- segunda passada: o que escrever ----------------------------------- */
   const tituloPorTexto = new Map<string, number[]>();
+  const duracaoPorValor = new Map<number, number[]>();
   const generoPorSlug = new Map<string, number[]>();
   const listaPorTexto = new Map<string, number[]>();
   const generosNovos = new Map<string, string>();
@@ -1309,6 +1326,16 @@ async function reconciliarTituloEGenero(
 
     if (ficha.titulo && ficha.titulo !== aqui.titulo && mesmaFrase(ficha.titulo, aqui.titulo)) {
       juntar(tituloPorTexto, ficha.titulo, aqui.id);
+    }
+
+    /* 🚨 A duração ANUNCIADA, só onde falta (15/09, §4.161). O
+       `catalogo.sqlite` não a manda para o Ubook nem para o Tocalivros — eram
+       8.206 livros (59%) sem duração nenhuma na tela, e a ficha tem 8.205
+       deles. ⚠️ **Nunca sobrescreve**: depois do `npm run audio` o número aqui
+       é o MEDIDO com ffprobe, e trocá-lo pelo anunciado desfaria a medição e
+       deslocaria a barra de quem está ouvindo. */
+    if (aqui.duracao === null && ficha.duracao !== null) {
+      (duracaoPorValor.get(ficha.duracao) ?? duracaoPorValor.set(ficha.duracao, []).get(ficha.duracao)!).push(aqui.id);
     }
 
     // ⚠️ O rótulo guardado é o CANÔNICO do slug, não o que a ficha escreveu.
@@ -1357,16 +1384,22 @@ async function reconciliarTituloEGenero(
     await db.update(livros).set({ generoSlug: slug }).where(inArray(livros.id, ids));
     comGenero += ids.length;
   }
+  let comDuracao = 0;
+  for (const [valor, ids] of duracaoPorValor) {
+    await db.update(livros).set({ duracaoSegundos: valor }).where(inArray(livros.id, ids));
+    comDuracao += ids.length;
+  }
   let comLista = 0;
   for (const [lista, ids] of listaPorTexto) {
     await db.update(livros).set({ generos: lista || null }).where(inArray(livros.id, ids));
     if (lista) comLista += ids.length;
   }
 
-  if (titulos + comGenero + listaPorTexto.size === 0) return;
+  if (titulos + comGenero + comDuracao + listaPorTexto.size === 0) return;
   console.log(`\n  Título e gênero (§§4.156 e 4.158)`);
   if (titulos) console.log(`    ${titulos} títulos recuperaram acento e pontuação`);
   if (comGenero) console.log(`    ${comGenero} livros saíram de "Sem gênero"`);
+  if (comDuracao) console.log(`    ${comDuracao} livros ganharam duração anunciada`);
   console.log(
     `    ${comLista} livros com mais de um gênero · ` +
       `${generosNovos.size} rótulos acima de ${MINIMO_DE_LIVROS_NO_GENERO} livros`,
@@ -1424,6 +1457,7 @@ async function reconciliarFichas() {
       titulo: string;
       genero: string;
       generos: string | null;
+      duracao: number | null;
     }
   >();
   const nomeDaPessoa = new Map(
@@ -1445,6 +1479,7 @@ async function reconciliarFichas() {
       titulo: livros.titulo,
       genero: livros.generoSlug,
       generos: livros.generos,
+      duracao: livros.duracaoSegundos,
     })
     .from(livros)
     .where(isNotNull(livros.origemLoja))) {
@@ -1461,6 +1496,7 @@ async function reconciliarFichas() {
       titulo: l.titulo,
       genero: l.genero,
       generos: l.generos,
+      duracao: l.duracao,
     });
   }
 
@@ -1468,7 +1504,10 @@ async function reconciliarFichas() {
      não é importar — quem ainda não está aqui entra pelo `importar`. */
   const nomePorLivro = new Map<number, string>();
   const creditosPorLivro = new Map<number, { autores: string[]; narradores: string[] }>();
-  const fichaPorLivro = new Map<number, { titulo: string | null; categorias: string[] }>();
+  const fichaPorLivro = new Map<
+    number,
+    { titulo: string | null; categorias: string[]; duracao: number | null }
+  >();
   let semFicha = 0;
   for (const linha of linhas) {
     const aqui = noBanco.get(`${linha.loja}/${linha.loja_id}`);
@@ -1487,7 +1526,11 @@ async function reconciliarFichas() {
        além do campo do autor. */
     const daPessoa = doAutor.organizacoes[0] ?? doNarrador.organizacoes[0];
     if (daPessoa && !nomePorLivro.has(aqui.id)) nomePorLivro.set(aqui.id, daPessoa);
-    fichaPorLivro.set(aqui.id, { titulo: triagem.titulo, categorias: triagem.categorias });
+    fichaPorLivro.set(aqui.id, {
+      titulo: triagem.titulo,
+      categorias: triagem.categorias,
+      duracao: triagem.duracao,
+    });
   }
 
   await reconciliarCreditos(noBanco, creditosPorLivro);

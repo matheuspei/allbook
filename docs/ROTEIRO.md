@@ -8832,3 +8832,51 @@ semelhança é outra régua — a de `mesmoAutor()` em `obras.ts`, que existe pa
 **agrupar obra**, não para **fundir perfil**. Fundir perfil por parecença
 erraria em homônimo e o erro seria calado. Fica para quando houver caso que
 justifique.
+
+## 4.161 A duração que faltava, e o estrago que ela consertou (15/09)
+
+**Uma regressão minha, achada na tela minutos depois de causá-la.** Ao tirar
+"Cresça Brasil Editora S.A." do campo do autor (§4.160), o **audiocurso**
+*Inteligência emocional*, de **1h40**, ficou sem autor — virou órfão para o
+`obras.ts`, que o anexou ao **livro** homônimo de **Gilclér Regina, de 4h42**,
+porque o título é igual e o grupo dele era o maior. A ficha do curso passou a
+abrir como se fosse o livro.
+
+🚨 **É exatamente o caso que eu tinha levado ao Matheus na folha**, no caso 3,
+como *"onde essa regra erraria feio"*. Eu previ, ele discordou achando que eram
+o mesmo livro de fontes diferentes, eu provei que não — e aí causei o erro por
+outro caminho.
+
+### O conserto veio de um quarto campo faltando
+
+Para o `obras.ts` recusar o órfão eu precisava de algo além do título, e a
+duração servia. Só que **8.206 livros (59%) não tinham duração nenhuma**: o
+`catalogo.sqlite` não a manda para o **Ubook** nem para o **Tocalivros** — zero
+dos 8.206. A ficha do "pronto" tem **8.205 deles**.
+
+**Quarto campo seguido com o mesmo defeito**, depois de editora (§4.148), autor
+(§4.153) e título/gênero (§4.156): *o dado não estava onde a gente olhou*.
+Hoje **13.916 dos 13.917 livros têm duração**, e a ficha de cada um mostra o
+tempo — o que nunca tinha acontecido para 6 em cada 10 livros do app.
+
+⚠️ **A duração da ficha é ANUNCIADA e só preenche o vazio.** Depois do
+`npm run audio` o número no banco é o **medido** com ffprobe; trocá-lo pelo
+anunciado desfaria a medição e deslocaria a barra de quem está ouvindo.
+
+### A trava, com a régua medida
+
+`duracaoCompativel()` em `obras.ts`: o órfão só entra no grupo se a duração dele
+estiver a menos de **2×** da mediana do grupo.
+
+🚨 **O 2 não é chute.** Medi os **2.321 grupos** que já tinham duas durações: a
+**mediana da razão é 1,00** e o **p90 é 1,07** — gravações da mesma obra têm
+praticamente o mesmo tamanho, mesmo com narradores diferentes. A cauda começa no
+p99 (4,00) e vai a 140×. O corte em 2 deixa de fora 1,7% dos grupos de hoje.
+
+⚠️ **Só vale para o órfão**, não para grupo formado por autor: dois livros com o
+mesmo autor e o mesmo título são a mesma obra mesmo que um seja resumo do outro.
+No órfão não há nada além do título — e título igual com tamanho três vezes
+maior é outra coisa.
+
+⚠️ **Sem duração, o órfão entra**, como entrava antes. A régua barra com prova;
+ausência de dado não é prova de nada (§4.152).

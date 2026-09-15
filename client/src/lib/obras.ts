@@ -214,6 +214,46 @@ function tituloDistintivo(obra: string): boolean {
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Quanto a duração pode variar entre gravações da **mesma** obra.
+ *
+ * 🚨 **Medido nos 2.321 grupos que já tinham duas durações** (15/09): a
+ * **mediana é 1,00** e o **p90 é 1,07** — gravações da mesma obra têm
+ * praticamente o mesmo tamanho, mesmo com narradores diferentes. A cauda começa
+ * no p99 (4,00) e vai até 140×, e é lá que moram os grupos errados. Um corte em
+ * **2×** deixa de fora 1,7% dos grupos de hoje.
+ */
+const RAZAO_MAXIMA_DE_DURACAO = 2;
+
+/**
+ * O livro sem autor cabe neste grupo, pelo **tamanho**? (15/09, §4.161)
+ *
+ * 🚨 **Existe por causa de um estrago real, e meu.** Ao tirar "Cresça Brasil
+ * Editora S.A." do campo do autor (§4.160), o **audiocurso** *Inteligência
+ * emocional*, de 1h40, virou órfão — e foi anexado ao **livro** homônimo de
+ * Gilclér Regina, de 4h42, porque o título é o mesmo e o grupo dele era o maior.
+ * A ficha do curso passou a abrir como se fosse o livro.
+ *
+ * ⚠️ **Só vale para o órfão**, e não para os grupos formados por autor: dois
+ * livros que dizem ter o mesmo autor e o mesmo título são a mesma obra mesmo
+ * que um seja resumo do outro. Aqui, ao contrário, não há nada além do título
+ * — e título igual com tamanho três vezes maior é outra coisa.
+ *
+ * ⚠️ **Sem duração, o órfão entra** — como entrava antes. A régua só barra com
+ * prova; a ausência de dado não é prova de nada (§4.152). Hoje 13.916 dos
+ * 13.917 livros têm duração, então ela quase sempre decide.
+ */
+function duracaoCompativel(orfao: Book, grupo: Book[]): boolean {
+  const dele = orfao.duracaoSegundos;
+  if (!dele || dele <= 0) return true;
+  const deles = grupo.map((b) => b.duracaoSegundos).filter((d): d is number => !!d && d > 0);
+  if (deles.length === 0) return true;
+  deles.sort((a, b) => a - b);
+  const mediana = deles[Math.floor(deles.length / 2)];
+  const razao = dele > mediana ? dele / mediana : mediana / dele;
+  return razao <= RAZAO_MAXIMA_DE_DURACAO;
+}
+
+/**
  * Junta os livros que são a mesma obra. Devolve **um array por obra**, e todo
  * livro aparece em exatamente um deles.
  *
@@ -293,8 +333,12 @@ export function agruparEmObras(livros: Book[]): Book[][] {
         ordenados.length > 0 &&
         tituloDistintivo(obra) &&
         (ordenados.length === 1 || ordenados[0].livros.length > ordenados[1].livros.length);
-      if (dominante) ordenados[0].livros.push(...orfaos);
-      else grupos.push({ autor: new Set(), livros: orfaos });
+      if (dominante) {
+        const cabem = orfaos.filter((livro) => duracaoCompativel(livro, ordenados[0].livros));
+        ordenados[0].livros.push(...cabem);
+        const sobraram = orfaos.filter((livro) => !cabem.includes(livro));
+        if (sobraram.length > 0) grupos.push({ autor: new Set(), livros: sobraram });
+      } else grupos.push({ autor: new Set(), livros: orfaos });
     }
 
     for (const grupo of grupos) parciais.push(grupo.livros);
