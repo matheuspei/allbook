@@ -7107,6 +7107,26 @@ nível 3 por engano.
 anota tentativa (`if a.gravar and not gasto.get("erro")`), então os 12.050 voltam
 à fila intactos. O custo foi **US$ 446** e 12 h de relógio.
 
+⚠️ **CORREÇÃO, três horas depois: "3 linhas dão zero recusa" foi medido com UMA
+esteira no ar.** Com a cascata e a do nível 3 rodando juntas são **6 buscas
+simultâneas**, e a recusa voltou — 28% no nível 3 e 53% na cascata. O limite do
+serviço não sabe que são dois programas nossos. Daí três consertos: o vigia passou
+a manter **uma esteira por vez** (qual, está em
+`~/Library/Logs/allbook-ano.prioridade`); **20 recusas seguidas passaram a contar
+como cota esgotada**, mesmo sem a palavra "cota" na mensagem, porque sem isso a
+esteira varria 12 mil livros fazendo 4 retentativas em cada e o freio nunca
+disparava; e **trava de processo ganhou dono** — matei o vigia antigo depois de
+subir o novo, e o `trap EXIT` do antigo apagou a trava do **novo**, deixando-o
+vivo sem trava.
+
+⚠️ **E a medição de paralelismo em si fica sob suspeita.** Tudo indica que
+`stop_sequence` com zero token é o sinal de **cota no fim**, não só de
+concorrência: as 97% de recusa começaram a aparecer depois de horas de varredura,
+e voltaram com 3 linhas quando a cota acabou. As duas causas produzem o mesmo
+sintoma, e não há como separá-las sem uma janela de cota limpa. **O que vale é o
+conserto, que serve para as duas: retentativa, uma esteira por vez, e parar na
+série de recusas.**
+
 **E o freio de cota disparou de verdade pela primeira vez**, no teste com 3
 linhas — a detecção que eu tinha escrito "por texto provável, não medido" pegou.
 
