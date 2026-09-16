@@ -9163,3 +9163,80 @@ ainda faltar, sai por caminho gratuito (Wikidata **por autor** — 4.509 autores
 mas os 300 maiores cobrem 55% dos livros; uma consulta devolve todas as obras do
 autor com data) e só depois, se sobrar, um lote pequeno com teto de gasto que ele
 aprova antes.
+
+### O autoexame do ano — dois testes que acham erro sem consultar nada (16/09)
+
+**Ele desconfiou e estava certo:** *"tenho receio de que esses dados não estejam
+corretos… vou fazer uma pesquisa por conta própria"*. Antes de entregar a folha de
+conferência eu olhei a amostra de novo e achei erro — então construí dois testes,
+hoje em **`tools/auditar_anos.py`** (baixalivro). Custam zero e não abrem uma página:
+
+1. **`divergencia`** — a **mesma obra com anos diferentes** em lojas diferentes.
+   Pelo menos um está errado. Era **2,2%** (20 de 895) e ficou **1,6%** (15 de 915).
+   🚨 É o **piso** da taxa de erro: erro repetido nas duas lojas este teste não vê.
+2. **`outlier`** — o ano que **foge do padrão do próprio autor**: *O Patinho Feio*
+   com 2013 num Andersen que gira em 1824; *O estudante* com 1975 num Tchékhov de
+   1887. ⚠️ Falso positivo garantido quando o "autor" é editora ou narrador
+   ("Online Editora", "Diversos") — ali a mediana mistura séculos.
+
+### Os três erros típicos do agente do ano
+
+- **Entidade errada** — *A batalha dos livros* recebeu **1704**, que é o livro de
+  Jonathan Swift, não o texto de Raul Pompeia; *O Espelho* recebeu **1660**, do
+  *Martyrs Mirror*, não do conto de Machado; *Dom Quixote* recebeu **1547**, que é
+  o **nascimento de Cervantes**.
+- **Data da edição no lugar da obra** — *O Patinho Feio* 2013, "confirmado por duas
+  fontes (openlibrary, archive)": as duas deram a edição.
+- **Data da loja** — *Incríveis Dinossauros* 2010, tirado da página do audiolivro.
+
+⚠️ **O que eu tinha marcado como prova fraca e NÃO era:** "loja da Editora
+Dialética (ISBN …)" e "sinopse da loja". Fui conferir os casos que dá para saber de
+cabeça — *1984* 1949, *A morte em Veneza* 1912, *As leis do sucesso* 1928, *Elogio
+da loucura* 1511, *Orgulho e Preconceito* 1813 — e **acertaram todos**. A página da
+editora e a sinopse são fonte primária; o defeito não está na fonte, está na
+identificação da entidade.
+
+### O conserto do meu próprio passe: corte de sufixo estrito
+
+🚨 O `divergencia` achou *Sherlock Holmes: A Ponte de Thor* na mesma chave de
+*Sherlock Holmes - Um estudo em vermelho*, com [1887, 1922, 1927]. `titulo_nu` corta
+tudo depois do `:` e do travessão, e **dois contos da mesma coleção viram a mesma
+obra**. Onde as duas tinham ano a divergência me fez pular; **onde só uma tinha, o
+ano foi propagado errado** — 23 dos 773 (3%), entre eles *Perda de peso: Perca a
+gordura* recebendo o ano de *Perda de peso: Dicas*, e *Malcolm X: A revolução negra*
+o de *Malcolm X: O medo da gangue do ódio*.
+
+Agora o sufixo só cai em dois casos: quando o que sobra **se sustenta sozinho** (4
+palavras ou mais) ou quando o sufixo é só **edição/formato** ("(Integral)",
+"- resumo", ": Edição comentada"). Perder um gêmeo legítimo custa um campo vazio;
+herdar o ano do vizinho custa um ano errado na tela.
+
+### Minoria de 1 contra maioria de 3+ perde
+
+Quando 6 fichas dizem 1865 e uma diz 1862, a solitária sai. Foram 5 casos, e todos
+eram a confusão **escrita vs. publicação**: *Alice* (1862 escrita / 1865 publicada),
+*Dom Casmurro* (1899/1900), *Memórias Póstumas* (folhetim 1880 / livro 1881),
+*Quincas Borba* (1891/1892) e a *Revolução dos Bichos* de 2021 (edição da Dialética).
+Como o `npm run anos` espalha o ano entre as irmãs, a ficha esvaziada **herda o ano
+da maioria** — as 6 fichas da *Revolução dos Bichos* hoje dizem 1945.
+
+### O saldo do dia, sem um centavo de modelo
+
+| | antes | depois |
+|---|---|---|
+| ficha do acervo com ano | 2.085 | **2.864** |
+| banco: ano da **obra** | 1.864 | **2.677** |
+| banco: ano da **narração** | 12.571 | 12.571 |
+| divergência interna | 2,2% | **1,6%** |
+
+Foram **38 anos apagados** no caminho (23 casamentos frouxos meus, 10 erros do
+agente, 5 minorias) — e apagar é parte do ganho: *"recusar um acerto vale mais do
+que aceitar um erro"*.
+
+⚠️ **Uma imprecisão minha que vale saber:** limpei o banco casando pelo **nome da
+pasta**, que não é único entre lojas — o `Alice no País das Maravilhas` existe com o
+mesmo nome em quatro lojas, e apaguei 8 linhas quando queria 5. O `npm run anos
+gravar` reespalhou e recuperou; da próxima vez, casar por **id**.
+
+A folha de conferência está em `client/public/_conferir-anos-A.html`: 30 sorteados com
+a cadeia de prova inteira, links de busca prontos e botão de enviar.
