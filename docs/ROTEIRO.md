@@ -7055,6 +7055,73 @@ propósito com `kill -9` no grupo.** A página `_andamento-do-ano-A.html` se ree
 a cada 5 min com progresso, achados e gasto — ler log de 15 mil linhas não é
 relatório.
 
+### 🚨 Recusa não é resposta vazia — o erro que custou 12 mil livros (16/09)
+
+Ele perguntou *"como está o processo"*. Estava assim: o nível 3 havia varrido os
+12.369 livros em 12h36 e devolvido **233 anos**. Eu ia reportar rendimento de 2%
+e concluir que o nível 3 não servia. **Estava errado, e o erro era meu.**
+
+**12.050 daquelas chamadas nunca aconteceram.** Voltaram `is_error` com
+`stop_reason: stop_sequence`, **zero tokens e zero segundos** — o serviço estava
+recusando as chamadas simultâneas. E eu registrava cada recusa como se fosse o
+agente dizendo *"procurei e não achei"*.
+
+**A prova, em um comando:** a mesma chamada, rodada **sozinha**, devolveu rc=0,
+11 turnos, 54 s e o ano certo com duas fontes (`#Atitude que te Move` = 2018,
+Google Livros + senhorlivreiro). Das 319 que de fato rodaram, **78% acharam o
+ano**.
+
+🚨 **O teto não é a nossa cota — é quantas chamadas COM FERRAMENTA o serviço
+aceita ao mesmo tempo.** Medido no log do dia:
+
+| nível | ferramentas | linhas | recusadas |
+|---|---|---|---|
+| 1 · dossiê | nenhuma | 12 | **4%** |
+| 2 · busca | WebSearch | 6 | **77%** |
+| 3 · força máxima | WebSearch | 10 | **97%** |
+| 2 e 3, depois do conserto | WebSearch | **3** | **0%** |
+
+⚠️ **A lição que vale para todo agente deste projeto:** `is_error` **sem consumo
+nenhum** não é uma resposta do modelo. Tratar as duas coisas pelo mesmo caminho
+fez um problema de infraestrutura parecer um veredito sobre o acervo — e por
+pouco não registrei aqui que "o nível 3 rende 2%", que é falso e teria matado o
+nível 3 por engano.
+
+**Os cinco consertos:**
+
+1. **`_chamar()`** — uma função para as três chamadas (o parse já era idêntico),
+   com **retentativa e espera crescente** na recusa. Zero token é sinal de que
+   nada foi consumido: insistir custa só tempo.
+2. **Paralelismo por nível** — 12 para quem só lê dossiê, **3** para quem busca.
+3. **`--desde N`** — o passe do nível 2 refazia a pergunta do nível 1 em **cada**
+   livro, pagando de novo por resposta que já estava no `_ano-tentativa.json`.
+4. 🚨 **`--allowedTools "WebSearch WebFetch"` numa string só.** Estava como dois
+   argumentos (`"--allowedTools", "WebSearch", "WebFetch"`), então o `WebFetch`
+   ia como **posicional solto**: o agente que devia *"abrir a página da editora"*
+   nunca teve a ferramenta de abrir página. Vivo desde 30/08, nos níveis 2 e 3.
+5. **A página de andamento passou a mostrar as recusas** — foi a métrica ausente
+   que me deixou ler 2% como rendimento. Se a coluna passar de ~10%, o
+   paralelismo está alto; não é o acervo que é pobre.
+
+**O que sobrevive do desastre:** nada de informação. Chamada com erro **não**
+anota tentativa (`if a.gravar and not gasto.get("erro")`), então os 12.050 voltam
+à fila intactos. O custo foi **US$ 446** e 12 h de relógio.
+
+**E o freio de cota disparou de verdade pela primeira vez**, no teste com 3
+linhas — a detecção que eu tinha escrito "por texto provável, não medido" pegou.
+
+**Números com o paralelismo certo, medidos em 8 livros cada:**
+
+```
+nível 2 ... 25% de acerto · US$ 0,089 por livro · 0 recusas
+nível 3 ... 62% de acerto · US$ 0,830 por livro · 0 recusas
+```
+
+⚠️ **O nível 3 real custa US$ 0,83, não os US$ 0,38 que eu medi em 15/09** — e a
+razão é a mesma de sempre: naquela medição a maioria das chamadas era recusa de
+custo zero, que puxava a média para baixo. Média contaminada por chamada que não
+aconteceu não é média. Para os 13.068 sem ano, o nível 3 dá **US$ 10.850**.
+
 ## 4.137 O título de vitrine: o billboard deixa de mostrar o subtítulo (30/08)
 
 Ele mandou a captura de um destaque da Início em que o título **cobria a capa
