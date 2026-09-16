@@ -9051,3 +9051,115 @@ maior é outra coisa.
 
 ⚠️ **Sem duração, o órfão entra**, como entrava antes. A régua barra com prova;
 ausência de dado não é prova de nada (§4.152).
+
+---
+
+## §4.159 — O ano: a cascata de agentes foi DESLIGADA, e o dado estava em casa (16/09)
+
+**O Matheus interrompeu a cascata no meio:** *"está demorando muito e está
+gastando muito dos meus créditos. Acho que esse método não é o método ideal"*.
+Ele estava certo, e a conta é essa: **14.480 livros sem ano**, a US$ 0,83 o livro
+no nível 3, dariam **US$ 12 mil e ~5 dias de máquina acordada** para preencher um
+campo de ficha. Nível 3 e vigia foram parados; nada mais roda.
+
+### O que foi medido antes de construir qualquer coisa
+
+🚨 **Toda fonte gratuita por ISBN está morta.** Medido em 40 ISBNs do acervo que
+**já tinham ano**, para servirem de gabarito:
+
+| fonte | resultado |
+|---|---|
+| Google Books sem chave | **HTTP 429 em 40 de 40** |
+| Mercado Editorial (CBL) | a API v1.2 virou página HTML — morreu |
+| Open Library por ISBN | respondeu **1 de 40** (confirma a medição de 22/08) |
+| Travessa | 404 / timeout |
+| DuckDuckGo por ISBN | devolve lixo genérico, nunca o livro |
+
+O motivo é estrutural e vale guardar: **o ISBN de audiolivro brasileiro é emitido
+pela distribuidora e não está em catálogo público nenhum.** Não tentar de novo.
+
+### O dado estava dentro de casa — quinta vez na mesma armadilha
+
+Listando as chaves das 16.565 fichas do acervo (o que ninguém tinha feito):
+
+- **`ANO_AUDIO` preenchido em 7.503** dos sem-ano — a Storytel tem em **6.463 de
+  6.465**, a Audible em 948 de 948.
+- **`catalogo_cru.lancamento`** (Ubook): **3.940 de 3.989**.
+- **`catalogo_cru.lancamento_loja`** (Tocalivros): **3.071 de 3.078**.
+- **`catalogo_cru.ANO`** da Audible em **480** livros cuja ficha está sem ANO — o
+  importador não copiou.
+
+Somando, **15.260 livros têm uma data no disco** e só **613 não têm data nenhuma**
+— contra 14.480 "sem ano". É a mesma lição da editora (§4.148), das pessoas
+(§4.153), do título e do gênero (§4.156): **campo vazio não é prova de dado
+inexistente.**
+
+### 🚨 Mas ano de gravação NÃO é ano de obra — e por isso são dois campos
+
+Nos **956 livros que têm os dois**, a distância é: iguais 11%, 1–3 anos 16%,
+4–10 anos 12%, 11–50 anos 9% e **mais de 50 anos em 51%** (*Dom Casmurro* 1899 →
+áudio 2025; *A Pequena Sereia* 1837 → 2024). Escrever a data da loja no campo
+`ANO` poria **2025 em Machado de Assis**. Decisão: `ANO` continua sendo o ano da
+**obra**, e a data da loja vai para **`ANO_LOJA`**, campo novo, separado.
+
+### O que já foi feito, de graça
+
+**`tools/ano_de_graca.py` (baixalivro)** — regra determinística, **zero crédito de
+modelo**, dois passes (`gemeos`, `loja`) e um `situacao`.
+
+- **`gemeos` já rodou: 773 livros ganharam ANO** do irmão em outra loja (mesmo
+  título nu + mesmo primeiro autor, ano único). Os **com ano vão de 2.085 para
+  2.858** sem um centavo gasto.
+- ⚠️ **19 divergentes foram pulados de propósito** — e eles denunciam erro do
+  agente caro: os contos de *Sherlock Holmes* aparecem como 1922 (storytel), 1927
+  (ubook) e 1887 (tocalivros); *Dom Casmurro* como 1899 e 1900.
+- 🚨 **O primeiro ensaio deu o ano do *Tomo 1* para os tomos 2, 3, 4 e 5**, e o
+  da aula 10 de Direito Penal para a aula 1: `titulo_nu` corta o subtítulo depois
+  do `:` ou do travessão, e com ele o número do volume. O conserto é
+  `numeros_do_titulo()` — **número diferente no título não é gêmeo.**
+
+### 🚨 O `ANO_LOJA` não precisa existir: o AllBook já tinha os dois anos
+
+Eu ia propor um campo novo e uma folha de decisão de tela. **As duas coisas já
+estavam prontas desde 31/08** — `client/src/lib/anos.ts` (§4.149) tem
+`anoDaObra()` e `anoDaNarracao()`, a ficha mostra cada um com o seu rótulo, a
+linha some quando o dado falta, e a lista `LOJAS_SEM_ANO_DE_AUDIO` já barra o
+Ubook porque **a data dele é a da coleta** (3.497 dos 4.938 marcados em 2026, os
+meses do download). Boa parte dos meus "3.940 lançamentos do Ubook" era esse
+lixo, e por isso não gravar nada foi sorte de método.
+
+E o banco já estava cheio do lado da narração: **12.571 dos 13.917 livros (90%)
+têm ano de áudio**. O buraco nunca foi "o app não mostra ano" — é só o ano da
+**obra**.
+
+⚠️ **Por isso o `ANO_LOJA` do `ano_de_graca.py loja` fica sem uso, e é melhor
+assim:** gravar tag em ~150 mil arquivos de áudio-mestre para repetir um dado que
+o app já lê do `catalogo_cru` seria risco sem ganho. O passe fica no programa
+como medida, não como rotina.
+
+### O caminho que funcionou, ponta a ponta, sem gastar nada
+
+`npm run anos gravar` (que já existia) levou os anos novos das fichas ao banco:
+**o ano da obra foi de 1.864 para 2.700 livros** (+836, contando as 17 edições
+irmãs que herdaram). Ciclo completo: `ano_de_graca.py gemeos` no acervo →
+`npm run anos gravar` no AllBook. Custo: zero.
+
+### O próximo passe gratuito: Wikidata POR AUTOR, não por livro
+
+Testado hoje, funciona e não cobra nada: uma consulta SPARQL por autor devolve
+todas as obras dele com data. *Monteiro Lobato* 41 obras com ano, *Barbara
+Cartland* 35, *Andersen* 225, *Machado de Assis* 23. São **4.509 autores** entre
+os livros sem ano, e os **300 maiores cobrem 55%** dos livros — 300 consultas
+grátis em vez de 14.480 chamadas pagas.
+
+⚠️ **E ele mostra logo onde o ano não existe:** *Ap. Miguel Ângelo* (592 livros) e
+*Hernane Santos* (201) devolvem **zero obras**. Pregação e curso não têm ano de
+obra em lugar nenhum — o campo vazio ali é a resposta certa, não uma falta.
+
+### O que fica proibido
+
+**Não voltar a soltar agente pago em fila de dez mil livros.** O ano da obra, onde
+ainda faltar, sai por caminho gratuito (Wikidata **por autor** — 4.509 autores,
+mas os 300 maiores cobrem 55% dos livros; uma consulta devolve todas as obras do
+autor com data) e só depois, se sobrar, um lote pequeno com teto de gasto que ele
+aprova antes.
