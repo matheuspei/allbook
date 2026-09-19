@@ -97,6 +97,18 @@ PY
     pid=$(cat "$PIDF")
     # sessão própria ⇒ o pid é o líder do grupo; mata o grupo inteiro
     kill -TERM -"$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null
+    # ⚠️ Não basta mandar o sinal: o cloudflared leva um instante para sair, e
+    # sem esperar o script dizia "fechado" com o processo ainda de pé.
+    python3 -c "
+import os, sys, time
+pid = int(sys.argv[1])
+for _ in range(24):            # até 6s
+    try: os.kill(pid, 0)
+    except ProcessLookupError: sys.exit(0)
+    time.sleep(0.25)
+try: os.kill(pid, 9)           # não saiu no bem: KILL
+except ProcessLookupError: pass
+" "$pid"
     rm -f "$PIDF"
     echo "Túnel fechado — o endereço anterior não vale mais."
     ;;

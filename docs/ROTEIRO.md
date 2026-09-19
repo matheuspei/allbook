@@ -9240,3 +9240,35 @@ gravar` reespalhou e recuperou; da próxima vez, casar por **id**.
 
 A folha de conferência está em `client/public/_conferir-anos-A.html`: 30 sorteados com
 a cadeia de prova inteira, links de busca prontos e botão de enviar.
+
+## 4.162 O player finge tocar para quem não entrou — e não diz uma palavra (19/09)
+
+Abri um túnel do Cloudflare para mostrar o app a alguém de fora (o endereço sai
+de `scripts/tunel.sh`, novo). O servidor passou em tudo pelo túnel: login 200,
+`/api/audio/:id/situacao` devolvendo `{"modo":"acervo"}`, e o capítulo vindo em
+**206 Partial Content** com `audio/mpeg` e `Range` — a cadeia inteira, cookie
+de sessão inclusive, atravessa o túnel sem arranhão. **O buraco é a tela.**
+
+🚨 **Quem abre o app sem conta aperta o play, vê a barra andar e não ouve nada.**
+São duas peças somadas:
+
+- **O cronômetro de maquete** (`AudioPlayer.tsx`, "o player de todo livro que
+  ainda não tem narração"): quando `tocador.temAudio` é falso, um `setInterval`
+  faz o tempo correr de segundo em segundo. Ele foi escrito para o livro **sem
+  narração** — mas não distingue *não existe áudio* de **não posso te entregar
+  o áudio**, e nos dois casos desenha uma escuta que não está acontecendo.
+- **O recado nunca chega à tela.** `lib/tocador.ts` traduz certinho o que o
+  servidor respondeu — `precisa-entrar` (401), `sem-narracao` (404),
+  `limite-do-dia` (429) — e guarda a frase em `estado.recado`. **Nenhuma dessas
+  quatro palavras aparece em `AudioPlayer.tsx`**: a tela lê só `temAudio`.
+
+O efeito é pior justamente para quem chega pelo link: sem conta, **todo** livro
+do acervo cai no 401, e o app inteiro vira um player mudo que parece quebrado.
+
+⚠️ **A regra que isso deixa:** estado que o tocador sabe distinguir, a tela tem
+de distinguir também. Ou o `AudioPlayer` passa a ler `tocador.situacao` e
+`tocador.recado`, ou o trabalho de traduzir o 401 no tocador não serve para nada.
+
+*(Apurado, não consertado — o conserto depende de decidir o que a tela mostra no
+lugar da barra falsa: um convite a entrar, um botão de pedir narração, ou os
+dois, conforme a situação.)*
