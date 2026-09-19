@@ -1,63 +1,112 @@
 #!/bin/zsh
+# ─────────────────────────────────────────────────────────────────────────────
+# Túnel temporário — mostra o AllBook desta máquina para alguém de longe.
 #
-# Endereço público temporário para mostrar o AllBook a alguém distante.
+#   zsh scripts/tunel.sh abrir | link | situacao | fechar | logs
 #
-# Cria um "túnel" da Cloudflare: um endereço https que qualquer pessoa, em
-# qualquer lugar, abre no navegador — e que chega no app rodando NESTA máquina,
-# na porta 3000. Não precisa de conta e não publica nada em lugar nenhum.
+# `abrir` levanta um túnel do Cloudflare apontado para o localhost:3000 e
+# devolve um endereço https público, que vale ENQUANTO o túnel estiver de pé:
+# fechou, o endereço morre e o próximo é outro (é túnel anônimo, sem conta).
 #
-# COMO USAR
-#   zsh scripts/tunel.sh
-#   → ele imprime um endereço tipo https://algo-aleatorio.trycloudflare.com
-#   Mande esse endereço para a pessoa. Deixe esta janela do Terminal ABERTA.
-#   Ctrl+C encerra o túnel e o endereço morre na hora.
+# ⚠️ Quem tiver o link entra no app sem senha, e vê o app inteiro — a moldura de
+#    celular só existe em acesso local (localhost), como diz o CLAUDE.md.
 #
-# O QUE ESPERAR
-#   - O endereço é NOVO a cada vez que você roda. Não dá para guardar.
-#   - Só funciona com este computador ligado, o servidor no ar e este comando
-#     rodando. Fechou o Terminal, acabou.
-#   - Quem tiver o endereço entra. Não há senha. Por isso: mande para quem você
-#     quer, e encerre quando terminar a demonstração.
-#   - Para um link permanente, que funciona com o computador desligado, o
-#     caminho é publicar o site (Vercel/Netlify/Cloudflare Pages) — outra
-#     conversa, e exige conta sua.
-#
-# DUAS ARMADILHAS JÁ VIVIDAS (26/07), as duas custaram tempo:
-#
-# 1. "Blocked request. This host is not allowed" — 403 em TODO acesso pelo
-#    túnel. É o Vite recusando um nome de host que não conhece (proteção contra
-#    DNS rebinding), e a explicação vem só no corpo da resposta, que ninguém lê
-#    no celular. Resolvido de vez: `.trycloudflare.com` está liberado no
-#    `vite.config.ts` E repassado em `server/vite.ts` — os dois, porque o
-#    segundo SUBSTITUI o bloco `server` do primeiro em vez de fundir.
-#
-# 2. O túnel caindo a cada ~50s ("timeout: no recent network activity"): rede
-#    que estrangula UDP derruba o QUIC, que é o protocolo padrão. Por isso o
-#    comando abaixo força `--protocol http2`, que é TCP e atravessa.
-#
-# E uma observação sobre esta máquina: a rede daqui NÃO resolve
-# `trycloudflare.com` no DNS interno, então o dono do link pode não conseguir
-# abri-lo aqui dentro — quem está fora abre normalmente. Para conferir com os
-# próprios olhos, use o celular em dados móveis (4G/5G, Wi-Fi desligado).
+# ⚠️ O processo nasce em SESSÃO PRÓPRIA (start_new_session). Sem isso ele ficaria
+#    no grupo de processos da janela do Claude e morreria junto com ela ou ao
+#    fechar a tampa — a mesma armadilha que fez o servidor virar LaunchAgent.
+#    `setsid` não existe no macOS; por isso o python3.
+# ─────────────────────────────────────────────────────────────────────────────
 
-set -uo pipefail
+set -u
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
+LOG="$HOME/Library/Logs/allbook-tunel.log"
+PIDF="$HOME/.allbook-tunel.pid"
 PORTA=3000
 
-if ! command -v cloudflared >/dev/null 2>&1; then
-  echo "cloudflared não está instalado. Instale uma vez com:"
-  echo "  brew install cloudflared"
-  exit 1
-fi
+no_ar() {
+  [[ -f "$PIDF" ]] || return 1
+  local pid; pid=$(cat "$PIDF" 2>/dev/null)
+  [[ -n "$pid" ]] || return 1
+  kill -0 "$pid" 2>/dev/null
+}
 
-if ! curl -s -o /dev/null --max-time 3 "http://localhost:$PORTA/"; then
-  echo "O app não está respondendo em http://localhost:$PORTA"
-  echo "Suba o servidor primeiro:  zsh scripts/servidor-servico.sh status"
-  exit 1
-fi
+endereco() {
+  [[ -f "$LOG" ]] || return 1
+  grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$LOG" | tail -1
+}
 
-echo "Criando o endereço público… (pode levar alguns segundos)"
-echo "Para encerrar, aperte Ctrl+C nesta janela."
-echo
+case "${1:-situacao}" in
 
-exec cloudflared tunnel --url "http://localhost:$PORTA" --protocol http2 --no-autoupdate
+  abrir)
+    if no_ar; then
+      echo "Já havia um túnel de pé (pid $(cat "$PIDF"))."
+      endereco
+      exit 0
+    fi
+    if ! curl -s -o /dev/null --max-time 5 "http://localhost:$PORTA/"; then
+      echo "O servidor não responde em localhost:$PORTA."
+      echo "Suba-o com: zsh scripts/servidor-servico.sh iniciar"
+      exit 1
+    fi
+    command -v cloudflared >/dev/null || { echo "cloudflared não instalado (brew install cloudflared)."; exit 1; }
+
+    python3 - "$LOG" "$PIDF" "$PORTA" <<'PY'
+import re, subprocess, sys, time
+
+log, pidf, porta = sys.argv[1], sys.argv[2], sys.argv[3]
+open(log, "w").close()
+saida = open(log, "ab")
+p = subprocess.Popen(
+    ["cloudflared", "tunnel", "--url", f"http://localhost:{porta}"],
+    stdout=saida, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+    start_new_session=True,           # desgruda da sessão do Claude
+)
+open(pidf, "w").write(str(p.pid))
+
+alvo = re.compile(rb"https://[a-z0-9-]+\.trycloudflare\.com")
+limite = time.time() + 45
+while time.time() < limite:
+    if p.poll() is not None:
+        print("o cloudflared saiu sozinho — veja o log", file=sys.stderr)
+        sys.exit(1)
+    achado = alvo.search(open(log, "rb").read())
+    if achado:
+        print(achado.group().decode())
+        sys.exit(0)
+    time.sleep(0.5)
+print("o endereço não apareceu em 45s — veja o log", file=sys.stderr)
+sys.exit(1)
+PY
+    ;;
+
+  link)
+    endereco || { echo "Nenhum endereço no log."; exit 1; }
+    ;;
+
+  situacao)
+    if no_ar; then
+      echo "Túnel NO AR (pid $(cat "$PIDF")) → $(endereco)"
+    else
+      echo "Túnel fechado."
+    fi
+    ;;
+
+  fechar)
+    if ! no_ar; then echo "Já estava fechado."; rm -f "$PIDF"; exit 0; fi
+    pid=$(cat "$PIDF")
+    # sessão própria ⇒ o pid é o líder do grupo; mata o grupo inteiro
+    kill -TERM -"$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null
+    rm -f "$PIDF"
+    echo "Túnel fechado — o endereço anterior não vale mais."
+    ;;
+
+  logs)
+    tail -40 "$LOG"
+    ;;
+
+  *)
+    echo "uso: zsh scripts/tunel.sh abrir | link | situacao | fechar | logs"
+    exit 1
+    ;;
+esac
