@@ -77,22 +77,67 @@ const VAZIO: CarimbosDaFicha = {
   capitulos: [],
 };
 
-/** Os capítulos da ficha, na ordem, com a duração que houver. */
+/**
+ * Chave de ordenação **natural**: texto e número alternados.
+ *
+ * 🚨 Comparar nome de arquivo como texto põe `"100"` antes de `"11"`, porque o
+ * acervo numera com largura variável (`01`…`99`, `100`…`130`). Foi assim que 63
+ * livros entraram com os capítulos fora de ordem — 93 dos 103 de *Touchdown*
+ * (§4.164). O defeito nasce na geração do `_ficha.json` (consertado em
+ * `src/ordem.py` do baixalivro), e esta função é a **segunda defesa**: ficha
+ * torta não vira app torto.
+ *
+ * Lê todos os grupos de dígitos, na ordem, e compara número a número — o que
+ * também resolve título com número dentro (*"1924: Tenentes rebeldes"*).
+ */
+function chaveNatural(nome: string): (string | number)[] {
+  return nome
+    .split(/(\d+)/)
+    .filter((p) => p !== "")
+    .map((p) => (/^\d+$/.test(p) ? Number(p) : p.toLowerCase()));
+}
+
+function compararNatural(a: string, b: string): number {
+  const x = chaveNatural(a);
+  const y = chaveNatural(b);
+  for (let i = 0; i < Math.min(x.length, y.length); i++) {
+    const p = x[i];
+    const q = y[i];
+    if (p === q) continue;
+    if (typeof p === "number" && typeof q === "number") return p - q;
+    return String(p) < String(q) ? -1 : 1;
+  }
+  return x.length - y.length;
+}
+
+/**
+ * Os capítulos da ficha, **na ordem em que se ouve**, com a duração que houver.
+ *
+ * ⚠️ O `numero` é reatribuído pela posição, e não copiado do campo `n` da ficha:
+ * numa ficha gerada em ordem alfabética o `n` também está errado, e ordenar por
+ * ele preservaria o defeito. Quando não há nome de arquivo (ficha antiga), cai
+ * de volta no `n`, que é o melhor que existe ali.
+ */
 function capitulosDe(bruto: unknown): CapituloDaFicha[] {
   if (!Array.isArray(bruto)) return [];
-  return bruto
-    .map((c, i) => {
-      const d = (c ?? {}) as Record<string, unknown>;
-      const titulo = typeof d.titulo === "string" ? d.titulo.trim() : "";
-      const ms = typeof d.ms === "number" && d.ms > 0 ? d.ms : null;
-      return {
-        numero: typeof d.n === "number" && d.n > 0 ? d.n : i + 1,
-        titulo: titulo || `Capítulo ${i + 1}`,
-        segundos: ms === null ? null : Math.round(ms / 1000),
-        arquivo: typeof d.arquivo === "string" ? d.arquivo : null,
-      };
-    })
-    .sort((a, b) => a.numero - b.numero);
+  const lidos = bruto.map((c, i) => {
+    const d = (c ?? {}) as Record<string, unknown>;
+    const titulo = typeof d.titulo === "string" ? d.titulo.trim() : "";
+    const ms = typeof d.ms === "number" && d.ms > 0 ? d.ms : null;
+    return {
+      numero: typeof d.n === "number" && d.n > 0 ? d.n : i + 1,
+      titulo: titulo || `Capítulo ${i + 1}`,
+      segundos: ms === null ? null : Math.round(ms / 1000),
+      arquivo: typeof d.arquivo === "string" ? d.arquivo : null,
+    };
+  });
+
+  const todosComArquivo = lidos.length > 0 && lidos.every((c) => c.arquivo);
+  const ordenados = todosComArquivo
+    ? [...lidos].sort((a, b) => compararNatural(a.arquivo as string, b.arquivo as string))
+    : [...lidos].sort((a, b) => a.numero - b.numero);
+
+  return ordenados.map((c, i) => ({ ...c, numero: i + 1 }));
 }
 
 /** Lê o `_ficha.json` de uma pasta do "pronto". Ficha ilegível devolve vazio. */
