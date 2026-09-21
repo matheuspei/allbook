@@ -45,6 +45,7 @@ import { capitulos, editoras, generos, livros, pessoas } from "@shared/schema";
 import { carimbosDaFicha } from "./carimbos";
 import { nomeDeEditora, resolverEditoras, type EditoraResolvida } from "./editoras";
 import { NAO_E_PESSOA, desinverter } from "./pessoas";
+import { NAO_E_GENERO, rotuloCanonico } from "./generos";
 
 /* -------------------------------------------------------------------------- */
 /* Onde as coisas ficam                                                        */
@@ -324,32 +325,6 @@ function nomeUtil(nome: string | null): string | null {
 }
 
 /**
- * Rótulos que a loja usa como **raiz da árvore ou etiqueta comercial**, e que
- * não dizem nada sobre o livro (01/09, §4.158).
- *
- * 🚨 *"Livros"* é a raiz da árvore do Tocalivros e apareceu em **1.477
- * livros** — viraria o segundo maior "gênero" da Descobrir, à frente de
- * Ficção. *"Geral"* é a ausência de sub-gênero, não um sub-gênero. Mesma razão
- * de `NAO_E_EDITORA` em `script/editoras.ts`: a ausência da coisa não é a
- * coisa.
- */
-const NAO_E_GENERO = new Set([
-  "livros",
-  "livro",
-  "livros gratis",
-  "audiolivros",
-  "audiolivro",
-  "ebooks",
-  "ebook",
-  "geral",
-  "outros",
-  "diversos",
-  "varios",
-  "sem categoria",
-  "todos",
-]);
-
-/**
  * Os rótulos de gênero de uma ficha, do mais geral ao mais específico, sem
  * repetir (01/09, §4.158).
  *
@@ -370,11 +345,17 @@ function trilhaDeGeneros(fontes: unknown[]): string[] {
     for (const parte of bruto.split(">")) {
       const rotulo = parte.trim();
       if (rotulo.length < 2) continue;
-      const chave = slugify(rotulo);
-      if (!chave || chave === SEM_GENERO.slug || vistos.has(chave)) continue;
-      if (NAO_E_GENERO.has(chave.replace(/-/g, " "))) continue;
+      const cru = slugify(rotulo);
+      if (!cru || cru === SEM_GENERO.slug) continue;
+      if (NAO_E_GENERO.has(cru.replace(/-/g, " "))) continue;
+      // ⚠️ O canônico ANTES da deduplicação (§4.163): sem isso, "Religião" e
+      // "Religião e Espiritualidade" na mesma trilha virariam o mesmo rótulo
+      // duas vezes na lista do livro.
+      const nome = rotuloCanonico(rotulo, cru);
+      const chave = slugify(nome);
+      if (!chave || vistos.has(chave)) continue;
       vistos.add(chave);
-      lista.push(rotulo);
+      lista.push(nome);
     }
   }
   return lista;
@@ -384,7 +365,8 @@ function trilhaDeGeneros(fontes: unknown[]): string[] {
 function generoDaCategoria(categoria: string | null): { slug: string; rotulo: string } {
   const topo = (categoria ?? "").split(">")[0]?.trim();
   if (!topo) return SEM_GENERO;
-  return { slug: slugify(topo), rotulo: topo };
+  const rotulo = rotuloCanonico(topo, slugify(topo));
+  return { slug: slugify(rotulo), rotulo };
 }
 
 /** O campo da ficha quando ele é texto de verdade; `null` para o resto. */
@@ -1345,9 +1327,18 @@ async function reconciliarTituloEGenero(
       .filter((r, i, todos) => todos.indexOf(r) === i);
     for (const rotulo of doLivro) generosNovos.set(slugify(rotulo), rotulo);
 
-    // O principal só muda quando o que está lá é a reserva — a mesma régua de
-    // nome (§4.154): gênero vindo da varredura da loja não se toca.
-    if (aqui.genero === SEM_GENERO.slug && doLivro[0]) {
+    /* O principal muda em DOIS casos (§4.163):
+       - está na reserva ("sem-genero") e a ficha tem prateleira;
+       - a prateleira dele foi FUNDIDA noutra por decisão dele — aí os 1.819
+         livros que estavam em "Religião", "Religião & Espiritualidade" e
+         "Espiritualidade" migram para o card único.
+       Fora esses dois, gênero vindo da varredura da loja não se toca. */
+    const canonico = rotuloCanonico(aqui.genero, aqui.genero);
+    const fundido = canonico !== aqui.genero ? slugify(canonico) : null;
+    if (fundido && fundido !== aqui.genero) {
+      juntar(generoPorSlug, fundido, aqui.id);
+      generosNovos.set(fundido, canonico);
+    } else if (aqui.genero === SEM_GENERO.slug && doLivro[0]) {
       juntar(generoPorSlug, slugify(doLivro[0]), aqui.id);
     }
 

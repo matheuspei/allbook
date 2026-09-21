@@ -9457,3 +9457,46 @@ então ninguém retoma no lugar errado. **12.824 capítulos em 59 livros.**
 não a causa. Próxima importação de livro com 100+ capítulos repete o defeito:
 `script/importar-acervo.ts` precisa ordenar pelo **número extraído do nome**, não
 pela string.
+
+## 4.163 As quatro prateleiras de religião viram uma (21/09)
+
+**Decisão dele**, depois de eu ter levado o problema e recusado resolvê-lo
+sozinho: *"a gente deveria juntar tudo por religião, mas talvez criar
+subcategorias dentro de religião para poder separar (…) isso deveria estar num
+lugar só."*
+
+A mesma estante chegava quatro vezes na Descobrir, porque cada loja a batiza de
+um jeito:
+
+| rótulo | livros | loja |
+|---|---|---|
+| Religião e Espiritualidade | 1.260 | Tocalivros e Audible |
+| Religião | 953 | Ubook |
+| Religião & Espiritualidade | 507 | Storytel |
+| Espiritualidade | 359 | Ubook |
+
+**Agora é um card com 3.079 livros**, e a separação que ele pediu **já existia**:
+a trilha da ficha (§4.158) guarda o segundo nível, então dentro da prateleira
+continuam **Cristianismo (1.534)**, **Evangélica (268)**, **Católicos (255)**,
+**Bíblico (60)** e **Matriz Africana (51)**. Não precisou inventar taxonomia
+nenhuma — só parar de repetir o topo.
+
+🚨 **Por que eu não tinha feito antes, e por que continua certo não fazer
+sozinho:** o **Ubook usa "Religião" e "Espiritualidade" como prateleiras
+distintas, de propósito**. Juntá-las apaga uma diferença que a fonte fez —
+e escolher qual nome sobrevive é desenho de vitrine, não importação. A mesma
+razão vale para os pares que **continuam separados**: o Tocalivros usa
+*"Literatura"* e *"Literatura e Ficção"* ao mesmo tempo, e a Storytel separa
+*"Kids"* de *"Juvenil"*.
+
+⚠️ **`Esoterismo` (46) ficou de fora da fusão**, e é escolha minha: tarô,
+astrologia e horóscopo são outra estante, e o Ubook os separa. Se ele quiser
+juntar, é uma linha no mapa.
+
+**Onde mora:** `script/generos.ts`, ao lado de `editoras.ts` e `pessoas.ts` —
+`MESMA_PRATELEIRA` é o mapa, e **só entra nele o que ele mandar juntar**.
+O `NAO_E_GENERO` mudou de casa para lá junto.
+
+⚠️ **O principal migra, ao contrário do nome de gente.** Gênero não endereça
+perfil de ninguém e não guarda seguidor, então mover 1.819 livros de prateleira
+não quebra link — por isso aqui a régua é mais solta que a da §4.160.
