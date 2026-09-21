@@ -9356,3 +9356,38 @@ pelo id da gravação; o slug é só legibilidade.
   (507) × *Espiritualidade* (372), *Biografias e Memórias* × *Biografias*,
   *Juvenil* × *Kids*. Juntar exige escolher **o nome que sobrevive**, e isso é
   decisão dele.
+
+### O ciclo de conserto do ano fecha sozinho (21/09)
+
+Os **8 livros que eu esvaziei em 16/09** por divergência entre lojas voltaram a
+ter ano nesta passada — e **receberam o da maioria**, que era o certo: *Alice*
+1865, *Dom Casmurro* 1899, *Memórias Póstumas* 1881, *Quincas Borba* 1891, *A
+Revolução dos Bichos* 1945 e ***O Sino* 1845**, o conto de Andersen, em lugar do
+2024 que era o lançamento de um selo editorial.
+
+⚠️ **É por isso que apagar o duvidoso não perde dado:** o passe de gêmeos e o
+`npm run anos` espalham o ano da maioria na volta. O banco está em **2.680**.
+
+### 🚨 Wikidata por autor: medido, e NÃO rende (21/09)
+
+Era a minha aposta para os 13.701 sem ano, e caiu na primeira medição honesta.
+**`tools/ano_wikidata_autor.py`** (baixalivro) existe, funciona e custa zero — mas
+em 20 autores (os maiores entre os 3.929 com autor-pessoa) casou **0 livros**.
+
+Duas razões, e a segunda é a que mata:
+
+1. **O endpoint público cai muito** — 7 dos 20 autores voltaram HTTP 502, 429 ou
+   TimeoutError. 🚨 **Eu quase concluí "não rende" com um terço das consultas
+   quebradas**, que é exatamente o erro do nível 3 em 15/09: recusa de
+   infraestrutura lida como resposta do mundo. Agora há retentativa com espera
+   crescente (5s, 10s, 15s) antes de qualquer conclusão.
+2. **O acervo não é feito de obras que o Wikidata conhece.** Dos 20 maiores
+   autores, **10 devolveram zero obras**: *Ap. Miguel Ângelo* (592 livros),
+   *Hernane Santos* (200), *Marco Feliciano* (220), *JM Gardner* (132). E mesmo
+   Machado de Assis, com **196 livros sem ano**, só casou 4 — porque o que está
+   no acervo são contos e crônicas soltos, não os romances.
+
+⚠️ **O casamento por rótulo principal não alcança tradução** (*"O Patinho Feio"*
+contra *"The Ugly Duckling"*). Buscar `skos:altLabel` das obras é o próximo passo
+possível, mas a consulta com UNION deu timeout em 4 dos 12 primeiros autores — e
+mesmo resolvido, o teto é pequeno: os clássicos já foram pegos pelos gêmeos.
