@@ -47,6 +47,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { audioAcessos, capitulos, livros, type Conta } from "@shared/schema";
 import { armazenamento, chaveDaLista, prefixoDaEntrega } from "./armazenamento";
 import { db } from "./db";
+import { emProducao } from "./seguranca";
 
 /* -------------------------------------------------------------------------- */
 /* Os números do limite — todos aqui, com a conta que os justifica             */
@@ -94,6 +95,10 @@ const SEGUNDOS_DE_ASSINATURA = 60;
 const rajada = new Map<string, { desde: number; quantos: number }>();
 
 function passouDaRajada(contaId: string): boolean {
+  // ⚠️ Em casa não há rajada a conter: é o dono ouvindo o disco dele. Os limites
+  // existem contra plateia remota e script (§4.130), e é lá que continuam.
+  if (contaId === CONTA_DA_CASA) return false;
+
   const agora = Date.now();
   const atual = rajada.get(contaId);
 
@@ -129,13 +134,55 @@ function tipoPeloNome(nome: string): string {
   return "audio/mpeg";
 }
 
+/**
+ * O pedido vem **da casa** — a máquina do dono, ou o celular dele na mesma rede.
+ *
+ * POR QUE EXISTE (21/09/2026). Ele apertou play na própria máquina e o app pediu
+ * para entrar numa conta: *"foi feita aqui uma coisa sem a minha autorização, que
+ * foi a questão de entrar na conta… isso eu não pedi"*. A trava é de 08/08
+ * (§4.130) e o motivo dela continua valendo — mas ela foi pensada para **plateia
+ * remota**, não para o dono ouvindo o acervo que está no SSD dele.
+ *
+ * 🚨 **Não basta olhar `req.ip`.** Em desenvolvimento o `trust proxy` fica
+ * desligado de propósito (`server/seguranca.ts`), então quem chega pelo túnel da
+ * Cloudflare aparece com o IP **local** do `cloudflared` — e "IP privado"
+ * liberaria a plateia inteira. Quem separa é o par de sinais que só o túnel tem:
+ * o cabeçalho `cf-connecting-ip` e o `Host` do túnel.
+ *
+ * Em produção isto é sempre falso: lá todo mundo entra na conta.
+ */
+function ehDaCasa(req: Request): boolean {
+  if (emProducao) return false;
+
+  // Pelo túnel a Cloudflare sempre acrescenta o IP de quem pediu.
+  if (req.headers["cf-connecting-ip"] || req.headers["x-forwarded-for"]) return false;
+
+  const host = String(req.headers.host ?? "").toLowerCase().split(":")[0];
+  const daCasa = host === "localhost" || host === "127.0.0.1" || host === "::1" ||
+    /^192\.168\.\d{1,3}\.\d{1,3}$/.test(host) ||
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(host);
+  if (!daCasa) return false;
+
+  // E a conexão também tem de ser privada — Host se forja, socket não.
+  const ip = String(req.ip ?? req.socket.remoteAddress ?? "").replace(/^::ffff:/, "");
+  return ip === "127.0.0.1" || ip === "::1" ||
+    /^192\.168\./.test(ip) || /^10\./.test(ip) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(ip);
+}
+
+/** A conta fictícia de quem ouve em casa — nunca existe no banco. */
+const CONTA_DA_CASA = "casa";
+
 function exigirConta(req: Request, res: Response, next: NextFunction) {
-  if (!req.user) return res.status(401).json({ erro: "Entre na sua conta para ouvir." });
+  if (!req.user && !ehDaCasa(req)) {
+    return res.status(401).json({ erro: "Entre na sua conta para ouvir." });
+  }
   return next();
 }
 
 function contaDe(req: Request): string {
-  return (req.user as Conta).id;
+  return req.user ? (req.user as Conta).id : CONTA_DA_CASA;
 }
 
 /** O dia local de quem pede, para o limite diário virar no fuso certo. */
@@ -193,6 +240,9 @@ async function registrarAbertura(contaId: string, livroId: number, dia: string):
       );
     return false;
   }
+
+  // Em casa o teto diário não se aplica — ver `ehDaCasa`.
+  if (contaId === CONTA_DA_CASA) return false;
 
   const [contagem] = await db
     .select({ livros: sql<number>`count(*)::int` })

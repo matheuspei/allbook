@@ -9392,3 +9392,68 @@ contos e crônicas soltos, não os romances.
 contra *"The Ugly Duckling"*). Buscar `skos:altLabel` das obras é o próximo passo
 possível, mas a consulta com UNION deu timeout em 4 dos 12 primeiros autores — e
 mesmo resolvido, o teto é pequeno: os clássicos já foram pegos pelos gêmeos.
+
+## 4.164 Ouvir em casa não pede conta — e 63 livros estavam com os capítulos fora de ordem (21/09)
+
+Duas coisas, e a segunda só apareceu porque a primeira deixou o áudio tocar.
+
+### 1. A trava de conta era para plateia remota, não para o dono
+
+**Queixa dele, textual:** *"foi feita aqui uma coisa sem a minha autorização, que
+foi a questão de entrar na conta. Agora, para eu ouvir aqui, precisa de login, e
+isso eu não pedi."*
+
+⚠️ **A trava não é de hoje:** `/api/audio/*` exige sessão desde 08/08 (§4.130),
+com limite de 20 livros/dia e 600 pedaços/min por conta. O que mudou em 21/09
+(§4.163) foi a **tela parar de esconder** isso — antes ela rodava um cronômetro
+de maquete sobre o silêncio, e parecia tocar.
+
+Agora existe **`ehDaCasa(req)`** em `server/audio.ts`: sem conta, o áudio toca
+quando o pedido vem da própria máquina ou de um aparelho na mesma rede privada.
+O limite diário e a rajada também não se aplicam a ele (conta fictícia `casa`).
+
+🚨 **Não bastava olhar `req.ip`.** Em desenvolvimento o `trust proxy` fica
+desligado de propósito (`server/seguranca.ts`), então **quem entra pelo túnel da
+Cloudflare aparece com o IP local do `cloudflared`** — "IP privado" liberaria a
+plateia inteira. Quem separa é o par de sinais que só o túnel tem: o cabeçalho
+`cf-connecting-ip` e o `Host` do túnel. Medido: de `localhost` a situação
+responde `{"modo":"acervo","capitulos":103}` e o capítulo sai em **206**; com
+`cf-connecting-ip` forjado, **401**. Em produção `ehDaCasa` é sempre falso.
+
+### 2. 🚨 A importação ordenou os capítulos em ordem ALFABÉTICA
+
+Ao testar o áudio, o primeiro livro do acervo deu 404: o banco pedia
+`Touchdown - 01 - Apresentação.m4a` e no disco está `Touchdown - 001 - …`. Mas o
+padding era só a superfície. O que estava embaixo:
+
+| capítulo no banco | arquivo apontado |
+|---|---|
+| 10 | `- 10 -` |
+| **11** | **`- 100 -`** |
+| 12 | `- 101 -` |
+
+**Os arquivos tinham largura variável** (`01`…`99`, `100`…`130`) e a importação os
+ordenou **alfabeticamente**: `"10" < "100" < "101" < … < "11"`. Todo livro com
+100+ capítulos ficou com a ordem trocada **desde a importação**, e ninguém viu
+porque nenhum deles chegou a ser tocado. Em *Touchdown*, **93 dos 103 capítulos**
+estavam na posição errada.
+
+O conserto casou cada linha do banco ao arquivo real **pelo título** e reatribuiu
+`numero` pela ordem numérica — arquivo, título e duração seguem juntos na linha,
+então ninguém retoma no lugar errado. **12.824 capítulos em 59 livros.**
+
+- ⚠️ **Duas fases, por causa da UNIQUE `(livro_id, numero)`**: primeiro um número
+  temporário (`-id`), depois o definitivo. Trocar em cima esbarra na restrição.
+- 🚨 **E um erro meu que a transação pegou:** dois capítulos com o **mesmo
+  título** casaram com o mesmo arquivo, e o banco recusou com
+  `duplicate key … (livro_id, numero)=(100182, 258)`. Como tudo estava num
+  `begin/commit`, **nada foi escrito**. A regra passou a ser um-a-um: arquivo
+  usado não serve de novo, e livro que não fecha fica de fora.
+- **Resultado medido no disco:** os livros que tocam do começo ao fim foram de
+  **13.854 para 13.908 de 13.917 (99,94%)**. Sobraram **9** com arquivo que
+  realmente não está lá — o maior é *Elon Musk*, 89 de 361 capítulos.
+
+⚠️ **O importador continua ordenando alfabeticamente** — isto consertou o banco,
+não a causa. Próxima importação de livro com 100+ capítulos repete o defeito:
+`script/importar-acervo.ts` precisa ordenar pelo **número extraído do nome**, não
+pela string.

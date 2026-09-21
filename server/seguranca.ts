@@ -8,7 +8,8 @@
 import helmet from "helmet";
 import type { Express } from "express";
 
-const emProducao = process.env.NODE_ENV === "production";
+/** Exportado porque `server/audio.ts` decide por ele quem ouve sem conta. */
+export const emProducao = process.env.NODE_ENV === "production";
 
 /**
  * De onde o áudio pode ser tocado, além do próprio domínio.
