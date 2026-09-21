@@ -226,7 +226,23 @@ function readChoices(): Record<string, string> {
 export function chosenNarration(book: LivroComNarrador): Narration {
   const lista = narrationsOf(book);
   const escolhido = readChoices()[String(book.id)];
-  return lista.find((narracao) => narracao.id === escolhido) ?? lista[0];
+  if (!escolhido) return lista[0];
+  return lista.find((narracao) => mesmaNarracao(narracao, escolhido)) ?? lista[0];
+}
+
+/**
+ * ⚠️ **Quem identifica a narração é a GRAVAÇÃO — o número antes dos
+ * dois-pontos** (21/09, §4.163). O slug no fim do id é legibilidade: bom para
+ * ler no `localStorage` e no banco, ruim como chave. Desde que a escolha sobe
+ * para a conta, o servidor remonta esse id com o slug que ele tem gravado, e
+ * bastaria uma diferença de acento entre os dois para a escolha da pessoa ser
+ * silenciosamente ignorada — ela trocaria de voz num aparelho e ouviria a
+ * outra no seguinte, sem nada na tela explicando.
+ */
+function mesmaNarracao(narracao: Narration, guardado: string): boolean {
+  if (narracao.id === guardado) return true;
+  const idDaGravacao = Number(guardado.split(":")[0]);
+  return Number.isFinite(idDaGravacao) && narracao.bookId === idDaGravacao;
 }
 
 export function chooseNarration(bookId: number, narrationId: string): void {

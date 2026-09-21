@@ -13,6 +13,7 @@ import {
   contas,
   livros,
   marcacoes,
+  narracaoEscolhida,
   pedidos,
   progresso,
   recomendacoes,
@@ -109,6 +110,7 @@ export function registrarDados(app: Express) {
         pedidosDela,
         [assinatura],
         [preferencias],
+        vozes,
       ] = await Promise.all([
         db.select().from(biblioteca).where(eq(biblioteca.contaId, conta)),
         db.select().from(progresso).where(eq(progresso.contaId, conta)),
@@ -123,6 +125,19 @@ export function registrarDados(app: Express) {
         db.select().from(pedidos).where(eq(pedidos.contaId, conta)),
         db.select().from(assinaturas).where(eq(assinaturas.contaId, conta)).limit(1),
         db.select().from(ajustes).where(eq(ajustes.contaId, conta)).limit(1),
+        /*
+         * A voz escolhida em cada livro, com o slug do narrador vindo da
+         * própria gravação — é ele que compõe o id que o navegador guarda.
+         */
+        db
+          .select({
+            livroId: narracaoEscolhida.livroId,
+            gravacaoId: narracaoEscolhida.gravacaoId,
+            slug: livros.narradorSlug,
+          })
+          .from(narracaoEscolhida)
+          .leftJoin(livros, eq(livros.id, narracaoEscolhida.gravacaoId))
+          .where(eq(narracaoEscolhida.contaId, conta)),
       ]);
 
       /* O diário volta a ser o JSON aninhado que `listening.ts` espera. */
@@ -238,6 +253,18 @@ export function registrarDados(app: Express) {
           date: p.criadoEm.toISOString(),
           status: p.situacao,
         })),
+
+        /**
+         * A voz escolhida por livro (21/09, §4.163) — `{ "104876":
+         * "105874:fabio-porchat" }`, o formato de `lib/narrations.ts`.
+         *
+         * ⚠️ O slug é só legibilidade: **quem identifica a narração é o número
+         * antes dos dois-pontos**, e o front casa por ele. Se o slug daqui
+         * divergisse do que o navegador monta, a escolha continuaria valendo.
+         */
+        allbook_narration_choice: Object.fromEntries(
+          vozes.map((v) => [String(v.livroId), `${v.gravacaoId}:${v.slug ?? ""}`]),
+        ),
 
         allbook_assinatura: assinatura
           ? {
@@ -585,6 +612,32 @@ export function registrarDados(app: Express) {
             if (linhas.length) {
               await tx.insert(pedidos).values(linhas.map((p) => ({ ...p, contaId: conta })));
             }
+          });
+          break;
+        }
+
+        case "allbook_narration_choice": {
+          /*
+           * `{ "<livro da ficha>": "<gravação>:<slug>" }`. Só entra par cujos
+           * DOIS ids existem — o da ficha e o da gravação —, senão a chave
+           * estrangeira derruba a sincronização inteira por causa de uma
+           * escolha velha, apontando para um livro que saiu do catálogo.
+           */
+          const escolhas = Object.entries(
+            valor && typeof valor === "object" && !Array.isArray(valor)
+              ? (valor as Record<string, unknown>)
+              : {},
+          )
+            .map(([livro, escolhido]) => ({
+              contaId: conta,
+              livroId: Number(livro),
+              gravacaoId: Number(String(escolhido).split(":")[0]),
+            }))
+            .filter((e) => validos.has(e.livroId) && validos.has(e.gravacaoId));
+
+          await db.transaction(async (tx) => {
+            await tx.delete(narracaoEscolhida).where(eq(narracaoEscolhida.contaId, conta));
+            if (escolhas.length) await tx.insert(narracaoEscolhida).values(escolhas);
           });
           break;
         }

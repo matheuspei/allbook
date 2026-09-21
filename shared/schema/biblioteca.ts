@@ -344,7 +344,19 @@ export const narracoes = pgTable(
   (t) => [index("narracoes_livro_idx").on(t.livroId)],
 );
 
-/** Qual voz a pessoa escolheu para cada livro (`allbook_narration_choice`). */
+/**
+ * Qual voz a pessoa escolheu para cada livro (`allbook_narration_choice`).
+ *
+ * 🚨 **`gravacaoId` é um LIVRO, não uma linha de `narracoes`** (21/09, §4.163).
+ * A coluna nasceu apontando para `narracoes.id`, pensada para o dia em que o
+ * estúdio gravasse — e essa tabela tem zero linhas. As vozes que existem hoje
+ * vieram do acervo, e **cada uma é um livro próprio no catálogo** (§4.151): o
+ * que a pessoa escolhe é qual das gravações irmãs ouvir. A coluna foi trocada
+ * com a tabela ainda vazia; quando o estúdio produzir, a narração dele também
+ * entra como livro, e nada aqui muda.
+ *
+ * `livroId` é a **ficha** (o representante da obra), `gravacaoId` é o que toca.
+ */
 export const narracaoEscolhida = pgTable(
   "narracao_escolhida",
   {
@@ -354,9 +366,9 @@ export const narracaoEscolhida = pgTable(
     livroId: integer("livro_id")
       .notNull()
       .references(() => livros.id, { onDelete: "cascade" }),
-    narracaoId: uuid("narracao_id")
+    gravacaoId: integer("gravacao_id")
       .notNull()
-      .references(() => narracoes.id, { onDelete: "cascade" }),
+      .references(() => livros.id, { onDelete: "cascade" }),
   },
   (t) => [primaryKey({ columns: [t.contaId, t.livroId] })],
 );

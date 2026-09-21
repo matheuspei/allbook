@@ -55,6 +55,9 @@ const CHAVES: { chave: string; evento: string }[] = [
   { chave: "allbook_recommendations", evento: "allbook:recomendacoes" },
   { chave: "allbook_book_requests", evento: "allbook:pedidos" },
   { chave: "allbook_assinatura", evento: "allbook:assinatura" },
+
+  /* — a voz escolhida em cada livro (§4.163) — */
+  { chave: "allbook_narration_choice", evento: "allbook:narrations" },
 ];
 
 /* -------------------------------------------------------------------------- */

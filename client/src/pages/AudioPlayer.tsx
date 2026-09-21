@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, Pencil, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Bookmark, Minus, Plus, BookOpen, CheckCircle, Settings, History, Undo2, Search as SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, Share2, MoreVertical, ListMusic, Pencil, RotateCcw, RotateCw, Scissors, SkipBack, SkipForward, Pause, Play, Bookmark, Minus, Plus, BookOpen, CheckCircle, Settings, History, Undo2, Lock, Mic, AlertTriangle, Search as SearchIcon } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -51,17 +51,28 @@ import {
   type Bookmark as Marcacao,
 } from "@/lib/bookmarks";
 import { readSettings, saveSettings } from "@/lib/settings";
-import { readPlayback, readPlaying, savePlayback, savePlaying, showMiniPlayer } from "@/lib/playback";
+import { readPlayback, readPlaybackList, readPlaying, savePlayback, savePlaying, showMiniPlayer } from "@/lib/playback";
 import { carregarCapitulos, getChapters, chaptersTotalSec, chapterStartSec, chapterAtSec, formatChapterDuration } from "@/lib/chapters";
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
 export default function AudioPlayer({ params }: { params: { id: string } }) {
-  // Id que não existe no catálogo: tela de "não encontrado" em vez de tocar
-  // silenciosamente o primeiro livro do catálogo. `/player/current` é o atalho
-  // da barrinha e continua caindo no último livro ouvido, mais abaixo.
-  if (params.id !== "current" && !catalog.some((item) => item.id === Number(params.id))) {
+  /*
+   * Id que não existe: tela de "não encontrado" em vez de tocar silenciosamente
+   * o primeiro livro do catálogo. `/player/current` é o atalho da barrinha e
+   * continua caindo no último livro ouvido, mais abaixo.
+   *
+   * 🚨 **A pergunta é ao índice (`livroPorId`), NUNCA a `catalog`** (21/09,
+   * §4.163). `catalog` é a **vitrine**: um representante por obra (§4.151). As
+   * outras gravações — as outras vozes — não estão lá, e o id que chega aqui
+   * vem do usuário: do progresso salvo, de uma marcação, de um link, do seletor
+   * de vozes. Com `catalog.some` o player dizia "Livro não encontrado" para uma
+   * gravação que existe, e o Pequeno Príncipe na voz de Glycon Luiz (102924)
+   * era um deles. A armadilha está escrita no CLAUDE.md desde 31/08 — e eu
+   * mesmo a deixei aqui.
+   */
+  if (params.id !== "current" && !livroPorId(Number(params.id))) {
     return (
       <div
         className="min-h-screen bg-background text-white flex flex-col items-center justify-center gap-4 px-6 text-center"
@@ -109,11 +120,45 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     return fromSaved || catalog[0];
   })();
 
-  // Retoma de onde parou, mas só se for o mesmo livro.
-  const savedForThisBook = (() => {
-    const saved = readPlayback();
-    return saved && saved.bookId === book.id ? saved : null;
-  })();
+  /*
+   * A voz escolhida. Sobe para cá — antes dos capítulos e do tocador — porque
+   * **ela decide de qual gravação tudo o que se ouve é lido**, e não só o nome
+   * embaixo da capa. A gaveta de trocar fica no player, e não só na ficha,
+   * porque é ouvindo que a pessoa descobre que não gosta da narração (ideia do
+   * Matheus, ROTEIRO 4.30).
+   */
+  const [narracao, setNarracao] = useState(() => chosenNarration(book));
+  const podeTrocarDeVoz = hasChoiceOfNarration(book);
+
+  useEffect(() => {
+    const sincronizar = () => setNarracao(chosenNarration(book));
+    sincronizar();
+    window.addEventListener(NARRATIONS_EVENT, sincronizar);
+    return () => window.removeEventListener(NARRATIONS_EVENT, sincronizar);
+  }, [book]);
+
+  /**
+   * 🚨 **O id da GRAVAÇÃO — e é dele que sai o áudio** (21/09, §4.163).
+   *
+   * `book.id` é a ficha da obra; cada voz é um livro próprio no catálogo
+   * (§4.151), com capítulos, duração e arquivo próprios. O player pedia tudo
+   * por `book.id`: trocar de narrador mudava o nome na tela e **continuava
+   * tocando a mesma voz**, sem erro nenhum. O seletor existia desde julho e
+   * nunca tinha trocado nada.
+   *
+   * ⚠️ Só o que é **escuta** passa por aqui — áudio, capítulos, duração,
+   * posição. Marcação, conversa, clube e comentário seguem sendo da obra
+   * (`book.id`): são da obra mesmo, e dividi-los por voz partiria a conversa em
+   * pedaços que não se enxergam.
+   */
+  const gravacaoId = narracao.bookId;
+
+  /*
+   * Retoma de onde parou **nesta gravação**. Procura na lista inteira, e não só
+   * no último livro ouvido: a posição é por gravação (§4.150) e trocar de voz
+   * troca de registro — quem volta à voz anterior volta ao minuto dela.
+   */
+  const savedForThisBook = readPlaybackList().find((item) => item.bookId === gravacaoId) ?? null;
 
   /**
    * Os capítulos **medidos**, quando o livro tem áudio (30/08, §4.139).
@@ -125,17 +170,17 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    */
   const [versaoDosCapitulos, setVersaoDosCapitulos] = useState(0);
   useEffect(() => {
-    void carregarCapitulos(book.id).then((trocou) => {
+    void carregarCapitulos(gravacaoId).then((trocou) => {
       if (trocou) setVersaoDosCapitulos((v) => v + 1);
     });
-  }, [book.id]);
+  }, [gravacaoId]);
 
   // Capítulos estáveis do livro e duração total (soma dos capítulos) — a mesma
   // fonte que a tela do livro usa, para os dois concordarem.
-  const chapters = useMemo(() => getChapters(book.id), [book.id, versaoDosCapitulos]);
+  const chapters = useMemo(() => getChapters(gravacaoId), [gravacaoId, versaoDosCapitulos]);
   const durationSeconds = useMemo(
-    () => chaptersTotalSec(book.id),
-    [book.id, versaoDosCapitulos],
+    () => chaptersTotalSec(gravacaoId),
+    [gravacaoId, versaoDosCapitulos],
   );
 
   /*
@@ -179,11 +224,11 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * `?t=` e `?chapter=` continuam ganhando: quem chegou por uma marcação ou por
    * uma citação pediu um ponto específico.
    */
-  const jaTocandoEste = livroDoTocador() === book.id && temAudioDeVerdade();
+  const jaTocandoEste = livroDoTocador() === gravacaoId && temAudioDeVerdade();
   const initialPosition =
     timeParam ??
     (chapterParam
-      ? chapterStartSec(book.id, chapterParam)
+      ? chapterStartSec(gravacaoId, chapterParam)
       : jaTocandoEste
         ? posicaoNoLivro()
         : savedForThisBook?.positionSec ?? 0);
@@ -198,8 +243,8 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * e arrastar a barra move só dentro do capítulo atual (metade = metade do
    * capítulo). A visão do livro inteiro fica na lista de capítulos.
    */
-  const currentChapter = chapterAtSec(book.id, currentTime);
-  const chapterStart = chapterStartSec(book.id, currentChapter);
+  const currentChapter = chapterAtSec(gravacaoId, currentTime);
+  const chapterStart = chapterStartSec(gravacaoId, currentChapter);
   const chapterDuration = chapters[currentChapter - 1]?.durationSec ?? durationSeconds;
   const positionInChapter = Math.min(Math.max(currentTime - chapterStart, 0), chapterDuration);
   const chapterProgress = (positionInChapter / chapterDuration) * 100;
@@ -221,7 +266,62 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * tiver — e é o caso de 13.916 dos 13.917 livros hoje —, quem marca a hora
    * continua sendo o cronômetro logo abaixo.
    */
-  const tocador = useTocador(book.id, chapters);
+  const tocador = useTocador(gravacaoId, chapters);
+
+  /**
+   * 🚨 **Por que o livro não toca — dito na tela** (21/09, §4.163).
+   *
+   * `lib/tocador.ts` já distinguia os três "nãos" do servidor — 401 sem conta,
+   * 404 sem narração, 429 estourou o limite do dia — e guardava a frase em
+   * `recado`. **Nenhuma dessas palavras chegava até aqui:** a tela lia só
+   * `temAudio`, e com ele falso o cronômetro logo abaixo punha a barra a andar.
+   * O resultado é um player que anda e não soa, pior justamente para quem chega
+   * sem conta (e aí são **todos** os livros). A §4.162 apurou isto e não
+   * consertou; o Matheus tropeçou nele em 21/09, apertando play sem sessão.
+   *
+   * ⚠️ **A regra que fica: estado que o tocador distingue, a tela distingue
+   * também** — senão o trabalho de traduzir o 401 lá dentro não serve para nada.
+   */
+  const impedimento = (() => {
+    switch (tocador.situacao) {
+      case "precisa-entrar":
+        return {
+          icone: Lock,
+          titulo: "Entre na sua conta para ouvir",
+          detalhe:
+            "A narração é entregue por conta — enquanto você não entra, o servidor não manda o áudio.",
+          acao: { rotulo: "Entrar", href: "/login" },
+        };
+      case "sem-narracao":
+        return {
+          icone: Mic,
+          titulo: "Este livro ainda não tem narração",
+          detalhe: "Peça a narração e o estúdio grava — a promessa é de 24 horas.",
+          acao: { rotulo: "Pedir narração", href: "/request" },
+        };
+      case "limite-do-dia":
+        return {
+          icone: History,
+          titulo: "Você atingiu o limite de hoje",
+          detalhe:
+            tocador.recado ??
+            "Foram muitos livros diferentes abertos hoje. Amanhã o limite volta ao normal.",
+          acao: null,
+        };
+      case "erro":
+        return {
+          icone: AlertTriangle,
+          titulo: "A narração não chegou",
+          detalhe:
+            tocador.recado ?? "Algo falhou no caminho do áudio. Tente de novo em instantes.",
+          acao: null,
+        };
+      default:
+        return null;
+    }
+  })();
+  /* Objeto novo a cada desenho não serve de dependência — o booleano serve. */
+  const impedido = impedimento !== null;
 
   /**
    * O cronômetro: a barra andando **sem áudio nenhum**.
@@ -231,7 +331,10 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * ter os dois andando faria o tempo pular de dois em dois segundos.
    */
   useEffect(() => {
-    if (tocador.temAudio) return;
+    /* ⚠️ **Recusa conhecida não anda.** Fingir escuta para quem não entrou era
+       exatamente o defeito da §4.162: o cronômetro existe para o livro que
+       ninguém consultou ainda, não para o que o servidor já recusou. */
+    if (tocador.temAudio || impedido) return;
     let interval: NodeJS.Timeout;
     if (isPlaying) {
       interval = setInterval(() => {
@@ -246,7 +349,15 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, durationSeconds, limiteDaCitacao, tocador.temAudio]);
+  }, [isPlaying, durationSeconds, limiteDaCitacao, tocador.temAudio, impedido]);
+
+  /*
+   * Apertou play antes de a resposta chegar? Quando a recusa chega, o botão
+   * volta para "pausado" — senão ficaria um pause eterno sobre o silêncio.
+   */
+  useEffect(() => {
+    if (impedido) setIsPlaying(false);
+  }, [impedido]);
 
   /* --- Daqui para baixo, as quatro pontes entre a tela e o elemento -------- */
 
@@ -385,21 +496,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
   const [anotando, setAnotando] = useState<Marcacao | null>(null);
   /** Se o áudio estava tocando quando a caixa abriu, para retomar ao fechar. */
   const estavaTocandoRef = useRef(false);
-  /*
-   * A gaveta de trocar de voz. É aqui, e não só na ficha, porque **é ouvindo que
-   * a pessoa descobre que não gosta da narração** (ideia do Matheus, ROTEIRO
-   * 4.30) — mandá-la voltar à ficha para trocar seria pedir que desistisse.
-   */
   const [showNarracoes, setShowNarracoes] = useState(false);
-  const [narracao, setNarracao] = useState(() => chosenNarration(book));
-  const podeTrocarDeVoz = hasChoiceOfNarration(book);
-
-  useEffect(() => {
-    const sincronizar = () => setNarracao(chosenNarration(book));
-    sincronizar();
-    window.addEventListener(NARRATIONS_EVENT, sincronizar);
-    return () => window.removeEventListener(NARRATIONS_EVENT, sincronizar);
-  }, [book]);
   /*
    * Quantas marcações este livro tem. Fica no estado (e não numa leitura direta
    * a cada desenho) para o número na barra de baixo mudar na hora que a pessoa
@@ -515,14 +612,34 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * posição exata, não a de até 5 segundos atrás.
    */
   const lastSavedRef = useRef(-Infinity);
-  const stateRef = useRef({ bookId: book.id, chapter: currentChapter, positionSec: currentTime });
-  stateRef.current = { bookId: book.id, chapter: currentChapter, positionSec: currentTime };
+  const stateRef = useRef({ bookId: gravacaoId, chapter: currentChapter, positionSec: currentTime });
+  stateRef.current = { bookId: gravacaoId, chapter: currentChapter, positionSec: currentTime };
 
   useEffect(() => {
     if (Math.abs(currentTime - lastSavedRef.current) < 5) return;
     lastSavedRef.current = currentTime;
     savePlayback({ ...stateRef.current, durationSec: durationSeconds });
   }, [currentTime, durationSeconds]);
+
+  /**
+   * Trocou de voz? A escuta vai para o minuto **daquela** gravação.
+   *
+   * 🚨 Sem isto, o segundo em que a pessoa estava na voz A seria procurado na
+   * voz B — que tem outra duração e outros capítulos (§4.150: "8 horas e 6
+   * horas e meia; o meio de um não é o meio do outro"). Ela cairia num ponto
+   * que nunca ouviu **achando** que era onde parou. Não há conversão honesta
+   * entre narrações, e procurá-la está descartado por decisão dele.
+   *
+   * A primeira passada não conta: ali `currentTime` já nasceu da posição certa.
+   */
+  const gravacaoAnterior = useRef(gravacaoId);
+  useEffect(() => {
+    if (gravacaoAnterior.current === gravacaoId) return;
+    gravacaoAnterior.current = gravacaoId;
+    const salvo = readPlaybackList().find((item) => item.bookId === gravacaoId);
+    lastSavedRef.current = -Infinity;
+    setCurrentTime(salvo?.positionSec ?? 0);
+  }, [gravacaoId]);
 
   useEffect(() => {
     return () => {
@@ -534,7 +651,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
     const clamped = Math.min(Math.max(target, 1), chapters.length);
     // Move a posição para o início do capítulo; o capítulo atual e a barra
     // derivam disso sozinhos.
-    setCurrentTime(chapterStartSec(book.id, clamped));
+    setCurrentTime(chapterStartSec(gravacaoId, clamped));
   };
 
   const nextChapter = () => goToChapter(currentChapter + 1);
@@ -928,6 +1045,36 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
             </div>
           </div>
 
+          {/*
+            A faixa que diz por que não sai som (21/09, §4.163). Fica **colada
+            nos controles**, e não no alto da tela, porque é ali que a pessoa
+            está olhando quando aperta o play e nada acontece.
+          */}
+          {impedimento && (
+            <div
+              className="w-full shrink-0 rounded-2xl bg-white/[0.07] px-4 py-3 ring-1 ring-inset ring-white/10"
+              data-testid="impedimento-do-player"
+            >
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <impedimento.icone className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-sm font-bold text-white">{impedimento.titulo}</p>
+                  <p className="mt-0.5 text-xs leading-snug text-white/60">{impedimento.detalhe}</p>
+                </div>
+                {impedimento.acao && (
+                  <Link
+                    href={impedimento.acao.href}
+                    className="shrink-0 rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground transition-transform active:scale-95"
+                  >
+                    {impedimento.acao.rotulo}
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Playback Controls */}
           <div className="w-full flex items-center justify-around px-2 shrink-0">
             <button
@@ -949,8 +1096,13 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
-                aria-label={isPlaying ? "Pausar" : "Reproduzir"}
+                disabled={impedido}
+                className={`w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-xl shadow-primary/20 transition-all ${
+                  impedido
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:scale-105 active:scale-95"
+                }`}
+                aria-label={impedimento ? impedimento.titulo : isPlaying ? "Pausar" : "Reproduzir"}
               >
                 {isPlaying ? (
                   <Pause className="w-7 h-7 fill-current" />
@@ -1102,7 +1254,7 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
               // Quanto deste capítulo já foi ouvido, pela posição atual: os
               // capítulos anteriores ficam cheios, o atual mostra o avanço, e os
               // seguintes ficam vazios. A barra cresce animada ao abrir a lista.
-              const inicio = chapterStartSec(book.id, ch.id);
+              const inicio = chapterStartSec(gravacaoId, ch.id);
               // Capítulo sem duração medida (0,7% do acervo) não tem barra:
               // desenhar uma cheia ou vazia seria afirmar o que não se sabe.
               const duracao = ch.durationSec ?? 0;

@@ -9272,3 +9272,87 @@ de distinguir também. Ou o `AudioPlayer` passa a ler `tocador.situacao` e
 *(Apurado, não consertado — o conserto depende de decidir o que a tela mostra no
 lugar da barra falsa: um convite a entrar, um botão de pedir narração, ou os
 dois, conforme a situação.)*
+
+## 4.163 O player para de fingir, e trocar de voz passa a trocar o áudio (21/09)
+
+Ele apertou play e não saiu som — e a queixa veio junto com um pedido de resumo,
+não como relato de bug. O log respondeu em três linhas: `GET /api/contas/eu`
+devolvendo `{"conta":null}` e **todo** `/api/audio/:id/situacao` em **401**, com
+a frase certa dentro (*"Entre na sua conta para ouvir."*). O servidor está
+inteiro: às 2h54 da mesma madrugada, com sessão, o mesmo caminho entregou
+`{"modo":"acervo"}` e o capítulo em **206**. **O que estava quebrado era a tela**
+— exatamente o que a §4.162 tinha apurado e deixado por consertar.
+
+### 1. Estado que o tocador distingue, a tela distingue também
+
+`lib/tocador.ts` já traduzia os três "nãos" (401 `precisa-entrar`, 404
+`sem-narracao`, 429 `limite-do-dia`) e guardava a frase em `recado`. O
+`AudioPlayer` lia **só `temAudio`** — e com ele falso rodava o cronômetro de
+maquete: a barra andando sobre o silêncio. Agora a tela deriva um
+**`impedimento`** da situação e mostra uma faixa colada nos controles, com a
+ação que resolve: **"Entrar"** no 401, **"Pedir narração"** no 404. O cronômetro
+não anda com impedimento conhecido, e o play fica desligado em vez de prometer.
+
+⚠️ **A faixa fica junto do play, não no alto da tela**: é ali que a pessoa está
+olhando quando aperta e nada acontece.
+
+### 2. Trocar de narrador não trocava o áudio — e ninguém tinha como ver
+
+🚨 **O player pedia tudo por `book.id`**: áudio, capítulos, duração e posição.
+Como cada voz é um livro próprio no catálogo (§4.151), escolher outro narrador
+mudava **só o nome embaixo da capa** e continuava tocando a mesma gravação, sem
+erro nenhum. O seletor existia desde julho; religado em 31/08 (§4.147), ele
+ainda não trocava nada.
+
+Agora existe `gravacaoId = narracao.bookId`, e é dele que sai tudo o que é
+**escuta**. Medido no navegador: escolhendo Fabio Porchat em *O Pequeno
+Príncipe*, o pedido passou de `/api/audio/104876/situacao` para
+`/api/audio/105874/situacao`, e o capítulo de 9s para 6min01.
+
+⚠️ **Só a escuta passa pela gravação.** Marcação, conversa, clube e comentário
+continuam sendo da obra (`book.id`): são da obra mesmo, e dividi-los por voz
+partiria a conversa em pedaços que não se enxergam. *(Fica sabido que uma
+marcação feita na voz A aponta para o segundo da voz A — o mesmo limite que a
+§4.150 aceitou para o progresso.)*
+
+A posição segue a gravação, como a §4.150 decidiu: trocar de voz vai para o
+minuto daquela narração, ou para o começo. E a busca da posição passou a olhar a
+**lista inteira** de progresso, não só o último livro ouvido — antes, voltar a
+um livro de três livros atrás recomeçava do zero.
+
+### 3. O terceiro caso de `catalog.find` — desta vez meu
+
+🚨 O guard de "Livro não encontrado" perguntava a **`catalog`**, que é a
+**vitrine**: um representante por obra. Abrir o player por uma gravação irmã —
+o id que vem do progresso salvo, de uma marcação, de um link, do próprio seletor
+de vozes — dava "Este título não está no catálogo". *O Pequeno Príncipe* na voz
+de Glycon Luiz (102924) era um deles. A armadilha está escrita no CLAUDE.md
+desde 31/08, **por mim**, e eu a deixei no player. Agora é `livroPorId`.
+
+### 4. A escolha da voz sobe para a conta
+
+`allbook_narration_choice` entrou na lista de `lib/sincronizacao.ts` e ganhou
+caso em `server/dados.ts`.
+
+🚨 **A tabela `narracao_escolhida` apontava para o lugar errado.** A coluna
+`narracao_id` referenciava `narracoes`, pensada para o dia em que o estúdio
+gravasse — e essa tabela tem **zero linhas**. As vozes que existem hoje vieram
+do acervo, e cada uma é um **livro**. Com a tabela ainda vazia, a coluna virou
+`gravacao_id → livros.id` (cópia de segurança feita antes). Quando o estúdio
+produzir, a narração dele entra como livro e nada aqui muda.
+
+⚠️ **O id guardado é `"<gravação>:<slug>"`, mas quem identifica é o número.** O
+servidor remonta a string com o slug que tem gravado, e uma diferença de acento
+entre os dois bastaria para a escolha ser ignorada **em silêncio** — a pessoa
+trocaria de voz num aparelho e ouviria outra no seguinte. `chosenNarration` casa
+pelo id da gravação; o slug é só legibilidade.
+
+### O que continua faltando (e depende dele)
+
+- **Entrar na conta** é o que falta para ouvir: nenhum conserto de tela dá áudio
+  a quem está sem sessão, e digitar senha por ele não é coisa que eu faça.
+- **Os 105 cards de gênero na Descobrir, com famílias repetidas** — *Religião e
+  Espiritualidade* (1.191) × *Religião* (958) × *Religião & Espiritualidade*
+  (507) × *Espiritualidade* (372), *Biografias e Memórias* × *Biografias*,
+  *Juvenil* × *Kids*. Juntar exige escolher **o nome que sobrevive**, e isso é
+  decisão dele.
