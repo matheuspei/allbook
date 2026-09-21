@@ -66,7 +66,13 @@ continua a do aparelho).
 **A moldura só existe em acesso local** (`localhost`). Quando o servidor é
 exposto por um túnel para mostrar o app a alguém de longe, quem abre o link vê
 o app inteiro na tela, sem barra de aparelhos — a moldura é instrumento de quem
-constrói. Para expor: `cloudflared tunnel --url http://localhost:3000`.
+constrói. Para expor: **`zsh scripts/tunel.sh abrir`** (e `link`,
+`situacao`, `fechar`, `logs`), que levanta o túnel do Cloudflare e devolve o
+endereço. ⚠️ **O túnel nasce em sessão própria de propósito** — no grupo da
+janela do Claude ele morreria com ela, como o servidor antes do LaunchAgent;
+e `setsid` não existe no macOS, por isso o `python3` dentro do script.
+⚠️ **Quem entra pelo link não tem conta**, e o áudio exige sessão: hoje isso
+cai na barra falsa do player (§4.162).
 
 ### O catálogo vem do BANCO desde 21/08 — e o app não tem livro nenhum agora
 
