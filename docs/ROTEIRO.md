@@ -9458,7 +9458,7 @@ não a causa. Próxima importação de livro com 100+ capítulos repete o defeit
 `script/importar-acervo.ts` precisa ordenar pelo **número extraído do nome**, não
 pela string.
 
-## 4.163 As quatro prateleiras de religião viram uma (21/09)
+## 4.165 As quatro prateleiras de religião viram uma (21/09)
 
 **Decisão dele**, depois de eu ter levado o problema e recusado resolvê-lo
 sozinho: *"a gente deveria juntar tudo por religião, mas talvez criar

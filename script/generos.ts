@@ -1,6 +1,6 @@
 /**
  * As prateleiras do app: o que é gênero, e quando duas lojas dizem a mesma
- * coisa com nomes diferentes (21/09, §4.163).
+ * coisa com nomes diferentes (21/09, §4.165).
  *
  * ## Por que existe
  *

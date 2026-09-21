@@ -348,7 +348,7 @@ function trilhaDeGeneros(fontes: unknown[]): string[] {
       const cru = slugify(rotulo);
       if (!cru || cru === SEM_GENERO.slug) continue;
       if (NAO_E_GENERO.has(cru.replace(/-/g, " "))) continue;
-      // ⚠️ O canônico ANTES da deduplicação (§4.163): sem isso, "Religião" e
+      // ⚠️ O canônico ANTES da deduplicação (§4.165): sem isso, "Religião" e
       // "Religião e Espiritualidade" na mesma trilha virariam o mesmo rótulo
       // duas vezes na lista do livro.
       const nome = rotuloCanonico(rotulo, cru);
@@ -1327,7 +1327,7 @@ async function reconciliarTituloEGenero(
       .filter((r, i, todos) => todos.indexOf(r) === i);
     for (const rotulo of doLivro) generosNovos.set(slugify(rotulo), rotulo);
 
-    /* O principal muda em DOIS casos (§4.163):
+    /* O principal muda em DOIS casos (§4.165):
        - está na reserva ("sem-genero") e a ficha tem prateleira;
        - a prateleira dele foi FUNDIDA noutra por decisão dele — aí os 1.819
          livros que estavam em "Religião", "Religião & Espiritualidade" e
