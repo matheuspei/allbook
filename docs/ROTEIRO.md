@@ -9374,18 +9374,19 @@ Era a minha aposta para os 13.701 sem ano, e caiu na primeira medição honesta.
 **`tools/ano_wikidata_autor.py`** (baixalivro) existe, funciona e custa zero — mas
 em 20 autores (os maiores entre os 3.929 com autor-pessoa) casou **0 livros**.
 
-Duas razões, e a segunda é a que mata:
+**A primeira medição não valia, e eu quase a usei.** 7 dos 20 autores voltaram
+HTTP 502, 429 ou TimeoutError — 🚨 **um terço das consultas quebradas**, que é
+exatamente o erro do nível 3 em 15/09: recusa de infraestrutura lida como
+resposta do mundo. Só depois de pôr retentativa com espera crescente (5s, 10s,
+15s) a medição ficou limpa: **20 de 20 consultas passaram, zero falha de rede** —
+e o resultado foi o **mesmo zero**. É esta a rodada que vale.
 
-1. **O endpoint público cai muito** — 7 dos 20 autores voltaram HTTP 502, 429 ou
-   TimeoutError. 🚨 **Eu quase concluí "não rende" com um terço das consultas
-   quebradas**, que é exatamente o erro do nível 3 em 15/09: recusa de
-   infraestrutura lida como resposta do mundo. Agora há retentativa com espera
-   crescente (5s, 10s, 15s) antes de qualquer conclusão.
-2. **O acervo não é feito de obras que o Wikidata conhece.** Dos 20 maiores
-   autores, **10 devolveram zero obras**: *Ap. Miguel Ângelo* (592 livros),
-   *Hernane Santos* (200), *Marco Feliciano* (220), *JM Gardner* (132). E mesmo
-   Machado de Assis, com **196 livros sem ano**, só casou 4 — porque o que está
-   no acervo são contos e crônicas soltos, não os romances.
+E a razão é estrutural: **o acervo não é feito de obras que o Wikidata conhece.**
+Dos 20 maiores autores-pessoa, **14 devolveram zero obras**: *Ap. Miguel Ângelo*
+(592 livros), *Hernane Santos* (200), *Marco Feliciano* (220), *JM Gardner* (132).
+Os 6 que existem não casaram título nenhum — e mesmo Machado de Assis, com **196
+livros sem ano**, casou 4 na rodada anterior, porque o que está no acervo são
+contos e crônicas soltos, não os romances.
 
 ⚠️ **O casamento por rótulo principal não alcança tradução** (*"O Patinho Feio"*
 contra *"The Ugly Duckling"*). Buscar `skos:altLabel` das obras é o próximo passo
