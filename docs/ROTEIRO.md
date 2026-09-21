@@ -9557,3 +9557,34 @@ catálogo**: `copias.mestre` guarda onde ele está de fato, e o `escoar` muda is
 `-F$'\t'` e partir por tab dá contagem errada — nome de arquivo do acervo tem
 tabulação dentro. `copy (…) to stdout with (format csv)` e o módulo `csv`
 resolvem. A leitura errada me fez ver "ficha 39 × banco 17" onde os dois tinham 39.
+
+## 4.166 O áudio não exige conta — ordem dele (22/09)
+
+**Decisão dele, textual:** *"essa questão da sessão, pode tirar. Não sei quem foi
+que teve essa ideia, mas não foi ordem minha."* Veio junto com o pedido de um
+link para alguém de fora ouvir — e da última vez (§4.162) o link não serviu
+para isso: sem conta, todo livro caía no 401.
+
+A trava era de 08/08 (§4.130) e **nunca foi pedida por ele**; a §4.164 já a
+tinha afrouxado para quem está em casa. Agora ela saiu das quatro rotas de
+`server/audio.ts` (situação, capítulo, lista HLS e pedaço), em qualquer modo.
+
+- **O que ficou, e por quê:** o limite de **rajada** (600 pedidos/min), que para
+  quem só ouve não aparece nunca e é o que impede um script de puxar o acervo de
+  uma vez pelo link público. Sem conta ele conta **por IP**, lido do
+  `cf-connecting-ip` — o `req.ip` de todo mundo que entra pelo túnel é o do
+  `cloudflared`, e a plateia inteira dividiria uma cota só.
+- ⚠️ **O teto de 20 livros/dia só vale para conta**: `audio_acessos.conta_id` é
+  `uuid` com chave estrangeira. E isso escondia um defeito da §4.164: a chave
+  `casa` chegava a esse `select` e o Postgres a recusaria (*invalid input syntax
+  for type uuid*) — todo livro em HLS ouvido em casa daria 500. Ninguém viu
+  porque quase nada está em HLS.
+- **Medido pelo túnel, sem cookie:** `situacao` → `{"modo":"acervo"}`, capítulo
+  em **206**, e o Chrome baixou e decodificou 4min40 de som do capítulo 2.
+- ⚠️ **Armadilha de teste:** a aba do Chrome da automação fica escondida
+  (`visibilityState: hidden`) e o Chrome **não carrega mídia em aba escondida** —
+  o `<audio>` fica em `readyState 0` com o botão já em pausa, parecendo defeito.
+  A prova tem de ser decodificar o capítulo, ou tocar num aparelho de verdade.
+
+*(Rejeitado: um "link de convite" que entrasse sozinho numa conta de visitante.
+Resolvia o túnel, mas mantinha a trava que ele não quer.)*

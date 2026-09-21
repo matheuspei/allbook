@@ -71,8 +71,11 @@ constrói. Para expor: **`zsh scripts/tunel.sh abrir`** (e `link`,
 endereço. ⚠️ **O túnel nasce em sessão própria de propósito** — no grupo da
 janela do Claude ele morreria com ela, como o servidor antes do LaunchAgent;
 e `setsid` não existe no macOS, por isso o `python3` dentro do script.
-⚠️ **Quem entra pelo link não tem conta**, e o áudio exige sessão: hoje isso
-cai na barra falsa do player (§4.162).
+🚨 **O áudio NÃO exige conta** (22/09, §4.166, ordem dele): quem abre o link
+ouve direto. A trava de sessão de 08/08 não foi pedida por ele — **não a
+traga de volta**. ⚠️ A primeira abertura pelo túnel leva ~15 s (o Vite manda
+250 módulos soltos); e para testar o player com o Chrome da automação, lembre
+que **aba escondida não carrega áudio** — prove decodificando o capítulo.
 
 ### O catálogo vem do BANCO desde 21/08 — e o app não tem livro nenhum agora
 
@@ -422,8 +425,9 @@ guarda o mestre, cola a vinheta, fatia em HLS e grava duração e capítulos
   dentro do repositório, e isso já aconteceu.
 
 **Servir** é `GET /api/audio/:id/lista.m3u8` (a lista) e `/api/audio/:id/s00042.ts`
-(um pedaço de ~6s), com **sessão obrigatória** e dois limites: 600 pedaços/min
-por conta (memória) e 20 livros distintos por dia (tabela `audio_acessos`).
+(um pedaço de ~6s), **sem exigir conta** (§4.166) e com dois limites: 600
+pedaços/min por conta ou, sem conta, por IP (memória) e 20 livros distintos por
+dia só para quem tem conta (tabela `audio_acessos`).
 **Nenhuma tela pede essas rotas ainda** — falta `hls.js` no player.
 
 - ⚠️ **A permissão é conferida a cada pedaço, não por URL assinada.** Um livro

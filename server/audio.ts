@@ -2,7 +2,7 @@
  * A entrega do áudio — as duas rotas que ficam entre o acervo e o ouvinte.
  *
  * ```
- *   GET /api/audio/:livroId/lista.m3u8    a lista de reprodução (por sessão)
+ *   GET /api/audio/:livroId/lista.m3u8    a lista de reprodução
  *   GET /api/audio/:livroId/s00042.ts     um pedaço de ~6 segundos
  * ```
  *
@@ -27,11 +27,14 @@
  *
  * ## As três defesas, da mais barata para a mais cara
  *
- * 1. **Sessão obrigatória.** Sem conta, nem a lista nem um pedaço saem.
+ * 1. ~~Sessão obrigatória~~ — **removida em 22/09 por ordem dele** (§4.166): o
+ *    áudio toca para quem abrir o app, com conta ou sem. Ver `ouvinteDe`.
  * 2. **Limite de rajada, em memória** — contra o script que puxa tudo de uma vez.
+ *    Com conta, conta por conta; sem conta, pelo IP de quem pede.
  * 3. **Limite de livros distintos por dia, no banco** — a defesa que realmente
  *    importa (§4.34: "mil títulos saindo pela mesma conta em duas horas"), e a
- *    única que sobrevive ao reinício do servidor.
+ *    única que sobrevive ao reinício do servidor. **Só vale para quem tem
+ *    conta**: a tabela guarda o id da conta, e visitante não tem um.
  *
  * ⚠️ **Nada disto impede alguém de gravar a saída de som do próprio aparelho** —
  * isso não tem solução e a §4.34 já dizia. O objetivo é a cópia em escala.
@@ -41,7 +44,7 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 
-import type { Express, NextFunction, Request, Response } from "express";
+import type { Express, Request } from "express";
 import { and, eq, sql } from "drizzle-orm";
 
 import { audioAcessos, capitulos, livros, type Conta } from "@shared/schema";
@@ -121,7 +124,7 @@ setInterval(() => {
 }, 120_000).unref();
 
 /* -------------------------------------------------------------------------- */
-/* Defesa 1: sessão                                                            */
+/* Quem está ouvindo — a chave dos limites                                     */
 /* -------------------------------------------------------------------------- */
 
 /** O tipo MIME pela extensão — o acervo tem mp3, m4a, m4b e ogg. */
@@ -137,19 +140,17 @@ function tipoPeloNome(nome: string): string {
 /**
  * O pedido vem **da casa** — a máquina do dono, ou o celular dele na mesma rede.
  *
- * POR QUE EXISTE (21/09/2026). Ele apertou play na própria máquina e o app pediu
- * para entrar numa conta: *"foi feita aqui uma coisa sem a minha autorização, que
- * foi a questão de entrar na conta… isso eu não pedi"*. A trava é de 08/08
- * (§4.130) e o motivo dela continua valendo — mas ela foi pensada para **plateia
- * remota**, não para o dono ouvindo o acervo que está no SSD dele.
+ * Nasceu em 21/09 como exceção à trava de conta (§4.164); desde 22/09 a trava
+ * não existe mais (§4.166) e isto só decide quem fica **fora da rajada**: em
+ * casa é o dono ouvindo o disco dele, e não há raspagem a conter.
  *
  * 🚨 **Não basta olhar `req.ip`.** Em desenvolvimento o `trust proxy` fica
  * desligado de propósito (`server/seguranca.ts`), então quem chega pelo túnel da
  * Cloudflare aparece com o IP **local** do `cloudflared` — e "IP privado"
- * liberaria a plateia inteira. Quem separa é o par de sinais que só o túnel tem:
- * o cabeçalho `cf-connecting-ip` e o `Host` do túnel.
+ * poria a plateia inteira fora do limite. Quem separa é o par de sinais que só
+ * o túnel tem: o cabeçalho `cf-connecting-ip` e o `Host` do túnel.
  *
- * Em produção isto é sempre falso: lá todo mundo entra na conta.
+ * Em produção isto é sempre falso.
  */
 function ehDaCasa(req: Request): boolean {
   if (emProducao) return false;
@@ -171,18 +172,31 @@ function ehDaCasa(req: Request): boolean {
     /^172\.(1[6-9]|2\d|3[01])\./.test(ip);
 }
 
-/** A conta fictícia de quem ouve em casa — nunca existe no banco. */
+/** A chave de quem ouve em casa — nunca existe no banco. */
 const CONTA_DA_CASA = "casa";
 
-function exigirConta(req: Request, res: Response, next: NextFunction) {
-  if (!req.user && !ehDaCasa(req)) {
-    return res.status(401).json({ erro: "Entre na sua conta para ouvir." });
-  }
-  return next();
-}
+/**
+ * A chave com que a rajada conta os pedidos de quem está ouvindo.
+ *
+ * POR QUE NÃO HÁ MAIS `exigirConta` (22/09/2026). O áudio pedia sessão desde
+ * 08/08 (§4.130), e a trava não foi pedida por ele: *"essa questão da sessão,
+ * pode tirar (…) não foi ordem minha"*. O efeito dela era o link do túnel não
+ * servir para ninguém de fora ouvir — quem abria caía no 401 em todo livro.
+ * Agora as quatro rotas atendem qualquer um, e o limite passa a separar as
+ * pessoas por conta **quando houver** e, sem conta, pelo IP.
+ *
+ * ⚠️ **O IP do visitante vem do `cf-connecting-ip`**, não do `req.ip`: fora de
+ * produção o `trust proxy` está desligado e o `req.ip` de todo mundo que entra
+ * pelo túnel é o do `cloudflared` — a plateia inteira dividiria uma cota só. A
+ * Cloudflare sobrescreve esse cabeçalho, então quem vem pelo túnel não o forja.
+ */
+function ouvinteDe(req: Request): string {
+  if (req.user) return (req.user as Conta).id;
+  if (ehDaCasa(req)) return CONTA_DA_CASA;
 
-function contaDe(req: Request): string {
-  return req.user ? (req.user as Conta).id : CONTA_DA_CASA;
+  const daCloudflare = req.headers["cf-connecting-ip"];
+  const ip = (Array.isArray(daCloudflare) ? daCloudflare[0] : daCloudflare) ?? req.ip ?? "?";
+  return `visitante:${ip}`;
 }
 
 /** O dia local de quem pede, para o limite diário virar no fuso certo. */
@@ -213,6 +227,11 @@ function hojeDe(req: Request): string {
  *
  * A pergunta certa é "esta conta pode abrir um livro **novo** agora?", e ela só
  * é feita quando o livro é de fato novo naquele dia.
+ *
+ * 🚨 **Só receba aqui id de conta de verdade.** `conta_id` é `uuid` com chave
+ * estrangeira: a chave `casa` ou `visitante:…` faria o Postgres recusar já o
+ * primeiro `select` ("invalid input syntax for type uuid") e a lista sairia em
+ * 500. Foi assim até 22/09 para quem ouvia em casa um livro em HLS.
  */
 async function registrarAbertura(contaId: string, livroId: number, dia: string): Promise<boolean> {
   const jaAberto = await db
@@ -240,9 +259,6 @@ async function registrarAbertura(contaId: string, livroId: number, dia: string):
       );
     return false;
   }
-
-  // Em casa o teto diário não se aplica — ver `ehDaCasa`.
-  if (contaId === CONTA_DA_CASA) return false;
 
   const [contagem] = await db
     .select({ livros: sql<number>`count(*)::int` })
@@ -282,7 +298,7 @@ export function registrarAudio(app: Express) {
    * daqui diz `/api/audio/7/s00000.ts`. Nenhum endereço do armazenamento
    * aparece para o navegador em momento nenhum.
    */
-  app.get("/api/audio/:livroId/lista.m3u8", exigirConta, async (req, res) => {
+  app.get("/api/audio/:livroId/lista.m3u8", async (req, res) => {
     const livroId = Number(req.params.livroId);
     if (!Number.isInteger(livroId)) return res.status(400).json({ erro: "livro inválido" });
 
@@ -309,7 +325,9 @@ export function registrarAudio(app: Express) {
       return res.status(404).json({ erro: "Este livro ainda não tem narração.", podePedir: true });
     }
 
-    const estourou = await registrarAbertura(contaDe(req), livroId, hojeDe(req));
+    // Sem conta não há teto diário (ver `registrarAbertura`) — a rajada segue.
+    const conta = req.user ? (req.user as Conta).id : null;
+    const estourou = conta ? await registrarAbertura(conta, livroId, hojeDe(req)) : false;
     if (estourou) {
       return res.status(429).json({
         erro: `Você abriu mais de ${LIVROS_POR_DIA} livros hoje. Tente de novo amanhã.`,
@@ -361,7 +379,7 @@ export function registrarAudio(app: Express) {
    * ela é formato de ENTREGA REMOTA, e enquanto se testa na própria máquina
    * duplicar o acervo é trabalho e disco jogados fora.
    */
-  app.get("/api/audio/:livroId/situacao", exigirConta, async (req, res) => {
+  app.get("/api/audio/:livroId/situacao", async (req, res) => {
     const livroId = Number(req.params.livroId);
     if (!Number.isInteger(livroId)) return res.status(400).json({ erro: "livro inválido" });
 
@@ -396,14 +414,14 @@ export function registrarAudio(app: Express) {
    * Suporta `Range` porque é ele que faz arrastar a barra funcionar — sem
    * resposta parcial, o navegador rebaixa a busca a "baixar tudo de novo".
    */
-  app.get("/api/audio/:livroId/capitulo/:numero", exigirConta, async (req, res) => {
+  app.get("/api/audio/:livroId/capitulo/:numero", async (req, res) => {
     const livroId = Number(req.params.livroId);
     const numero = Number(req.params.numero);
     if (!Number.isInteger(livroId) || !Number.isInteger(numero) || numero < 1) {
       return res.status(400).json({ erro: "pedido inválido" });
     }
 
-    if (passouDaRajada(contaDe(req))) {
+    if (passouDaRajada(ouvinteDe(req))) {
       return res.status(429).json({
         erro: "Muitos pedidos em pouco tempo. Espere um minuto.",
         limite: "pedacos-por-minuto",
@@ -458,10 +476,10 @@ export function registrarAudio(app: Express) {
    * Um pedaço de ~6 segundos.
    *
    * É a rota mais chamada do app inteiro — um livro de 10h a chama 6.000 vezes —
-   * então ela faz o mínimo: confere a sessão, conta a rajada e entrega.
+   * então ela faz o mínimo: conta a rajada e entrega.
    * Nenhuma consulta ao banco.
    */
-  app.get("/api/audio/:livroId/:pedaco", exigirConta, async (req, res) => {
+  app.get("/api/audio/:livroId/:pedaco", async (req, res) => {
     const livroId = Number(req.params.livroId);
     const pedaco = String(req.params.pedaco);
 
@@ -469,7 +487,7 @@ export function registrarAudio(app: Express) {
       return res.status(400).json({ erro: "pedido inválido" });
     }
 
-    if (passouDaRajada(contaDe(req))) {
+    if (passouDaRajada(ouvinteDe(req))) {
       return res.status(429).json({
         erro: "Muitos pedidos em pouco tempo. Espere um minuto.",
         limite: "pedacos-por-minuto",
