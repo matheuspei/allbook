@@ -9500,3 +9500,60 @@ O `NAO_E_GENERO` mudou de casa para lá junto.
 ⚠️ **O principal migra, ao contrário do nome de gente.** Gênero não endereça
 perfil de ninguém e não guarda seguidor, então mover 1.819 livros de prateleira
 não quebra link — por isso aqui a régua é mais solta que a da §4.160.
+
+### O que saiu do conserto da ordem — as três perguntas dele (21/09)
+
+**1. O defeito aberto está fechado na origem.** `src/ordem.py` (baixalivro)
+centraliza a chave natural — texto e número alternados, comparados número a
+número, o que também resolve título com número dentro (*"1924: Tenentes
+rebeldes"*, *"30 Salmos - tomo 2"*). Aplicada nos quatro pontos que listavam
+faixas com `sorted()` cru: `ficha.py` (duas vezes — é ele que gera o índice),
+`lote.py`, `enriquecer.py` e `painel.py`. Do lado do AllBook,
+`script/carimbos.ts` ganhou a **segunda defesa**: ordena pela ordem natural do
+nome do arquivo e reatribui o número pela posição, então **ficha torta não vira
+app torto**. ⚠️ Não copie mais o campo `n` da ficha: numa ficha gerada em ordem
+alfabética ele também está errado.
+
+**`tools/consertar_indice_ficha.py`** acertou as **105 fichas** já geradas, e tem
+três estratégias, em ordem de segurança:
+
+1. **por título** (o texto depois do número), com correspondência **um-a-um** —
+   🚨 sem isso, dois capítulos de título igual apontam para o mesmo áudio, e foi
+   o que o banco recusou com `duplicate key … (livro_id, numero)=(100182, 258)`;
+2. **por posição**, quando disco e ficha têm o mesmo tamanho e ≥80% dos títulos
+   confirmam — ⚠️ e a ficha torta tem de ser **reordenada antes** de comparar,
+   senão o acordo dá 10 de 104 em vez de 79;
+3. **`--do-disco`**, que reconstrói o índice a partir dos arquivos que existem.
+   Foi o caso de *Como conversar com qualquer pessoa*: o disco trazia *"Parte 8 -
+   A arte de curtir festas"*, que a ficha não listava, e isso **deslocava 25
+   capítulos**. Ali a verdade é o disco — é ele que toca.
+
+**Resultado medido: 13.915 dos 13.917 livros tocam do começo ao fim (99,99%)**,
+contra 13.854 antes. Sobram dois, e nenhum é defeito de código:
+
+- *Elon Musk* (89 de 361) — o mestre existe, mas está no **HD de 18 TB**
+  (`/Volumes/hd 18tb/acervo-mestres/`), desmontado. Reprocessar quando plugar.
+- *A morte de Ivan Ilitch* (1 de 13) — a loja **não entregou** o áudio do
+  capítulo 12; o disco tem o marcador `.capitulo-sem-audio-na-loja.mp3`.
+
+**2. Os capítulos genéricos NÃO são erro nosso** — decisão dele de conferir:
+*"tem que ver se isso não é um erro nosso… mas, se realmente as lojas não
+mandaram esses capítulos, então não tem o que ser feito mesmo."* São **6.205
+livros e 118.409 capítulos**. Em 40 livros sorteados das quatro lojas comparei o
+título da nossa ficha com a **etiqueta gravada dentro do arquivo de áudio**: em
+**todos**, a etiqueta também diz só *"Capítulo 1"*. Dois pareciam culpa nossa e
+eram *"Sumário"*, *"Introdução"* e *"Epígrafe"* — que a ficha já trazia iguais. A
+ficha copia fielmente o que a loja gravou. ⚠️ O `catalogo_cru` da Storytel
+também não tem campo de capítulos. **Assunto encerrado, salvo se um dia
+rasparmos a API de capítulos de cada loja.**
+
+**3. O mestre é a reserva, e ele existe** — decisão dele: *"rebaixar não precisa,
+porque a gente tem eles nos mestres no HD."* Confirmado no `catalogo.sqlite`, na
+tabela **`copias.mestre`**: os 10 livros investigados têm mestre registrado, 6 no
+SSD e 4 no HD de 18 TB. ⚠️ **Não procure o mestre pelo caminho — pergunte ao
+catálogo**: `copias.mestre` guarda onde ele está de fato, e o `escoar` muda isso.
+
+⚠️ **E uma armadilha de MEDIÇÃO que me custou meia hora:** exportar do psql com
+`-F$'\t'` e partir por tab dá contagem errada — nome de arquivo do acervo tem
+tabulação dentro. `copy (…) to stdout with (format csv)` e o módulo `csv`
+resolvem. A leitura errada me fez ver "ficha 39 × banco 17" onde os dois tinham 39.
