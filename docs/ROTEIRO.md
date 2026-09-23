@@ -9633,3 +9633,11 @@ e domínio (Cloudflare com domínio próprio, ou o domínio fixo grátis do ngro
 ⚠️ **Túnel que já está de pé é ADOTADO pelo `abrir`, nunca trocado** — o
 endereço pode já estar na mão de alguém, e levantar outro por descuido mata o
 link que ele acabou de mandar.
+
+**Decisão dele (23/09), sobre o endereço fixo:** fica o **endereço sorteado**.
+Recusadas as duas saídas com endereço fixo: **domínio próprio na Cloudflare**
+(custa e é compra dele) e **ngrok grátis**, que dá nome fixo mas **1 GB/mês** —
+um audiolivro consome isso em duas ou três escutas e o link pararia no meio.
+Enquanto o AllBook for uma máquina em casa mostrando o app a uma pessoa por
+vez, religar sozinho e avisar basta; o endereço fixo volta à mesa quando o app
+sair daqui.
