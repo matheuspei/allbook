@@ -9588,3 +9588,48 @@ tinha afrouxado para quem está em casa. Agora ela saiu das quatro rotas de
 
 *(Rejeitado: um "link de convite" que entrasse sozinho numa conta de visitante.
 Resolvia o túnel, mas mantinha a trava que ele não quer.)*
+
+## 4.167 O link que ele mandou morreu de madrugada — e o script dizia que estava no ar (23/09)
+
+Ele mandou o endereço do túnel para alguém e no dia seguinte: *"faça o link
+funcionar"*. O que tinha acontecido está no log: às **4h34 o Mac dormiu**, a
+Cloudflare derrubou a conexão e o `cloudflared` ficou **vivo, tentando religar
+para sempre, sem endereço nenhum**.
+
+🚨 **E o `scripts/tunel.sh situacao` respondia "Túnel NO AR"** — porque olhava
+só se o processo existia. Script que mente sobre o próprio estado é pior que
+script que não existe: eu teria repetido a mesma resposta errada para ele.
+
+Três consertos, na ordem em que importam:
+
+1. **`situacao` e `link` testam o ENDEREÇO** (`/api/banco/saude` pelo domínio
+   público), não o processo. Há um estado novo na tela: *"MORTO por fora: o
+   processo está vivo, mas o endereço não responde"*.
+2. **O Mac não dorme enquanto o link vale** — `caffeinate -ims` preso à sessão
+   do túnel, solto no `fechar`. É a causa raiz: Mac dormindo derruba o túnel
+   **e** o servidor que ele serve. ⚠️ Fechar a **tampa** dorme assim mesmo.
+3. **Um vigia religa sozinho** (LaunchAgent `com.allbook.tunel`, de minuto em
+   minuto) e avisa na tela do Mac. Medido: do túnel morto ao endereço novo
+   atendendo, **32 s**.
+
+⚠️ **O endereço novo é OUTRO, e isso não tem conserto neste desenho** — túnel
+anônimo (`trycloudflare`) sorteia o nome a cada vez. Endereço fixo exige conta
+e domínio (Cloudflare com domínio próprio, ou o domínio fixo grátis do ngrok):
+**decisão dele, pendente**. Enquanto isso, quem cai é quem já recebeu o link.
+
+🚨 **Duas armadilhas de medição que custaram meia hora cada:**
+
+- **O endereço aparece no log ANTES de a Cloudflare atender por ele** (~6 s para
+  imprimir, mais 10 a 30 s para a borda responder). Entregar o link sem esperar
+  é entregar um endereço que dá erro na cara de quem abre — o `abrir` e o vigia
+  agora esperam o primeiro 200.
+- **O resolvedor do macOS não enxerga o nome recém-criado**: `dig` devolvia o IP
+  e o `curl`, no mesmo segundo, dizia *"Could not resolve host"* (cache do
+  mDNSResponder). Com `--resolve` e o IP de `@1.1.1.1`, **200**. Sem essa
+  segunda tentativa o vigia daria o túnel por morto e criaria um atrás do
+  outro, trocando o endereço à toa. Quem abre de fora usa o DNS dele e nunca
+  viu o problema.
+
+⚠️ **Túnel que já está de pé é ADOTADO pelo `abrir`, nunca trocado** — o
+endereço pode já estar na mão de alguém, e levantar outro por descuido mata o
+link que ele acabou de mandar.

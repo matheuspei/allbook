@@ -71,6 +71,11 @@ constrói. Para expor: **`zsh scripts/tunel.sh abrir`** (e `link`,
 endereço. ⚠️ **O túnel nasce em sessão própria de propósito** — no grupo da
 janela do Claude ele morreria com ela, como o servidor antes do LaunchAgent;
 e `setsid` não existe no macOS, por isso o `python3` dentro do script.
+🚨 **Enquanto o túnel está aberto, o Mac fica acordado** (`caffeinate`) e o
+vigia `com.allbook.tunel` religa o túnel sozinho se ele cair (§4.167) — mas
+**o endereço novo é outro**, e quem já tinha o link fica sem. Fechar a tampa
+derruba tudo assim mesmo. `situacao` e `link` testam o endereço de verdade;
+nunca confie em "o processo está vivo".
 🚨 **O áudio NÃO exige conta** (22/09, §4.166, ordem dele): quem abre o link
 ouve direto. A trava de sessão de 08/08 não foi pedida por ele — **não a
 traga de volta**. ⚠️ A primeira abertura pelo túnel leva ~15 s (o Vite manda
