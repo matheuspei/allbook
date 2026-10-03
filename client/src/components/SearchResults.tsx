@@ -1,8 +1,8 @@
 import { Search, Headphones } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { useMemo } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
-import { catalog, type Book } from "@/lib/books";
+import { catalog, porNota, type Book } from "@/lib/books";
 import { REQUEST_PROMISE } from "@/lib/requests";
 
 /**
@@ -32,11 +32,56 @@ import { REQUEST_PROMISE } from "@/lib/requests";
  * valendo — o que não valia era tolerar semelhança solta.
  */
 
+/** Quantos cart\u00f5es entram por vez \u2014 ver `visiveis`, mais abaixo. */
+const LOTE = 60;
+
 function normalize(str: string) {
   return str
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+/**
+ * O texto de cada livro j\u00e1 normalizado, montado UMA vez (23/09, \u00a74.168).
+ *
+ * \ud83d\udea8 **Antes isto era refeito a cada letra digitada**: tr\u00eas `normalize()` por
+ * livro vezes 12.628 livros \u2014 cerca de 38 mil normaliza\u00e7\u00f5es por tecla \u2014, e a
+ * etapa 2 ainda partia os tr\u00eas campos em palavras de novo, livro por livro. No
+ * Mac davam 10 ms e 130 ms; no celular de quem recebeu o link, o bastante para
+ * a tela parar de responder enquanto se digita.
+ *
+ * \u26a0\ufe0f **A r\u00e9gua de "o \u00edndice est\u00e1 velho" \u00e9 o TAMANHO de `catalog`** \u2014 ele nasce
+ * vazio e \u00e9 preenchido com `push`, sem nunca trocar de refer\u00eancia (CLAUDE.md).
+ * Guardar a refer\u00eancia aqui daria um \u00edndice eternamente vazio.
+ */
+type Fichado = {
+  book: Book;
+  titulo: string;
+  subtitulo: string;
+  autor: string;
+  /** Palavras de conte\u00fado dos tr\u00eas campos, para o casamento aproximado. */
+  palavras: string[];
+};
+
+let indice: Fichado[] = [];
+
+function indiceDoCatalogo(): Fichado[] {
+  if (indice.length !== catalog.length) {
+    indice = catalog.map((book) => {
+      const titulo = normalize(book.title);
+      const subtitulo = normalize(book.subtitle ?? "");
+      const autor = normalize(book.author);
+      return {
+        book,
+        titulo,
+        subtitulo,
+        autor,
+        palavras: [...palavrasDe(titulo), ...palavrasDe(subtitulo), ...palavrasDe(autor)],
+      };
+    });
+  }
+  return indice;
 }
 
 /**
@@ -76,32 +121,29 @@ function tolerancia(tamanho: number): number {
   return 2;
 }
 
-/** As palavras de conteúdo de um texto — "o", "de", "da" ficam de fora. */
-function palavrasDe(texto: string): string[] {
-  return normalize(texto)
-    .split(/[^a-z0-9]+/)
-    .filter((palavra) => palavra.length >= 3);
+/**
+ * As palavras de conteúdo de um texto — "o", "de", "da" ficam de fora.
+ *
+ * ⚠️ **Recebe o texto JÁ normalizado** (ver `indiceDoCatalogo`); quem tiver
+ * texto cru normaliza antes de chamar.
+ */
+function palavrasDe(normalizado: string): string[] {
+  return normalizado.split(/[^a-z0-9]+/).filter((palavra) => palavra.length >= 3);
 }
 
 /**
  * Casamento aproximado: **toda** palavra da consulta precisa achar uma parecida
  * no título ou no autor. Exigir todas, e não alguma, é o que impede "o nome do
  * vento" de casar com qualquer livro que tenha uma palavra parecida com "nome".
+ *
+ * O subtítulo entra na busca desde 30/08 (§4.138): ele saiu de dentro do
+ * `title` e virou campo próprio, e sem ele quem procurasse por uma palavra dali
+ * deixaria de achar o livro que achava ontem. As três listas já vêm prontas no
+ * índice.
  */
-function pareceCom(query: string, book: Book): boolean {
-  const termos = palavrasDe(query);
-  if (termos.length === 0) return false;
-
-  // O subtítulo entra na busca desde 30/08 (§4.138): ele saiu de dentro do
-  // `title` e virou campo próprio, e sem esta linha quem procurasse por uma
-  // palavra dele deixaria de achar o livro que achava ontem.
-  const doLivro = [
-    ...palavrasDe(book.title),
-    ...palavrasDe(book.subtitle ?? ""),
-    ...palavrasDe(book.author),
-  ];
+function pareceCom(termos: string[], ficha: Fichado): boolean {
   return termos.every((termo) =>
-    doLivro.some((palavra) => distancia(termo, palavra) <= tolerancia(termo.length))
+    ficha.palavras.some((palavra) => distancia(termo, palavra) <= tolerancia(termo.length))
   );
 }
 
@@ -129,7 +171,17 @@ export function ResultCard({ book, onEscolher }: { book: Book; onEscolher?: () =
       data-testid={`card-search-${book.id}`}
     >
       <div className="relative rounded-lg overflow-hidden aspect-[3/4] mb-2 transition-transform duration-200 group-hover:scale-105">
-        <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
+        {/* ⚠️ `loading="lazy"`: a capa só é baixada quando chega perto da tela.
+            Sem isto, uma busca larga pedia uma imagem por resultado de uma vez
+            só — e pelo túnel, na casa de quem abriu o link, isso é o que
+            engasgava o celular (§4.168). */}
+        <img
+          src={book.cover}
+          alt={book.title}
+          loading="lazy"
+          decoding="async"
+          className="w-full h-full object-cover"
+        />
       </div>
       <h3 className="text-xs font-medium text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
         {book.title}
@@ -156,38 +208,97 @@ export default function SearchResults({
    */
   onEscolher?: () => void;
 }) {
+  /**
+   * ⚠️ **A busca corre sobre o valor ADIADO, não sobre o que está sendo
+   * digitado** (23/09). `useDeferredValue` deixa o React pintar a letra nova
+   * primeiro e refazer a lista depois — sem isso, cada tecla segurava a tela
+   * até a varredura dos 12.628 livros terminar.
+   */
+  const buscado = useDeferredValue(query);
+  const procurando = buscado !== query;
+
   const results = useMemo(() => {
-    if (!query.trim()) return [];
+    if (!buscado.trim()) return [];
 
-    const q = normalize(query);
+    const q = normalize(buscado);
+    const fichas = indiceDoCatalogo();
 
-    const direct = catalog.filter(
-      (book) =>
-        normalize(book.title).includes(q) ||
-        normalize(book.subtitle ?? "").includes(q) ||
-        normalize(book.author).includes(q)
-    );
+    /*
+     * Etapa 1, agora COM ORDEM (23/09). Antes era um `filter` só e a ordem era
+     * a do catálogo: buscar "dom" mostrava primeiro um livro que por acaso
+     * tinha "dom" no meio do nome do autor. Agora título que **começa** com o
+     * que se digitou vem na frente, depois título que contém, depois subtítulo
+     * e por fim autor — e dentro de cada faixa decide a nota.
+     */
+    const diretos: { ficha: Fichado; faixa: number }[] = [];
+    for (const ficha of fichas) {
+      const faixa = ficha.titulo.startsWith(q)
+        ? 0
+        : ficha.titulo.includes(q)
+          ? 1
+          : ficha.subtitulo.includes(q)
+            ? 2
+            : ficha.autor.includes(q)
+              ? 3
+              : -1;
+      if (faixa >= 0) diretos.push({ ficha, faixa });
+    }
 
-    if (direct.length > 0) return direct;
+    if (diretos.length > 0) {
+      return diretos
+        .sort((a, b) => a.faixa - b.faixa || porNota(a.ficha.book, b.ficha.book))
+        .map((d) => d.ficha.book);
+    }
 
-    return catalog.filter((book) => pareceCom(query, book));
-  }, [query]);
+    const termos = palavrasDe(q);
+    if (termos.length === 0) return [];
+    return fichas.filter((ficha) => pareceCom(termos, ficha)).map((ficha) => ficha.book);
+  }, [buscado]);
+
+  /**
+   * 🚨 **Quantos resultados são DESENHADOS — a causa do travamento** (23/09,
+   * §4.168). Quem recebeu o link digitou uma letra, a busca devolveu **12.504
+   * livros** e a tela montou 12.504 cartões, cada um pedindo a sua capa pelo
+   * túnel. O celular parava, e parecia que a busca não tinha achado nada.
+   *
+   * A conta continua honesta no alto ("12.504 encontrados"); o que muda é que
+   * a lista cresce de 60 em 60, a pedido de quem procura.
+   */
+  const [visiveis, setVisiveis] = useState(LOTE);
+  useEffect(() => setVisiveis(LOTE), [buscado]);
+  const mostrados = results.slice(0, visiveis);
 
   return (
     <section className="px-4 py-4 space-y-4" data-testid="search-results">
       <div className="flex items-center justify-between">
         <h2 className="font-display font-bold text-xl text-white tracking-tight">Resultados</h2>
         <span className="text-xs text-white/50">
-          {results.length} {results.length === 1 ? "encontrado" : "encontrados"}
+          {procurando
+            ? "buscando…"
+            : `${results.length} ${results.length === 1 ? "encontrado" : "encontrados"}`}
         </span>
       </div>
 
       {results.length > 0 ? (
-        <div className="grid grid-cols-3 gap-3">
-          {results.map((book) => (
-            <ResultCard key={book.id} book={book} onEscolher={onEscolher} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-3 gap-3">
+            {mostrados.map((book) => (
+              <ResultCard key={book.id} book={book} onEscolher={onEscolher} />
+            ))}
+          </div>
+
+          {results.length > mostrados.length && (
+            <button
+              type="button"
+              onClick={() => setVisiveis((n) => n + LOTE)}
+              className="w-full h-11 rounded-lg bg-white/10 text-sm font-medium text-white transition-colors hover:bg-white/20"
+              data-testid="button-more-results"
+            >
+              Mostrar mais {Math.min(LOTE, results.length - mostrados.length)} de{" "}
+              {results.length - mostrados.length}
+            </button>
+          )}
+        </>
       ) : (
         /*
           Busca sem resultado é o momento de maior intenção do app inteiro: a

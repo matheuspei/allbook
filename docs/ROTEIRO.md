@@ -9641,3 +9641,33 @@ um audiolivro consome isso em duas ou três escutas e o link pararia no meio.
 Enquanto o AllBook for uma máquina em casa mostrando o app a uma pessoa por
 vez, religar sozinho e avisar basta; o endereço fixo volta à mesa quando o app
 sair daqui.
+
+## 4.168 A busca travava o celular por DESENHAR demais, não por procurar devagar (23/09)
+
+Quem recebeu o link do túnel digitou uma letra e a tela parou. Parecia que a
+busca não achava nada; o que acontecia era o contrário: ela achava **12.504
+livros** e a tela montava 12.504 cartões, cada um pedindo a sua capa pelo
+túnel. *(Escrito em 23/09 por uma janela que fechou sem commitar; conferido no
+app e salvo em 04/10.)*
+
+🚨 **A régua: a conta é honesta, o desenho é em lotes.** O alto continua dizendo
+"10.252 encontrados"; a grade mostra **60** e um botão "Mostrar mais 60 de …"
+acrescenta o próximo lote. Capa com `loading="lazy"`. Esconder o número para
+"parecer mais leve" seria mentir sobre o acervo.
+
+- **A ordem passou a ser por faixa:** título que **começa** com o que se digitou,
+  depois título que contém, depois subtítulo, depois autor — e a nota desempata
+  dentro de cada faixa. Antes valia a ordem do catálogo, e "dom" abria com um
+  livro que tinha "dom" no meio do nome do autor.
+- **A busca roda sobre o valor adiado** (`useDeferredValue`): a letra aparece na
+  hora e a lista vem depois, com "buscando…" no lugar da contagem.
+- **O texto normalizado de cada livro é montado uma vez** (`indiceDoCatalogo`),
+  e não ~38 mil `normalize()` por tecla.
+- ⚠️ **O índice se refaz quando o TAMANHO de `catalog` muda, nunca pela
+  referência** — `catalog` nasce vazio, enche por `push` e nunca troca de
+  referência. Comparar referência daria um índice eternamente vazio.
+- A etapa 2 (palavra a palavra, com distância de edição) e a oferta de pedir a
+  narração na busca vazia **não mudaram** — a §4.18 continua valendo.
+
+**Medido em 04/10:** "a" → 10.252 encontrados, 60 cartões, 120 depois do botão;
+"tolkein" ainda acha Tolkien; "xqzwkk" leva à oferta "Pedir a narração".
