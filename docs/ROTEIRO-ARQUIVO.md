@@ -2647,10 +2647,11 @@ vazou. Para o caso do concorrente, saber a empresa é exatamente o que interessa
 a marca d'água por usuário só ganha importância quando o problema for vazamento
 individual.
 
-**Reforço barato, se um dia interessar:** vinhetas curtas também **no meio** do
-livro (a cada N capítulos, em posições variáveis). Cortar começo e fim é um
-recorte fixo; cortar dezenas de pontos que mudam de livro para livro é outro
-nível de trabalho.
+❌ ~~Reforço barato, se um dia interessar: vinhetas curtas também no meio do
+livro.~~ **DESCARTADO pelo Matheus em 12/08/2026** — a vinheta é a primeira e a
+última coisa que se ouve, e nada além disso. O porquê está na §4.34 do
+`ROTEIRO.md` vigente. Mantido riscado aqui porque este arquivo é histórico, mas
+**não reimplemente**.
 
 A tabela abaixo fica para separar os dois papéis — não para dizer que um vale
 mais que o outro:
