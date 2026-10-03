@@ -39,7 +39,19 @@ agora() {
   # Formato `custom` (-Fc), não SQL puro: ele é comprimido e o `pg_restore`
   # consegue restaurar tabela por tabela, o que importa no dia em que só uma
   # coisa se perdeu.
-  "$PG/pg_dump" -Fc -d "$BANCO" -f "$arquivo"
+  #
+  # 🚨 **Grava num `.parcial` e só lhe dá o nome de cópia se o pg_dump terminar
+  # bem** (03/10). No Mac novo o Postgres não subiu, o pg_dump falhou e deixou
+  # um `.dump` de 0 byte com cara de cópia — que entra na rotação e empurra uma
+  # cópia boa para fora. Com 14 vagas, duas semanas de banco fora apagariam
+  # todas as cópias de verdade.
+  local parcial="$arquivo.parcial"
+  if ! "$PG/pg_dump" -Fc -d "$BANCO" -f "$parcial"; then
+    rm -f "$parcial"
+    echo "🚨 cópia NÃO feita: o pg_dump falhou. O banco está no ar? (brew services list)" >&2
+    exit 1
+  fi
+  mv "$parcial" "$arquivo"
 
   local tamanho
   tamanho=$(du -h "$arquivo" | cut -f1)

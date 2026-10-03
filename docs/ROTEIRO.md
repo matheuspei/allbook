@@ -9671,3 +9671,28 @@ acrescenta o próximo lote. Capa com `loading="lazy"`. Esconder o número para
 
 **Medido em 04/10:** "a" → 10.252 encontrados, 60 cartões, 120 depois do botão;
 "tolkein" ainda acha Tolkien; "xqzwkk" leva à oferta "Pedir a narração".
+
+## 4.169 O banco que não subiu no Mac novo, e as duas peças que caíram junto (04/10)
+
+Na primeira sessão no M4 Pro o app abriu **sem livro nenhum**: a restauração
+do Time Machine trouxe o `postmaster.pid` do Mac velho, apontando para um
+número de processo que no Mac novo era da Siri, e o Postgres se recusou a
+subir achando que já havia outro. Conferido que não havia postgres vivo, a
+trava foi renomeada (não apagada) e o banco subiu com os 13.917 livros.
+
+🚨 **Em qualquer restauração ou troca de máquina: `curl
+localhost:3000/api/banco/saude` antes de tudo.** O servidor responde 200 na
+página mesmo com o banco fora — só a rota de saúde conta a verdade.
+
+O que o banco fora derrubou junto, e a regra que ficou de cada um:
+
+- **O vigia do túnel trocou o endereço 4 vezes em 10 minutos** com o túnel
+  perfeito, porque lia o 500 da rota de saúde como "túnel morto". **Regra:
+  banco fora é problema do banco; o túnel está vivo se quem respondeu foi o
+  nosso servidor** (o JSON com `"ok":`, `true` ou `false`). Trocar o endereço
+  mata o link de quem já o recebeu, e só se faz quando é a Cloudflare que
+  responde, ou ninguém.
+- **A cópia de segurança das 23h16 saiu com 0 byte** e entrou na rotação como
+  se fosse cópia. **Regra: cópia só ganha o nome depois que o `pg_dump` termina
+  bem** — senão duas semanas de banco fora empurrariam as 14 cópias boas para
+  fora, uma por dia.

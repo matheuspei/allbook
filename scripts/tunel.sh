@@ -64,12 +64,27 @@ endereco_do_log() {
   grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$LOG" | tail -1
 }
 
+# Quem respondeu foi O NOSSO servidor? A rota de saúde devolve um JSON com
+# `"ok":` — `true` com o banco de pé, `false` com ele fora —, e a página de
+# erro da Cloudflare (530 túnel morto, 502 origem fora) é HTML.
+#
+# 🚨 **Não use `curl -f` aqui** (03/10): ele trata o 500 de "banco fora" como
+# túnel morto. No Mac novo o Postgres não subiu e o vigia trocou o endereço 4
+# vezes em 10 minutos — com o túnel perfeito, matando o link de quem já o
+# tinha. Banco fora é problema do banco; o túnel só responde por chegar até nós.
+# ⚠️ Sem pipe para o `grep -q`: com `pipefail` o curl morre de SIGPIPE.
+respondeu_o_nosso() {
+  local corpo
+  corpo=$(curl -s --max-time 15 "$@" 2>/dev/null) || return 1
+  [[ "$corpo" == *'"ok":'* ]]
+}
+
 # O endereço responde de verdade? 🚨 É esta pergunta que vale, não "o processo
 # existe": em 23/09 o processo estava vivo havia 5 horas sem endereço nenhum.
 endereco_responde() {
   local url="${1:-}"
   [[ -n "$url" ]] || return 1
-  curl -sf -o /dev/null --max-time 15 "$url/api/banco/saude" && return 0
+  respondeu_o_nosso "$url/api/banco/saude" && return 0
 
   # 🚨 **O resolvedor do macOS não enxerga o nome recém-criado** (apurado em
   # 23/09): `dig` respondia o IP e o `curl` dizia "Could not resolve host" no
@@ -80,7 +95,7 @@ endereco_responde() {
   local host=${url#https://} ip
   ip=$(dig +short @1.1.1.1 "$host" 2>/dev/null | grep -E '^[0-9.]+$' | head -1)
   [[ -n "$ip" ]] || return 1
-  curl -sf -o /dev/null --max-time 15 --resolve "$host:443:$ip" "$url/api/banco/saude"
+  respondeu_o_nosso --resolve "$host:443:$ip" "$url/api/banco/saude"
 }
 
 # 🚨 **O endereço aparece no log ANTES de a Cloudflare começar a atender por
