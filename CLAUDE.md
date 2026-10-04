@@ -314,6 +314,21 @@ app, com 1.497 livros. Ideia do Matheus.
 - ⚠️ **`server/catalogo.ts` não filtra mais gênero por `exists` no
   `genero_slug`**: "Cristianismo" não é principal de livro nenhum e sumiria.
 
+### As prateleiras do Catálogo: o mapa mora em `shared/prateleiras.ts` (04/10, §4.170)
+
+O Catálogo mostra **prateleiras do AllBook** (30), não os rótulos das lojas
+(eram 100 cards). 🚨 **A tradução é feita na LEITURA**: o banco guarda o rótulo
+da loja e `server/catalogo.ts` chama `classificar()` de `shared/prateleiras.ts`.
+Mudar uma junção é editar aquele arquivo e `reiniciar` o servidor — **mexer em
+`script/generos.ts` não muda a vitrine**.
+
+- ⚠️ **Junção nova só com ordem dele** — cada linha do mapa foi aprovada em vídeo.
+- 🚨 **"Grátis" e "Originals" não são assunto**: o livro cai pelo próximo rótulo da
+  trilha ou pela lista `PRATELEIRA_DO_LIVRO` (por id, classificados pela sinopse).
+- **Subcategoria é botão dentro da prateleira** (`subcategorias`), nunca card solto.
+- **Rótulo desconhecido não vira card**: o livro some da grade (a busca acha) e
+  o `npm run acervo` lista o rótulo para mapear.
+
 ### Os carimbos que ligam o acervo ao app (30/08, §4.138)
 
 O acervo do `baixalivro` continua sendo corrigido (fichas, anos, vinhetas)

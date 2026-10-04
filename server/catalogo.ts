@@ -26,6 +26,7 @@ import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "./db";
 import { avaliacoes, capitulos, editoras, generos, livros, pessoas } from "@shared/schema";
+import { PRATELEIRAS, classificar, slugDe } from "@shared/prateleiras";
 
 /**
  * Onde moram as capas dos livros de verdade.
@@ -168,7 +169,11 @@ export interface FichaDoLivro {
 }
 
 export interface RespostaDoCatalogo {
-  generos: { label: string; slug: string; gradient: string }[];
+  /**
+   * As **prateleiras** do Catálogo (§4.170) — não os rótulos das lojas.
+   * `subcategorias` são os botões no alto da página dela, só os que têm livro.
+   */
+  generos: { label: string; slug: string; gradient: string; subcategorias?: string[] }[];
   /**
    * As editoras com ao menos um livro **visível** — `slug` → nome de tela.
    *
@@ -294,28 +299,53 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
       .orderBy(asc(livros.id)),
   ]);
 
-  /* Os rótulos que os livros visíveis realmente carregam — o principal e os da
-     lista. É contra este conjunto que os gêneros são filtrados. */
-  const rotulosEmUso = new Set<string>();
+  /* 🚨 Rótulo da loja → prateleira do AllBook, AQUI e não no banco (04/10,
+     §4.170). O banco guarda o que a loja disse; o mapa mora em
+     `shared/prateleiras.ts`, e mudar uma junção é editar aquele arquivo e
+     reiniciar o servidor. Cada livro sai com a(s) prateleira(s) e os botões
+     de subcategoria em que entra; a lista de gêneros da resposta passa a ser a
+     de prateleiras com ao menos um livro visível. */
+  const slugDoRotulo = new Map(linhasDeGenero.map((g) => [g.rotulo, g.slug]));
+  const gradienteDe = new Map(linhasDeGenero.map((g) => [g.slug, g.gradiente]));
+  const livrosNaPrateleira = new Map<string, number>();
+  const livrosNoBotao = new Map<string, number>();
+  const desconhecidos = new Map<string, number>();
+  const classificacao = new Map<number, ReturnType<typeof classificar>>();
   for (const l of linhasDeLivro) {
-    rotulosEmUso.add(l.genero);
-    if (l.generosDoLivro) for (const r of l.generosDoLivro.split(" & ")) rotulosEmUso.add(r);
+    const rotulos = [l.genero, ...(l.generosDoLivro ? l.generosDoLivro.split(" & ") : [])];
+    const slugs = [...new Set(rotulos.map((r) => slugDoRotulo.get(r) ?? slugDe(r)))];
+    const c = classificar(l.id, slugs);
+    classificacao.set(l.id, c);
+    for (const p of c.prateleiras) livrosNaPrateleira.set(p, (livrosNaPrateleira.get(p) ?? 0) + 1);
+    for (const s of c.subcategorias) livrosNoBotao.set(s, (livrosNoBotao.get(s) ?? 0) + 1);
+    for (const d of c.desconhecidos) desconhecidos.set(d, (desconhecidos.get(d) ?? 0) + 1);
   }
+  avisarDesconhecidos(desconhecidos);
 
   return {
-    generos: linhasDeGenero
-      .filter((g) => rotulosEmUso.has(g.rotulo))
-      .map((g) => ({
-        label: g.rotulo,
-        slug: g.slug,
-        gradient: g.gradiente,
-      })),
+    // Da maior para a menor: a ordem antiga era a curadoria das 63 maquetes.
+    generos: [...livrosNaPrateleira]
+      .sort((a, b) => b[1] - a[1])
+      .map(([slug]) => {
+        const p = PRATELEIRAS.get(slug)!;
+        const botoes = (p.subcategorias ?? [])
+          .map((s) => s.rotulo)
+          .filter((r) => (livrosNoBotao.get(r) ?? 0) > 0);
+        return {
+          label: p.rotulo,
+          slug,
+          gradient: gradienteDe.get(slug) ?? "from-slate-700 to-slate-500",
+          ...(botoes.length > 0 ? { subcategorias: botoes } : {}),
+        };
+      }),
     editoras: linhasDeEditora.map((e) => ({ slug: e.slug, label: e.nome })),
     // Os `?? undefined` não são enfeite: `JSON.stringify` **omite** `undefined` e
     // **mantém** `null`. Campo que falta some da resposta em vez de chegar como
     // `null` no cliente, onde viraria "ano: null" impresso numa ficha.
-    livros: linhasDeLivro.map(
-      (l): LivroDoCatalogo => ({
+    livros: linhasDeLivro.map((l): LivroDoCatalogo => {
+      const c = classificacao.get(l.id)!;
+      const nomes = [...c.prateleiras.map((p) => PRATELEIRAS.get(p)!.rotulo), ...c.subcategorias];
+      return {
         id: l.id,
         title: l.titulo,
         subtitle: l.subtitulo ?? undefined,
@@ -325,7 +355,8 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         // um lugar só decide o separador, e é o importador.
         ...(l.autores ? { authors: l.autores.split(" & ") } : {}),
         ...(l.narradores ? { narrators: l.narradores.split(" & ") } : {}),
-        ...(l.generosDoLivro ? { genres: l.generosDoLivro.split(" & ") } : {}),
+        // Prateleiras e botões, já traduzidos — nunca o rótulo cru da loja.
+        ...(nomes.length > 1 ? { genres: nomes } : {}),
         // A capa vem como NOME de arquivo no banco (`7.jpg`); quem monta o
         // endereço é aqui, para o cliente não precisar saber onde ela mora.
         cover: l.capa ? `/capas/${l.capa}` : null,
@@ -338,7 +369,10 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
               performance: arredondar(l.notaNarracao),
             }
           : {}),
-        genre: l.genero,
+        // Sem prateleira nenhuma (rótulo que o mapa não conhece), o livro fica
+        // com o rótulo da loja: some da grade, mas a busca continua achando — e
+        // o relatório do `npm run acervo` aponta o rótulo para alguém mapear.
+        genre: nomes[0] ?? l.genero,
         originalTitle: l.tituloOriginal ?? undefined,
         year: l.ano ?? undefined,
         anoObra: l.anoObra ?? undefined,
@@ -347,9 +381,26 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         duracaoSegundos: l.duracaoSegundos ?? undefined,
         origem: l.origem ?? undefined,
         publisher: l.editora ?? undefined,
-      }),
-    ),
+      };
+    }),
   };
+}
+
+/**
+ * Rótulo de loja que o mapa de prateleiras não conhece — avisado UMA vez por
+ * processo, no log do servidor (o relatório completo é o `npm run acervo`).
+ *
+ * 🚨 Livro novo chega com o rótulo que a loja quiser. Sem este aviso, um
+ * rótulo inédito deixaria o livro fora de toda prateleira **sem erro nenhum**
+ * — o pedido dele em 04/10 foi justamente que a categoria de fora fosse
+ * traduzida para a do AllBook, nunca ignorada.
+ */
+let jaAvisou = "";
+function avisarDesconhecidos(desconhecidos: Map<string, number>) {
+  const resumo = [...desconhecidos].map(([r, n]) => `${r} (${n})`).join(", ");
+  if (!resumo || resumo === jaAvisou) return;
+  jaAvisou = resumo;
+  console.warn(`[catálogo] rótulos sem prateleira em shared/prateleiras.ts: ${resumo}`);
 }
 
 /**

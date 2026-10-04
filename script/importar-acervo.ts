@@ -46,6 +46,7 @@ import { carimbosDaFicha } from "./carimbos";
 import { nomeDeEditora, resolverEditoras, type EditoraResolvida } from "./editoras";
 import { NAO_E_PESSOA, desinverter } from "./pessoas";
 import { NAO_E_GENERO, rotuloCanonico } from "./generos";
+import { classificar, slugDe } from "@shared/prateleiras";
 
 /* -------------------------------------------------------------------------- */
 /* Onde as coisas ficam                                                        */
@@ -528,6 +529,37 @@ async function situacao() {
   if (editora.total > editora.com) {
     console.log(`    ${editora.total - editora.com} ainda sem — quando o baixalivro as achar,`);
     console.log(`      elas entram sozinhas (o serviço com.allbook.fichas roda todo dia)`);
+  }
+
+  /* 🚨 Livro novo chega com o rótulo que a loja quiser (§4.170). O que o mapa
+     de `shared/prateleiras.ts` não conhece fica fora de toda prateleira — e é
+     aqui que isso aparece, em vez de sumir calado. Conta TODOS os livros,
+     inclusive os de loja escondida: é a lista do que mapear antes de ela
+     voltar à vitrine. */
+  const slugDoRotulo = new Map(
+    (await db.select({ slug: generos.slug, rotulo: generos.rotulo }).from(generos)).map((g) => [
+      g.rotulo,
+      g.slug,
+    ]),
+  );
+  const desconhecidos = new Map<string, number>();
+  let semPrateleira = 0;
+  for (const l of await db
+    .select({ id: livros.id, topo: livros.generoSlug, lista: livros.generos })
+    .from(livros)) {
+    const slugs = [l.topo, ...(l.lista ? l.lista.split(" & ").map((r) => slugDoRotulo.get(r) ?? slugDe(r)) : [])];
+    const c = classificar(l.id, [...new Set(slugs)]);
+    if (c.prateleiras.length === 0) semPrateleira++;
+    for (const d of c.desconhecidos) desconhecidos.set(d, (desconhecidos.get(d) ?? 0) + 1);
+  }
+  console.log(`\n  Prateleiras (§4.170)`);
+  if (desconhecidos.size === 0 && semPrateleira === 0) {
+    console.log(`    todo rótulo de loja tem prateleira`);
+  } else {
+    console.log(`    ${semPrateleira} livros sem prateleira nenhuma`);
+    for (const [r, n] of [...desconhecidos].sort((a, b) => b[1] - a[1])) {
+      console.log(`    rótulo sem prateleira: ${r} (${n} livros) — mapear em shared/prateleiras.ts`);
+    }
   }
 
   console.log(`\n  Áudio`);

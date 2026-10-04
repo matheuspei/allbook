@@ -256,7 +256,13 @@ export const catalog: Book[] = [];
  * Também vem do banco (tabela `generos`, coluna `ordem`) e também é preenchido
  * sem trocar de referência.
  */
-export const genres: { label: Genre; gradient: string }[] = [];
+/**
+ * As **prateleiras** do Catálogo (04/10, §4.170) — não os rótulos das lojas: o
+ * servidor já traduz (`shared/prateleiras.ts`). `subcategorias` são os botões
+ * no alto da página da prateleira ("Cristianismo", "Até 4 anos"…), e cada um
+ * filtra por `generosDe(book)`, como uma prateleira.
+ */
+export const genres: { label: Genre; gradient: string; subcategorias?: Genre[] }[] = [];
 
 /**
  * Editora → nome de tela (`mk-editora` → "MK Editora").
@@ -386,13 +392,19 @@ export async function carregarCatalogo(): Promise<void> {
     if (!resposta.ok) throw new Error(`o servidor respondeu ${resposta.status}`);
 
     const dados = (await resposta.json()) as {
-      generos: { label: string; slug: string; gradient: string }[];
+      generos: { label: string; slug: string; gradient: string; subcategorias?: string[] }[];
       editoras?: { slug: string; label: string }[];
       livros: LivroDaApi[];
     };
 
     genres.length = 0;
-    genres.push(...dados.generos.map((g) => ({ label: g.label, gradient: g.gradient })));
+    genres.push(
+      ...dados.generos.map((g) => ({
+        label: g.label,
+        gradient: g.gradient,
+        ...(g.subcategorias ? { subcategorias: g.subcategorias } : {}),
+      })),
+    );
 
     // `?? []` e não `dados.editoras` direto: servidor de uma versão anterior
     // não manda o campo, e o app tem de abrir mesmo assim — só sem editora.
@@ -519,6 +531,11 @@ export function genreSlug(genre: Genre): string {
 
 export function findGenreBySlug(slug: string): Genre | undefined {
   return genres.find((genero) => genreSlug(genero.label) === slug)?.label;
+}
+
+/** Os botões de subcategoria de uma prateleira — vazio quando ela não tem. */
+export function subcategoriasDe(genre: Genre): Genre[] {
+  return genres.find((genero) => genero.label === genre)?.subcategorias ?? [];
 }
 
 /** O gradiente do gênero, usado na grade da Descobrir e no topo da Categoria. */

@@ -9738,10 +9738,24 @@ interativo** (`client/public/_generos-video-A.html`) e ele respondeu pelo chat.
   rótulo segue a LOJA, não o livro: o Ubook põe 84 Machado de Assis em Ficção, o
   Tocalivros põe os dele em Literatura, e 103 obras estão nas duas conforme a
   gravação; a Audible usa uma só, "Literatura e Ficção"). Em debate.
-- **Infantil × Juvenil** — ele pediu um segundo vídeo com mais detalhe. Ao
-  montá-lo, achei o mesmo defeito: o Tocalivros põe *O Irmão do Pinóquio* e
-  *Reinações de Narizinho* em "Juvenil e Jovens Adultos"; 248 "Infantojuvenil"
-  não têm idade nenhuma.
+- ~~Infantil × Juvenil~~ **DECIDIDO no segundo vídeo (opção B):** uma
+  prateleira só, "Infantil e Juvenil", com botões "Até 4 anos" e "5 a 8 anos";
+  separar em duas quando o agente disser a idade livro por livro. Motivo: as
+  lojas não separam idade direito — o Tocalivros põe *O Irmão do Pinóquio* e
+  *Reinações de Narizinho* em "Juvenil e Jovens Adultos", e 248 "Infantojuvenil"
+  não têm idade nenhuma. Eu tinha recomendado duas no primeiro vídeo e mudei
+  olhando os livros. ❌ **Rejeitado: duas já, pelo rótulo da loja** (herdaria os
+  erros das lojas).
+
+**Construído em 04/10** — e a decisão de engenharia que importa: 🚨 **o mapa
+rótulo → prateleira é aplicado na LEITURA** (`shared/prateleiras.ts`, usado por
+`server/catalogo.ts`), não regravado no banco. O banco segue com o rótulo da
+loja; mudar uma junção é editar o arquivo e reiniciar o servidor. Resultado: 100
+cards → **30 prateleiras**, **0 livros sem prateleira**. A página da prateleira
+ganhou os botões e passou a desenhar em lotes de 60 (Religião tem 3.088
+gravações). `npm run acervo` ganhou a seção "Prateleiras", que hoje acusa só
+**"Viagens e Turismo" (7 livros da Audible, escondida)** — fica para ele decidir
+antes de a Audible voltar.
 
 **Pedidos que ficam para depois, com a razão:**
 

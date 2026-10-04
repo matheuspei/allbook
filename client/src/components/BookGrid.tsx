@@ -35,7 +35,7 @@ export default function BookGrid({
           data-testid={`card-grid-book-${livro.id}`}
         >
           <div className="relative aspect-[3/4] overflow-hidden rounded-xl shadow-lg shadow-black/40 ring-1 ring-white/10 transition-transform duration-200 group-hover:scale-[1.04] group-active:scale-[0.98]">
-            <img src={livro.cover} alt="" className="h-full w-full object-cover" />
+            <img src={livro.cover} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
           </div>
 
           {/* ⚠️ **Sem `block` aqui, e isso é o conserto.** O `line-clamp-2` do
