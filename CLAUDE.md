@@ -112,7 +112,7 @@ vinheta e conferir as capas. **Para trazê-los de volta**, apague `audible` da
 lista e reinicie o servidor — nada precisa ser reimportado. ⚠️ **A lista de
 gêneros também passou a devolver só gênero com ao menos um livro visível**,
 senão 22 categorias que só a Audible usa virariam cards abrindo em grade vazia
-na Descobrir.
+no Catálogo.
 
 🚨 **`catalog` é a VITRINE: um livro por obra, não por gravação** (31/08,
 §4.151). O acervo traz a mesma obra várias vezes (*O Príncipe* tem 5 gravações,
