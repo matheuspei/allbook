@@ -9696,3 +9696,67 @@ O que o banco fora derrubou junto, e a regra que ficou de cada um:
   se fosse cópia. **Regra: cópia só ganha o nome depois que o `pg_dump` termina
   bem** — senão duas semanas de banco fora empurrariam as 14 cópias boas para
   fora, uma por dia.
+
+## 4.170 Os gêneros do Catálogo: um assunto, uma prateleira — o que ele decidiu (04/10)
+
+O Catálogo mostrava **100 cards de gênero**, quase metade com menos de 20
+livros, e o mesmo assunto repetido com o nome de cada loja (negócios 4 vezes,
+infantil e juvenil em 10 cards). Levei a proposta num **vídeo narrado
+interativo** (`client/public/_generos-video-A.html`) e ele respondeu pelo chat.
+
+**Decidido (as respostas dele, item a item):**
+
+- **O princípio da §4.165 vale para tudo:** um assunto vira uma prateleira com
+  nome do AllBook, não da loja — 100 cards viram ~29. As junções da lista do
+  vídeo estão aprovadas como estão. Ele cogitou subcategorias para elas
+  ("Outros idiomas" dentro de Idiomas) e descartou ele mesmo: *"as categorias
+  estão bem descritas"* — o nome da prateleira já diz o que os rótulos diziam.
+- **Subcategoria vira botão DENTRO da prateleira**, não card solto ao lado de
+  Romance (Cristianismo, Católicos, "Até 4 anos"…). Era a metade que faltava da
+  §4.165.
+- 🚨 **"Grátis" não existe no AllBook** — nem prateleira, nem rótulo, nem selo.
+  Livro que a loja marcou só como grátis vai para o assunto dele. Os 8 sem
+  prateleira (6 "Gratuitos", 2 "Sem gênero") foram classificados pela sinopse:
+  *Dom Casmurro*, *Brás Cubas* e *O Crime do Padre Amaro* → Clássicos; os de
+  empresa → Negócios; etc. Os 17 "Livros Grátis" do Tocalivros são o podcast
+  TocaCast → Podcasts e Palestras.
+- **"Originals" sai da vitrine**: é a marca de produção do Ubook, não assunto.
+  303 dos 322 já trazem o assunto na trilha da loja (Documentários 284,
+  Biografias 19, Esportes 2); os 17 sem trilha eu classifiquei pela sinopse
+  (palestras e eventos → Podcasts e Palestras; Alzheimer, meditação → Saúde;
+  stand-up e teatro de comédia → Humor). **Não precisou de agente.**
+- **Esoterismo continua fora de Religião** — *"quem é de religião,
+  principalmente cristão, não vai gostar de ver isso junto"*.
+- **As prateleiras pequenas ficam** (Humor, Direito, Casa e Gastronomia, Arte,
+  Música e Quadrinhos): crescem com o acervo.
+- **Não-ficção (1.076, a gaveta genérica da Storytel) fica como está** até o
+  agente de enriquecimento (abaixo).
+
+**Em aberto:**
+
+- **Literatura × Ficção** — ele prefere duas prateleiras; eu defendi uma (o
+  rótulo segue a LOJA, não o livro: o Ubook põe 84 Machado de Assis em Ficção, o
+  Tocalivros põe os dele em Literatura, e 103 obras estão nas duas conforme a
+  gravação; a Audible usa uma só, "Literatura e Ficção"). Em debate.
+- **Infantil × Juvenil** — ele pediu um segundo vídeo com mais detalhe. Ao
+  montá-lo, achei o mesmo defeito: o Tocalivros põe *O Irmão do Pinóquio* e
+  *Reinações de Narizinho* em "Juvenil e Jovens Adultos"; 248 "Infantojuvenil"
+  não têm idade nenhuma.
+
+**Pedidos que ficam para depois, com a razão:**
+
+- 🚨 **Livro novo tem de cair na prateleira certa sozinho.** O mapa de rótulos
+  (`script/generos.ts`) já traduz o rótulo conhecido na leitura ("Cristianismo"
+  → Religião, "Legislações" → Direito). O que falta: **rótulo desconhecido não
+  pode virar card novo calado** — tem de aparecer no relatório do `npm run
+  acervo` até alguém dizer para onde vai. ⚠️ **A Audible tem 22 rótulos
+  próprios** ("Audiolivros Infantis", "Negócios e Carreiras", "Mistério, Intriga
+  e Suspense"…) que precisam entrar no mapa **antes** de ela voltar à vitrine.
+- **O agente de enriquecimento** (ideia dele): varrer as bibliotecas para ano da
+  obra, assunto, autor e narrador de cada livro. É ele que resolve Não-ficção e,
+  provavelmente, a idade dos livros infantis. Roda depois destes consertos —
+  dizer o custo TOTAL antes (memória "não soltar agente pago em fila grande").
+- **Selo da loja nas capas**: as capas dos Originals trazem "ubk | original"
+  impresso na arte, e ele quer tirar. Falta medir quantas capas do acervo têm
+  selo de loja e escolher o método (a marca está no meio da arte; recortar não
+  resolve).
