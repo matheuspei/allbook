@@ -9894,13 +9894,84 @@ numa conta compartilhada.
   da obra;
 - idade (Infantil × Juvenil), Ficção × Literatura e Não-ficção, já na fila.
 
+### ✅ Decidido por ele, no mesmo dia
+
+- **Foto de rede social vale**, desde que o próprio perfil prove que é quem
+  escreve ou narra. Ele argumentou que *"no próprio perfil ela vai falar se é
+  escritora ou não"*. Ficou nas instruções com uma trava a mais: **com nome
+  comum, o perfil tem de citar um dos livros, a editora ou a narração**,
+  porque a profissão sozinha não separa homônimos.
+- **Os créditos que faltam e todos os campos extras entram no mesmo
+  trabalho.**
+- **Piloto pequeno, na conta DELE: de 5 a 10 livros SORTEADOS**, conferidos à
+  mão por ele. ❌ **Rejeitado: o piloto de ~100 que eu propus.** O motivo dele:
+  *"se eu rodar 100 livros, meu plano não vai suportar o teste"*. Rodaram 6
+  livros sorteados, que trouxeram 7 pessoas e 4 editoras, ao todo 17
+  tarefas.
+
+**Como ficou construído** (`enriquecimento/` + `npm run enriquecimento`):
+
+- **O kit:** instruções, formato obrigatório, `rodar.mjs` e `conferir.mjs`.
+  Só precisa de Node e Claude Code.
+- **A chamada é isolada:** `claude -p --safe-mode`, sem CLAUDE.md, ganchos,
+  plugins nem voz.
+  - ⚠️ **`--bare` NÃO serve:** exige chave de API e não lê o login da
+    assinatura.
+- **Só duas ferramentas:** busca e leitura da web. O agente não toca em
+  arquivo; quem grava o resultado é o `rodar.mjs`.
+- **O formato vem de `--json-schema`**, e o agente não consegue fugir dele.
+- **Proteções:**
+  - cota esgotada → para sem anotar a tarefa (código 75);
+  - teto por tarefa de US$ 6 e 30 minutos;
+  - retoma de onde parou.
+- **Primeira medida:** *Não deixe pra depois*, de Gustavo Tanaka.
+  - 42 s e US$ 0,26 equivalentes.
+  - Ano da obra 2023 (página da Planeta e post do autor); ano do áudio 2024
+    (Storytel). Os dois separados e com a frase copiada.
+
+### O piloto, medido — e o erro meu sobre o plano (05/10)
+
+**O resultado do piloto:**
+
+- 15 das 17 tarefas prontas.
+- **US$ 6,15 equivalentes e 21 minutos de agente.**
+- Ele conferiu *Não deixe pra depois* e achou *"perfeito e cirúrgico"*.
+
+🚨 **O limite de 5 horas do plano dele estourou no fim do piloto**, e ele
+estava em 20–30% quando começou. Faltaram os 2 narradores.
+
+- **O "custo equivalente" que o `claude -p` informa é o preço de API, NÃO o
+  medidor do plano.** Eu tinha dito que o plano aguentava, olhando esse
+  número, e errei.
+- Na mesma janela rodava também esta sessão, longa e com contexto enorme.
+  **Não há como separar daqui o que pesou mais.**
+- **A regra que fica:** para estimar o consumo no plano, rodar uma tarefa
+  com nenhuma outra sessão ativa e ler o `/usage` antes e depois.
+
+**O formato do perfil — pedido dele antes de rodar o acervo:**
+
+- Ver um modelo dentro do app e comparar formatos.
+- A editora como *"carta de apresentação"*.
+- Nada de *"ela diz ter como missão"*: *"ela tem como missão"*.
+- Folha: `_perfis-formato-A.html`, com três itens (editora, pessoa, tom) e
+  três opções cada.
+- **A minha recomendação:**
+  - apresentação de 2–3 linhas no topo, mais "Ler mais";
+  - **afirmar declaração** (missão, lema, o que publica);
+  - **cortar propaganda** (recorde e superlativo só com fonte de fora).
+  - Afirmar tudo faria o app garantir o *"mais indicada ao Jabuti"* que só a
+    Dialética diz de si.
+
 ### ⏳ Em aberto, com ele
 
-- **Piloto antes do "tudo de uma vez".**
+- ~~**Piloto antes do "tudo de uma vez".**~~ (decidido acima)
+- **O formato e o tom do perfil** (folha `_perfis-formato-A.html`); depois,
+  o modelo escolhido entra no app com os perfis do piloto, antes de rodar
+  tudo.
   - Minha recomendação: ~100 livros cujo ano já foi conferido (o gabarito) mais
     ~50 pessoas.
   - Mede o acerto e o tempo por item; só então a fila inteira.
   - Lá o custo não pesa, mas 14 mil anos errados custam a confiança na ficha e
     a auditoria aqui.
-- A regra da foto, acima.
-- Quais campos extras entram (a minha proposta: todos).
+- ~~A regra da foto~~ e ~~os campos extras~~ — decididos acima.
+- **A conferência dele, item a item:** página `_conferir-agente-A.html`.
