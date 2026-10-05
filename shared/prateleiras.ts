@@ -53,9 +53,10 @@ export interface Prateleira {
 }
 
 /**
- * ⚠️ **Ficção, Literatura e "Literatura e Ficção" continuam três** só até ele
- * decidir (§4.170, em aberto): eu defendi juntar — o rótulo segue a loja, não o
- * livro —, ele prefere duas. Até lá vale o que já estava.
+ * ⚠️ **Ficção, Literatura e "Literatura e Ficção" continuam três** até o agente
+ * de enriquecimento (§4.170, decidido em 05/10): ele classifica livro por livro
+ * e aí viram duas, Ficção e Literatura — o rótulo da loja não basta, porque
+ * segue a loja e não o livro. Não junte nem separe por rótulo antes disso.
  */
 const LISTA: Prateleira[] = [
   {

@@ -9734,10 +9734,15 @@ interativo** (`client/public/_generos-video-A.html`) e ele respondeu pelo chat.
 
 **Em aberto:**
 
-- **Literatura × Ficção** — ele prefere duas prateleiras; eu defendi uma (o
+- ~~Literatura × Ficção~~ **DECIDIDO em 05/10: fica como está até o agente.**
+  Continuam as três prateleiras de hoje (Ficção, Literatura, "Literatura e
+  Ficção"); o agente de enriquecimento classifica livro por livro e aí viram
+  **duas**, como ele prefere. Eu tinha defendido juntar numa só agora, porque o
   rótulo segue a LOJA, não o livro: o Ubook põe 84 Machado de Assis em Ficção, o
   Tocalivros põe os dele em Literatura, e 103 obras estão nas duas conforme a
-  gravação; a Audible usa uma só, "Literatura e Ficção"). Em debate.
+  gravação; a Audible usa uma só, "Literatura e Ficção". ❌ **Rejeitado: juntar
+  agora.** ⚠️ **O critério que separa Ficção de Literatura ainda não foi
+  combinado** — levar a ele uma regra com exemplos antes de o agente rodar.
 - ~~Infantil × Juvenil~~ **DECIDIDO no segundo vídeo (opção B):** uma
   prateleira só, "Infantil e Juvenil", com botões "Até 4 anos" e "5 a 8 anos";
   separar em duas quando o agente disser a idade livro por livro. Motivo: as
@@ -9767,8 +9772,9 @@ antes de a Audible voltar.
   próprios** ("Audiolivros Infantis", "Negócios e Carreiras", "Mistério, Intriga
   e Suspense"…) que precisam entrar no mapa **antes** de ela voltar à vitrine.
 - **O agente de enriquecimento** (ideia dele): varrer as bibliotecas para ano da
-  obra, assunto, autor e narrador de cada livro. É ele que resolve Não-ficção e,
-  provavelmente, a idade dos livros infantis. Roda depois destes consertos —
+  obra, assunto, autor e narrador de cada livro. É ele que resolve Não-ficção,
+  a idade dos livros infantis (partir "Infantil e Juvenil" em duas) e a
+  separação de Ficção × Literatura. Roda depois destes consertos —
   dizer o custo TOTAL antes (memória "não soltar agente pago em fila grande").
 - **Selo da loja nas capas**: as capas dos Originals trazem "ubk | original"
   impresso na arte, e ele quer tirar. Falta medir quantas capas do acervo têm
