@@ -11,3 +11,12 @@ dist/
 # É cinto de segurança — o lugar certo é FORA do repositório (~/AllBook-audio).
 /mestres/
 /entrega/
+
+# O kit do agente de enriquecimento (§4.171) vive em enriquecimento/; o que ele
+# gera ao rodar — tarefas, resultados, registro — mora no pacote, fora daqui.
+enriquecimento/tarefas/
+enriquecimento/resultados/
+enriquecimento/erros/
+enriquecimento/registro.jsonl
+enriquecimento/prateleiras.json
+enriquecimento/pacote.json
