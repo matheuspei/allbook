@@ -9965,7 +9965,9 @@ estava em 20–30% quando começou. Faltaram os 2 narradores.
 ### ⏳ Em aberto, com ele
 
 - ~~**Piloto antes do "tudo de uma vez".**~~ (decidido acima)
-- **O formato e o tom do perfil** (folha `_perfis-formato-A.html`); depois,
+- **O formato e o tom do perfil.** Ele pediu VÍDEO, não folha: está em
+  `_perfis-video-A.html`, com 8 cenas, 3 escolhas e 3 min 15 s; a folha
+  estática ficou sem uso. Depois,
   o modelo escolhido entra no app com os perfis do piloto, antes de rodar
   tudo.
   - Minha recomendação: ~100 livros cujo ano já foi conferido (o gabarito) mais
