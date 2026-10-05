@@ -101,6 +101,14 @@ async function ficha(pasta: string | null): Promise<Record<string, string>> {
   }
 }
 
+/**
+ * A ficha do Ubook não traz o endereço da página, mas ele é fixo pelo número
+ * do livro — o agente do piloto o achou sozinho (`/audiobook/1431366`).
+ */
+function paginaDoUbook(loja: string | null, id: string | null) {
+  return loja === "ubook" && id ? `https://www.ubook.com/audiobook/${id}` : null;
+}
+
 async function tarefaDoLivro(l: Linha) {
   const f = await ficha(l.pasta_acervo);
   const autorConhecido = !SEM_PERFIL.has(l.autor_slug);
@@ -117,7 +125,7 @@ async function tarefaDoLivro(l: Linha) {
     editora: l.editora_nome,
     produtora_do_audio: f.PUBLICADOR ?? null,
     loja: l.origem_loja,
-    pagina_da_loja: f.FONTE_URL ?? null,
+    pagina_da_loja: f.FONTE_URL ?? paginaDoUbook(l.origem_loja, f.FONTE_ID ?? l.origem_id),
     id_na_loja: f.FONTE_ID ?? l.origem_id,
     isbn: f.ISBN ?? null,
     integral_segundo_a_loja: f.INTEGRAL ?? null,

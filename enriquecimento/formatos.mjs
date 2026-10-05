@@ -105,6 +105,7 @@ export function formatoDoLivro(prateleiras) {
           "noticia_ou_documentario", "meditacao_ou_sons", "outro"],
       },
       edicao: { type: "string", enum: ["integral", "adaptada", "resumida", "trecho", "nao_sei"] },
+      titulo_corrigido: campo(textoOuNulo, "O título certo, quando o da loja vem sem acento, com erro ou truncado. Vazio se o da loja já está certo."),
       ano_obra: campo(inteiroOuNulo, "Ano da primeira publicação da OBRA."),
       ano_audio: campo(inteiroOuNulo, "Ano de lançamento DESTA gravação."),
       autores: campo(listaOuNula, "Lista completa de autores."),
@@ -133,7 +134,7 @@ export function formatoDoLivro(prateleiras) {
       },
       ...fechamento,
     },
-    required: ["id", "obra_identificada", "tipo", "edicao", "ano_obra", "ano_audio", "autores", "narradores",
+    required: ["id", "obra_identificada", "tipo", "edicao", "titulo_corrigido", "ano_obra", "ano_audio", "autores", "narradores",
       "tradutores", "titulo_original", "idioma_original", "serie", "idade", "prateleira", "procurei", "observacoes"],
     additionalProperties: false,
   };

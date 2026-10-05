@@ -76,6 +76,11 @@ produção). Vem da página da loja, da produtora ou da editora do áudio.
   "Narrador não informado", com o nome de uma empresa no lugar de gente, ou com
   o nome invertido. Se a entrada já está certa, repita-a com a prova da
   página da loja.
+- `titulo_corrigido`: o título como a editora o escreve, quando o da loja vem
+  quebrado — o Ubook manda título **sem acento e às vezes com erro de
+  digitação** ("Que horas saoa" é *Que Horas São?*). Corrija só acento,
+  pontuação e erro evidente, com prova; título que já está certo fica vazio.
+  Nunca cole o subtítulo no título.
 - `tradutores`: quem traduziu o texto que é lido nesta gravação, se for
   tradução.
 - `titulo_original` e `idioma_original`: para tradução, o título e o idioma
