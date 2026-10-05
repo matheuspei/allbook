@@ -9780,3 +9780,127 @@ antes de a Audible voltar.
   impresso na arte, e ele quer tirar. Falta medir quantas capas do acervo têm
   selo de loja e escolher o método (a marca está no meio da arte; recortar não
   resolve).
+
+## 4.171 O agente de enriquecimento: o pedido dele e o desenho proposto (05/10)
+
+**O pedido, nas palavras dele.** As tentativas anteriores *"nunca conseguiram
+trazer o ano correto e nunca souberam separar o ano da obra do ano da
+gravação"*. Ele quer um agente **robusto e completo** que:
+
+- traga os **dois anos separados**, conferidos em vários meios, aceitando que
+  muitos não terão ano de áudio (pregação, palestra);
+- monte **perfis de escritores, narradores e editoras**, com uma bio de
+  "mini Wikipedia" e **fotos**, para a pessoa clicar e saber quem fez o livro;
+- rode **tudo de uma vez**, **fora desta máquina**, em outro servidor da Claude
+  com contas compartilhadas, onde o custo deixa de importar e o agente pode ir
+  no nível mais alto.
+
+🚨 **A condição dele:** não compartilhar o projeto nem a máquina. O agente
+recebe **só o que precisa**, porque não sabemos para onde vai o que entra
+numa conta compartilhada.
+
+### O que a história ensina (§4.136, §4.149, §4.159)
+
+- 🚨 **O erro nunca foi falta de força: foi IDENTIFICAR A OBRA.**
+  - O Opus no nível 3 cometeu os mesmos três erros que os níveis baratos:
+    - **entidade errada:** o Swift no lugar do Raul Pompeia, o *Martyrs Mirror*
+      no lugar do conto de Machado, o nascimento de Cervantes como ano do
+      *Quixote*;
+    - **ano da edição no lugar do da obra:** *O Patinho Feio* com 2013;
+    - **data da loja no lugar do texto.**
+  - **"Nível mais alto sem pensar em custo" não conserta isso sozinho.** Conserta
+    o MÉTODO:
+    - primeiro provar que a fonte fala DESTA obra;
+    - depois o ano, com URL e citação literal;
+    - depois as checagens automáticas que já existem: divergência entre lojas e
+      ano fora do padrão do autor.
+- **O ano da gravação já está em 90% dos livros** (12.571 de 13.917), vindo
+  da loja. O buraco é:
+  - o **Ubook** (4.938), cuja data é a da coleta (§4.149);
+  - parte do **Tocalivros** (1.343 sem data).
+  - O agente só procura ali, e "não achei" é resposta válida.
+- **O ano da obra está em 2.680.** O caminho grátis (Wikidata **por autor**,
+  §4.159) foi testado, mas não chegou a rodar no acervo.
+
+### Medido em 05/10, para dimensionar
+
+**Pessoas e editoras**
+
+- 4.395 autores e 2.475 narradores (677 são os dois); 692 editoras.
+- 0 têm foto ou bio.
+- **2.492 autores e 1.219 narradores têm UM livro só**: a maioria não tem
+  presença pública nenhuma.
+- **Não são gente:** "Diversos", "Voz Artificial" (880), "Voz Sintética" (341),
+  The Guardian e Reuters. Não ganham bio de pessoa.
+
+**Créditos que faltam**
+
+- **1.200 livros com "autor desconhecido" e 619 com "narrador não informado"**.
+  É herança da §4.160 (editora tirada do campo de gente); a ficha não traz o
+  nome.
+- **Campos que existem e estão vazios em 100%:** `titulo_original` e `isbn`
+  (o ISBN de audiolivro é inútil, §4.159).
+
+**A sincronização diária das fichas**
+
+- Disse "acervo fora do ar" às 5h42 em 04 e 05/10.
+- Rodada pelo próprio launchd às 18h25, funcionou. **Não é permissão:** o disco
+  estava inacessível de madrugada, o que combina com o cabo do SSD que ele vai
+  consertar.
+
+### O desenho que eu propus
+
+1. **Pacote lacrado, gerado aqui por script.**
+   - **O que entra, por livro:** id opaco, título, subtítulo, autores,
+     narradores, editora, loja, sinopse e a data da loja. É tudo dado que já
+     está público na página da loja.
+   - **O que não entra:** banco, `.env`, código do app, áudio, capa, dado de
+     conta de usuário.
+   - Mais as instruções, o formato da resposta e um conferidor.
+   - Regra de projeto: **tudo o que entra na conta compartilhada é tratado
+     como vazado.**
+2. **O agente nunca escreve no banco.**
+   - Ele devolve um arquivo por item, com cada campo acompanhado de URL e
+     citação.
+   - Aqui um importador valida e grava, com registro e desfazer.
+   - **O que volta é tratado como dado não confiável:**
+     - o texto é limpo;
+     - a foto é baixada por nós, só se for imagem de verdade, e recodificada.
+3. **A unidade de trabalho é o AUTOR, não o livro.**
+   - Uma pesquisa por autor dá o perfil e o ano de todas as obras dele de uma
+     vez, que é o eixo da §4.159.
+   - Depois vêm os narradores, depois as editoras, depois os livros que
+     sobrarem.
+4. **Resistente a queda.** Conta compartilhada pode cair no meio:
+   - cada item salvo é um ponto de retomada;
+   - vários trabalhadores rodam em paralelo.
+5. **Perfis:**
+   - **Bio** escrita das fontes, com fonte. Quem não tem presença pública fica
+     com o perfil curto (nome e livros), sem inventar.
+   - 🚨 **Foto só de página que PROVA que é a mesma pessoa:**
+     - Wikipedia/Wikimedia, site oficial, página da editora ou da loja;
+     - perfil profissional que cite o livro ou a narração.
+   - O risco número 1 é o **homônimo**: a foto de um desconhecido no perfil de
+     um narrador. Conta pessoal de quem não tem carreira pública não entra.
+   - ⚠️ O comentário de `editoras` no esquema proíbe ano de fundação e sede
+     "inventados". **Com fonte citada, passa a valer.**
+
+**O que eu sugeri acrescentar (ele perguntou o que mais falta):**
+
+- autor e narrador dos 1.819 livros sem crédito;
+- **série e ordem** (o app não tem esse campo);
+- **título original, idioma original e tradutor**;
+- **edição:** integral, adaptada ou resumo — decide se a adaptação herda o ano
+  da obra;
+- idade (Infantil × Juvenil), Ficção × Literatura e Não-ficção, já na fila.
+
+### ⏳ Em aberto, com ele
+
+- **Piloto antes do "tudo de uma vez".**
+  - Minha recomendação: ~100 livros cujo ano já foi conferido (o gabarito) mais
+    ~50 pessoas.
+  - Mede o acerto e o tempo por item; só então a fila inteira.
+  - Lá o custo não pesa, mas 14 mil anos errados custam a confiança na ficha e
+    a auditoria aqui.
+- A regra da foto, acima.
+- Quais campos extras entram (a minha proposta: todos).
