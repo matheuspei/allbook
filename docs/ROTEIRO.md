@@ -9965,9 +9965,28 @@ estava em 20–30% quando começou. Faltaram os 2 narradores.
 ### ⏳ Em aberto, com ele
 
 - ~~**Piloto antes do "tudo de uma vez".**~~ (decidido acima)
-- **O formato e o tom do perfil.** Ele pediu VÍDEO, não folha: está em
-  `_perfis-video-A.html`, com 8 cenas, 3 escolhas e 3 min 15 s; a folha
-  estática ficou sem uso. Depois,
+- ~~**O formato e o tom do perfil**~~ — **DECIDIDO em 05/10, pelo vídeo
+  `_perfis-video-A.html`:**
+  - **editora A**: apresentação de 3 linhas, mais "Ler mais";
+  - **pessoas A**: foto, duas frases e as obras conhecidas;
+  - **tom A**: afirma a declaração ("tem como missão"), corta a propaganda.
+  - ❌ **Rejeitados:** o verbete inteiro (empurra os livros para baixo), a
+    ficha (não apresenta) e o "diz ter" (soa desconfiado).
+- ⏳ **Os links e contatos do perfil — ele quer discutir antes de aprovar.**
+  - O que ele propôs:
+    - site, Instagram e localização viram links clicáveis;
+    - o agente busca meios de contato (site, Instagram, e-mail);
+    - perguntou o que são as pastilhas de livro no perfil do autor.
+  - O que eu propus (aguardando):
+    - (a) **o que não for achado não aparece**, nem em branco nem como
+      "não informado" — a regra da §4.159;
+    - (b) **o livro conhecido abre o livro** se estiver no AllBook; se não
+      estiver, **abre o pedido de narração** — é a ideia central do app;
+    - (c) **e-mail só de editora**, o de contato público do site oficial;
+      **de pessoa, só site e redes que ela mantém**, sem e-mail nem
+      telefone.
+  - Depois disso, o modelo escolhido entra no app com os perfis do
+    piloto, antes de rodar tudo.
   o modelo escolhido entra no app com os perfis do piloto, antes de rodar
   tudo.
   - Minha recomendação: ~100 livros cujo ano já foi conferido (o gabarito) mais
