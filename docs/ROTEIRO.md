@@ -10069,3 +10069,24 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
   alcança `web__run`, `clock__curr_time` e `apply_patch` (barrado pela caixa
   só-leitura), e o `rodar.mjs` recusa a tarefa que chamar outra coisa ou que
   não buscar nada — conferido no registro da sessão, não nos eventos.
+- **Os 11 perfis no Codex, medidos (06/10, 22h):** 16 min de agente, 7–18
+  buscas por perfil, **0 avisos** do `conferir.mjs`. Cota do Plus: 5 h de
+  0% → **37%**, semana de 1% → **7%** — uns **3,4% da janela e 0,55% da
+  semana por perfil** (≈ 29 por janela, ≈ 180 por semana). 🚨 **O acervo
+  inteiro não cabe no Plus** (7,5 mil pessoas e editoras + 13,9 mil livros):
+  serve para pilotos e para os perfis que importam; a rodada completa segue
+  sendo a de fora.
+  - **Melhor que o piloto do Claude:** Tanaka de 1 canal para 7 (site,
+    Substack, Instagram, LinkedIn, Medium e os sites dos cursos); fotos em 6
+    das 7 pessoas (eram 2 de 5); e-mail de contato em 3 das 4 editoras (o da
+    Letras é o mesmo que eu conferi); os 2 narradores que tinham ficado de
+    fora saíram (Rodrigo Dorado: ator e dublador, 11 canais).
+  - **Defeitos achados na conferência das imagens:** a "foto" do Tanaka é uma
+    página HTML, não imagem (o importador recusa — a da Planeta, do piloto,
+    serve); a do Hernane é de palco, de longe, não de rosto; o logotipo da
+    Dialética saiu branco sobre branco de novo; o da Academia é SVG. Facebook,
+    X e YouTube do Tanaka foram achados e **omitidos por falta de prova** —
+    cautela demais para o que ele viu no Google.
+  - Página para ele conferir item a item: `_conferir-codex-A.html` (gerador em
+    `~/AllBook-enriquecimento/conferencia/`), com o que o Claude tinha trazido
+    ao lado.
