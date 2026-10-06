@@ -10013,3 +10013,43 @@ estava em 20–30% quando começou. Faltaram os 2 narradores.
     a auditoria aqui.
 - ~~A regra da foto~~ e ~~os campos extras~~ — decididos acima.
 - **A conferência dele, item a item:** página `_conferir-agente-A.html`.
+
+### O perfil dentro do app: o vídeo e o Codex (06/10)
+
+**O vídeo da proposta:** `client/public/_perfis-app-video-A.html` — o primeiro
+com as **telas paradas embaixo** (o motor do molde ganhou `montarFolha`).
+Leva três escolhas: onde abre o "Ler mais" (recomendei **ali mesmo**), como
+mostrar os canais (recomendei **pastilha com ícone e nome**; só ícone confunde
+site com podcast) e se os perfis do piloto podem entrar no app.
+
+- **Decidi sozinho, e ele pode desfazer: as apresentações dos exemplos fui eu
+  que escrevi**, a partir da `bio` que o agente achou, sem fato novo. O piloto
+  é anterior ao campo `apresentacao`. ❌ **Rejeitado: rodar de novo no
+  Claude** — os 9 perfis + 2 narradores custam ~US$ 5,50 equivalentes
+  (registro do piloto: editora 0,36–0,75; pessoa 0,23–0,77), e o limite
+  **semanal** dele estava em **73%** às 21h de 06/10 (`rate-limits.json`).
+- **O e-mail da Letras** (`contato@editoraletras.com.br`) **conferi eu** no
+  site oficial: o piloto rodou antes de o agente procurar e-mail.
+- **Tom aplicado aos textos do piloto:** "diz ter como missão" → "tem como
+  missão"; o Jabuti da Dialética sai (só ela o afirma).
+- 🚨 **Apurado: logotipo transparente some na conversão para JPEG.** O da
+  Dialética é **branco sobre transparente** e virou branco sobre branco no
+  `_conferir-agente-A/`. O importador tem de achatar a imagem sobre um fundo
+  escolhido pela luminância do próprio logotipo (escuro para logo claro) — e
+  o da Academia é **SVG**, que precisa ser rasterizado antes.
+
+**O Codex como motor do agente — ideia dele (06/10).** Ele tem ChatGPT Plus e
+quase não usa; rodar o agente lá tira o peso do plano do Claude.
+
+- ✅ **Dá:** o `codex` (0.159) está instalado e logado nesta máquina, e o
+  `codex exec` aceita `--output-schema` — o mesmo formato obrigatório que o
+  `--json-schema` dá no Claude.
+- ⚠️ **O Plus também tem limite** (5 h e semanal), só que é outra conta.
+- ⚠️ **É outro modelo:** o erro histórico foi identificar a obra (§4.159), não
+  força — o acerto tem de ser medido contra o que ele já conferiu.
+- 🚨 **Isolamento:** o Codex carrega em TODA chamada o `~/.codex/AGENTS.md`
+  (as preferências dele, 5 KB). Para cumprir "o agente recebe só o que
+  precisa", rodar com um `CODEX_HOME` próprio, só com o login.
+- **Plano:** adaptar o `rodar.mjs` para escolher Claude ou Codex e rodar no
+  Codex os mesmos 11 perfis do piloto, com as instruções novas — uma tarefa
+  sozinha antes, medindo a cota do Plus.
