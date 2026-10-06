@@ -25,6 +25,21 @@ Opções do `rodar.mjs`: `--modelo` (padrão `opus`), `--esforco` (padrão `high
 `--limite <n>`, `--teto-usd <n>` (corte por tarefa, padrão 6) e `--minutos <n>`
 (corte por tarefa, padrão 30).
 
+### No Codex, em vez do Claude
+
+```sh
+node rodar.mjs --motor codex --so pessoa,editora
+node conferir.mjs resultados-codex
+```
+
+Precisa do **Codex** (`codex --version`) logado na conta do ChatGPT. Cada
+chamada roda numa casa própria (`~/AllBook-enriquecimento/codex-home`, ou
+`AGENTE_CODEX_HOME`) só com uma cópia do login — para o agente não receber as
+preferências guardadas no Codex da máquina. Os resultados vão para
+`resultados-codex/`, com a cota do Plus (5 h e semana) medida em cada tarefa.
+Tarefa em que o agente rodou comando, mexeu em arquivo ou abriu subagente vai
+para `erros-codex/`, mesmo com a resposta certa.
+
 **Pode parar e voltar quando quiser.** Cada tarefa pronta vira um arquivo em
 `resultados/` e não é refeita. Se a cota da conta acabar, o programa para
 sozinho (código 75) sem estragar nada: espere a cota voltar e rode de novo.

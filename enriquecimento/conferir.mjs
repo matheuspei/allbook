@@ -2,7 +2,8 @@
 /**
  * Confere os resultados sem consultar nada: só regras que acham erro de graça.
  *
- *     node conferir.mjs            — o resumo e cada aviso
+ *     node conferir.mjs                    — o resumo e cada aviso
+ *     node conferir.mjs resultados-codex   — os do motor Codex
  *
  * Não apaga nem corrige: aponta. Quem decide é a importação, do lado de lá.
  * Os testes vêm dos erros que já aconteceram (§4.136 e §4.159 do ROTEIRO):
@@ -57,7 +58,7 @@ function conferirPerfil(t, r, aviso, imagem) {
 }
 
 async function main() {
-  const pasta = join(AQUI, "resultados");
+  const pasta = join(AQUI, process.argv[2] ?? "resultados");
   const nomes = (await readdir(pasta)).filter((n) => n.endsWith(".json")).sort();
   let avisos = 0, custo = 0, segundos = 0;
   const contagem = {};

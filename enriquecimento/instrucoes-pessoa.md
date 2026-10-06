@@ -67,3 +67,31 @@ que a página **prove a identidade** como no passo 1.
   Wikipedia e Wikidata também entram, como "saiba mais".
 - 🚨 **Nunca e-mail, telefone ou endereço** de pessoa, mesmo que estejam
   públicos — o perfil liga o ouvinte aos canais dela, não aos contatos.
+
+### Como achar os canais — uma busca POR REDE, sempre
+
+No piloto de 05/10 o agente achou só o Substack de um autor que tinha
+Instagram, LinkedIn, YouTube e Facebook — todos no primeiro resultado do
+Google. Não repita isso:
+
+1. **Faça uma busca para cada rede**, mesmo que a anterior já tenha dado um
+   canal: `"<nome>" instagram`, `"<nome>" linkedin`, `"<nome>" youtube`,
+   `"<nome>" facebook`, `"<nome>" tiktok`, `"<nome>" twitter OR x.com`,
+   `"<nome>" substack OR newsletter OR podcast`, `"<nome>" site oficial`.
+   Essas buscas **não contam** no limite de economia das regras gerais.
+2. **Procure a página que lista todos de uma vez:** a página "sobre" ou o
+   rodapé do site dele, a página de autor da editora, o Linktree, a assinatura
+   da newsletter, a descrição do canal do YouTube.
+3. **A prova de identidade de um canal pode ser QUALQUER uma destas:**
+   - um site ou canal que já é comprovadamente dele aponta para este;
+   - o **trecho que a própria busca mostra** do perfil (nome, @ e a bio)
+     diz que ele escreve ou narra, ou cita um livro, a editora ou outra marca
+     dele (um projeto, uma empresa que ele fundou);
+   - a página do canal, quando abre.
+4. **Instagram, Facebook e LinkedIn quase nunca abrem para leitura
+   automática. Não abrir NÃO é motivo para descartar:** use como prova o
+   trecho que a busca mostrou e diga isso em `observacoes`.
+
+Com nome comum, continue exigindo que o trecho ou a página cite um livro, a
+editora, a narração ou uma marca dele — profissão sozinha não separa
+homônimos.

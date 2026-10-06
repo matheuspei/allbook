@@ -32,3 +32,13 @@ o catálogo dela mostra um dos livros da lista, por exemplo.
 
 Editora sem presença na internet (selo pequeno, autopublicação): `bio` com uma
 frase factual a partir dos livros, ou vazia.
+
+### Como achar os canais — uma busca POR REDE
+
+Faça uma busca para cada rede (`"<nome da editora>" instagram`, `… facebook`,
+`… youtube`, `… linkedin`, `… tiktok`, `… twitter OR x.com`) e olhe o rodapé
+do site oficial, que costuma listar todas. Essas buscas não contam no limite
+de economia. Instagram, Facebook e LinkedIn quase nunca abrem para leitura
+automática: o trecho que a busca mostra (nome, @ e a descrição citando a
+editora ou um livro dela) ou o link no rodapé do site oficial bastam como
+prova — não abrir não é motivo para descartar.

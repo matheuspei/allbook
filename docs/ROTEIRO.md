@@ -10053,3 +10053,19 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
 - **Plano:** adaptar o `rodar.mjs` para escolher Claude ou Codex e rodar no
   Codex os mesmos 11 perfis do piloto, com as instruções novas — uma tarefa
   sozinha antes, medindo a cota do Plus.
+- 🚨 **Ele achou o furo do piloto (06/10):** o Gustavo Tanaka tem Instagram
+  (`instagram.com/gutanaka`), LinkedIn, YouTube e Facebook — *"coloquei o
+  nome dele no Google e já me apareceu"* —, e o agente trouxe **só o
+  Substack** ("Instagram não encontrado"). *"O agente está muito fraco."*
+  Causas: o piloto é anterior ao "procure todos"; uma busca só para todas as
+  redes; e Instagram/Facebook/LinkedIn **não abrem para robô**, então ele não
+  provava a identidade e descartava. **Conserto nas instruções:** uma busca
+  **por rede**, fora do limite de economia; procurar a página que lista todos
+  (rodapé, Linktree, página de autor); e **o trecho que a própria busca mostra
+  vale como prova** — não abrir não é motivo para descartar.
+- ⚠️ **No Codex, a busca na web passa pelo `exec` do modo código**
+  (`tools.web__run`). Desligar o `code_mode_host` fez o agente responder de
+  memória em 24 s. Ele fica ligado; com o terminal desligado o `exec` só
+  alcança `web__run`, `clock__curr_time` e `apply_patch` (barrado pela caixa
+  só-leitura), e o `rodar.mjs` recusa a tarefa que chamar outra coisa ou que
+  não buscar nada — conferido no registro da sessão, não nos eventos.
