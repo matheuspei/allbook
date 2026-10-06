@@ -9985,8 +9985,25 @@ estava em 20–30% quando começou. Faltaram os 2 narradores.
     - (c) **e-mail só de editora**, o de contato público do site oficial;
       **de pessoa, só site e redes que ela mantém**, sem e-mail nem
       telefone.
-  - Depois disso, o modelo escolhido entra no app com os perfis do
-    piloto, antes de rodar tudo.
+  - **A resposta dele (05/10):**
+    - (a) e (c) **aprovados**, com um acréscimo: em vez de e-mail e
+      telefone, o ouvinte se conecta com a pessoa pelos **canais que ela
+      mantém** — site, Substack, Instagram, X, Facebook e afins. O agente
+      procura TODOS, com a mesma prova de identidade da foto. Já está nas
+      instruções do kit.
+    - (b) ❌ **REJEITADO:** a pastilha que abriria o pedido de narração.
+      🚨 **E a decisão por trás dela: o LANÇAMENTO SAI SEM A NARRAÇÃO SOB
+      DEMANDA** — *"vou lançar isso sem essa proposta inicial, e essa
+      proposta iria ficar para o futuro"*. Não propor "pedir narração" em
+      tela nova.
+  - **Consequência no desenho (minha proposta, a conferir no app):**
+    - as pastilhas de obra saem do topo do perfil da pessoa, que passa a
+      mostrar os **canais** dela;
+    - as obras que estão no AllBook já aparecem em "Escreveu";
+    - as que não estão ficam citadas no "Ler mais".
+  - **Próximo passo:** o modelo escolhido entra no app com os perfis do
+    piloto, antes de rodar tudo. Recomendei fazer isso numa conversa nova
+    (esta passou de 360 mil tokens).
   o modelo escolhido entra no app com os perfis do piloto, antes de rodar
   tudo.
   - Minha recomendação: ~100 livros cujo ano já foi conferido (o gabarito) mais

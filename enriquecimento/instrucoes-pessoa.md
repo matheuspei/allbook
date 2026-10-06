@@ -21,10 +21,16 @@ o mesmo nome. Antes de usar qualquer página, confira que ela fala de quem
 jornal, uma editora, uma produtora, "Diversos", uma voz sintética. Diga isso em
 `tipo` e não escreva biografia de pessoa para ele.
 
-## Passo 2 — a biografia (`bio`)
+## Passo 2 — a apresentação (`apresentacao`) e a biografia (`bio`)
 
-Como um verbete curto de enciclopédia, em português do Brasil, de **60 a 200
-palavras**: quem é, o que faz, de onde é, as obras ou trabalhos mais
+O perfil abre com a **apresentação**: **duas frases, até 35 palavras**, que
+dizem quem é a pessoa a quem nunca ouviu falar dela ("Escritor e
+empreendedor, vive em São Paulo e trabalha com autoconhecimento desde 2008.
+Fundou o Brotherhood e a Escola de Virtudes."). Sem o nome no começo — o nome
+já está em cima. A biografia inteira abre num "Ler mais", embaixo.
+
+A **biografia** (`bio`) é o texto do "Ler mais": como um verbete curto de
+enciclopédia, em português do Brasil, de **60 a 200 palavras**: quem é, o que faz, de onde é, as obras ou trabalhos mais
 conhecidos, prêmios. Tom neutro, sem adjetivo de propaganda.
 
 - **Só fatos que estão nas fontes**, todas listadas em `bio.provas`.
@@ -49,9 +55,15 @@ que a página **prove a identidade** como no passo 1.
 - Foto de grupo, logotipo, capa de livro ou desenho não serve como foto de
   pessoa.
 
-## Passo 4 — os dados curtos e os links
+## Passo 4 — os dados curtos e os canais da pessoa
 
 - `nome_completo`, `nascimento` e `morte` (só o ano), `nacionalidade` — cada um
   com prova, como sempre.
-- `links`: site oficial, Wikipedia, perfis profissionais e redes da própria
-  pessoa — só os que você conferiu que são dela.
+- `links`: **os canais que a própria pessoa mantém, para o ouvinte poder
+  acompanhá-la** — site, Substack, Instagram, X, Facebook, YouTube, TikTok,
+  LinkedIn, Threads, podcast. Procure **todos**, não pare no primeiro. Cada um
+  passa pela mesma prova de identidade da foto: o perfil precisa ser DELA
+  (cita os livros, a narração, a editora, ou é o link do site oficial dela).
+  Wikipedia e Wikidata também entram, como "saiba mais".
+- 🚨 **Nunca e-mail, telefone ou endereço** de pessoa, mesmo que estejam
+  públicos — o perfil liga o ouvinte aos canais dela, não aos contatos.

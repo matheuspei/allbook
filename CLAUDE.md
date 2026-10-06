@@ -3,6 +3,8 @@
 AllBook é um **aplicativo de audiolivros em português (PT-BR)**, com a cara do
 Audible/Storytel (catálogo + player) e do Netflix (descoberta). A ideia central
 não é o catálogo: é **narrar sob demanda o livro que ainda não existe em áudio**.
+🚨 **Mas o lançamento sai SEM isso** (decisão dele, 05/10, §4.171): o sob demanda
+fica para o futuro. Não proponha botão nem fluxo de "pedir narração" em tela nova.
 
 O dono do projeto (Matheus) tem **pouca experiência em programação**. Responder
 sempre em português e em linguagem simples; ao usar um termo técnico, explicar em

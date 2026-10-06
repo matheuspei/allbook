@@ -41,6 +41,11 @@ function conferirLivro(t, r, aviso) {
 function conferirPerfil(t, r, aviso, imagem) {
   for (const [nome, c] of camposComValor(r)) if (semProva(c)) aviso(`${nome} = ${JSON.stringify(c.valor)} sem prova completa`);
   if (r.bio.texto && !r.bio.provas.length) aviso("bio sem fonte");
+  const ap = r.apresentacao ? r.apresentacao.split(/\s+/).length : 0;
+  if (ap > (t.tarefa === "pessoa" ? 40 : 50)) aviso(`apresentação longa demais (${ap} palavras)`);
+  if (/\b(diz ter|diz ser|segundo a própria)\b/i.test(`${r.apresentacao ?? ""} ${r.bio.texto ?? ""}`)) aviso("tom: atribuiu em vez de afirmar (\"diz ter\")");
+  // "youtube.com/@fulano" é canal, não e-mail: só conta o que tem cara de endereço.
+  if (t.tarefa === "pessoa" && /mailto:|tel:|[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(JSON.stringify(r.links))) aviso("link de pessoa parece e-mail ou telefone");
   const palavras = r.bio.texto ? r.bio.texto.split(/\s+/).length : 0;
   if (palavras > 260) aviso(`bio longa demais (${palavras} palavras)`);
   const f = r[imagem];

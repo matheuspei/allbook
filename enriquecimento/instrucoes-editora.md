@@ -14,14 +14,21 @@ o catálogo dela mostra um dos livros da lista, por exemplo.
 ## Passo 2 — o perfil
 
 - `nome_oficial`: como a empresa se apresenta.
-- `bio`: verbete curto, de **40 a 150 palavras**, em português do Brasil: o que
-  publica, desde quando, onde fica, os autores ou coleções mais conhecidos.
-  Só fatos das fontes, tom neutro.
+- `apresentacao`: a **carta de apresentação** que abre o perfil — **duas ou
+  três frases, até 45 palavras**: que casa é, o que publica e para quem, e a
+  missão se ela tiver uma ("Editora cristã de Foz do Iguaçu, publica teologia,
+  educação e livros infantojuvenis. Tem como missão…"). Sem o nome no começo.
+- `bio`: o texto do "Ler mais", de **40 a 150 palavras**: lema, formatos,
+  desde quando, autores e coleções mais conhecidos. Só fatos das fontes.
 - `fundacao` (ano) e `sede` (cidade e país), com prova.
 - `site`: o endereço oficial.
 - `logo`: o endereço direto da imagem do logotipo, da página oficial ou de uma
   fonte que prove que é dela.
-- `links`: redes e páginas oficiais conferidas.
+- `links`: **todos** os canais oficiais da editora — site, Instagram, Facebook,
+  X, YouTube, LinkedIn, TikTok —, conferidos como dela.
+- `email_de_contato`: só o e-mail de contato **público do site oficial** da
+  editora (contato@, atendimento@), com a página como prova. Nunca o de uma
+  pessoa da equipe.
 
 Editora sem presença na internet (selo pequeno, autopublicação): `bio` com uma
 frase factual a partir dos livros, ou vazia.

@@ -29,6 +29,17 @@ página pública do aplicativo.
    existe: pregação, aula e programa de rádio quase nunca têm ano de obra, e
    gente sem presença pública não tem biografia — vazio é a resposta certa.
 
+## O tom do texto (decidido pelo dono do app, 05/10)
+
+- **Afirme o que é declaração.** Missão, lema, o que a editora publica, o que
+  a pessoa diz fazer: escreva afirmando — "tem como missão", "publica",
+  "trabalha com". Nada de "diz ter", "segundo a própria editora": soa como se
+  o app duvidasse de quem está apresentando.
+- **Corte a propaganda.** Recorde, superlativo e número de vitrine ("a maior",
+  "a mais premiada", "mais de 12 mil livros") só entram se uma fonte
+  **independente** confirmar. Sem ela, a frase sai inteira — não a atribua.
+- Fato com fonte (prêmio, ano, formação) se escreve normalmente, afirmado.
+
 ## Fontes
 
 - **Boas:** Wikipedia (em português, inglês e no idioma original), Wikidata,
