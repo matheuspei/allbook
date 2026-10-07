@@ -23,7 +23,11 @@ o catálogo dela mostra um dos livros da lista, por exemplo.
 - `fundacao` (ano) e `sede` (cidade e país), com prova.
 - `site`: o endereço oficial.
 - `logo`: o endereço direto da imagem do logotipo, da página oficial ou de uma
-  fonte que prove que é dela.
+  fonte que prove que é dela. **Prefira a versão colorida**: arquivo com
+  "branco", "white", "negativo" ou "footer" no nome é a versão para fundo
+  escuro (a da Dialética no piloto). Sem logotipo no site, sirva o endereço
+  da foto de perfil do Facebook ou do YouTube oficial — é quase sempre o
+  logotipo.
 - `links`: **todos** os canais oficiais da editora — site, Instagram, Facebook,
   X, YouTube, LinkedIn, TikTok —, conferidos como dela.
 - `email_de_contato`: só o e-mail de contato **público do site oficial** da

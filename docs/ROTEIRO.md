@@ -10090,3 +10090,22 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
   - Página para ele conferir item a item: `_conferir-codex-A.html` (gerador em
     `~/AllBook-enriquecimento/conferencia/`), com o que o Claude tinha trazido
     ao lado.
+- **As imagens que "faltaram" (ele achou, 07/10):** 5 dos 11 apareceram sem
+  imagem, mas **só 2 eram falha do agente** (MK Editora e Marcelo Ribeiro, que
+  não têm canal provado nenhum). As outras 3 eram da conversão daqui: o SVG da
+  Academia era pulado, o logotipo **branco** da Dialética ia para fundo branco,
+  e o endereço da foto do Tanaka devolvia uma página. O conserto está em
+  `~/AllBook-enriquecimento/conferencia/imagens.py` — **é a regra a portar
+  para o importador**: SVG rasterizado (`qlmanage`); placa escolhida pela
+  luminância do logotipo; margem cortada só em logotipo (foto de pessoa nunca);
+  página no lugar de imagem → a `og:image` dela; e as **reservas que não
+  gastam o agente**, só de canal já provado: a imagem do resultado anterior,
+  `graph.facebook.com/<página>/picture` (público) e a `og:image` do YouTube e
+  do site oficial. Resultado: 9 de 11 com imagem.
+- **Instagram: só como último recurso — decisão dele (07/10).** Sem login ele
+  não entrega a foto a robô. Ele ofereceu uma **conta de teste já logada no
+  Chrome** para isso; aceito para os casos em que nenhuma outra fonte deu
+  imagem e houver Instagram provado — não para o acervo em massa, que faria a
+  conta ser bloqueada por automação. ❌ Rejeitado por mim: buscar a foto
+  fingindo ser o robô de prévia do Facebook (funciona, mas é se passar por
+  outra empresa).

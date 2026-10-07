@@ -53,7 +53,11 @@ que a página **prove a identidade** como no passo 1.
 - `prova_de_identidade`: a frase da página que liga a foto ao escritor ou
   narrador.
 - Foto de grupo, logotipo, capa de livro ou desenho não serve como foto de
-  pessoa.
+  pessoa. **Foto de palco ou de longe também não** (a do piloto mostrava o
+  pastor pequeno no meio do palco): o app a mostra num círculo de 112 px, e
+  ali só um retrato de perto funciona.
+- Confira que o endereço é **a imagem**, e não a página que a mostra: no
+  piloto, um `.../square.jpg` devolvia uma página HTML.
 
 ## Passo 4 — os dados curtos e os canais da pessoa
 
