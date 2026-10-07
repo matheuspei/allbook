@@ -10109,3 +10109,23 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
   conta ser bloqueada por automação. ❌ Rejeitado por mim: buscar a foto
   fingindo ser o robô de prévia do Facebook (funciona, mas é se passar por
   outra empresa).
+- **O piloto de LIVROS no Codex (07/10, pedido dele: "pode rodar no
+  Codex"):** 14 livros escolhidos a dedo entre os casos difíceis
+  (`~/AllBook-enriquecimento/livros-2026-10-07/`). 14 de 14 prontos, 1 aviso
+  do conferidor; ~1,5–3% da janela de 5 h do Plus por livro. Conferência:
+  `_conferir-livros-codex-A.html`, com a prateleira de hoje ao lado.
+  - **Acertos:** *Ponciá Vicêncio* → Literatura (estudado na universidade e no
+    vestibular); *O Pequeno Príncipe* e *O Irmão do Pinóquio* → Clássicos;
+    Christina Lauren → Erótico; os 2 da gaveta Não-ficção da Storytel
+    ganharam assunto (Educação; Ciências Humanas); a *Metamorfose* adaptada
+    ficou sem ano da obra (a regra da adaptação); séries de Blake Pierce e
+    *Reinações de Narizinho* achadas; o título sem acento do Ubook corrigido.
+  - **Furos, já nas instruções:** a **idade** voltou vazia nos 6 infantis —
+    exigia citação e loja quase nunca escreve idade; virou classificação com
+    motivo, como a prateleira (o formato mudou). E **adaptação sem autor**
+    (*Peter Pan*): o autor da obra original passa a entrar em `autores`.
+  - Ficou vazio o ano de *Singular Ocorrência* (Machado, conto de jornal de
+    1883, em livro em 1884) — falta de achado, não de regra.
+  - 🚨 **Três livros ficaram 40 min pendurados** com a rede caindo de
+    madrugada e foram anotados como erro; rodados de novo, saíram em 2–3 min
+    cada. O `rodar.mjs` agora devolve à fila o item que cair por rede.

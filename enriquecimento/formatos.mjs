@@ -123,7 +123,18 @@ export function formatoDoLivro(prateleiras) {
         },
         "Série com ordem de leitura e o número deste volume.",
       ),
-      idade: campo({ type: ["string", "null"], enum: ["0-4", "5-8", "9-12", "13-17", "adulto", null] }, "Faixa de idade de quem ouve."),
+      // A idade é classificação, como a prateleira: valor e motivo, sem exigir
+      // citação — loja quase nunca escreve a idade (piloto de 07/10).
+      idade: {
+        type: "object",
+        description: "Faixa de idade de quem ouve, decidida pelo conteúdo.",
+        properties: {
+          valor: { type: ["string", "null"], enum: ["0-4", "5-8", "9-12", "13-17", "adulto", null] },
+          motivo: { type: "string" },
+        },
+        required: ["valor", "motivo"],
+        additionalProperties: false,
+      },
       prateleira: {
         type: "object",
         properties: {

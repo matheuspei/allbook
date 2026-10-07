@@ -76,6 +76,10 @@ produção). Vem da página da loja, da produtora ou da editora do áudio.
   "Narrador não informado", com o nome de uma empresa no lugar de gente, ou com
   o nome invertido. Se a entrada já está certa, repita-a com a prova da
   página da loja.
+  **Adaptação ou recontagem de obra conhecida** (*Peter Pan*, uma fábula de
+  Esopo): o autor da obra original entra em `autores` — é ele que o ouvinte
+  procura —, e o adaptador também, se a fonte disser quem é. No piloto de
+  07/10 o agente deixou *Peter Pan* sem autor nenhum.
 - `titulo_corrigido`: o título como a editora o escreve, quando o da loja vem
   quebrado — o Ubook manda título **sem acento e às vezes com erro de
   digitação** ("Que horas saoa" é *Que Horas São?*). Corrija só acento,
@@ -89,8 +93,13 @@ produção). Vem da página da loja, da produtora ou da editora do áudio.
 - `serie`: se a obra faz parte de uma série ou coleção numerada, o nome da
   série e o número deste volume (*Harry Potter*, 1). Coleção de editora sem
   ordem de leitura (ex.: "Clássicos Zahar") não é série.
-- `idade`: só para livro infantil ou juvenil — a faixa de quem ouve (0-4,
-  5-8, 9-12, 13-17). Livro para adulto: `adulto`. Sem como saber: vazio.
+- `idade`: a faixa de quem ouve (0-4, 5-8, 9-12, 13-17) — ou `adulto`.
+  **É uma classificação, como a prateleira: você decide pelo conteúdo e diz o
+  motivo.** Não espere a loja escrever a idade — quase nenhuma escreve, e no
+  piloto de 07/10 os 6 livros infantis voltaram sem idade por isso. Use a
+  sinopse, a duração, o tipo de texto (fábula curta, conto de fadas, aventura
+  de escola, romance de formação), a coleção da editora e a idade que alguma
+  fonte indique. Vazio só se nem o conteúdo deixar decidir.
 - `prateleira`: a prateleira do AllBook onde o livro deve morar, da lista
   abaixo, com o motivo em uma frase.
 

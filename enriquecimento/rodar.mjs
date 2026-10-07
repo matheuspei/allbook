@@ -111,6 +111,8 @@ async function instrucoes() {
 
 /** Texto que indica cota esgotada. Os prováveis — a parada por 3 falhas em série é a rede. */
 const SINAIS_DE_COTA = /usage limit|rate limit|limit reached|quota|too many requests|overloaded|credit balance/i;
+/** Texto de rede caída — o item não tem culpa e volta para a fila. */
+const SINAIS_DE_REDE = /connection reset|failed to connect|request timed out|timed out|network|ECONNRESET|ENOTFOUND|EAI_AGAIN|websocket/i;
 
 function chamarClaude(o, prompt, formato) {
   const args = [
@@ -244,11 +246,12 @@ async function chamarCodex(o, prompt, formato) {
   ];
   const r = await new Promise((resolver) => {
     const filho = spawn("codex", args, { cwd: vazia, env: { ...process.env, CODEX_HOME: CASA_CODEX }, stdio: ["pipe", "pipe", "pipe"] });
-    let saida = "", erro = "";
+    let saida = "", erro = "", cortada = false;
     filho.stdout.on("data", (d) => (saida += d));
     filho.stderr.on("data", (d) => (erro += d));
-    const relogio = setTimeout(() => filho.kill("SIGTERM"), o.minutos * 60_000);
-    filho.on("close", (codigo, sinal) => { clearTimeout(relogio); resolver({ codigo, sinal, saida, erro }); });
+    // O Codex trata o SIGTERM e sai com código, sem `sinal`: por isso a marca.
+    const relogio = setTimeout(() => { cortada = true; filho.kill("SIGTERM"); }, o.minutos * 60_000);
+    filho.on("close", (codigo, sinal) => { clearTimeout(relogio); resolver({ codigo, sinal: sinal ?? (cortada ? "SIGTERM" : null), saida, erro }); });
     filho.stdin.end(AVISO_CODEX + prompt);
   });
   await sincronizarLogin();
@@ -349,6 +352,17 @@ async function main() {
       return;
     }
 
+    // 07/10: três livros ficaram 40 min pendurados com a rede caindo de
+    // madrugada ("Connection reset by peer", "request timed out") e foram
+    // anotados como erro. Queda de rede não diz nada do item: ele fica na
+    // fila para a próxima rodada, sem arquivo em erros-codex/.
+    if (!r.resultado && SINAIS_DE_REDE.test(textoDoErro)) {
+      falhasEmSerie++;
+      await appendFile(REGISTRO, JSON.stringify({ nome, ok: false, motivo: "rede", segundos, cota_plus: r.cota }) + "\n");
+      console.log(`↻ ${nome}: a conexão com o Codex caiu — fica na fila para a próxima rodada.`);
+      if (falhasEmSerie >= 3) { parar = "falhas"; console.log("⏸ três falhas seguidas — paro; confira a internet e rode de novo."); }
+      return;
+    }
     if (SINAIS_DE_COTA.test(textoDoErro) || r.cota?.esgotou) {
       parar = "cota";
       console.log(`⏸ ${nome}: a cota do Plus parece ter acabado — paro sem anotar a tarefa.\n  ${textoDoErro.trim().slice(0, 300)}`);
