@@ -98,6 +98,13 @@ produção). Vem da página da loja, da produtora ou da editora do áudio.
 
 {{PRATELEIRAS}}
 
+⚠️ **Não-ficção é a gaveta de quem não tem assunto — evite.** Ela existe porque
+a Storytel joga ali 1.076 livros sem dizer o tema, e o motivo de você estar
+lendo este livro é justamente dar o assunto de verdade. Use uma prateleira de
+assunto (História, Ciências Humanas e Sociais, Saúde e Bem-Estar, Negócios e
+Economia, Ciência e Tecnologia, Biografias e Memórias…) sempre que uma servir;
+**Não-ficção só quando nenhuma servir**, e diga no `motivo` por quê.
+
 ⚠️ **Ficção × Literatura — regra PROVISÓRIA, em teste.** Use
 **Clássicos** para obra antiga e consagrada (em geral de autor já morto há
 décadas). Entre as outras obras de ficção que não cabem numa prateleira de
