@@ -10186,3 +10186,10 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
   rígido. Conta: com o Flash-Lite, US$ 10 ≈ 900 itens com busca por mês;
   com o 3.8 Flash, ≈ 330. Reforço para os casos difíceis, não a solução dos
   22 mil itens.
+- **Descartado: comprar 10–20 contas Google AI Pro revendidas (R$ 6,70
+  cada) para somar os US$ 10 mensais (ideia dele, 07/10).** Usar várias
+  contas para somar cota é o que os termos do Google proíbem, e cada uma
+  exigiria faturamento com cartão — várias contas com o mesmo cartão e a
+  mesma máquina são o alvo do antifraude, que pode suspender também a conta
+  Google de verdade dele (Gmail, Drive). Uma conta Pro própria como reforço
+  segue possível.
