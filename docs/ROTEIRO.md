@@ -10148,3 +10148,22 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
     Perplexity Sonar: US$ 5–12 por mil pedidos + tokens; busca da OpenAI: US$
     10–25 por mil. No plano gratuito do Gemini o Google usa o conteúdo para
     treinar — aceitável aqui, porque o agente só recebe dado público de livro.
+- **O que ele decidiu sobre o custo (07/10):** (1) **uma passada só** —
+  livro, pessoas e editora juntos, porque buscando o livro o agente já esbarra
+  nos canais de quem o fez; (2) **perfil feito não se refaz** — pessoa já
+  verificada é pulada no livro seguinte; (3) **assinatura ou cota grátis, não
+  API paga** — pode levar uma semana ou mais, consumindo as janelas aos poucos.
+  - ⚠️ **No formato do Codex, juntar numa conversa só dobra o custo**: a
+    releitura cresce com o quadrado dos passos (livro 9 + perfil 10 passos
+    numa conversa ≈ 1,8 milhão de tokens; separados ≈ 0,9). Saída: a mesma
+    passada, mas em conversas encadeadas — o livro entrega ao perfil os links
+    que já achou.
+  - **O "Jev" que ele sugeriu (TypeSafe AI) não busca na internet e não
+    escreve texto**: só escolhe entre opções dadas (prateleira, idade, sim ou
+    não), a US$ 0,042 por milhão de tokens, em alfa. Não serve para ano, foto,
+    biografia nem canais; serviria para a classificação, que o modelo da
+    passada já faz junto.
+  - **Gemini "por assinatura" não existe mais para agente**: o Gemini CLI
+    deixou de atender as contas Google AI Pro e as gratuitas em 18/06/2026.
+    O caminho grátis que sobra é a **cota gratuita da chave do Google** (sem
+    cartão, não cobra; limite por dia).
