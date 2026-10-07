@@ -10177,3 +10177,12 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
   pesquisador. O caminho proposto: fontes abertas sem IA (página da loja,
   Wikipedia/Wikidata, Open Library, Google Books) → o Gemini grátis lê e
   preenche → o que sobrar vazio vai ao Codex no Plus, aos poucos.
+- **Google AI Pro revendido (ele perguntou, 07/10): o que o plano dá para a
+  API.** Desde 27/01/2026 o Pro traz **US$ 10 por mês** em crédito do Google
+  Cloud, que vale na chave do Gemini (o Ultra, US$ 100). Os "1.000 créditos
+  de IA" são do Flow (vídeo) e do Antigravity, **não** da API — e desde maio
+  saíram do plano base. Usar o crédito exige ligar o faturamento no projeto
+  (cartão): o que passar do crédito é cobrado, então o motor precisa de teto
+  rígido. Conta: com o Flash-Lite, US$ 10 ≈ 900 itens com busca por mês;
+  com o 3.8 Flash, ≈ 330. Reforço para os casos difíceis, não a solução dos
+  22 mil itens.
