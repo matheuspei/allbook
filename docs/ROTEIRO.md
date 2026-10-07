@@ -10167,3 +10167,13 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
     deixou de atender as contas Google AI Pro e as gratuitas em 18/06/2026.
     O caminho grátis que sobra é a **cota gratuita da chave do Google** (sem
     cartão, não cobra; limite por dia).
+- **A chave grátis do Gemini NÃO traz a busca do Google (apurado 07/10).**
+  Com a chave dele (AI Studio, "nível gratuito"), todo modelo da linha 3
+  respondeu **429 "cota esgotada" quando a busca estava ligada** e respondeu
+  normal sem ela; o 2.5 já não existe para conta nova. A **leitura de página
+  indicada** (`url_context`) funciona no grátis (`gemini-3.1-flash-lite`).
+  Ligar a busca exige faturamento — API paga, que ele vetou. Consequência: o
+  Gemini grátis serve de **leitor** de páginas que nós achamos, não de
+  pesquisador. O caminho proposto: fontes abertas sem IA (página da loja,
+  Wikipedia/Wikidata, Open Library, Google Books) → o Gemini grátis lê e
+  preenche → o que sobrar vazio vai ao Codex no Plus, aos poucos.
