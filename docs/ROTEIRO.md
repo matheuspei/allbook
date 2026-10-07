@@ -10129,3 +10129,22 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
   - 🚨 **Três livros ficaram 40 min pendurados** com a rede caindo de
     madrugada e foram anotados como erro; rodados de novo, saíram em 2–3 min
     cada. O `rodar.mjs` agora devolve à fila o item que cair por rede.
+- **Por que o Codex sai caro — apurado nas sessões (07/10, ele: "está me
+  saindo muito caro").** Não é o modelo, é o **formato de agente**: cada
+  `web__run` devolve ~30 mil caracteres de página, e a cada passo a conversa
+  inteira é relida. Um livro de 9 passos parte de 19 mil tokens (14 mil
+  caracteres são o prompt do próprio Codex), termina em 78 mil e soma **450
+  mil tokens lidos para escrever 3 mil**. Os 14 livros: 130–590 mil tokens
+  cada. No Plus isso é ~0,35% da **semana** por livro e ~0,55% por perfil:
+  o acervo inteiro (13.917 livros + 8.511 perfis) levaria perto de dois anos
+  de Plus — e nenhum plano maior encurta isso para semanas.
+  - **A fila é menor do que parece:** 757 pessoas com 5 ou mais livros cobrem
+    **11.419 dos 13.917 livros (82%)**; 4.939 pessoas têm um livro só (em
+    geral narrador). Perfil para todo mundo não é o mesmo que perfil útil.
+  - **Preços consultados (07/10):** Gemini 3.x Flash com busca do Google: 5
+    mil buscas grátis por mês, depois US$ 14 por mil; Gemini 2.5 Flash e
+    Flash-Lite: 500 pedidos com busca grátis por dia, depois US$ 35 por mil;
+    Serper (busca do Google por API): US$ 1 por mil buscas, 2.500 grátis;
+    Perplexity Sonar: US$ 5–12 por mil pedidos + tokens; busca da OpenAI: US$
+    10–25 por mil. No plano gratuito do Gemini o Google usa o conteúdo para
+    treinar — aceitável aqui, porque o agente só recebe dado público de livro.
