@@ -39,6 +39,14 @@ página pública do aplicativo.
   "a mais premiada", "mais de 12 mil livros") só entram se uma fonte
   **independente** confirmar. Sem ela, a frase sai inteira — não a atribua.
 - Fato com fonte (prêmio, ano, formação) se escreve normalmente, afirmado.
+- **Não cite plataforma de audiolivro concorrente no texto** (decidido pelo
+  dono do app, 08/10): **Audible, Storytel, Ubook, Tocalivros, Skeelo,
+  Everand**. O texto é a voz do AllBook. Em vez de "narrou mais de 40
+  audiolivros para a Storytel", escreva "narrou mais de 40 audiolivros" ou
+  cite a **editora** ("pela Camelot Editora") — editora, rádio, TV, estúdio e
+  empresa onde a pessoa trabalhou podem ser citados. As páginas dessas lojas
+  continuam valendo como **fonte** (`provas`); o que não vai é o nome delas
+  no texto que o ouvinte lê, nem link para elas em `links`.
 
 ## Fontes
 

@@ -33,6 +33,13 @@ A **biografia** (`bio`) é o texto do "Ler mais": como um verbete curto de
 enciclopédia, em português do Brasil, de **60 a 200 palavras**: quem é, o que faz, de onde é, as obras ou trabalhos mais
 conhecidos, prêmios. Tom neutro, sem adjetivo de propaganda.
 
+- **Traga a trajetória, com datas e lugares** (o que o dono do app mais
+  valorizou na comparação de 08/10): onde nasceu ou vive, a formação com o
+  ano, como e quando começou, os marcos da carreira — tudo o que a própria
+  pessoa publica sobre a vida profissional. Havendo material, prefira
+  130–200 palavras a um resumo genérico; lista de títulos do catálogo não
+  substitui biografia.
+
 - **Só fatos que estão nas fontes**, todas listadas em `bio.provas`.
 - Pessoa com pouca presença pública: uma ou duas frases bastam ("Narradora
   brasileira, voz de mais de 40 audiolivros da Tocalivros"). Sem nada achado:
@@ -99,3 +106,22 @@ Google. Não repita isso:
 Com nome comum, continue exigindo que o trecho ou a página cite um livro, a
 editora, a narração ou uma marca dele — profissão sozinha não separa
 homônimos.
+
+**Mas some os sinais — cautela demais também é erro** (08/10). No sorteio de
+08/10 os dois agentes descartaram o YouTube `@MateusPrado77` como "homônimo da
+área de tecnologia" — e a própria biografia do narrador dizia que ele trabalha
+com tecnologia e publica audiolivros no YouTube desde 2020, e a descrição do
+canal é "Tecnologia e narração". O dono do app achou o canal, o Instagram, o
+TikTok, o Substack e o Linktree numa busca simples. Regras:
+
+- Canal com o mesmo nome cuja descrição fala de **narração, locução,
+  audiolivro, dublagem ou voz** já cumpre a exigência do nome comum.
+- O que a biografia achada diz da pessoa (outra profissão, cidade, projeto)
+  também é sinal: um canal com o mesmo nome que fala da mesma coisa **e** de
+  narração é dela.
+- Achou um canal provado? Abra-o e procure o **Linktree / página de links**:
+  ele costuma listar todos os outros, que então ficam provados por ele.
+- **Perfil de anúncio ou de site de freelancer** (99freelas, Workana,
+  GetNinjas, Fiverr, Upwork) pode servir de **fonte** para a biografia, mas
+  **não é canal** e não entra em `links` — o ouvinte quer seguir a pessoa,
+  não contratá-la. Página parada há muitos anos também não é canal.
