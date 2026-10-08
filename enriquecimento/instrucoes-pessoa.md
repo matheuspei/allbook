@@ -42,8 +42,10 @@ conhecidos, prêmios. Tom neutro, sem adjetivo de propaganda.
 
 - **Só fatos que estão nas fontes**, todas listadas em `bio.provas`.
 - Pessoa com pouca presença pública: uma ou duas frases bastam ("Narradora
-  brasileira, voz de mais de 40 audiolivros da Tocalivros"). Sem nada achado:
-  `texto: null`.
+  brasileira, voz de mais de 40 audiolivros"). **Vale mesmo quando a única
+  fonte é a página de uma loja** — a loja prova o fato, só o nome dela não
+  entra no texto. Bio vazia é só para quando não se sabe nem o que a pessoa
+  faz.
 - Só a vida profissional. Nada de família, saúde, endereço ou contato pessoal
   de quem não é figura pública.
 - Para autor morto há muito tempo, a biografia é a de enciclopédia mesmo.
