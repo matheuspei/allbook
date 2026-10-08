@@ -21,6 +21,7 @@ import {
   autoresDe,
   narradoresDe,
   ehGente,
+  slugDoCredito,
 } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { anoDaNarracao, anoDaObra } from "@/lib/anos";
@@ -80,6 +81,7 @@ const FICHA_AUSENTE = {
   subtitle: undefined as string | undefined,
   author: "",
   narrator: "",
+  pessoaDoCredito: undefined as Record<string, string> | undefined,
   cover: "",
   rating: 0,
   genre: "",
@@ -96,15 +98,22 @@ const FICHA_AUSENTE = {
 function PessoaDoLivro({
   papel,
   nome,
+  slug,
   testid,
 }: {
   /** Falta na segunda pessoa em diante — o rótulo já está na linha de cima. */
   papel?: string;
   nome: string;
+  /**
+   * O perfil, já resolvido por `slugDoCredito` (08/10, §4.172) — e não
+   * `slugify(nome)` aqui dentro: só o livro sabe qual dos dois homônimos
+   * assina o crédito.
+   */
+  slug: string;
   testid: string;
 }) {
   const [, navegar] = useLocation();
-  const pessoa = findPerson(slugify(nome));
+  const pessoa = findPerson(slug);
 
   const conteudo = (
     <>
@@ -317,6 +326,9 @@ function buildFromCatalog(id: string) {
     // embaixo.
     authors: entry.authors,
     narrators: entry.narrators,
+    // Mesma armadilha: sem esta linha, o crédito de um homônimo separado
+    // (§4.172) voltaria a abrir o perfil do outro, calado.
+    pessoaDoCredito: entry.pessoaDoCredito,
     cover: entry.cover,
     rating: entry.rating,
     genre: entry.genre,
@@ -700,6 +712,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
               key={nome}
               papel={i === 0 ? "Escrito por" : undefined}
               nome={nome}
+              slug={slugDoCredito(book, nome)}
               testid={i === 0 ? "text-author" : `text-author-${i}`}
             />
           ))}
@@ -710,6 +723,7 @@ export default function BookDetails({ params }: { params: { id: string } }) {
                 key={nome}
                 papel={i === 0 ? "Narrado por" : undefined}
                 nome={nome}
+                slug={slugDoCredito(book, nome)}
                 testid={i === 0 ? "text-narrator" : `text-narrator-${i}`}
               />
             ))}

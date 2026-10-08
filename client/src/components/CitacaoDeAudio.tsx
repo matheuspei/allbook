@@ -10,7 +10,7 @@ import {
   type Citacao,
 } from "@/lib/citacoes";
 import { savePlaying } from "@/lib/playback";
-import { slugify } from "@/lib/books";
+import { slugDoCredito, type Book } from "@/lib/books";
 
 /**
  * O cartão de um trecho citado — a peça que a sala e o feed usam igual.
@@ -204,7 +204,7 @@ function useRelogioDoTrecho(duracaoSec: number) {
  * **A capa continua sendo porta para o livro** — só o play deixou de navegar.
  * Quem quer ouvir, ouve aqui; quem quer o livro, toca na capa.
  */
-function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: number; cover: string; title: string; author: string; narrator: string } }) {
+function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: Pick<Book, "id" | "cover" | "title" | "author" | "narrator" | "pessoaDoCredito"> }) {
   /* O mesmo relógio do cartão pequeno — uma cópia só, desde §4.92. */
   const { tocando, decorrido, fracao, restante, alternar } = useRelogioDoTrecho(
     citacao.duracaoSec,
@@ -254,7 +254,7 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
           </Link>
           <p className="mt-1.5 text-[11px] leading-relaxed text-white/55">
             <Link
-              href={`/person/${slugify(livro.author)}`}
+              href={`/person/${slugDoCredito(livro, livro.author)}`}
               className="underline-offset-2 hover:text-white hover:underline"
               data-testid="trecho-autor"
             >
@@ -263,7 +263,7 @@ function TrechoQueTocaAqui({ citacao, livro }: { citacao: Citacao; livro: { id: 
             <br />
             narra{" "}
             <Link
-              href={`/person/${slugify(livro.narrator)}`}
+              href={`/person/${slugDoCredito(livro, livro.narrator)}`}
               className="underline-offset-2 hover:text-white hover:underline"
               data-testid="trecho-narrador"
             >

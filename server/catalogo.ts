@@ -25,7 +25,7 @@ import { and, asc, eq, exists, inArray, isNull, notInArray, or, sql } from "driz
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "./db";
-import { avaliacoes, capitulos, editoras, generos, livros, pessoas } from "@shared/schema";
+import { avaliacoes, capitulos, editoras, generos, homonimos, livros, pessoas } from "@shared/schema";
 import { PRATELEIRAS, classificar, slugDe } from "@shared/prateleiras";
 
 /**
@@ -121,6 +121,12 @@ export interface LivroDoCatalogo {
    */
   authors?: string[];
   narrators?: string[];
+  /**
+   * Nome do crédito → slug da pessoa, só nos livros com homônimo separado
+   * (08/10, §4.172). O cliente chega ao perfil por `slugify(nome)`, e dois
+   * "Marcelo Ribeiro" cairiam no mesmo; este mapa diz qual dos dois assina.
+   */
+  pessoaDoCredito?: Record<string, string>;
   /** Endereço da capa servida por `/capas/…`, ou `null` para a tipográfica. */
   cover: string | null;
   /** Falta quando o livro ainda não tem avaliação — e é o caso de todo livro
@@ -237,7 +243,7 @@ function arredondar(valor: number | null): number | undefined {
 export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
   const visivel = livroVisivel();
 
-  const [linhasDeGenero, linhasDeEditora, linhasDeLivro] = await Promise.all([
+  const [linhasDeGenero, linhasDeEditora, linhasDeLivro, linhasDeHomonimo] = await Promise.all([
     /* Todos os gêneros; quem não tiver livro visível é cortado depois, em JS.
      *
      * ⚠️ **Deixou de ser um `exists` no `genero_slug`** (01/09, §4.158): desde
@@ -297,7 +303,14 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
       .leftJoin(notasPorLivro, eq(notasPorLivro.livroId, livros.id))
       .where(visivel)
       .orderBy(asc(livros.id)),
+    /* Os homônimos separados (§4.172) — um punhado de linhas, lidas inteiras. */
+    db.select({ livroId: homonimos.livroId, nome: homonimos.nome, slug: homonimos.pessoaSlug }).from(homonimos),
   ]);
+
+  const pessoaDoCredito = new Map<number, Record<string, string>>();
+  for (const h of linhasDeHomonimo) {
+    pessoaDoCredito.set(h.livroId, { ...pessoaDoCredito.get(h.livroId), [h.nome]: h.slug });
+  }
 
   /* 🚨 Rótulo da loja → prateleira do AllBook, AQUI e não no banco (04/10,
      §4.170). O banco guarda o que a loja disse; o mapa mora em
@@ -355,6 +368,7 @@ export async function lerCatalogo(): Promise<RespostaDoCatalogo> {
         // um lugar só decide o separador, e é o importador.
         ...(l.autores ? { authors: l.autores.split(" & ") } : {}),
         ...(l.narradores ? { narrators: l.narradores.split(" & ") } : {}),
+        ...(pessoaDoCredito.has(l.id) ? { pessoaDoCredito: pessoaDoCredito.get(l.id) } : {}),
         // Prateleiras e botões, já traduzidos — nunca o rótulo cru da loja.
         ...(nomes.length > 1 ? { genres: nomes } : {}),
         // A capa vem como NOME de arquivo no banco (`7.jpg`); quem monta o

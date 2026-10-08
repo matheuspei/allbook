@@ -1,8 +1,12 @@
-import { Search, Headphones } from "lucide-react";
+import { Search, Headphones, ChevronRight, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
-import { catalog, porNota, type Book } from "@/lib/books";
+import PersonAvatar from "@/components/PersonAvatar";
+import PublisherMark from "@/components/PublisherMark";
+import { autoresDe, catalog, narradoresDe, porNota, publisherNames, type Book } from "@/lib/books";
+import { people, roleLabels, type Person } from "@/lib/people";
+import { allPublishers, type Publisher } from "@/lib/publishers";
 import { REQUEST_PROMISE } from "@/lib/requests";
 
 /**
@@ -13,9 +17,9 @@ import { REQUEST_PROMISE } from "@/lib/requests";
  * a tela que o usa.
  *
  * A busca é 100% no navegador, sobre o catálogo fixo, em duas etapas:
- * 1. **casamento direto** — título ou autor contendo o texto, já sem acento (é o
- *    que faz "en" trazer "O Senhor dos Anéis" e "habitos" trazer "Hábitos
- *    Atômicos");
+ * 1. **casamento direto** — título, autor, narrador ou editora contendo o
+ *    texto, já sem acento (é o que faz "en" trazer "O Senhor dos Anéis" e
+ *    "habitos" trazer "Hábitos Atômicos");
  * 2. só quando a primeira não acha nada, **casamento aproximado palavra a
  *    palavra**, que perdoa erro de digitação de verdade.
  *
@@ -30,16 +34,43 @@ import { REQUEST_PROMISE } from "@/lib/requests";
  * limiar que matava "carro → Carrie" matava junto "tolkein → Tolkien", porque
  * acerto e falso positivo caíam na mesma faixa de pontuação. Tolerar erro continua
  * valendo — o que não valia era tolerar semelhança solta.
+ *
+ * **Desde 08/10 (§4.172) ela acha GENTE e EDITORA, não só livro.** O Matheus
+ * digitou "Marcelo Ribeiro" — narrador de 15 audiolivros da Editora Letras, com
+ * perfil e tudo — e a busca não achou nada, porque só olhava o título e o
+ * PRIMEIRO autor. O pedido dele: pesquisar *"tanto por narradores como perfis
+ * de editora, como dubladores, como tudo"*. Agora:
+ * - cada livro é achado por **todos** os autores e narradores (o elenco de uma
+ *   dramatização entra como narrador — é o "dublador" do pedido) e pela editora;
+ * - acima dos livros vêm **Pessoas** e **Editoras**, cada linha levando ao
+ *   perfil. Não é a busca de *membros* que a §4.97 adiou: lá é o `@` das
+ *   contas; aqui são as pessoas e as casas do **catálogo**, que já têm perfil
+ *   público desde sempre.
  */
 
 /** Quantos cart\u00f5es entram por vez \u2014 ver `visiveis`, mais abaixo. */
 const LOTE = 60;
 
+/**
+ * Quantas pessoas e quantas editoras aparecem antes do "ver mais".
+ *
+ * Poucas de propósito: elas vêm ACIMA dos livros, e uma busca por "maria"
+ * acha centenas de pessoas — sem corte, os livros sumiriam lá embaixo.
+ */
+const PRIMEIROS_NOMES = 3;
+const MAIS_NOMES = 10;
+
+/**
+ * Sem acento, minúsculo e com os espaços colapsados. O colapso importa para
+ * gente: o acervo tem *"Ap.  Miguel Ângelo"* (dois espaços) e *"Ap. Miguel
+ * Ângelo"*, e quem digita um espaço só precisa achar os dois.
+ */
 function normalize(str: string) {
   return str
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/\s+/g, " ");
 }
 
 /**
@@ -59,8 +90,12 @@ type Fichado = {
   book: Book;
   titulo: string;
   subtitulo: string;
-  autor: string;
-  /** Palavras de conte\u00fado dos tr\u00eas campos, para o casamento aproximado. */
+  /** **Todos** os autores e narradores (08/10), não só o primeiro. */
+  autores: string[];
+  narradores: string[];
+  /** O nome da editora, para "editora letras" achar os livros dela. */
+  editora: string;
+  /** Palavras de conteúdo de título, subtítulo e créditos, para o casamento aproximado. */
   palavras: string[];
 };
 
@@ -71,17 +106,101 @@ function indiceDoCatalogo(): Fichado[] {
     indice = catalog.map((book) => {
       const titulo = normalize(book.title);
       const subtitulo = normalize(book.subtitle ?? "");
-      const autor = normalize(book.author);
+      const autores = autoresDe(book).map(normalize);
+      const narradores = narradoresDe(book).map(normalize);
       return {
         book,
         titulo,
         subtitulo,
-        autor,
-        palavras: [...palavrasDe(titulo), ...palavrasDe(subtitulo), ...palavrasDe(autor)],
+        autores,
+        narradores,
+        editora: normalize((book.publisher && publisherNames.get(book.publisher)) || ""),
+        // A editora fica fora do casamento aproximado: "editora" é palavra de
+        // centenas de nomes, e um erro de digitação casaria com todas.
+        palavras: [
+          ...palavrasDe(titulo),
+          ...palavrasDe(subtitulo),
+          ...autores.flatMap(palavrasDe),
+          ...narradores.flatMap(palavrasDe),
+        ],
       };
     });
   }
   return indice;
+}
+
+/**
+ * Um nome procurável — de pessoa ou de editora —, já normalizado.
+ *
+ * ⚠️ **Mesma régua de "índice velho" do catálogo** (o tamanho), pela mesma
+ * razão: `allPublishers()` refaz a lista se o catálogo recarregar.
+ */
+type Nomeado<T> = { item: T; nome: string; palavras: string[] };
+
+function fichar<T>(itens: T[], nomeDe: (item: T) => string): Nomeado<T>[] {
+  return itens.map((item) => {
+    const nome = normalize(nomeDe(item)).trim();
+    return { item, nome, palavras: palavrasDe(nome) };
+  });
+}
+
+let indiceDePessoas: Nomeado<Person>[] = [];
+let indiceDeEditoras: Nomeado<Publisher>[] = [];
+
+function pessoasFichadas(): Nomeado<Person>[] {
+  if (indiceDePessoas.length !== people.length) indiceDePessoas = fichar(people, (p) => p.name);
+  return indiceDePessoas;
+}
+
+function editorasFichadas(): Nomeado<Publisher>[] {
+  const todas = allPublishers();
+  if (indiceDeEditoras.length !== todas.length) indiceDeEditoras = fichar(todas, (e) => e.name);
+  return indiceDeEditoras;
+}
+
+/**
+ * Pessoas ou editoras cujo nome casa com a consulta, da mais certa para a
+ * menos: nome idêntico; o texto como **palavra inteira** — no começo do nome e
+ * depois no meio ("ribeiro" → "Marcelo Ribeiro", "maria" → "Editora
+ * Ave-Maria"); o texto como **começo de palavra** ("mari" → "Mariana"); e, por
+ * último, no meio de uma palavra. Dentro de cada faixa, quem tem mais livros
+ * vem antes. Sem nada direto, cai no mesmo casamento aproximado dos livros —
+ * "marcelo ribero" ainda acha o Marcelo.
+ *
+ * ⚠️ **Palavra inteira antes de quantidade de livros** — a primeira versão
+ * ordenava só por "começa com", e "maria" punha *Mariana Princival* (32
+ * livros) acima de *Maria Silvia Betti* (13): quem digitou "maria" procurava
+ * uma Maria.
+ */
+function procurarNomes<T extends { titles: number }>(fichas: Nomeado<T>[], q: string): T[] {
+  const diretos: { ficha: Nomeado<T>; faixa: number }[] = [];
+  for (const ficha of fichas) {
+    const onde = ficha.nome.indexOf(q);
+    if (onde < 0) continue;
+    const abre = onde === 0 || /[^a-z0-9]/.test(ficha.nome[onde - 1]);
+    const fecha = onde + q.length === ficha.nome.length || /[^a-z0-9]/.test(ficha.nome[onde + q.length]);
+    const faixa =
+      ficha.nome === q ? 0 : abre && fecha ? (onde === 0 ? 1 : 2) : abre ? (onde === 0 ? 3 : 4) : 5;
+    diretos.push({ ficha, faixa });
+  }
+  if (diretos.length > 0) {
+    return diretos
+      .sort((a, b) => a.faixa - b.faixa || b.ficha.item.titles - a.ficha.item.titles)
+      .map((d) => d.ficha.item);
+  }
+
+  /* No aproximado, quem está MAIS PERTO vem antes, e só depois quem tem mais
+     livros: "marcelo ribero" punha o Marco Ribeiro (74 livros, dois erros) acima
+     do Marcelo Ribeiro (10 livros, um erro). */
+  const termos = palavrasDe(q);
+  if (termos.length === 0) return [];
+  const erros = (ficha: Nomeado<T>) =>
+    termos.reduce((soma, termo) => soma + Math.min(...ficha.palavras.map((p) => distancia(termo, p))), 0);
+  return fichas
+    .filter((ficha) => pareceCom(termos, ficha))
+    .map((ficha) => ({ ficha, erros: erros(ficha) }))
+    .sort((a, b) => a.erros - b.erros || b.ficha.item.titles - a.ficha.item.titles)
+    .map(({ ficha }) => ficha.item);
 }
 
 /**
@@ -141,7 +260,7 @@ function palavrasDe(normalizado: string): string[] {
  * deixaria de achar o livro que achava ontem. As três listas já vêm prontas no
  * índice.
  */
-function pareceCom(termos: string[], ficha: Fichado): boolean {
+function pareceCom(termos: string[], ficha: { palavras: string[] }): boolean {
   return termos.every((termo) =>
     ficha.palavras.some((palavra) => distancia(termo, palavra) <= tolerancia(termo.length))
   );
@@ -186,8 +305,77 @@ export function ResultCard({ book, onEscolher }: { book: Book; onEscolher?: () =
       <h3 className="text-xs font-medium text-white leading-tight line-clamp-2 group-hover:text-primary transition-colors">
         {book.title}
       </h3>
-      <p className="text-[10px] text-white/50 mt-0.5 line-clamp-1">{book.author}</p>
+      {/* `autoresDe` e não `book.author`: o "Autor desconhecido" de reserva não
+          é gente, e a decisão dele é que a linha suma (§4.159). */}
+      {autoresDe(book)[0] && (
+        <p className="text-[10px] text-white/50 mt-0.5 line-clamp-1">{autoresDe(book)[0]}</p>
+      )}
     </div>
+  );
+}
+
+/** "Autor", "Narrador" ou "Autor e narrador" — o que a pessoa faz no catálogo. */
+function papelDe(pessoa: Person): string {
+  const [primeiro, ...resto] = roleLabels(pessoa);
+  return [primeiro, ...resto.map((rotulo) => rotulo.toLowerCase())].join(" e ");
+}
+
+function contarLivros(quantos: number): string {
+  return `${quantos.toLocaleString("pt-BR")} ${quantos === 1 ? "livro" : "livros"}`;
+}
+
+/**
+ * Uma pessoa ou editora achada — linha simples, sem cartão: avatar (ou selo),
+ * nome e o que ela é, levando ao perfil.
+ *
+ * Linha e não cartão, de propósito: são poucas, vêm antes da grade de capas e
+ * precisam se ler como um índice, não competir com os livros.
+ */
+function LinhaDeNome({
+  href,
+  onEscolher,
+  marca,
+  nome,
+  detalhe,
+  testid,
+}: {
+  href: string;
+  /** Fecha a busca sobreposta antes de navegar — ver o comentário de `ResultCard`. */
+  onEscolher?: () => void;
+  marca: React.ReactNode;
+  nome: string;
+  /** Pedaços da segunda linha; os vazios saem, o resto se junta com "·". */
+  detalhe: (string | undefined)[];
+  testid: string;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onEscolher}
+      className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/5 active:bg-white/10"
+      data-testid={testid}
+    >
+      {marca}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold text-white">{nome}</span>
+        <span className="block truncate text-xs text-white/50">{detalhe.filter(Boolean).join(" · ")}</span>
+      </span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
+    </Link>
+  );
+}
+
+function VerMais({ rotulo, onClick, testid }: { rotulo: string; onClick: () => void; testid: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1 py-1 text-xs font-medium text-white/60 transition-colors hover:text-white"
+      data-testid={testid}
+    >
+      {rotulo}
+      <ChevronDown className="h-3.5 w-3.5" />
+    </button>
   );
 }
 
@@ -217,10 +405,12 @@ export default function SearchResults({
   const buscado = useDeferredValue(query);
   const procurando = buscado !== query;
 
-  const results = useMemo(() => {
-    if (!buscado.trim()) return [];
+  /** A consulta como o índice a guarda: sem acento, minúscula, espaços colapsados. */
+  const q = useMemo(() => normalize(buscado).trim(), [buscado]);
 
-    const q = normalize(buscado);
+  const results = useMemo(() => {
+    if (!q) return [];
+
     const fichas = indiceDoCatalogo();
 
     /*
@@ -229,6 +419,10 @@ export default function SearchResults({
      * tinha "dom" no meio do nome do autor. Agora título que **começa** com o
      * que se digitou vem na frente, depois título que contém, depois subtítulo
      * e por fim autor — e dentro de cada faixa decide a nota.
+     *
+     * Desde 08/10 (§4.172) há mais duas faixas depois do autor: **narrador** e
+     * **editora**. Quem digita o nome de um narrador quer os livros que ele
+     * narra; quem digita "editora letras", o catálogo da casa.
      */
     const diretos: { ficha: Fichado; faixa: number }[] = [];
     for (const ficha of fichas) {
@@ -238,9 +432,13 @@ export default function SearchResults({
           ? 1
           : ficha.subtitulo.includes(q)
             ? 2
-            : ficha.autor.includes(q)
+            : ficha.autores.some((nome) => nome.includes(q))
               ? 3
-              : -1;
+              : ficha.narradores.some((nome) => nome.includes(q))
+                ? 4
+                : ficha.editora.includes(q)
+                  ? 5
+                  : -1;
       if (faixa >= 0) diretos.push({ ficha, faixa });
     }
 
@@ -253,7 +451,15 @@ export default function SearchResults({
     const termos = palavrasDe(q);
     if (termos.length === 0) return [];
     return fichas.filter((ficha) => pareceCom(termos, ficha)).map((ficha) => ficha.book);
-  }, [buscado]);
+  }, [q]);
+
+  /*
+   * Pessoas e editoras só a partir de duas letras: com uma, "a" casaria com
+   * quase todo nome do acervo, e a lista empurraria os livros para baixo sem
+   * ajudar ninguém a achar nada.
+   */
+  const pessoas = useMemo(() => (q.length >= 2 ? procurarNomes(pessoasFichadas(), q) : []), [q]);
+  const editoras = useMemo(() => (q.length >= 2 ? procurarNomes(editorasFichadas(), q) : []), [q]);
 
   /**
    * 🚨 **Quantos resultados são DESENHADOS — a causa do travamento** (23/09,
@@ -265,27 +471,106 @@ export default function SearchResults({
    * a lista cresce de 60 em 60, a pedido de quem procura.
    */
   const [visiveis, setVisiveis] = useState(LOTE);
-  useEffect(() => setVisiveis(LOTE), [buscado]);
+  const [pessoasVisiveis, setPessoasVisiveis] = useState(PRIMEIROS_NOMES);
+  const [editorasVisiveis, setEditorasVisiveis] = useState(PRIMEIROS_NOMES);
+  useEffect(() => {
+    setVisiveis(LOTE);
+    setPessoasVisiveis(PRIMEIROS_NOMES);
+    setEditorasVisiveis(PRIMEIROS_NOMES);
+  }, [buscado]);
   const mostrados = results.slice(0, visiveis);
+  const pessoasMostradas = pessoas.slice(0, pessoasVisiveis);
+
+  /* Dois homônimos na mesma lista (os dois "Marcelo Ribeiro", §4.172) só se
+     distinguem pelo que fazem: para eles a linha ganha o gênero principal. */
+  const nomesRepetidos = new Set(
+    pessoasMostradas
+      .map((p) => normalize(p.name))
+      .filter((nome, i, todos) => todos.indexOf(nome) !== i),
+  );
+  const nadaAchado = results.length === 0 && pessoas.length === 0 && editoras.length === 0;
 
   return (
-    <section className="px-4 py-4 space-y-4" data-testid="search-results">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display font-bold text-xl text-white tracking-tight">Resultados</h2>
-        <span className="text-xs text-white/50">
-          {procurando
-            ? "buscando…"
-            : `${results.length} ${results.length === 1 ? "encontrado" : "encontrados"}`}
-        </span>
-      </div>
-
-      {results.length > 0 ? (
-        <>
-          <div className="grid grid-cols-3 gap-3">
-            {mostrados.map((book) => (
-              <ResultCard key={book.id} book={book} onEscolher={onEscolher} />
+    <section className="px-4 py-4 space-y-6" data-testid="search-results">
+      {pessoas.length > 0 && (
+        <div className="space-y-1" data-testid="search-people">
+          <h2 className="font-display font-bold text-lg text-white tracking-tight">Pessoas</h2>
+          <ul>
+            {pessoasMostradas.map((pessoa) => (
+              <li key={pessoa.slug}>
+                <LinhaDeNome
+                  href={`/person/${pessoa.slug}`}
+                  onEscolher={onEscolher}
+                  marca={<PersonAvatar name={pessoa.name} photo={pessoa.photo} size="sm" />}
+                  nome={pessoa.name}
+                  detalhe={[
+                    papelDe(pessoa),
+                    contarLivros(pessoa.titles),
+                    nomesRepetidos.has(normalize(pessoa.name)) ? pessoa.genres[0] : undefined,
+                  ]}
+                  testid={`result-person-${pessoa.slug}`}
+                />
+              </li>
             ))}
+          </ul>
+          {pessoas.length > pessoasVisiveis && (
+            <VerMais
+              rotulo={`Ver mais pessoas (${pessoas.length - pessoasVisiveis})`}
+              onClick={() => setPessoasVisiveis((n) => n + MAIS_NOMES)}
+              testid="button-more-people"
+            />
+          )}
+        </div>
+      )}
+
+      {editoras.length > 0 && (
+        <div className="space-y-1" data-testid="search-publishers">
+          <h2 className="font-display font-bold text-lg text-white tracking-tight">Editoras</h2>
+          <ul>
+            {editoras.slice(0, editorasVisiveis).map((editora) => (
+              <li key={editora.slug}>
+                <LinhaDeNome
+                  href={`/publisher/${editora.slug}`}
+                  onEscolher={onEscolher}
+                  marca={<PublisherMark name={editora.name} size="sm" />}
+                  nome={editora.name}
+                  detalhe={[contarLivros(editora.titles)]}
+                  testid={`result-publisher-${editora.slug}`}
+                />
+              </li>
+            ))}
+          </ul>
+          {editoras.length > editorasVisiveis && (
+            <VerMais
+              rotulo={`Ver mais editoras (${editoras.length - editorasVisiveis})`}
+              onClick={() => setEditorasVisiveis((n) => n + MAIS_NOMES)}
+              testid="button-more-publishers"
+            />
+          )}
+        </div>
+      )}
+
+      {/* "Livros" some só quando a busca achou gente ou editora e nenhum livro —
+          aí não há o que contar. Sem nada achado, ele fica, com o "nenhum
+          resultado" embaixo, como sempre foi. */}
+      {(results.length > 0 || nadaAchado) && (
+        <div className="space-y-4" data-testid="search-books">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-bold text-lg text-white tracking-tight">Livros</h2>
+            <span className="text-xs text-white/50">
+              {procurando
+                ? "buscando…"
+                : `${results.length} ${results.length === 1 ? "encontrado" : "encontrados"}`}
+            </span>
           </div>
+
+          {results.length > 0 && (
+            <div className="grid grid-cols-3 gap-3">
+              {mostrados.map((book) => (
+                <ResultCard key={book.id} book={book} onEscolher={onEscolher} />
+              ))}
+            </div>
+          )}
 
           {results.length > mostrados.length && (
             <button
@@ -298,8 +583,10 @@ export default function SearchResults({
               {results.length - mostrados.length}
             </button>
           )}
-        </>
-      ) : (
+        </div>
+      )}
+
+      {nadaAchado && (
         /*
           Busca sem resultado é o momento de maior intenção do app inteiro: a
           pessoa disse exatamente o que queria ouvir e o catálogo não tinha.

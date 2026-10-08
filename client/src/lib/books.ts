@@ -79,6 +79,19 @@ export interface Book {
   authors?: string[];
   narrators?: string[];
   /**
+   * Nome do crédito → slug da pessoa, **só para os homônimos** (08/10, §4.172).
+   *
+   * O app identifica gente pelo nome (`slugify(nome)`), e isso junta num
+   * perfil só duas pessoas que se chamam igual: o Marcelo Ribeiro que narra
+   * os livros cristãos da Editora Letras e o que escreveu *Saúde emocional*
+   * com a Ilana Pinsky. Quando o banco separou as duas (tabela `homonimos`),
+   * o livro chega com este mapa e o crédito aponta para o perfil certo.
+   *
+   * ⚠️ **Quem transforma crédito em perfil usa `slugDoCredito(book, nome)`,
+   * nunca `slugify(nome)` direto** — senão o homônimo volta a se fundir, calado.
+   */
+  pessoaDoCredito?: Record<string, string>;
+  /**
    * Todos os gêneros do livro, do mais geral ao mais específico (§4.158) —
    * *"Religião"* e *"Cristianismo"*. Só chega quando há mais de um; use
    * `generosDe(book)`, que resolve os dois casos.
@@ -662,6 +675,17 @@ export function autoresDe(book: Book): string[] {
 export function narradoresDe(book: Book): string[] {
   const lista = book.narrators && book.narrators.length > 0 ? book.narrators : [book.narrator];
   return lista.filter(ehGente);
+}
+
+/**
+ * O slug do perfil de quem assina um crédito deste livro (08/10, §4.172).
+ *
+ * Para quase todo mundo é `slugify(nome)`. A exceção são os homônimos que o
+ * banco separou (`book.pessoaDoCredito`): dois "Marcelo Ribeiro" têm o mesmo
+ * nome e perfis diferentes, e só o livro sabe qual dos dois assina.
+ */
+export function slugDoCredito(book: Pick<Book, "pessoaDoCredito">, nome: string): string {
+  return book.pessoaDoCredito?.[nome] ?? slugify(nome);
 }
 
 /**

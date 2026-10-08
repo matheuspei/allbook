@@ -1,4 +1,4 @@
-import { catalog, notaHistoria, notaNarracao, slugify, type Book, type Genre, porNota, mediaDeNotas, autoresDe, narradoresDe } from "./books";
+import { catalog, notaHistoria, notaNarracao, slugify, slugDoCredito, type Book, type Genre, porNota, mediaDeNotas, autoresDe, narradoresDe } from "./books";
 
 // Reexportado por conveniência: quem lida com pessoas costuma precisar do slug,
 // mas a função em si mora em `books.ts` para não criar ciclo entre os módulos.
@@ -80,8 +80,9 @@ function media(notas: number[]): number | undefined {
 function construirRegistro(): Map<string, Person> {
   const registro = new Map<string, Person>();
 
-  function garantir(nome: string): Person {
-    const slug = slugify(nome);
+  /* O slug vem do LIVRO, não só do nome (08/10, §4.172): dois homônimos
+     separados no banco têm o mesmo nome e perfis diferentes. */
+  function garantir(nome: string, slug: string): Person {
     let pessoa = registro.get(slug);
     if (!pessoa) {
       pessoa = {
@@ -106,12 +107,12 @@ function construirRegistro(): Map<string, Person> {
      outros dois nem existiam como pessoa. */
   for (const livro of catalog) {
     for (const nome of autoresDe(livro)) {
-      const autor = garantir(nome);
+      const autor = garantir(nome, slugDoCredito(livro, nome));
       autor.wrote.push(livro);
       if (!autor.roles.includes("author")) autor.roles.push("author");
     }
     for (const nome of narradoresDe(livro)) {
-      const narrador = garantir(nome);
+      const narrador = garantir(nome, slugDoCredito(livro, nome));
       narrador.narrated.push(livro);
       if (!narrador.roles.includes("narrator")) narrador.roles.push("narrator");
     }
@@ -162,12 +163,14 @@ export function findPerson(slug: string): Person | undefined {
   return registro.get(slug);
 }
 
-export function getBooksByAuthor(name: string): Book[] {
-  return ordenarPorNota(catalog.filter((livro) => autoresDe(livro).includes(name)));
+/* Pelo SLUG e não pelo nome (08/10, §4.172): pelo nome, seguir um dos
+   "Marcelo Ribeiro" traria as novidades dos dois. */
+export function getBooksByAuthor(slug: string): Book[] {
+  return registro.get(slug)?.wrote ?? [];
 }
 
-export function getBooksByNarrator(name: string): Book[] {
-  return ordenarPorNota(catalog.filter((livro) => narradoresDe(livro).includes(name)));
+export function getBooksByNarrator(slug: string): Book[] {
+  return registro.get(slug)?.narrated ?? [];
 }
 
 /** Rótulo em português para os papéis, na ordem em que devem ser exibidos. */

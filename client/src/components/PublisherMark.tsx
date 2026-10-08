@@ -57,7 +57,9 @@ export default function PublisherMark({
       <span
         aria-hidden="true"
         className={cn(
-          "absolute inset-0 grid place-items-center font-display font-bold tracking-tight text-white",
+          /* `sobre-midia`: as iniciais ficam sobre cor viva, e no tema claro o
+             `text-white` sozinho viraria tinta escura em cima do roxo. */
+          "sobre-midia absolute inset-0 grid place-items-center font-display font-bold tracking-tight text-white",
           texto
         )}
         style={{ textShadow: "0 1px 3px rgba(0,0,0,0.45)" }}

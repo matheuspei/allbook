@@ -7,7 +7,7 @@ import ComentariosDoPost from "@/components/comunidade/ComentariosDoPost";
 import PostCitado from "@/components/comunidade/PostCitado";
 import TextoDoPost from "@/components/comunidade/TextoDoPost";
 import CitacaoDeAudio from "@/components/CitacaoDeAudio";
-import { slugify, livroPorId } from "@/lib/books";
+import { slugDoCredito, livroPorId } from "@/lib/books";
 import { EU, clubePorId, corDoMembro, nomeDoMembro, souDono, vagasRestantes, type Clube } from "@/lib/clubes";
 import { findMember, fotoDoMembro, avatarDeLeitor } from "@/lib/community";
 import { findPerson } from "@/lib/people";
@@ -497,7 +497,7 @@ function CapaDoLivro({ bookId }: { bookId: number }) {
         <p className="mt-1.5 text-[11.5px] leading-relaxed text-white/55">
           por{" "}
           <Link
-            href={`/person/${slugify(livro.author)}`}
+            href={`/person/${slugDoCredito(livro, livro.author)}`}
             className="font-semibold text-white/85 underline-offset-2 hover:underline"
             data-testid="post-livro-autor"
           >
@@ -506,7 +506,7 @@ function CapaDoLivro({ bookId }: { bookId: number }) {
           <br />
           narrado por{" "}
           <Link
-            href={`/person/${slugify(livro.narrator)}`}
+            href={`/person/${slugDoCredito(livro, livro.narrator)}`}
             className="font-semibold text-white/85 underline-offset-2 hover:underline"
             data-testid="post-livro-narrador"
           >

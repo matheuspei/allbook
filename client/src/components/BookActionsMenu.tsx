@@ -12,7 +12,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useToast } from "@/hooks/use-toast";
-import { findGenreBySlug, slugify, livroPorId } from "@/lib/books";
+import { findGenreBySlug, slugify, slugDoCredito, livroPorId } from "@/lib/books";
 import { findPerson } from "@/lib/people";
 import { isRecommended as estaRecomendado, toggleRecommendation } from "@/lib/recommendations";
 import {
@@ -103,8 +103,8 @@ export default function BookActionsMenu({
   if (!book) return <>{children}</>;
 
   // Só entram os atalhos que levam a algum lugar de verdade.
-  const autor = findPerson(slugify(book.author));
-  const narrador = findPerson(slugify(book.narrator));
+  const autor = findPerson(slugDoCredito(book, book.author));
+  const narrador = findPerson(slugDoCredito(book, book.narrator));
   const genero = findGenreBySlug(slugify(book.genre));
 
   function addToLibrary() {

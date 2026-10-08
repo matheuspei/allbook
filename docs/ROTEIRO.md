@@ -10211,3 +10211,70 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
   - **O volume continua sendo o problema:** o acervo inteiro daria ~US$ 3,5
     mil em preço de API; na assinatura, a janela de 5 h foi de 65% a 82% no
     teste (com esta conversa somada) e a semana de 44% a 46%.
+
+## 4.172 A busca acha gente e editora; dois "Marcelo Ribeiro" viram dois perfis (08/10)
+
+**O pedido dele (08/10):** digitou "Marcelo Ribeiro" — narrador de 15
+audiolivros da Editora Letras, com perfil — e a busca não achou nada. Ela só
+olhava o título, o subtítulo e o **primeiro** autor. Quer pesquisar *"tanto
+por narradores como perfis de editora, como dubladores, como tudo"*.
+*(Passagem da janela A; feito pela B.)*
+
+**Não contraria a §4.97.** Lá o adiado é a busca de **membros** (o `@` das
+contas). Aqui são as pessoas e as casas do **catálogo**, que já tinham perfil
+público. Membro continua sem aparecer na busca.
+
+**O que a busca faz agora** (`components/SearchResults.tsx`, as duas buscas
+usam):
+
+- Cada livro é achado por **todos** os autores e narradores e pela editora —
+  faixas novas depois do autor: narrador, depois editora. O elenco de uma
+  dramatização está nos narradores: é o "dublador" do pedido.
+- Acima dos livros vêm **Pessoas** e **Editoras**, em linha simples (avatar,
+  nome, "Narrador · 10 livros"), **três de cada** e "Ver mais (N)" de 10 em 10.
+  Só a partir de **duas letras**: com uma, "a" casaria com quase todo nome.
+- **Ordem dos nomes:** idêntico → **palavra inteira** no começo → palavra
+  inteira no meio → começo de palavra → meio de palavra; mais livros desempata.
+  ❌ A primeira versão ordenava por "começa com" e punha *Mariana Princival*
+  (32 livros) acima de *Maria Silvia Betti* para quem digitou "maria".
+- **No aproximado, quem está mais perto vem antes:** "marcelo ribero" punha o
+  Marco Ribeiro (74 livros, dois erros) acima do Marcelo (um erro).
+- ⚠️ **Tradutor ainda não existe no banco** — o agente de enriquecimento o traz
+  (§4.171). Quando entrar como crédito, a busca o acha pelo mesmo caminho.
+
+### O homônimo: o app identifica gente pelo NOME
+
+`marcelo-ribeiro` era ao mesmo tempo o narrador dos 15 livros cristãos da
+Editora Letras e o coautor de *Saúde emocional* (com Ilana Pinsky, Audible
+Studios, psicologia). 🚨 **Separar no banco não bastava:** `autores` e
+`narradores` são texto, e o app chega ao perfil por `slugify(nome)` — duas
+pessoas chamadas igual voltariam a ser uma só, caladas.
+
+- **Tabela `homonimos`** (livro, nome do crédito → pessoa, slug anterior,
+  motivo, data). A linha é o registro; a separação sobrevive à reimportação,
+  porque a chave é (livro, nome).
+- **`npm run homonimos`** lista o que foi separado e os candidatos;
+  `separar <slug> <id>… --motivo "…"` e `desfazer <slug-novo>`. O slug novo
+  segue a regra do empate do `BANCO-DE-DADOS.md` §2.9: `marcelo-ribeiro-2`; o
+  antigo fica com quem já o tinha (o perfil mais cheio).
+- O catálogo manda `pessoaDoCredito` só nos livros com homônimo.
+  🚨 **Quem transforma crédito em perfil usa `slugDoCredito(book, nome)`, nunca
+  `slugify(nome)`** — `people.ts`, a ficha, o menu do livro, a citação e o
+  cartão de post já usam.
+- ⚠️ *Saúde emocional* é da Audible, que está fora da vitrine (§4.145): hoje o
+  conserto não aparece na tela, só no banco. Aparece quando a Audible voltar.
+- 🚨 **Janela A: `script/pacote-enriquecimento.ts` acha pessoa por NOME**
+  (`select slug from pessoas where nome = any(...)` e `= any(string_to_array(l.autores…))`).
+  Com dois "Marcelo Ribeiro" no banco, ele devolve os dois para qualquer livro
+  de um deles. Precisa consultar `homonimos` antes de mandar o pacote.
+- ⚠️ `lib/publishers.ts` (lista de autores da editora) e o "mais ouvido" das
+  Estatísticas ainda juntam por nome — só importam quando o homônimo for o
+  crédito **principal**, o que não é o caso hoje.
+
+**Os outros casos, para ele decidir** (`npm run homonimos`): 13 nomes
+aparecem como autor e como narrador sem livro, título nem editora em comum.
+**Nenhum foi separado** — falso homônimo parte uma pessoa em duas, o contrário
+da §4.153. Os mais prováveis: Victor Hugo (o francês × o narrador de
+*Acredita, Marlon!*), Pedro Silveira, Wagner Lopes, Maria Ferreira, Gabriel.
+Os que parecem uma pessoa só: Carlos Ruas e Enéias Tavares (narram podcast
+sobre o próprio livro).

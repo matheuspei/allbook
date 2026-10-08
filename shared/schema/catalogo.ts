@@ -498,6 +498,54 @@ export const colecoesLivros = pgTable(
 );
 
 /* -------------------------------------------------------------------------- */
+/* Homônimos — duas pessoas com o mesmo nome                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Num livro, o crédito `nome` é da pessoa `pessoaSlug` — e **não** de quem o
+ * nome sozinho apontaria (08/10, §4.172).
+ *
+ * 🚨 **Existe porque o app identifica gente pelo NOME.** `autores` e
+ * `narradores` são texto, e o cliente chega ao perfil com `slugify(nome)`. Isso
+ * é o que junta as variações de grafia de uma pessoa só (a regra dele, §4.153),
+ * mas também funde duas pessoas diferentes que se chamam igual: o Marcelo
+ * Ribeiro que narra os livros cristãos da Editora Letras e o coautor de
+ * *Saúde emocional* (psicologia, Audible Studios) eram um perfil só.
+ *
+ * - **A linha é o registro**: quem separou, quando e por quê. Desfazer é
+ *   `npm run homonimos desfazer <slug>` — apaga as linhas, devolve o crédito
+ *   principal e remove a pessoa nova, se nada mais a usa.
+ * - **O slug novo segue a regra do empate** do `BANCO-DE-DADOS.md` §2.9:
+ *   `marcelo-ribeiro-2`. O antigo fica com quem já o tinha (o perfil mais
+ *   cheio), para não quebrar quem já o seguia.
+ * - ⚠️ **A chave é (livro, nome), não (livro, papel)**: a reimportação do
+ *   acervo reescreve `autores`, mas o nome do crédito continua o mesmo, e a
+ *   separação sobrevive a ela.
+ */
+export const homonimos = pgTable(
+  "homonimos",
+  {
+    livroId: integer("livro_id")
+      .notNull()
+      .references(() => livros.id, { onDelete: "cascade" }),
+    /** O crédito exatamente como está em `autores`/`narradores` ("Marcelo Ribeiro"). */
+    nome: text("nome").notNull(),
+    pessoaSlug: text("pessoa_slug")
+      .notNull()
+      .references(() => pessoas.slug),
+    /**
+     * A quem o crédito apontava antes. É o que o `desfazer` devolve ao
+     * `autorSlug`/`narradorSlug` quando o homônimo era o crédito principal.
+     */
+    slugAnterior: text("slug_anterior").notNull(),
+    /** A prova de que são duas pessoas — editora, assunto, o que se apurou. */
+    motivo: text("motivo").notNull(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.livroId, t.nome] }), index("homonimos_pessoa_idx").on(t.pessoaSlug)],
+);
+
+/* -------------------------------------------------------------------------- */
 /* Relações (para as consultas do Drizzle saberem juntar as tabelas)           */
 /* -------------------------------------------------------------------------- */
 

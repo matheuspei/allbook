@@ -211,11 +211,11 @@ export function novidadesDe(alvo: Alvo): Novidade[] {
        pelos dois lados, e o `Set` impede o livro que ela escreveu **e** narrou
        de virar dois avisos iguais. */
     const jaVistos = new Set<number>();
-    for (const livro of [...getBooksByAuthor(pessoa.name), ...getBooksByNarrator(pessoa.name)]) {
+    for (const livro of [...getBooksByAuthor(pessoa.slug), ...getBooksByNarrator(pessoa.slug)]) {
       if (jaVistos.has(livro.id)) continue;
       jaVistos.add(livro.id);
       if (novos.some((item) => item.id === livro.id)) {
-        const escreveu = livro.author === pessoa.name;
+        const escreveu = pessoa.wrote.includes(livro);
         achadas.push(
           novidade(
             alvo,
