@@ -5,10 +5,11 @@
  *     node rodar.mjs                      — tudo o que ainda não tem resultado
  *     node rodar.mjs --paralelo 4         — quantas tarefas ao mesmo tempo (padrão 2)
  *     node rodar.mjs --so livro           — só um tipo (livro, pessoa, editora)
- *     node rodar.mjs --tarefa livro-108233  — uma tarefa só
+ *     node rodar.mjs --tarefa livro-108233  — uma tarefa só (ou várias, com vírgula)
  *     node rodar.mjs --limite 10          — para depois de N tarefas
  *     node rodar.mjs --modelo opus --esforco high --teto-usd 6 --minutos 30
  *     node rodar.mjs --motor codex --so pessoa,editora  — roda no Codex (ChatGPT)
+ *     node rodar.mjs --modelo haiku       — outro modelo do Claude, em pasta própria
  *
  * Precisa só de Node e do Claude Code (`claude`) logado — ou, com
  * `--motor codex`, do Codex (`codex`) logado na conta do ChatGPT.
@@ -60,9 +61,13 @@ import { formatoDaEditora, formatoDaPessoa, formatoDoLivro } from "./formatos.mj
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const TAREFAS = join(AQUI, "tarefas");
-/** As pastas de saída: cada motor na sua, para comparar sem um pular o outro. */
-const pastas = (motor) => {
-  const sufixo = motor === "codex" ? "-codex" : "";
+/**
+ * As pastas de saída: cada motor na sua, para comparar sem um pular o outro.
+ * No Claude, modelo que não é o Opus do piloto também ganha a sua (08/10: o
+ * Haiku novo, testado nos mesmos livros que o Codex).
+ */
+const pastas = (o) => {
+  const sufixo = o.motor === "codex" ? "-codex" : o.modelo !== "opus" ? `-${o.modelo}` : "";
   return {
     resultados: join(AQUI, "resultados" + sufixo),
     erros: join(AQUI, "erros" + sufixo),
@@ -85,7 +90,7 @@ function opcoes() {
       case "--teto-usd": o.tetoUsd = Number(v); i++; break;
       case "--minutos": o.minutos = Number(v); i++; break;
       case "--so": o.so = v.split(","); i++; break;
-      case "--tarefa": o.tarefa = v.replace(/\.json$/, ""); i++; break;
+      case "--tarefa": o.tarefa = v.split(",").map((t) => t.replace(/\.json$/, "")); i++; break;
       case "--limite": o.limite = Number(v); i++; break;
       default: throw new Error(`opção desconhecida: ${a[i]}`);
     }
@@ -270,7 +275,7 @@ async function chamarCodex(o, prompt, formato) {
 
 async function main() {
   const o = opcoes();
-  const { resultados: RESULTADOS, erros: ERROS, registro: REGISTRO } = pastas(o.motor);
+  const { resultados: RESULTADOS, erros: ERROS, registro: REGISTRO } = pastas(o);
   await mkdir(RESULTADOS, { recursive: true });
   await mkdir(ERROS, { recursive: true });
   const txt = await instrucoes();
@@ -278,7 +283,7 @@ async function main() {
 
   const todas = (await readdir(TAREFAS)).filter((n) => n.endsWith(".json")).map((n) => n.replace(/\.json$/, "")).sort();
   const fila = todas.filter((n) =>
-    (!o.tarefa || n === o.tarefa) &&
+    (!o.tarefa || o.tarefa.includes(n)) &&
     (!o.so || o.so.some((t) => n.startsWith(t + "-"))) &&
     !existsSync(join(RESULTADOS, n + ".json")),
   ).slice(0, o.limite);
@@ -304,7 +309,7 @@ async function main() {
 
     if (d && !d.is_error && d.structured_output) {
       const medida = {
-        custo_usd: d.total_cost_usd, segundos, turnos: d.num_turns,
+        custo_usd: d.total_cost_usd, segundos, turnos: d.num_turns, tokens: d.usage ?? null,
         buscas: d.usage?.server_tool_use?.web_search_requests ?? null,
         modelo: o.modelo, esforco: o.esforco, terminado_em: new Date().toISOString(),
       };

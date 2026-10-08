@@ -10193,3 +10193,21 @@ quase não usa; rodar o agente lá tira o peso do plano do Claude.
   mesma máquina são o alvo do antifraude, que pode suspender também a conta
   Google de verdade dele (Gmail, Drive). Uma conta Pro própria como reforço
   segue possível.
+- **O Haiku novo (`claude-haiku-5-5`, lançado em 08/10) no agente — ideia
+  dele, testado no mesmo dia.** 8 livros do gabarito do Codex + 3 perfis do
+  sorteio, pela assinatura do Claude (`rodar.mjs --modelo haiku`, pasta
+  `resultados-haiku/`). Custo equivalente: **US$ 0,11 por livro e US$ 0,24
+  por perfil** (o Opus deu ~0,28 e ~0,50); 13 min ao todo. Comparação:
+  `_comparar-haiku-A.html`.
+  - **Livros, bem:** ano da obra e prateleira iguais ao Codex nos 8; achou o
+    que o Codex não achou (*Singular Ocorrência* 1884, Barrie em *Peter
+    Pan*) e preencheu a idade — parte disso são as instruções novas. Ficou
+    devendo o ano do áudio em 3 e a série de *Cretino Irresistível*.
+  - **Pessoas, mal:** Tanaka e Hernane com **zero canais e sem foto**
+    (Codex: 7 e 7). Não foi falta de achar — o Haiku achou o site do Hernane
+    com todas as redes e **não ligou por excesso de cautela com a
+    identidade**, e boa parte das páginas deu 403 ao WebFetch. Editora
+    (Dialética) razoável: 5 canais e logo, sem o e-mail.
+  - **O volume continua sendo o problema:** o acervo inteiro daria ~US$ 3,5
+    mil em preço de API; na assinatura, a janela de 5 h foi de 65% a 82% no
+    teste (com esta conversa somada) e a semana de 44% a 46%.
