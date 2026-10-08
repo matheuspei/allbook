@@ -122,3 +122,11 @@ Poesia e Teatro): **Literatura** para obra com reconhecimento literário (prêmi
 literário, estudo na escola ou na universidade, autor tratado pela crítica como
 escritor literário); **Ficção** para ficção de entretenimento, comercial ou de
 autor sem esse reconhecimento. Diga no `motivo` qual sinal você usou.
+
+⚠️ **Clássicos também vale para não-ficção (decidido pelo dono do app,
+08/10).** Obra de pensamento da Antiguidade ou consagrada há mais de um
+século — filosofia, ética, política, estratégia: Sêneca, Marco Aurélio,
+Epicteto, Platão, Aristóteles, Maquiavel, Sun Tzu — vai para **Clássicos**,
+mesmo sendo não-ficção. **Ciências Humanas e Sociais** fica com a filosofia,
+a sociologia e a política modernas e com os livros *sobre* os clássicos
+(comentários, seleções e releituras de hoje, como "365 reflexões estoicas").
