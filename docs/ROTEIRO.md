@@ -10278,3 +10278,43 @@ da §4.153. Os mais prováveis: Victor Hugo (o francês × o narrador de
 *Acredita, Marlon!*), Pedro Silveira, Wagner Lopes, Maria Ferreira, Gabriel.
 Os que parecem uma pessoa só: Carlos Ruas e Enéias Tavares (narram podcast
 sobre o próprio livro).
+
+## 4.173 O motor do agente: Kimi K3 pelo CodeCraft, com o "agente leve" (08/10)
+
+Continuação da §4.171 (o custo). Decisões dele no dia:
+
+- ❌ **IA local no Mac: descartada e apagada.** Qwen 3.8 27B no M4 Pro de 24 GB
+  dava ~13 tokens/s de escrita e ~110 de leitura — mais de 15 min por livro,
+  meses para o acervo. Outro perfil de usuário não libera memória (o dele
+  continua aberto) e troca no SSD não serve para modelo (~6 GB/s contra 273
+  GB/s da memória). Ele mandou apagar tudo (modelos, llama.cpp, aria2).
+- ✅ **Motor: Kimi K3 pelo CodeCraft** (codecraftapi.com — a revenda do vídeo
+  "Claude e GPT de graça", que na verdade configura o Kimi). Franquia mensal de
+  tokens igual para qualquer modelo; ele assinou o Starter (US$ 1,20, 30 M) para
+  os testes; a rodada inteira seria no **Unlimited (US$ 50/mês)**. Riscos
+  apurados, aceitos por ele: sem empresa identificada nem garantia; o CodeCraft
+  conta tokens com régua própria e injeta ~290 tokens de instrução escondida;
+  a busca embutida dos modelos "Web" não funciona (Gemini e Grok dizem não
+  navegar, com o mesmo corte "04/01/2026"). Proteção: a conferência de citação
+  em todo item e 2 livros do gabarito por dia.
+- **O "agente leve"** (`~/AllBook-enriquecimento/teste-motores/leve.py`): as
+  mesmas instruções e formatos do kit, com busca (ddgs, grátis) e leitura feitas
+  pelo programa em trechos curtos — ~100–170 mil tokens por item contra ~450 mil
+  do formato do Codex. A versão atual adianta a página da loja, o **registro
+  brasileiro de ISBN** (CBL: formato "Audio Livro" + ano = ano do áudio — ideia
+  dele), a busca da mesma gravação em outras lojas, as buscas por rede, o mesmo
+  @ em outras redes (achou `youtube.com/@gutanaka`), e confere antes de aceitar
+  (citação, link de vídeo/post, foto que não é imagem, links repetidos ou
+  quebrados — bloqueio de robô 403/406 não conta como quebrado).
+- **Medido:** gabarito de 8 livros — Kimi 59/72 campos (Codex 45, Haiku 46),
+  citações todas achadas; 11 perfis — 50 canais (Codex 55). Folhas
+  `_comparar-motores.html` e `_comparar-agentes.html` (sorteio novo de 08/10,
+  agente 1 × atual).
+- ✅ **Prateleira (decisão dele): Clássicos também para não-ficção antiga e
+  consagrada** (Sêneca, Marco Aurélio, Platão, Maquiavel); Ciências Humanas e
+  Sociais fica com o pensamento moderno e os livros *sobre* os clássicos. Já
+  nas instruções do kit.
+- ⏳ **Em aberto:** máquina na nuvem para rodar 24 h (~US$ 5–7/mês; risco: a
+  busca grátis bloquear IP de datacenter — testar 50 itens antes; a conta é
+  dele); o programa da rodada inteira e o importador antes de assinar o
+  Unlimited (o mês conta da assinatura).
