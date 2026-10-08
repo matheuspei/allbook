@@ -41,6 +41,9 @@ conhecidos, prêmios. Tom neutro, sem adjetivo de propaganda.
   substitui biografia.
 
 - **Só fatos que estão nas fontes**, todas listadas em `bio.provas`.
+- **Nada óbvio para um app brasileiro** ("narra em português", "títulos no
+  catálogo em português") e **nenhum número de registro** (DRT, OAB, CRM): não
+  dizem nada ao ouvinte.
 - Pessoa com pouca presença pública: uma ou duas frases bastam ("Narradora
   brasileira, voz de mais de 40 audiolivros"). **Vale mesmo quando a única
   fonte é a página de uma loja** — a loja prova o fato, só o nome dela não
@@ -67,6 +70,10 @@ que a página **prove a identidade** como no passo 1.
   ali só um retrato de perto funciona.
 - Confira que o endereço é **a imagem**, e não a página que a mostra: no
   piloto, um `.../square.jpg` devolvia uma página HTML.
+- **Resolução boa: ao menos 300 px no lado menor.** O app mostra a foto num
+  círculo de 112 px em telas que dobram ou triplicam os pixels. Ache a versão
+  grande da mesma foto (Goodreads `p8` no lugar de `p5`, LinkedIn `400_400`
+  no lugar de `200_200`, YouTube `=s800`).
 
 ## Passo 4 — os dados curtos e os canais da pessoa
 
@@ -77,7 +84,18 @@ que a página **prove a identidade** como no passo 1.
   LinkedIn, Threads, podcast. Procure **todos**, não pare no primeiro. Cada um
   passa pela mesma prova de identidade da foto: o perfil precisa ser DELA
   (cita os livros, a narração, a editora, ou é o link do site oficial dela).
-  Wikipedia e Wikidata também entram, como "saiba mais".
+  **Wikipedia e Wikidata não entram em `links`** (decisão dele, 09/10): o
+  AllBook tem a biografia própria; elas servem só de fonte.
+- 🚨 **O Instagram é o canal que mais importa** — é o que o ouvinte usa para
+  seguir a pessoa. Procure-o com o nome **e a profissão** (`"<nome>" locutor
+  instagram`, `… narrador instagram`, `… dublador instagram`, `… escritor
+  instagram`) e pelo @ das outras redes. Perder o Instagram é o erro que o
+  dono do app mais apontou (Mateus Prado, Pedro Franco, Daniel Vieira da
+  Silva).
+- **Página que lista os canais e que você aceitou** (Linktree, wiki de
+  dublagem, site oficial, descrição do YouTube): **todos** os canais que ela
+  lista entram — no 08/10 a Dublapédia do Pedro Franco listava o Instagram
+  dele, e ele ficou de fora.
 - 🚨 **Nunca e-mail, telefone ou endereço** de pessoa, mesmo que estejam
   públicos — o perfil liga o ouvinte aos canais dela, não aos contatos.
 
@@ -121,6 +139,15 @@ TikTok, o Substack e o Linktree numa busca simples. Regras:
 - O que a biografia achada diz da pessoa (outra profissão, cidade, projeto)
   também é sinal: um canal com o mesmo nome que fala da mesma coisa **e** de
   narração é dela.
+- **Profissão de voz** (locutor, radialista, jornalista de rádio ou TV, ator,
+  dublador) com o nome completo igual e conteúdo compatível com o que a pessoa
+  narra é dela: quem narra reportagens da Reuters e do Guardian e é jornalista
+  de rádio é a mesma pessoa (Daniel Vieira da Silva, 09/10).
+- **Canal achado só pelo @ igual** (o programa testa o mesmo apelido em outras
+  redes) **não prova nada sozinho**: sem descrição que cite livro, narração,
+  editora ou a marca dela, não entra. Em 09/10 entraram por isso um YouTube
+  "Doidivana" que não era da Ivana Arruda Leite e um "bookerang" italiano
+  parado havia 18 anos.
 - Achou um canal provado? Abra-o e procure o **Linktree / página de links**:
   ele costuma listar todos os outros, que então ficam provados por ele.
 - **Perfil de anúncio ou de site de freelancer** (99freelas, Workana,

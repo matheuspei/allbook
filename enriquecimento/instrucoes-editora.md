@@ -27,9 +27,13 @@ o catálogo dela mostra um dos livros da lista, por exemplo.
   "branco", "white", "negativo" ou "footer" no nome é a versão para fundo
   escuro (a da Dialética no piloto). Sem logotipo no site, sirva o endereço
   da foto de perfil do Facebook ou do YouTube oficial — é quase sempre o
-  logotipo.
+  logotipo. **Só o logotipo limpo**: arte de divulgação, banner ou capa com a
+  marca por cima não serve (a "logo" da Bookerang no LinkedIn era uma arte com
+  monstros e a marca no meio, 09/10). Ao menos 300 px no lado menor.
 - `links`: **todos** os canais oficiais da editora — site, Instagram, Facebook,
-  X, YouTube, LinkedIn, TikTok —, conferidos como dela.
+  X, YouTube, LinkedIn, TikTok —, conferidos como dela. Wikipedia e Wikidata
+  não entram em `links`; canal achado só pelo nome igual (sem citar livro ou
+  a editora) também não.
 - `email_de_contato`: só o e-mail de contato **público do site oficial** da
   editora (contato@, atendimento@), com a página como prova. Nunca o de uma
   pessoa da equipe.
