@@ -10433,3 +10433,9 @@ estas decisões, todas em `~/AllBook-enriquecimento/teste-motores/canais.py` e
   erro raro a perder os certos.
 - ⚠️ O Facebook da conta de trabalho caiu numa verificação do Facebook
   (checkpoint): só ele resolve, na janela de `redes.py entrar`.
+- **Medida depois das correções (mesmas 29 pessoas, contra as marcações dele):**
+  os 9 errados saíram; 56 dos 60 certos continuam (os 4 que caíram são votos do
+  juiz que oscilam — só unanimidade entra); o Instagram da Sueli que ele apontou
+  entrou; foto em 23 de 29 (eram 17). No gabarito antigo, 13 de 16 (eram 16):
+  Renato Basilla tem perfil pessoal e profissional e o juiz os separou em duas
+  pessoas — é o próximo ponto a atacar.
