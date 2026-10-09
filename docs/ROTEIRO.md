@@ -10384,3 +10384,52 @@ fotos e vota 3 vezes — só unanimidade entra) e C (dúvida, fica fora do app).
 - O teste honesto (29 pessoas sorteadas, nunca vistas) mostrou erros que os 8
   casos não mostravam — resultados colados pelo buscador, verbete de outro
   dublador, @ cortado — e foram corrigidos antes da folha.
+
+## 4.175 O que a folha do sorteio ensinou sobre os canais (09/10)
+
+Ele marcou a folha dos 29 perfis sorteados: dos canais conferidos, 60 certos e 9
+errados (87%, contra 39 em 40 no gabarito). Os erros e os comentários dele viraram
+estas decisões, todas em `~/AllBook-enriquecimento/teste-motores/canais.py` e
+`redes.py` (fora do repo):
+
+- 🚨 **O defeito que piorou "os finais"** ("não parece o mesmo agente"): a leitura
+  logada do Instagram guardava como publicação da pessoa **qualquer legenda da
+  página** — o feed da conta de trabalho, anúncios e a grade do perfil aberto
+  antes. Um Instagram fechado e sem post de outra Silvia Strufaldi "publicou" os
+  livros dela. Agora só vale a **grade do próprio perfil** (`user_timeline`, com o
+  dono conferido); post em parceria na grade dela conta. Foi assim que a Sueli
+  Lemos ganhou o Instagram certo, pelo post sobre *A Árvore de Guilherme*.
+- **Segunda conta na mesma rede vai para o juiz** (ideia dele): havendo uma conta
+  provada por página ou livro, a outra da mesma rede não entra por sinal fraco. No
+  sorteio, quase toda segunda conta era outra pessoa (Marcel, Sandra, Sidney). O
+  juiz recebe a regra: só "sim" com o mesmo rosto e um sinal concreto.
+- **O mesmo @ em outra rede só prova se o @ foi inventado** (mateusprado77,
+  pedrofranco_loc, hansiyo, ou o mesmo número no fim). O nome puro — com "br",
+  "oficial", ponto ou invertido (sidneyferreirabr, octavio_marcel) — cada rede deu
+  a quem chegou primeiro. Threads = Instagram sempre.
+- **Canal de prova fraca com o rosto de outra pessoa sai** (o YouTube de
+  fisiculturista do Sidney). Não vale para canal apontado por página nem para o @
+  inventado: o TikTok do Hans, com foto antiga, é dele.
+- **Site com o nome no endereço precisa dizer a profissão com todas as letras ou
+  citar o livro** — o sidneyferreira.com era de um fundador de startup e trouxe um
+  LinkedIn errado.
+- **Site dedicado à pessoa vira canal, mesmo de autor morto** (pedido dele):
+  katechopin.org, o Instituto Rubem Alves. Wikipedia e bibliografia continuam fora.
+- **Post de outro perfil só prova se citar o livro ou a editora** ("Respondendo a
+  @sandrasilverio6 #dublagem" é um comentário respondido, não um post sobre ela), e
+  post da própria pessoa só conta como "trabalho" se disser que é dela ("meu
+  livro", "narrei") — "livro" sozinho é de quem lê.
+- **Três padrões novos de perfil:** *voz sintética* ("Thalita" é a voz neural da
+  Microsoft: sem canais, sem foto, apresentação dizendo isso); *empresa creditada
+  como pessoa* (busca pela marca "Public Play", não "Public Play Editora
+  narrador"; a foto é o logotipo); *dupla* (Tiago e Gabi: a foto das duas serve).
+- **Nome sem a inicial do meio nas buscas** ("Estevan Kirschner", não "Estevan F.
+  Kirschner") e a página de professor/seminário como fonte de bio e foto.
+- **A biografia não repete a apresentação** ("parece que estamos enchendo
+  linguiça"): 15 dos 28 textos repetiam. A conferência agora detecta e uma passada
+  barata (~3 mil tokens) reescreve só a biografia, sem fato novo.
+- **O que ele aceitou como custo:** a Mariângela Lopes (um livro, Instagram
+  fechado) é o tipo de caso em que exigir mais prova zera o perfil; ele prefere o
+  erro raro a perder os certos.
+- ⚠️ O Facebook da conta de trabalho caiu numa verificação do Facebook
+  (checkpoint): só ele resolve, na janela de `redes.py entrar`.
