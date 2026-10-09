@@ -10343,3 +10343,44 @@ desse zero.
   Conforto*) **não** se explicam por esse defeito, e o gravador não pegou nada
   correndo sozinho até o fim. Pode ter sido arrastado no teste; se voltar a
   aparecer sem arrastar, é outra investigação.
+
+## 4.174 Canais e foto dos perfis: coleta em camadas, não remendo nem "só âncora" (09/10)
+
+**O que ele recusou, e por quê.** (1) Remendar as instruções caso a caso a partir
+de seis pessoas e confiar na IA para dizer que um Instagram é da pessoa: "num
+acervo de 13 mil livros há vários Pedros Ribeiros". (2) A troca que propus em
+seguida — só aceitar canal ligado a uma página-âncora: "deixa o acervo mais
+pobre", porque a maior parte dos perfis certos não é ligada por página nenhuma, e
+ele acha o Instagram certo numa busca do Google em menos de um minuto.
+
+**O diagnóstico medido:** em 4 dos 5 perfis que ele corrigiu, a busca do agente
+TROUXE o Instagram certo dezenas de vezes e a IA o descartou ou perdeu de uma
+versão para outra (o Danilo ganhou na v4 e perdeu na v5): decisão tomada no meio
+de uma conversa de 30 passos é sorteio. E a Dublapédia barra o programa (403),
+mas a API da wiki entrega os canais.
+
+**O desenho (decisão):** `~/AllBook-enriquecimento/teste-motores/canais.py`. O
+programa faz o que ele faz no Google — busca o nome com a profissão, com cada
+rede, com a editora e com o @ de cada canal aceito; junta todos os perfis; olha
+as publicações indexadas (o post da Tocalivros que marca o narrador) — e põe cada
+um numa camada: A (página dela aponta, ou o perfil/publicação cita livro ou
+editora), B (nome + profissão sem homônimo da mesma profissão; mesmo @ "marcado"
+em outra rede; listado por canal aceito; mesmo contato, frase ou rádio na bio),
+J (juiz: a IA vê todos os candidatos lado a lado, agrupa por pessoa, compara as
+fotos e vota 3 vezes — só unanimidade entra) e C (dúvida, fica fora do app).
+"Nome comum" não vem de lista: sai das buscas (há três Danilos Barbosa escritores).
+
+- Medida: nos 16 canais que ele apontou, 16 entraram (o agente antigo pegava 7);
+  dos 40 aceitos que ele conferiu, 39 certos — o errado foi o único 2×1 do juiz.
+- **Autor morto (Wikidata) não ganha rede**: perfil com o nome é de fã.
+- **Foto só de canal aceito ou de página que fala dela** (editora, Dublapédia,
+  Wikipedia), com a IA conferindo rosto e qualidade (≥300 px).
+- **Conta de trabalho dele nas redes (decisão dele, 09/10):** sem login o
+  Instagram dá foto de 100 px e nenhuma bio. Ele entrou com contas de teste
+  (Instagram, Facebook, LinkedIn) numa janela à parte (`redes.py entrar`; a senha
+  nunca passa pelo Claude). A API do Instagram responde 429 até logada; abrir o
+  perfil no navegador da conta funciona. Devagar (~8 s por perfil) para não
+  travar a conta.
+- O teste honesto (29 pessoas sorteadas, nunca vistas) mostrou erros que os 8
+  casos não mostravam — resultados colados pelo buscador, verbete de outro
+  dublador, @ cortado — e foram corrigidos antes da folha.
