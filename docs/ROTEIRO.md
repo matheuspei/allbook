@@ -10318,3 +10318,28 @@ Continuação da §4.171 (o custo). Decisões dele no dia:
   busca grátis bloquear IP de datacenter — testar 50 itens antes; a conta é
   dele); o programa da rodada inteira e o importador antes de assinar o
   Unlimited (o mês conta da assinatura).
+
+## 4.173 Reabrir o player voltava ao início do livro — desde 26/07 (09/10)
+
+**A queixa dele:** passa para o capítulo 2 (arrastando, sem ouvir), minimiza,
+aperta play — e o livro recomeça do zero.
+
+🚨 **A causa:** o player lê `?t=SEGUNDOS` do endereço (o salto das marcações,
+§ de 26/07) com `Number(parametros.get("t"))`, e **`Number(null)` é 0**. Sem
+`?t=`, ele entendia "comece no segundo zero", e esse zero ganhava da posição
+guardada e da posição do tocador. A "ponte 4" então mandava o áudio para o
+início. O `jaTocandoEste` da §4.143 nunca chegou a valer, porque vinha depois
+desse zero.
+
+- **Achado com uma caixa-preta temporária** (o registro mostrou `alvo: 0` a cada
+  remontagem do player). A aba da automação fica escondida e o Chrome não
+  carrega áudio nela; a reprodução foi a dele. O gravador já saiu do código.
+- **A regra:** parâmetro de endereço que não veio é `null`, nunca 0 — agora há
+  `numeroDoParametro()` para os três (`t`, `chapter`, `ate`).
+- **Junto:** `isValid` de `lib/playback.ts` usava `catalog.some` (a VITRINE, uma
+  gravação por obra), o que descartava o progresso de quem ouvia a segunda voz
+  de um livro (§4.151). Trocado por `livroPorId`, como o CLAUDE.md manda.
+- ⚠️ Os livros que ficaram em 99% (*Ao Jovem Pregador*, *Palavras de Paz e
+  Conforto*) **não** se explicam por esse defeito, e o gravador não pegou nada
+  correndo sozinho até o fim. Pode ter sido arrastado no teste; se voltar a
+  aparecer sem arrastar, é outra investigação.

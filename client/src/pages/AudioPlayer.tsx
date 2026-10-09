@@ -192,13 +192,28 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    */
   const search = useSearch();
   const parametros = new URLSearchParams(search);
+  /**
+   * 🚨 **Parâmetro que não veio é `null`, nunca 0** (09/10, §4.173).
+   *
+   * Era `Number(parametros.get("t"))` — e `Number(null)` dá **0**. Sem `?t=` no
+   * endereço, o player entendia "comece no segundo zero", e esse zero ganhava
+   * da posição guardada logo abaixo: **todo reabrir voltava ao início do
+   * livro**, desde 26/07. Ele achou passando para o capítulo 2, minimizando e
+   * apertando play.
+   */
+  const numeroDoParametro = (nome: string): number | null => {
+    const cru = parametros.get(nome);
+    if (cru === null || cru.trim() === "") return null;
+    const n = Number(cru);
+    return Number.isFinite(n) ? n : null;
+  };
   const chapterParam = (() => {
-    const n = Number(parametros.get("chapter"));
-    return Number.isInteger(n) && n >= 1 && n <= chapters.length ? n : null;
+    const n = numeroDoParametro("chapter");
+    return n !== null && Number.isInteger(n) && n >= 1 && n <= chapters.length ? n : null;
   })();
   const timeParam = (() => {
-    const n = Number(parametros.get("t"));
-    return Number.isFinite(n) && n >= 0 ? Math.min(n, durationSeconds) : null;
+    const n = numeroDoParametro("t");
+    return n !== null && n >= 0 ? Math.min(n, durationSeconds) : null;
   })();
   /**
    * `?ate=` — o fim de uma **citação** (ROTEIRO 4.43).
@@ -209,8 +224,8 @@ export default function AudioPlayer({ params }: { params: { id: string } }) {
    * reproduzir isso"*.
    */
   const ateParam = (() => {
-    const n = Number(parametros.get("ate"));
-    return Number.isFinite(n) && n > 0 ? Math.min(n, durationSeconds) : null;
+    const n = numeroDoParametro("ate");
+    return n !== null && n > 0 ? Math.min(n, durationSeconds) : null;
   })();
 
   /**

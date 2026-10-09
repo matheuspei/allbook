@@ -18,7 +18,7 @@
  * nunca tinha ouvido nada.
  */
 
-import { catalog, type Book, livroPorId} from "@/lib/books";
+import { type Book, livroPorId } from "@/lib/books";
 import { registrarAudicao } from "@/lib/listening";
 
 const PROGRESS_KEY = "allbook_playback";
@@ -147,7 +147,11 @@ function isValid(entry: unknown): entry is Playback {
   const item = entry as Record<string, unknown>;
   if (typeof item.bookId !== "number") return false;
   // Progresso de um livro que saiu do catálogo não serve para nada.
-  return catalog.some((book) => book.id === item.bookId);
+  // ⚠️ `livroPorId`, e não `catalog.some` (09/10, §4.173): `catalog` é a
+  // VITRINE, uma gravação por obra. O progresso de uma segunda voz (§4.151)
+  // era descartado aqui como "livro que saiu", e quem ouvia a outra narração
+  // voltava ao início dela toda vez.
+  return livroPorId(item.bookId) !== undefined;
 }
 
 function normalize(entry: Playback): Playback {
