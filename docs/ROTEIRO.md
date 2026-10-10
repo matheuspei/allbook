@@ -10530,7 +10530,10 @@ descartada: recortar na moldura da Audible.**
 
 A troca guarda a original como `capa-com-faixa.jpg` e muda os três lugares:
 `capa.jpg` do pronto, a capa dentro de cada `.m4a` (via mutagen) e
-`~/AllBook-capas/<id>.jpg`. *A arte da guerra* espera a escolha dele na folha
+`~/AllBook-capas/<id>.jpg`. **Feita em 10/10 nos 19 do teste** (769 áudios), com
+`~/AllBook-enriquecimento/capas/trocar.py`. A capa entra com até 1.600 px de altura,
+o bastante para a ficha num celular de tela densa. `trocar.py desfazer` põe a
+original de volta. *A arte da guerra* espera a escolha dele na folha
 `_capas-sem-faixa-D.html`, que agora mostra o porquê da recusa e as capas recusadas.
 O áudio é da Audible Studios, e a capa foi feita só para ele. As saídas são usar
 uma capa de outra edição, manter a faixa ou pintar só o canto.
