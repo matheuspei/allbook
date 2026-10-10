@@ -10620,6 +10620,13 @@ Perséfone*, *O grande livro das bruxas*). Já voltaram à capa de antes. As out
 estão certas, e nenhuma escapou das provas. Somando as três rodadas: 213
 conferidas, 14 erradas, todas desfeitas.
 
+**O lote terminou (10/10):** dos 604 livros com a faixa, 274 ganharam a capa
+limpa pelo ISBN, 253 ficaram sem candidata que passasse nas provas e 77 não têm
+ISBN no registro. A rodada 4 (44 livros) ele aprovou inteira. Até aqui ele
+conferiu 257 trocas, e as 17 últimas estão na rodada 5. Os 330 que seguem com a
+faixa (253 + 77, mais as 14 desfeitas) esperam a etapa seguinte: outra edição do
+mesmo livro.
+
 **Tropeço: dois lotes ao mesmo tempo (10/10):** para reiniciar, matei o processo
 errado: o do shell, e não o do Python. O lote antigo seguiu rodando junto com o
 novo, e os dois gravaram nos mesmos 4 livros. O estrago:
