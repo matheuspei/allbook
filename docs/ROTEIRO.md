@@ -10533,10 +10533,16 @@ A troca guarda a original como `capa-com-faixa.jpg` e muda os três lugares:
 `~/AllBook-capas/<id>.jpg`. **Feita em 10/10 nos 19 do teste** (769 áudios), com
 `~/AllBook-enriquecimento/capas/trocar.py`. A capa entra com até 1.600 px de altura,
 o bastante para a ficha num celular de tela densa. `trocar.py desfazer` põe a
-original de volta. *A arte da guerra* espera a escolha dele na folha
-`_capas-sem-faixa-D.html`, que agora mostra o porquê da recusa e as capas recusadas.
-O áudio é da Audible Studios, e a capa foi feita só para ele. As saídas são usar
-uma capa de outra edição, manter a faixa ou pintar só o canto.
+original de volta. **A faixa da Audible não é negociável (decisão dele, 10/10):** "ela não vai, não
+pode ir". Isso derruba a regra da passagem, que dizia que capa de outra edição era
+pior que a capa com a faixa. **Manter a capa com a faixa deixa de ser saída.**
+Quando a mesma capa não existe sem a faixa, entra a capa de outra edição do mesmo
+livro. Em *A arte da guerra*, o áudio é da Audible Studios, que fez uma capa só
+para ele, e ele escolheu a da L&PM Clássicos (vermelha, Sun Tzu a cavalo). Trocada
+em 10/10. Com isso, os 20 do teste estão sem a faixa. **No agente (etapa 5):**
+livro sem a mesma capa limpa não fica com a faixa. Vai para ele com as capas de
+outras edições para escolher, numa folha só com os livros que faltam. Não se
+reabre folha de livro já decidido.
 
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
