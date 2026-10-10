@@ -10484,10 +10484,13 @@ impresso. Pelo número do e-book saiu 1.810×2.560, a mesma capa, sem a faixa. O
 número da edição em áudio devolve um GIF de 1×1 (não tem imagem lá). No agente,
 isso não custa busca a mais: a busca que ele já faz pelo ano traz o link da
 Amazon (144 das 2.440 buscas guardadas no cache do agente leve têm um).
-**Teste em 20 livros sorteados: 18 com a mesma capa, limpa e grande; 2 sem nada**
-(*A arte da guerra*, *Toxic*: a busca de texto travou por excesso de buscas — o
-DuckDuckGo limita o computador; o Bing pede verificação de robô e não se
-contorna). A capa limpa é a do impresso: **em pé
+**Teste em 20 livros sorteados: 19 com a mesma capa, limpa e grande** (*Toxic*
+também saiu pelo número do e-book). **1 sem nada: *A arte da guerra*** (Sun Tzu,
+"narrado por Murilo Rosa"): a capa foi feita pela própria Audible para o áudio, e
+não existe livro impresso com essa arte — as 5 edições achadas na Amazon são de
+outras editoras. Esse tipo de caso vai para ele. (A busca de texto trava com
+rajada: o DuckDuckGo limita o computador, que as janelas dividem; o Bing pede
+verificação de robô e não se contorna.) A capa limpa é a do impresso: **em pé
 (2:3), não quadrada**, e às vezes com uma linha a mais (selo do Jabuti, "mais
 vendido do NYT", nome do ilustrador).
 
