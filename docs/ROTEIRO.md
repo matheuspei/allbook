@@ -10490,7 +10490,17 @@ também saiu pelo número do e-book). **1 sem nada: *A arte da guerra*** (Sun Tz
 não existe livro impresso com essa arte — as 5 edições achadas na Amazon são de
 outras editoras. Esse tipo de caso vai para ele. (A busca de texto trava com
 rajada: o DuckDuckGo limita o computador, que as janelas dividem; o Bing pede
-verificação de robô e não se contorna.) A capa limpa é a do impresso: **em pé
+verificação de robô e não se contorna.)
+
+**Buscador: fica o DuckDuckGo, grátis (decisão dele, 10/10).** Comparados com o
+preço do dia: Serper (resultado do Google, US$ 1 por mil, ~US$ 150 para as ~150
+mil buscas do acervo — 10,5 por livro), Exa (US$ 4 por mil), Brave (US$ 5 por
+mil, pede cartão), a busca do Kimi (~US$ 0,005 cada), Tavily (US$ 8 por mil); o
+Google oficial fecha em 01/01/2027. Ele: "150 dólares é muito para pouca
+diferença". O travamento de 10/10 foi rajada (as janelas buscando ao mesmo
+tempo) e passou em minutos — o remédio é ritmo, não trocar de buscador.
+
+A capa limpa é a do impresso: **em pé
 (2:3), não quadrada**, e às vezes com uma linha a mais (selo do Jabuti, "mais
 vendido do NYT", nome do ilustrador).
 
