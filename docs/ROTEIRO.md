@@ -10577,6 +10577,35 @@ isso:** *"a gente colocar uma regra por conta de uma loja vai acabar prejudicand
 as demais… é uma coisa que a gente tem sempre que levar em consideração"*. Uma
 mudança de exibição tem de valer pelo formato da imagem, nunca pelo nome da loja.
 
+**A segunda conferência: 8 erradas em 81, e as provas novas (10/10):** ele marcou
+8 erradas, que já voltaram à capa de antes (`desfazer_lote.py`):
+- fundo branco ou preto em volta (*A sociedade de Atlas*, *Capitão da minha alma*
+  e quatro da coleção Saúde da Mente, da Astral Cultural);
+- uma foto 3D do livro (*Carmilla*);
+- capa do livro irmão da coleção (*Aprendendo a perdoar* com a de *…a fingir*,
+  *Como lidar com o autismo* com a de *…o burnout*).
+
+**Causa da capa de outro livro:** o registro do ISBN (CBL) devolve os irmãos da
+coleção junto, com o mesmo desenho. A comparação de imagem passava, e a leitura
+aceitava qualquer palavra do título. Revendo tudo, apareceram mais três:
+- *100 minutos: Psicanálise* com a de *Psicologia* e *Desenfreados: Parte 1* com a
+  da parte 2, que ele tinha aprovado sem perceber;
+- *Império do Ódio* com a do *Império do Desejo*.
+
+**Regra nova no lote:**
+- O título do registro tem de ser o do livro, e o número de volume tem de bater.
+- Quando o registro dá outro nome ao mesmo livro (*As leis do sucesso* × "As leis
+  originais do triunfo"), a capa nova só passa se a leitura achar escrita nela a
+  palavra que falta no registro.
+
+**Fundo liso:** não vira recusa automática. Muitas capas que ele aprovou têm fundo
+branco ou preto como parte do desenho (os *100 Minutos*, *A sete chaves*). Ele
+recebe um aviso amarelo na folha.
+
+**A regra da folha (pedido dele):** toda leva que o programa troca vai para ele
+conferir. As que eu acho erradas já vêm marcadas, com o motivo. Cada rodada
+responde num arquivo próprio (`capas-trocadas-D2.json`…).
+
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
 Ele marcou a folha `_canais-sorteio-3.html` (a 1ª metade, 19 pessoas) e deu o veredito:
