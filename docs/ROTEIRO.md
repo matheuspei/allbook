@@ -10598,9 +10598,21 @@ aceitava qualquer palavra do título. Revendo tudo, apareceram mais três:
   originais do triunfo"), a capa nova só passa se a leitura achar escrita nela a
   palavra que falta no registro.
 
-**Fundo liso:** não vira recusa automática. Muitas capas que ele aprovou têm fundo
-branco ou preto como parte do desenho (os *100 Minutos*, *A sete chaves*). Ele
-recebe um aviso amarelo na folha.
+**Fundo liso:** o aviso amarelo de "borda lisa" não se confirmou: nos 3 que ele
+viu, o fundo era do desenho. Valeu a prova mais fina. Agora o fundo só conta como
+posto pela loja quando:
+- é liso, branco ou preto;
+- aparece em pelo menos dois lados;
+- **tem cor diferente da borda da capa da Audible** no mesmo lado.
+
+Medido em 197 trocas, a prova pega 8 dos 9 que tinham fundo posto, sem nenhuma
+recusa errada. Escapa *Como enfrentar o Alzheimer*, cuja capa da Audible também é
+quase branca. Com fundo posto, o lote recusa a capa, e a folha já a traz marcada
+como errada.
+
+Na rodada 3 apareceram mais três assim: *Longe do ninho*, *O caminho de
+Perséfone* e *O grande livro das bruxas*. A Amazon devolve a capa num quadrado,
+com branco dos lados.
 
 **A regra da folha (pedido dele):** toda leva que o programa troca vai para ele
 conferir. As que eu acho erradas já vêm marcadas, com o motivo. Cada rodada
