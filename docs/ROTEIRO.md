@@ -10544,6 +10544,22 @@ livro sem a mesma capa limpa não fica com a faixa. Vai para ele com as capas de
 outras edições para escolher, numa folha só com os livros que faltam. Não se
 reabre folha de livro já decidido.
 
+**As duas regras inegociáveis e a ordem (ele, 10/10):** (1) nunca a faixa da Audible;
+(2) **nunca a capa de outro livro**: resumo, comentário, "lições de…", guia ou livro
+de outro autor sobre aquele livro. Um nome que não é o do autor na capa já desvirtua.
+A ordem: primeiro a mesma capa, sem a faixa. Se ela não existir, vale **outra
+edição do mesmo livro**, desde que seja uma capa "decente, bonita, visível" e
+combine com as outras do app (nítida, em pé, sem foto nem anúncio). O que fez ele
+falar: a folha de *A arte da guerra* mostrava, entre as recusadas, uma capa com o
+subtítulo "13 lições que podem mudar a sua vida". Ela parecia outro livro e não
+devia ter sido oferecida. A busca aceitava qualquer título que contivesse as
+palavras do título do livro. **Para a etapa da outra edição:** o título lido na
+capa tem de ser o do livro, sem um título de outra obra por cima. O autor lido
+tem de ser o do livro. Capa com "resumo", "lições", "guia", "análise" ou
+"comentado por" cai. A primeira leva vai para ele conferir se a régua acerta;
+se acertar, o resto segue sozinho. O lote da mesma capa (`lote_isbn.py`) já está
+dentro das duas regras: exige a mesma arte e o título lido nas duas capas.
+
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
 Ele marcou a folha `_canais-sorteio-3.html` (a 1ª metade, 19 pessoas) e deu o veredito:
