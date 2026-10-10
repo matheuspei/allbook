@@ -10674,6 +10674,16 @@ de conferência, rodada 6), 98 com outra edição para escolher e 236 sem nenhum
 que passe. A passada pelo Bing (uns 45 s por livro, umas 4 h) começa pelos que
 ficaram sem opção.
 
+**A primeira leva (10/10): a régua acertou 28 de 30.** Ele trocou só *A Abadia
+de Northanger* (preferiu a da Nova Fronteira) e disse que nenhuma serve para *A
+Alma Encantadora das Ruas*; as capas que ele recusou não voltam. As 29 foram
+para o lugar (`lote: "edicao-escolhida"`). Ele também aprovou as 10 da rodada 6.
+**Daqui em diante o programa põe a escolha dele sozinho** (`aplicar_edicao.py
+--programa`, `lote: "edicao-programa"`), depois da passada pelo Bing, para que a
+mesma capa limpa, se aparecer, venha antes. Tudo vai para ele numa folha só de
+conferência; pedido dele: *"me entregue quando você já tiver uma boa quantidade
+de capas"*.
+
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
 Ele marcou a folha `_canais-sorteio-3.html` (a 1ª metade, 19 pessoas) e deu o veredito:
