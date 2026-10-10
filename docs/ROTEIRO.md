@@ -10560,6 +10560,23 @@ tem de ser o do livro. Capa com "resumo", "lições", "guia", "análise" ou
 se acertar, o resto segue sozinho. O lote da mesma capa (`lote_isbn.py`) já está
 dentro das duas regras: exige a mesma arte e o título lido nas duas capas.
 
+**O lote pelo ISBN e a primeira conferência (10/10):** `lote_isbn.py` roda nos 600
+livros da Audible que ainda têm a faixa (log em
+`~/AllBook-enriquecimento/capas/lote/rodada.log`). Ele conferiu os 25 primeiros
+trocados na folha `_capas-trocadas-D.html` (`folha_trocadas.py` a refaz), e **todos
+estavam certos**.
+
+**A capa em pé no tocador foi para outra janela (10/10):** a capa limpa é a do
+livro impresso, em pé, e a da Audible era quadrada. Na grade (cartão 3:4) e na
+ficha a capa em pé perde menos. No tocador, o quadro é quadrado, com
+`object-cover`, e corta cerca de 15% em cima e 15% embaixo. É o mesmo corte que os
+livros da Ubook já sofrem hoje. A proposta de mostrar a capa inteira, com as
+laterais desfocadas, foi para outra janela, num vídeo de proposta (passagem
+`~/.claude/passagens/2026-10-10-capa-inteira-no-tocador.md`). **A régua dele para
+isso:** *"a gente colocar uma regra por conta de uma loja vai acabar prejudicando
+as demais… é uma coisa que a gente tem sempre que levar em consideração"*. Uma
+mudança de exibição tem de valer pelo formato da imagem, nunca pelo nome da loja.
+
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
 Ele marcou a folha `_canais-sorteio-3.html` (a 1ª metade, 19 pessoas) e deu o veredito:
