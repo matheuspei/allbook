@@ -10519,3 +10519,60 @@ em pé no lugar da quadrada (na grade 3:4 corta pouco; no player quadrado corta 
 cima e embaixo) e quais trocar. Nada é trocado antes; a troca guarda a original
 como `capa-com-faixa.jpg` e muda os três lugares (`capa.jpg` do pronto, a capa
 dentro de cada `.m4a` via mutagen, `~/AllBook-capas/<id>.jpg`).
+
+## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
+
+Ele marcou a folha `_canais-sorteio-3.html` (a 1ª metade, 19 pessoas) e deu o veredito:
+"ele está ficando muito bom", mas "ficou fácil porque a gente já foi corrigindo baseado
+no erro". Por isso pediu **mais 5 pessoas pouco conhecidas** (Machado de Assis e Kate
+Chopin são fáceis). Tudo abaixo está em `~/AllBook-enriquecimento/teste-motores/`
+(`canais.py`, `leve.py`, fora do repo):
+
+- **"Mesma pessoa?"** é a pergunta do juiz quando há duas contas da mesma rede.
+- **O canal automático do YouTube** ("Fulano - Topic/Tema/Tópico", que o YouTube monta
+  com os audiolivros) entra em **A quando um livro dela está nos álbuns**. Ele não é uma
+  conta da pessoa: não conta como homônimo, não puxa a busca do mesmo @ e não faz do
+  canal de locutor uma "segunda conta" (era o que derrubava o `@viniciuslesciolocutor`).
+  A busca ganhou a consulta "nome Topic youtube".
+- **O Linktree estava bloqueado:** o Linktree recusa o httpx (403) e abre para o curl, e o
+  403 ficava guardado no cache — 111 Linktrees nunca foram lidos. Agora a página
+  bloqueada é lida de novo pelo curl, e os links do Linktree vêm do JSON da página
+  (`__NEXT_DATA__`), sem o rodapé e as contas sugeridas de outras pessoas (o limite de 30
+  links cortava o Instagram do Hans, o que ele apontou). O site que o Linktree dela
+  lista também é lido. Os outros sites que bloqueiam (Medium, Bookmate, Fandom) usam
+  Cloudflare e continuam fechados.
+- 🚨 **A busca devolvia lixo, e o lixo ficava no cache desde 09/10.** Quando o
+  DuckDuckGo limita este computador, o `ddgs` sorteia outro buscador, e alguns devolvem
+  qualquer coisa: a Wikipédia do Google para "Vinícius Léscio", o Speedtest para
+  "Walfredo Medeiros", a previsão do tempo de Queluz para "Andy Sernovitz linkedin".
+  Eram 67 buscas guardadas em 21 pessoas das folhas antigas, além das da madrugada
+  de 10/10, que zeraram o Andy Sernovitz e a Cris Camps. Agora o resultado
+  que não traz nenhuma palavra da busca (fora "instagram", "narradora" etc.) é
+  recusado e buscado de novo, e não vai para o cache (`fala_da_busca` em `leve.py`). As
+  buscas com lixo foram guardadas em `cache/busca-quarentena-1010*/`. ⚠️ A janela D
+  (capas) usa o mesmo buscador e a mesma cota.
+- **Medida (contra as marcações dele):** folha 1 — 67 certos dentro, 0 certos fora,
+  0 errados dentro, foto em 24 de 28; o sorteio inteiro depois do Linktree — 73 certos
+  dentro, nenhum errado dentro, foto em 25 de 29. Gabarito: nenhum errado; Mateus Prado
+  com os 5 canais em A pelo Linktree, Danilo Barbosa e Ivana Arruda Leite ganharam o
+  Instagram.
+- **A folha foi dividida** para ele começar antes: `_canais-sorteio-3.html` (1 de 2) e
+  `_canais-sorteio-3b.html` (2 de 2: Vinicius, Hans e as 8 do gabarito).
+- **As 5 pessoas pouco conhecidas** (1 a 4 livros, sem verbete na Wikipédia, sorteadas no
+  banco): Priscila Schols, Cris Camps, Paulo Houch, Paulo Sérgio do Carmo e Andy
+  Sernovitz. Saíram 14 canais e foto em 4 das 5 (~1,1 milhão de tokens: ~960 mil nos
+  textos, ~180 mil no juiz). Folha: `_canais-sorteio-4.html`.
+  - Paulo Houch: Instagram e TikTok em A (um post cita o livro), LinkedIn pelo juiz.
+  - Andy Sernovitz (autor americano traduzido): 6 canais, todos pelo juiz.
+  - Paulo Sérgio do Carmo: Facebook e Instagram em A, o X em B (a mesma frase da bio).
+  - Cris Camps: nenhum canal — 9 perfis com o nome, nenhum com prova.
+  - 🆕 **A grafia da loja pode estar errada.** A Ubook grafa "Priscila Schols"; na rede
+    ela é Priscila Scholz, e com a grafia da loja a coleta não achou nada. O agente de
+    texto provou a grafia certa (blog da Tocalivros, Instagram dela). Agora a coleta de
+    canais usa a grafia provada pelo texto (`grafia_provada` em `canais.py`) quando é só
+    variação de letra — mesmo número de palavras, cada uma parecida; o nome completo
+    ("Paulo Roberto Houch") não troca o nome curto. O nome da loja continua batendo.
+    Com isso entraram o Instagram `priscilascholz` e o canal de narradora dela, e a foto.
+    ⚠️ Por isso, na rodada completa, o texto roda antes dos canais.
+- **A Rachel Durães ficou sem foto** porque a única imagem achada era a capa do livro
+  dela, e capa não vale como retrato.
