@@ -10474,9 +10474,20 @@ da Storytel (vazia); Open Library (acha pouco e pequeno, 342×500).
 **As que servem:** (1) o ISBN brasileiro pelo registro da CBL → a capa do livro
 impresso na Amazon pelo ISBN-10 (`m.media-amazon.com/images/P/<isbn10>.01._SCRMZZZZZZ_.jpg`,
 uns 1.700×2.560); (2) a busca de imagens (a mesma DDGS do agente leve), com os
-endereços da Amazon pedidos sem os modificadores, que devolvem o arquivo cheio.
-**Teste em 20 livros sorteados: 17 com a mesma capa, limpa e grande; 3 sem nada**
-(*Dimitri*, *A arte da guerra*, *Toxic*). A capa limpa é a do impresso: **em pé
+endereços da Amazon pedidos sem os modificadores, que devolvem o arquivo cheio;
+(3) o **número da Amazon (ASIN) do e-book**, achado na busca de texto (o link
+`amazon.com.br/.../dp/<ASIN>` que já vem nos resultados), no mesmo servidor de
+imagens: `images/P/<ASIN>.01._SCRMZZZZZZ_.jpg`. É o caminho do livro que só existe
+na Amazon (Kindle, sem ISBN no registro). Ele achou a capa do *Dimitri* assim, à
+mão, e perguntou por que o programa não achava: o programa só pedia pelo ISBN do
+impresso. Pelo número do e-book saiu 1.810×2.560, a mesma capa, sem a faixa. O
+número da edição em áudio devolve um GIF de 1×1 (não tem imagem lá). No agente,
+isso não custa busca a mais: a busca que ele já faz pelo ano traz o link da
+Amazon (144 das 2.440 buscas guardadas no cache do agente leve têm um).
+**Teste em 20 livros sorteados: 18 com a mesma capa, limpa e grande; 2 sem nada**
+(*A arte da guerra*, *Toxic*: a busca de texto travou por excesso de buscas — o
+DuckDuckGo limita o computador; o Bing pede verificação de robô e não se
+contorna). A capa limpa é a do impresso: **em pé
 (2:3), não quadrada**, e às vezes com uma linha a mais (selo do Jabuti, "mais
 vendido do NYT", nome do ilustrador).
 
@@ -10487,7 +10498,8 @@ candidata (pegou *Ruína e promessa*, o livro seguinte da série com a mesma art
 e o título lido nas duas. Este último entrou porque a edição espanhola *La
 fortuna* passou em tudo: o título enfeitado não se lê, e o texto em comum era só
 o nome do autor. **A capa casada pelo ISBN brasileiro é confiável por construção;
-a da busca só vale com o título lido.**
+a da busca só vale com o título lido.** A do número da loja também é confiável:
+o número só entra quando o título da página da Amazon bate com o da ficha.
 
 **Em aberto, decisão dele na folha `_capas-sem-faixa-D.html`:** se aceita a capa
 em pé no lugar da quadrada (na grade 3:4 corta pouco; no player quadrado corta em
