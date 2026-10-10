@@ -10439,3 +10439,58 @@ estas decisões, todas em `~/AllBook-enriquecimento/teste-motores/canais.py` e
   entrou; foto em 23 de 29 (eram 17). No gabarito antigo, 13 de 16 (eram 16):
   Renato Basilla tem perfil pessoal e profissional e o juiz os separou em duas
   pessoas — é o próximo ponto a atacar.
+
+## 4.176 Capas da Audible: tirar a faixa amarela "Exclusivo audible" (10/10) — fontes testadas, folha com ele
+
+O pedido dele, nas palavras dele: "na maioria [dos livros da Audible] existe uma
+marca d'água amarela no canto inferior direito. Isso precisa ser tirado" — buscando
+na internet "uma capa igual à que está aqui, só que sem a marca d'água". A régua:
+"a resolução [não pode ser] inadequada… É uma capa do livro e ela precisa estar bem
+visível e precisa realmente ser desse livro." E a ordem: o agente de enriquecimento
+**detecta a faixa e busca a capa limpa na mesma passada** em que já busca o ano e o
+resto do livro (§4.171: uma passada só por livro, tudo de uma vez).
+
+Apurado em 10/10: 1.286 capas da Audible em `~/Acervo/audible/pronto/<título>/capa.jpg`,
+todas 500×500; a faixa é a tarja diagonal amarela "Exclusivo audible" no canto
+inferior direito, e não está em todas (3 de 4 numa amostra). A capa também mora
+**dentro de cada `.m4a`**, e o app serve a cópia `~/AllBook-capas/<id>.jpg` que o
+importador refaz a partir do `capa.jpg` do pronto a cada importação.
+
+Trabalho de uma janela própria, aberta pela passagem
+`~/.claude/passagens/2026-10-10-capas-audible.md` (linha D do quadro). O código
+mora fora do repo, em `~/AllBook-enriquecimento/capas/`.
+
+**Medida (10/10):** 624 das 1.286 capas da Audible têm a faixa, em duas versões
+("Exclusivo audible" e "ONLY FROM audible"); nenhuma capa das outras lojas tem.
+Os livros da Ubook/Storytel/Tocalivros que apareciam com a faixa no "Baixar
+livros" eram o painel do baixalivro servindo a capa da Audible do mesmo título
+(14 cartões) — consertado no `painel.py`, o acervo estava certo.
+
+**Fontes que não servem:** a Audible de outros países (os exclusivos BR não
+existem lá); a capa grande (2400) da Audible BR (vem com a faixa); o site da
+Amazon (desafio anti-robô — não se contorna); Google Books (cota diária); a busca
+da Storytel (vazia); Open Library (acha pouco e pequeno, 342×500).
+
+**As que servem:** (1) o ISBN brasileiro pelo registro da CBL → a capa do livro
+impresso na Amazon pelo ISBN-10 (`m.media-amazon.com/images/P/<isbn10>.01._SCRMZZZZZZ_.jpg`,
+uns 1.700×2.560); (2) a busca de imagens (a mesma DDGS do agente leve), com os
+endereços da Amazon pedidos sem os modificadores, que devolvem o arquivo cheio.
+**Teste em 20 livros sorteados: 17 com a mesma capa, limpa e grande; 3 sem nada**
+(*Dimitri*, *A arte da guerra*, *Toxic*). A capa limpa é a do impresso: **em pé
+(2:3), não quadrada**, e às vezes com uma linha a mais (selo do Jabuti, "mais
+vendido do NYT", nome do ilustrador).
+
+**A conferência, sem IA paga** (`conferir.py`): mesma arte (pontos da imagem
+alinhados, fora do canto da faixa); capa chapada (reta, ocupando a imagem, em pé —
+foto do livro na mesa, maquete e banner caem); o texto da original lido na
+candidata (pegou *Ruína e promessa*, o livro seguinte da série com a mesma arte);
+e o título lido nas duas. Este último entrou porque a edição espanhola *La
+fortuna* passou em tudo: o título enfeitado não se lê, e o texto em comum era só
+o nome do autor. **A capa casada pelo ISBN brasileiro é confiável por construção;
+a da busca só vale com o título lido.**
+
+**Em aberto, decisão dele na folha `_capas-sem-faixa-D.html`:** se aceita a capa
+em pé no lugar da quadrada (na grade 3:4 corta pouco; no player quadrado corta em
+cima e embaixo) e quais trocar. Nada é trocado antes; a troca guarda a original
+como `capa-com-faixa.jpg` e muda os três lugares (`capa.jpg` do pronto, a capa
+dentro de cada `.m4a` via mutagen, `~/AllBook-capas/<id>.jpg`).
