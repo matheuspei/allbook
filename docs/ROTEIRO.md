@@ -10616,3 +10616,47 @@ Chopin são fáceis). Tudo abaixo está em `~/AllBook-enriquecimento/teste-motor
     ⚠️ Por isso, na rodada completa, o texto roda antes dos canais.
 - **A Rachel Durães ficou sem foto** porque a única imagem achada era a capa do livro
   dela, e capa não vale como retrato.
+
+## 4.178 Perfis duplicados de pessoa: ele mandou juntar AGORA, antes do agente (07/10) — varredura feita, banco intocado
+
+**Ordem dele (07/10):** procurar todos os perfis duplicados e juntar já, porque
+duplicado atrapalha o agente de enriquecimento. Isso derruba o "fica para quando
+houver caso" da §4.160. **A prova de que atrapalha já existe:** o sorteio de canais
+de 10/10 (§4.177) pesquisou *"Priscila Schols"* como uma pessoa à parte, e ela é a
+Priscila Scholz, que tem **cinco** perfis no banco.
+
+**A varredura (07/10, 7.819 pessoas), cinco tipos:**
+1. **Título na frente** — 47 grupos, quase todos religiosos (Canção Nova, MK,
+   Central Gospel): *Pr.* × *Pastor* Silas Malafaia (185 × 74 livros), *Pe* ×
+   *Padre* Fábio de Melo, *Mons.* × *Monsenhor* Jonas Abib, *Pastora* Helena Raquel,
+   *Pr.* Hernane Santos, *Sir*/*Dr.*.
+2. **Digitação da loja** — 270 pares candidatos, com joio: *Voz Artifical*,
+   *Priscila Shcolz/Schols/Sholz/Priscilla*, *Dulciono/Dolcinio Santiago*,
+   *Rennata* × *Renata Airoldi* (a grafia estranha tem mais livros). Falsos:
+   Marco × Marcelo Ribeiro, Flávio Carpes × Flavio Campos.
+3. **Abreviação** — 145 pares, maioria falsa: certos *C. H.* × *Charles Haddon
+   Spurgeon*, *L.* × *Lyman Frank Baum*; falso *Ricardo Guimarães* (pastor da MK) ×
+   *Ricardo Aguiar Guimarães* (Dialética).
+4. **Partícula** — *Machado Assis*, *José Alencar*, *Marta (dos) Santos*.
+5. **515 perfis sem livro nenhum** — sobras da §4.154/§4.160 (listas coladas,
+   nomes invertidos, editoras). Não aparecem no app nem vão para o agente.
+
+**Proposta (ainda não aprovada):** tipos 1, 4 e 5 por **regra** (que também entra
+no importador, senão livro novo nasce duplicado), com exceção para quem cai em
+editoras diferentes (*Padre Gustavo Sampaio* na Canção Nova × *Gustavo Sampaio*
+na ncom21). Tipos 2 e 3 **nunca por regra**: lista conferida par a par, olhando
+editora e livros. O aviso da §4.160 continua valendo: fundir por parecença erra
+em homônimo, e o erro não aparece. A grafia certa ganha, mesmo com menos livros.
+
+**Pendente com ele:** que nome fica quando há título. Recomendei o título **por
+extenso** ("Padre Fábio de Melo", "Pastor Silas Malafaia", "Pastora Helena
+Raquel"), porque é assim que o público os conhece, e tirar *Dr.*/*Sir* ("Joe
+Dispenza", "Arthur Conan Doyle").
+
+**Apurado no importador, para a junção não ser desfeita:** `slugPrincipal()` não
+devolve um livro ao slug antigo (só troca reserva, lista colada, organização e
+nome invertido). Mas a reconciliação **reinsere** cada nome da ficha em
+`pessoas` com `onConflictDoNothing`, e assim o perfil apagado volta, vazio. Ela
+também **reescreve** `livros.autores`/`narradores` com a grafia da ficha. O
+conserto tem de entrar em `creditos()` (`script/importar-acervo.ts`), antes do
+`slugify`. Passagem: `~/.claude/passagens/2026-10-10-perfis-duplicados.md`.
