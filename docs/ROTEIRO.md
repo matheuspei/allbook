@@ -10514,11 +10514,26 @@ o nome do autor. **A capa casada pelo ISBN brasileiro é confiável por constru�
 a da busca só vale com o título lido.** A do número da loja também é confiável:
 o número só entra quando o título da página da Amazon bate com o da ficha.
 
-**Em aberto, decisão dele na folha `_capas-sem-faixa-D.html`:** se aceita a capa
-em pé no lugar da quadrada (na grade 3:4 corta pouco; no player quadrado corta em
-cima e embaixo) e quais trocar. Nada é trocado antes; a troca guarda a original
-como `capa-com-faixa.jpg` e muda os três lugares (`capa.jpg` do pronto, a capa
-dentro de cada `.m4a` via mutagen, `~/AllBook-capas/<id>.jpg`).
+**A capa limpa entra inteira, em pé, sem recorte (decisão dele, 10/10).** Ele viu as
+19 achadas ("o agente acertou as capas… estão perfeitas") e notou que no *Toxic*, no
+*Dimitri* e em *Sangue e promessa* o título aparecia maior na grade com a capa da
+Audible. Medido: em 6 dos 19 a Audible **ampliou** a capa para fazer o quadrado, e o
+título de hoje aparece de 12% a 35% maior na grade 3:4. Nos outros 13 ela **encolheu** a
+capa e encheu as laterais, e a capa limpa mostra o título igual ou maior. A
+saída testada foi cortar a capa limpa na mesma moldura da Audible (prévia
+`_previa-capas-D.html`, com o estilo do app e três celulares lado a lado). Deu certo
+no *Toxic* e em *Sangue e promessa*, mas a Audible **remonta** algumas capas: sobe o
+título, o nome ou a imagem. Aí o recorte corta o texto. Em *A melodia dos nossos
+segredos* o título sumiu. Ele, olhando a prévia: "de longe nem me parece um problema
+realmente grande", e o recorte pode "mais causar problemas do que soluções". **Ideia
+descartada: recortar na moldura da Audible.**
+
+A troca guarda a original como `capa-com-faixa.jpg` e muda os três lugares:
+`capa.jpg` do pronto, a capa dentro de cada `.m4a` (via mutagen) e
+`~/AllBook-capas/<id>.jpg`. *A arte da guerra* espera a escolha dele na folha
+`_capas-sem-faixa-D.html`, que agora mostra o porquê da recusa e as capas recusadas.
+O áudio é da Audible Studios, e a capa foi feita só para ele. As saídas são usar
+uma capa de outra edição, manter a faixa ou pintar só o canto.
 
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
