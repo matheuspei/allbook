@@ -10614,6 +10614,20 @@ Na rodada 3 apareceram mais três assim: *Longe do ninho*, *O caminho de
 Perséfone* e *O grande livro das bruxas*. A Amazon devolve a capa num quadrado,
 com branco dos lados.
 
+**Tropeço: dois lotes ao mesmo tempo (10/10):** para reiniciar, matei o processo
+errado: o do shell, e não o do Python. O lote antigo seguiu rodando junto com o
+novo, e os dois gravaram nos mesmos 4 livros. O estrago:
+- **Um áudio de *Os judeus*** (cap. 50) ficou com o tamanho declarado maior que o
+  arquivo. O som e as etiquetas estavam inteiros: consertei só o tamanho, e todos
+  os 163 áudios dos 4 livros decodificam sem erro. A cópia estragada ficou em
+  `lote/reparo/`.
+- **A guarda da original** (`capa-com-faixa.jpg`) desses livros tinha recebido a
+  capa nova. Refiz com a cópia em `lote/<asin>/original.jpg`.
+
+*Os judeus* voltou à original, para o lote refazer. **O lote agora tem trava**
+(`lote/rodando.trava`): um segundo não começa. Para parar o lote, mate o processo
+do Python (`pgrep -f "Python lote_isbn.py"`), não o shell.
+
 **A regra da folha (pedido dele):** toda leva que o programa troca vai para ele
 conferir. As que eu acho erradas já vêm marcadas, com o motivo. Cada rodada
 responde num arquivo próprio (`capas-trocadas-D2.json`…).
