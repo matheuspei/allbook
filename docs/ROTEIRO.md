@@ -10623,9 +10623,9 @@ conferidas, 14 erradas, todas desfeitas.
 **O lote terminou (10/10):** dos 604 livros com a faixa, 274 ganharam a capa
 limpa pelo ISBN, 253 ficaram sem candidata que passasse nas provas e 77 não têm
 ISBN no registro. A rodada 4 (44 livros) ele aprovou inteira. Até aqui ele
-conferiu 257 trocas, e as 17 últimas estão na rodada 5. Os 330 que seguem com a
-faixa (253 + 77, mais as 14 desfeitas) esperam a etapa seguinte: outra edição do
-mesmo livro.
+conferiu 257 trocas, e as 17 últimas estão na rodada 5 (aprovada inteira depois).
+Os 344 que seguem com a faixa (253 + 77, mais as 14 desfeitas) esperam a etapa
+seguinte: outra edição do mesmo livro.
 
 **Tropeço: dois lotes ao mesmo tempo (10/10):** para reiniciar, matei o processo
 errado: o do shell, e não o do Python. O lote antigo seguiu rodando junto com o
@@ -10644,6 +10644,35 @@ do Python (`pgrep -f "Python lote_isbn.py"`), não o shell.
 **A regra da folha (pedido dele):** toda leva que o programa troca vai para ele
 conferir. As que eu acho erradas já vêm marcadas, com o motivo. Cada rodada
 responde num arquivo próprio (`capas-trocadas-D2.json`…).
+
+**A etapa da outra edição (10/10):** para os 344 que seguem com a faixa,
+`lote_edicao.py` tenta, nesta ordem:
+1. **A mesma capa sem a faixa, por outro caminho:** as edições do registro que o
+   lote pelo ISBN não chegou a ver (ele olhava só as 4 primeiras), o ISBN pela
+   Open Library para os 77 sem registro e, numa segunda passada, a Amazon e as
+   imagens achadas pelo Bing. A que passa nas provas do lote troca sozinha
+   (`lote: "edicao-mesma"`) e vai para a folha de conferência de sempre.
+2. **Outra edição do mesmo livro:** até 4 capas por livro, que ele escolhe na
+   folha `_capas-edicao-D.html` (a primeira é a que o programa poria). A régua:
+   em pé, nítida, sem a marca de loja de áudio, sem anúncio ("brinde", "pré-venda"),
+   sem fundo posto em volta, com o título e o sobrenome do autor lidos na capa, e
+   sem "resumo", "lições", "guia", "análise" ou "comentado" (salvo quando a
+   palavra está no título ou a edição é confirmada pelo registro). Capa que ele
+   recusou numa conferência não volta.
+
+A primeira leva (30 livros) vai para ele medir a régua; se acertar, as outras
+seguem sozinhas, com folha de conferência. `aplicar_edicao.py --rodada N` põe as
+escolhas dele no lugar.
+
+**O buscador:** o DuckDuckGo deste computador devolve lixo ou nada, o Google
+Books dá 429 e o Brave, o Google e o Mojeek pelo `ddgs` dão "sem resultado". O
+que funciona é o **Bing pelo `ddgs`** (`backend="bing"`, região `br-pt`), com
+**20 s entre as buscas**. Se algum pedir verificação de robô, quem resolve é ele.
+
+**Primeira passada, sem o buscador (10/10):** 10 trocados pela mesma capa (folha
+de conferência, rodada 6), 98 com outra edição para escolher e 236 sem nenhuma
+que passe. A passada pelo Bing (uns 45 s por livro, umas 4 h) começa pelos que
+ficaram sem opção.
 
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
