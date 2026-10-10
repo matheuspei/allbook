@@ -10614,6 +10614,12 @@ Na rodada 3 apareceram mais três assim: *Longe do ninho*, *O caminho de
 Perséfone* e *O grande livro das bruxas*. A Amazon devolve a capa num quadrado,
 com branco dos lados.
 
+**A terceira conferência (10/10):** ele viu 77 trocas e confirmou as 3 que eu
+tinha marcado pela prova do fundo posto (*Longe do ninho*, *O caminho de
+Perséfone*, *O grande livro das bruxas*). Já voltaram à capa de antes. As outras 74
+estão certas, e nenhuma escapou das provas. Somando as três rodadas: 213
+conferidas, 14 erradas, todas desfeitas.
+
 **Tropeço: dois lotes ao mesmo tempo (10/10):** para reiniciar, matei o processo
 errado: o do shell, e não o do Python. O lote antigo seguiu rodando junto com o
 novo, e os dois gravaram nos mesmos 4 livros. O estrago:
