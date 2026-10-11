@@ -10749,9 +10749,12 @@ da Audible (cursos da Casa do Saber, Disney, Joel Jota…) em que até o e-book 
 marca; nos outros 7 a Amazon não tem o livro ou só tem outro livro, outro volume
 ou a foto em 3D. Duas das 62 eram capas que ele já tinha recusado e ficaram fora:
 60 vão para a folha `_capas-edicao-D.html` (rodada 3, montada pelo
-`amazon_para_folha.py` e pelo `folha_edicao.py --abertura`). Quando ele responder,
-`aplicar_edicao.py --rodada 3`. A faixa apagada (`aplicar_apagar.py`) não roda: é
-último recurso, para conversar com ele.
+`amazon_para_folha.py` e pelo `folha_edicao.py --abertura`). Ele respondeu: 59
+trocadas (`aplicar_edicao.py --rodada 3`; a minha escolha bateu com a dele em 57) e
+*130 anos* com "nenhuma serve". **Ficam 291 dos 344 sem a faixa e 53 com ela** (os 43
+originais da Audible, os 7 que a Amazon não tem, as 2 capas que ele já tinha
+recusado e *130 anos*). A faixa apagada (`aplicar_apagar.py`) não roda: é último
+recurso, para conversar com ele.
 
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
