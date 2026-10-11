@@ -10803,3 +10803,30 @@ nome invertido). Mas a reconciliação **reinsere** cada nome da ficha em
 também **reescreve** `livros.autores`/`narradores` com a grafia da ficha. O
 conserto tem de entrar em `creditos()` (`script/importar-acervo.ts`), antes do
 `slugify`. Passagem: `~/.claude/passagens/2026-10-10-perfis-duplicados.md`.
+
+## 4.179 Canais: o LinkedIn lido com sessão e a conta vazia ao lado da verdadeira (11/10)
+
+Continuação da §4.177. Tudo em `~/AllBook-enriquecimento/teste-motores/` (fora do repo):
+
+- **As três redes estão vivas de novo.** O Facebook da conta de trabalho voltou (ele já
+  usa a conta à mão, para não parecer robô). No LinkedIn, a pedido dele, entra uma conta
+  antiga dele que ele não usa; **ele mesmo faz o login** pela janela `redes.py entrar`.
+- **O LinkedIn mudou a página do perfil.** O HTML só traz o cabeçalho: os seguidores
+  ("Atividades · N seguidores") só aparecem quando as seções carregam, às vezes só com
+  a rolagem. Agora o perfil é lido no navegador invisível, que rola a página e espera
+  essa linha (`linkedin_foto` em `redes.py`). A primeira versão pegava o número de uma
+  página sugerida na coluna ao lado (351.747 no Andy Sernovitz, que tem 15.372): agora
+  só vale o número logo abaixo do título "Atividades".
+- **A regra, decidida por ele com a folha `_linkedin-vazio.html`:** LinkedIn sem foto e
+  com 10 seguidores ou menos **sai quando a pessoa já tem outro LinkedIn aceito com
+  foto** — é cópia ou conta abandonada, e o verdadeiro já está na lista. Saíram o
+  segundo do Andy Sernovitz (sem foto, 1 seguidor, "CEO at Gaspedal Marketing") e o
+  segundo da Ivana Arruda Leite (sem foto, 0). Nas palavras dele: "se você já tem um
+  perfil, já está verificado, é melhor que a conta vazia saia". **Conta sozinha não sai
+  por estar vazia nem por a bio falar de outra profissão**: o que ele não quer é trazer
+  as duas contas quando a bio da segunda é de outra profissão. Essa conta continua
+  indo para o juiz, como antes.
+- **Medida (contra as marcações dele):** nenhum errado dentro nas três rodadas
+  (gabarito, sorteio de 09/10 e as 5 pessoas de 10/10). Gabarito: 39 certos dentro e
+  3 fora: o segundo LinkedIn da Ivana, que agora sai pela decisão dele; o Facebook
+  do Daniel Vieira da Silva; e o Substack do Gustavo Tanaka. Sorteio de 09/10: 73 certos dentro e 0 fora.
