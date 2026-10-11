@@ -10729,6 +10729,30 @@ na folha `_capas-apagar-faixa-D.html`, com as 44 já marcadas. Quando ele respon
 o `aplicar_apagar.py` põe no lugar as que servem (`lote: "faixa-apagada"`); para as
 que não servem, falta achar outro caminho.
 
+**A busca direta na Amazon e a folha D3 (11/10).** Ele reprovou a maior parte da
+faixa apagada por uma coisa que eu não tinha visto: a marca **"audible ORIGINAL"**
+no alto da capa, que **também não serve**, como a faixa. E pediu para parar de
+inventar capa e voltar a trazer capa real achada na internet, na Amazon, para os
+112 que ainda têm a faixa (até os que ele tinha aprovado apagados). O caminho que
+ele mostrou, com *10 dias para ele se apaixonar*: a página do audiolivro na Amazon
+tem a faixa, mas o quadradinho do Kindle leva ao e-book do mesmo livro, com a capa
+limpa. Os números da Audible BR dão 404 na Amazon, então o `amazon_busca.py` busca
+na amazon.com.br pelo título inteiro e o autor (7 a 12 s entre buscas; nenhuma
+verificação de robô nos 112) e prefere o produto que a Amazon agrupa com o
+audiolivro (o que lista "Audiolivro" entre as versões): dele vêm a capa do Kindle
+e a do impresso. As regras duras do `lote_edicao.py` (autor escrito na capa, título
+lido pelo OCR, fundo liso) tinham jogado fora essas capas; aqui não há régua: eu
+conferi as 112 a olho, em pranchas (`lote/minhas-amazon.json`). **62 têm capa
+real**, quase sempre a mesma arte sem a faixa (*O caminho de Perséfone* só veio com
+a margem branca da loja, que eu cortei). **50 não têm nenhuma:** 43 são originais
+da Audible (cursos da Casa do Saber, Disney, Joel Jota…) em que até o e-book tem a
+marca; nos outros 7 a Amazon não tem o livro ou só tem outro livro, outro volume
+ou a foto em 3D. Duas das 62 eram capas que ele já tinha recusado e ficaram fora:
+60 vão para a folha `_capas-edicao-D.html` (rodada 3, montada pelo
+`amazon_para_folha.py` e pelo `folha_edicao.py --abertura`). Quando ele responder,
+`aplicar_edicao.py --rodada 3`. A faixa apagada (`aplicar_apagar.py`) não roda: é
+último recurso, para conversar com ele.
+
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
 Ele marcou a folha `_canais-sorteio-3.html` (a 1ª metade, 19 pessoas) e deu o veredito:
