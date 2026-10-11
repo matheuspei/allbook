@@ -10703,6 +10703,32 @@ que ele tinha recusado ganharam capa nova e não apareciam na folha, porque o
 número do livro já estava nas conferidas; agora a conferência vale por troca
 (`ASIN@quando`).
 
+**A rodada 7 conferida, a rodada 2 de escolha e a faixa apagada (11/10).** Ele
+confirmou as 44 que eu tinha marcado como erradas na rodada 7 (*"corrigir aquelas
+que você já entendeu que estava errada e manter as que você já entendeu que estava
+bom"*): as 44 voltaram à capa de antes e as outras 184 ficaram. Um tropeço: o
+`desfazer_lote.py` desfez 5 a mais, porque olhava o número do livro e não a troca;
+consertado (os 5 voltaram à capa nova), e agora ele só desfaz troca feita antes da
+resposta (compara `quando` com a hora do arquivo de respostas). Antes da folha de
+escolha, eu olhei as opções uma por uma e tirei as fotos, os anúncios, as edições
+em outra língua, a versão em quadrinhos e os livros errados
+(`lote/minhas-recusas.json`, {arquivo: motivo}, que o `lote_edicao.py` respeita).
+Na rodada 2 (10 livros) ele trocou 9 e disse "nenhuma serve" para *O Misterioso
+Caso de Styles*; a escolha do programa bateu com a dele em 7 de 10. Ficaram **112
+livros com a faixa**, sem nenhuma outra capa que preste. **Para esses, a saída
+testada é apagar a faixa da própria capa** com o LaMa, um programa gratuito de
+imagem que roda no Mac e preenche o lugar com o que está em volta
+(`apagar_faixa.py`, modelo em `modelos/lama_fp32.onnx`; não é o modelo de texto
+descartado na §4.173). A faixa fica sempre na mesma tira diagonal das capas de
+500×500 (x+y entre 800 e 901). A área apagada pega ~20 pontos a mais de cada lado
+(781–923): com só 5, a borda clarinha da faixa ficava e o programa desenhava a
+linha de volta. **O limite:** onde a faixa cobria letras (o nome do autor, o fim
+do título) ou um desenho miúdo, o programa inventa um borrão. Das 112, eu acho que
+68 ficaram boas e 44 não servem (`lote/minhas-marcas-apagar.json`); vão para ele
+na folha `_capas-apagar-faixa-D.html`, com as 44 já marcadas. Quando ele responder,
+o `aplicar_apagar.py` põe no lugar as que servem (`lote: "faixa-apagada"`); para as
+que não servem, falta achar outro caminho.
+
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
 Ele marcou a folha `_canais-sorteio-3.html` (a 1ª metade, 19 pessoas) e deu o veredito:
