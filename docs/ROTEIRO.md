@@ -10684,6 +10684,25 @@ mesma capa limpa, se aparecer, venha antes. Tudo vai para ele numa folha só de
 conferência; pedido dele: *"me entregue quando você já tiver uma boa quantidade
 de capas"*.
 
+**A passada pelo Bing e a leva do programa (11/10): a busca de imagens não pode
+entrar sozinha.** A passada terminou sem erro e sem pedido de robô: 156 trocados
+pela mesma capa, 112 com outra edição e 76 sem nada que passe. O `--programa` pôs
+111 capas de outra edição. Olhando as 228 da folha de conferência (rodada 7) uma
+por uma, **44 estão erradas**: foto do livro na mesa ou na mão, montagem de
+anúncio, página de texto, edição em inglês, espanhol, alemão ou romeno, e outro
+livro ou outro volume (*Meu Pior pra Você* no lugar de *Meu Melhor*). Pela
+origem: **a busca de imagens errou 29 de 33**; o ISBN da Amazon, 12 de 74; o
+acervo das outras lojas, nenhuma. A primeira leva acertou 28 de 30 porque nenhuma
+escolha dele veio da busca de imagens. **A régua agora:** o `--programa` só põe
+sozinho a capa que não veio da busca de imagens nem de ISBN de fora do Brasil
+(que não começa por 85 ou 65); as outras vão para a folha de escolha. As 44 vão
+marcadas na folha, com o motivo (`lote/minhas-marcas.json`, que vale mais que as
+provas automáticas). Na mesma revisão, 4 marcas de "fundo branco" do programa
+estavam erradas (era o desenho da capa) e saíram. Também havia um furo: 6 livros
+que ele tinha recusado ganharam capa nova e não apareciam na folha, porque o
+número do livro já estava nas conferidas; agora a conferência vale por troca
+(`ASIN@quando`).
+
 ## 4.177 Canais: o canal automático do YouTube, o Linktree aberto e a busca que devolvia lixo (10/10)
 
 Ele marcou a folha `_canais-sorteio-3.html` (a 1ª metade, 19 pessoas) e deu o veredito:
